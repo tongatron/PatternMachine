@@ -277,6 +277,17 @@ label.fld input[type=number]{width:54px;}
 .mini-cell.on{background:var(--led-on);}
 .mini-cell.acc{background:var(--led-accent);}
 .lib-acts{display:grid; grid-template-columns:auto auto; gap:5px; flex:0 0 auto;}
+.lib-item{flex-wrap:wrap;}
+.lib-name{display:flex; align-items:center; gap:4px;}
+.lib-star{padding:0 3px; border:none; background:transparent; font-size:15px; line-height:1; color:var(--text-faint); text-transform:none;}
+.lib-star.on{color:#a87a00;}
+.lib-tabs button{padding:4px 9px; font-size:10px;}
+.lib-locks{flex-basis:100%; display:flex; flex-wrap:wrap; gap:5px; align-items:center;
+  padding-top:7px; border-top:1px dashed var(--edge-soft);}
+.lib-locks .tiny{flex-basis:100%;}
+.lock-chip{padding:3px 7px; font-size:9.5px; text-transform:none; letter-spacing:0.02em;}
+.lock-chip.on{background:var(--panel-3); border-color:var(--song); color:var(--text); box-shadow:0 0 0 1px var(--song) inset;}
+.lib-empty{padding:18px 6px; font-size:11px; color:var(--text-faint); font-style:italic; text-align:center;}
 .lib-code{font-size:9px; color:var(--text-dim); margin-top:3px; letter-spacing:0.02em; -webkit-user-select:all; user-select:all;}
 .lib-play{
   flex:0 0 auto; width:36px; height:36px; padding:0; border-radius:50%;
@@ -292,6 +303,10 @@ label.fld input[type=number]{width:54px;}
   .lib-meta{flex:1 1 0; min-width:0;}
   .lib-mini{order:3; flex-basis:100%;}
   .lib-acts{order:4; flex-basis:100%; grid-template-columns:repeat(4,1fr);}
+  .lib-locks{order:5;}
+  .modal-head{flex-wrap:wrap;}
+  .lib-tabs{order:3; flex-basis:100%;}
+  .lib-tabs button{flex:1 1 0;}
 }
 @media (max-width:400px){
   .lib-acts{grid-template-columns:repeat(2,1fr);}
@@ -535,6 +550,10 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       <div class="modal-head">
         <h3>Libreria pattern</h3>
         <span class="tiny" id="libCount"></span>
+        <div class="modeswitch lib-tabs" role="tablist">
+          <button type="button" id="libTabAll" class="on" role="tab">Proposte</button>
+          <button type="button" id="libTabFav" role="tab">&#9733; Preferiti <span id="favCount"></span></button>
+        </div>
         <button class="x" id="libClose">&times;</button>
       </div>
       <div class="flexline" style="margin-bottom:11px;">
@@ -581,12 +600,12 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-14.2"></script>
-<script src="engine/styles-punk.js?v=2026-09-14.2"></script>
-<script src="engine/styles-post.js?v=2026-09-14.2"></script>
-<script src="engine/styles-machines.js?v=2026-09-14.2"></script>
-<script src="engine/styles-alt.js?v=2026-09-14.2"></script>
-<script src="engine/styles-groove.js?v=2026-09-14.2"></script>
+<script src="engine/core.js?v=2026-09-14.3"></script>
+<script src="engine/styles-punk.js?v=2026-09-14.3"></script>
+<script src="engine/styles-post.js?v=2026-09-14.3"></script>
+<script src="engine/styles-machines.js?v=2026-09-14.3"></script>
+<script src="engine/styles-alt.js?v=2026-09-14.3"></script>
+<script src="engine/styles-groove.js?v=2026-09-14.3"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -1997,16 +2016,102 @@ let libNoteTimer=null;
 function libNote(msg){
   el("libCount").textContent=msg;
   clearTimeout(libNoteTimer);
-  libNoteTimer=setTimeout(()=>{ el("libCount").textContent=library.length+" pattern"; },2500);
+  libNoteTimer=setTimeout(paintLibCount,2500);
 }
 function pushToLibrary(items, after){
-  const host=el("libList"), top=host.scrollTop;
+  const host=el("libList"), top=host.scrollTop, at=after?library.indexOf(after):-1;
   library.forEach(i=>i.fresh=false);
   items.forEach(i=>i.fresh=true);
-  if(after){ library.splice(library.indexOf(after)+1,0,...items); renderLibrary(); host.scrollTop=top; }
-  else { library=items.concat(library); renderLibrary(); host.scrollTop=0; }
+  if(at>=0){ library.splice(at+1,0,...items); renderLibrary(); host.scrollTop=top; }
+  else { library=items.concat(library); setLibView("all"); host.scrollTop=0; }
 }
 const similar=item=>pushToLibrary([0,1,2,3].map(()=>SPEngine.mutate(item,SPEngine.randomSeed(16))), item);
+
+// ---------- preferiti ----------
+// Si salvano solo i codici: il pattern si rigenera identico, e cento preferiti pesano pochi KB.
+const FAV_KEY="sp1200.favorites";
+const favCache=new Map();
+function favCodes(){
+  try{ const a=JSON.parse(localStorage.getItem(FAV_KEY)||"[]"); return Array.isArray(a)?a.filter(c=>typeof c==="string"):[]; }
+  catch(e){ return []; }
+}
+function toggleFav(item){
+  const codes=favCodes(), i=codes.indexOf(item.code);
+  if(i>=0) codes.splice(i,1); else codes.unshift(item.code);
+  try{ localStorage.setItem(FAV_KEY,JSON.stringify(codes)); }
+  catch(e){ libNote("questo browser non permette di salvare i preferiti"); return; }
+  const host=el("libList"), top=host.scrollTop;
+  renderLibrary(); host.scrollTop=top;
+  libNote(i>=0?"tolto dai preferiti":"salvato nei preferiti");
+}
+function favItems(){
+  return favCodes().map(code=>{
+    if(!favCache.has(code)) favCache.set(code,SPEngine.fromCode(code));
+    return favCache.get(code);
+  }).filter(Boolean);
+}
+let libView="all";
+function setLibView(v){
+  libView=v;
+  el("libTabAll").classList.toggle("on",v==="all");
+  el("libTabFav").classList.toggle("on",v==="fav");
+  el("libTabAll").setAttribute("aria-selected",String(v==="all"));
+  el("libTabFav").setAttribute("aria-selected",String(v==="fav"));
+  renderLibrary();
+}
+function paintLibCount(){
+  const n=favCodes().length;
+  el("favCount").textContent=n?`(${n})`:"";
+  el("libCount").textContent=libView==="fav"?`${n} preferiti`:`${library.length} pattern`;
+}
+
+// ---------- blocca voce ----------
+const ROLE_LABEL={kick:"Cassa", kick2:"Cassa 2", snare:"Rullante", snare2:"Rullante 2", snare3:"Rull. secco",
+  clap:"Clap", rim:"Rim", chh:"HH chiuso", chh2:"HH 2", ohh:"HH aperto", ride:"Ride", crash:"Crash",
+  china:"China", tom:"Tom", tom2:"Floor tom", cow:"Campanaccio", conga:"Conga", conga2:"Conga 2",
+  clave:"Clave", tamb:"Tamburello", shaker:"Shaker", perc:"Perc"};
+const locks=new WeakMap(), lockOpen=new WeakSet();
+function toggleLockPanel(item){
+  if(lockOpen.has(item)) lockOpen.delete(item);
+  else {
+    lockOpen.add(item);
+    // di partenza si tiene lo scheletro: cassa e rullante
+    if(!locks.has(item)) locks.set(item,new Set(["kick","snare"].filter(r=>item.roles[r])));
+  }
+  const host=el("libList"), top=host.scrollTop;
+  renderLibrary(); host.scrollTop=top;
+}
+function regenerate(item){
+  const kept=locks.get(item)||new Set();
+  const child=SPEngine.relock(item,SPEngine.lockMask([...kept]),SPEngine.randomSeed(16));
+  const same=ROLE_ORDER.every(r=>String(child.roles[r]||"")===String(item.roles[r]||""));
+  if(same){ libNote("nessuna variazione possibile: sblocca un'altra voce"); return; }
+  locks.set(child,new Set(kept));
+  lockOpen.add(child);
+  const wasPlaying=audition.item===item;
+  pushToLibrary([child],item);
+  if(wasPlaying) startAudition(child);     // si continua ad ascoltare mentre si rigenera
+}
+function lockPanel(item){
+  const box=document.createElement("div"); box.className="lib-locks";
+  const kept=locks.get(item);
+  const hint=document.createElement("span"); hint.className="tiny";
+  hint.textContent="le voci bloccate restano identiche, le altre si rigenerano nello stesso stile";
+  box.appendChild(hint);
+  ROLE_ORDER.filter(r=>item.roles[r]).forEach(role=>{
+    const b=document.createElement("button"); b.type="button";
+    const on=kept.has(role);
+    b.className="mini lock-chip"+(on?" on":"");
+    b.textContent=(on?"\u{1F512} ":"")+(ROLE_LABEL[role]||role);
+    b.setAttribute("aria-pressed",String(on));
+    b.onclick=()=>{ on?kept.delete(role):kept.add(role); const host=el("libList"), top=host.scrollTop; renderLibrary(); host.scrollTop=top; };
+    box.appendChild(b);
+  });
+  const go=document.createElement("button"); go.type="button"; go.className="mini primary";
+  go.textContent="↻ Rigenera le altre"; go.onclick=()=>regenerate(item);
+  box.appendChild(go);
+  return box;
+}
 function openCode(code){
   const it=SPEngine.fromCode(code);
   if(!it){ libNote("codice non valido"); return false; }
@@ -2065,13 +2170,33 @@ function applyLibrary(item, asNew){
 function renderLibrary(){
   const host=el("libList");
   host.innerHTML="";
-  el("libCount").textContent=library.length+" pattern";
-  library.forEach(item=>{
+  paintLibCount();
+  const list=libView==="fav"?favItems():library;
+  const favs=new Set(favCodes());
+  if(!list.length){
+    const e=document.createElement("div"); e.className="lib-empty";
+    e.textContent=libView==="fav"
+      ? "nessun preferito: tocca ☆ accanto al nome di un pattern per salvarlo qui"
+      : "nessun pattern";
+    host.appendChild(e);
+  }
+  list.forEach(item=>{
     const row=document.createElement("div");
-    row.className="lib-item"+(item.fresh?" fresh":"");
+    row.className="lib-item"+(item.fresh&&libView==="all"?" fresh":"");
 
     const meta=document.createElement("div"); meta.className="lib-meta";
-    const nm=document.createElement("div"); nm.className="lib-name"; nm.textContent=item.name;
+    const nm=document.createElement("div"); nm.className="lib-name";
+    if(item.code){
+      const fav=favs.has(item.code);
+      const star=document.createElement("button"); star.type="button";
+      star.className="lib-star"+(fav?" on":"");
+      star.textContent=fav?"★":"☆";
+      star.title=fav?"togli dai preferiti":"salva nei preferiti";
+      star.setAttribute("aria-pressed",String(fav));
+      star.onclick=()=>toggleFav(item);
+      nm.appendChild(star);
+    }
+    nm.appendChild(document.createTextNode(item.name));
     const tg=document.createElement("div"); tg.className="lib-tag"; tg.textContent=`${item.tag} · ${item.len} step`;
     meta.appendChild(nm); meta.appendChild(tg);
     if(item.ref){ const rf=document.createElement("div"); rf.className="lib-ref"; rf.textContent=item.ref; meta.appendChild(rf); }
@@ -2109,9 +2234,14 @@ function renderLibrary(){
       sim.title="4 variazioni vicine a questo pattern"; sim.onclick=()=>similar(item);
       const link=document.createElement("button"); link.className="mini"; link.textContent="Link";
       link.title="copia il link per condividere questo pattern"; link.onclick=()=>copyLink(item);
-      acts.appendChild(sim); acts.appendChild(link);
+      const lock=document.createElement("button"); lock.className="mini"+(lockOpen.has(item)?" on":"");
+      lock.textContent="\u{1F512} Blocca"; lock.title="tieni alcune voci e rigenera le altre";
+      lock.setAttribute("aria-expanded",String(lockOpen.has(item)));
+      lock.onclick=()=>toggleLockPanel(item);
+      acts.appendChild(sim); acts.appendChild(link); acts.appendChild(lock);
     }
     row.appendChild(acts);
+    if(item.code && lockOpen.has(item)) row.appendChild(lockPanel(item));
     host.appendChild(row);
   });
   paintAudition();
@@ -2119,6 +2249,8 @@ function renderLibrary(){
 
 function openLib(){ el("libOverlay").hidden=false; renderLibrary(); }
 function closeLib(){ stopAudition(); el("libOverlay").hidden=true; }
+el("libTabAll").onclick=()=>setLibView("all");
+el("libTabFav").onclick=()=>setLibView("fav");
 el("pChoose").onclick=openLib;
 el("libClose").onclick=closeLib;
 el("libOverlay").onclick=(e)=>{ if(e.target===el("libOverlay")) closeLib(); };
@@ -2203,7 +2335,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-14.2";
+const SW_VERSION="2026-09-14.3";
 (function pwa(){
   const standalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
   const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);

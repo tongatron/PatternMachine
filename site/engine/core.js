@@ -4,9 +4,13 @@
 // Tutto il caso passa da un generatore con seed: lo stesso codice rigenera sempre lo
 // stesso pattern, quindi un pattern si puo' condividere come stringa o link.
 //
-// Codice: <stile>-<step><S|R>[F]-<seed esadecimale a 6 cifre>[~<mutazione a 4 cifre>]...
-//   dbeat-16R-7F3A9B          D-beat, 16 step, ritornello, senza fill
-//   motorik-32SF-00A1C2~4C21  motorik, 32 step, strofa con fill, poi una mutazione "altri cosi'"
+// Codice: <stile>-<step><S|R>[F]-<seed esadecimale a 6 cifre>[~<passo>]...
+// Ogni passo dopo la base e' una trasformazione riproducibile:
+//   ~HHHH           "altri cosi'" (mutazione con seed a 4 cifre)
+//   ~RMMMMMMHHHH    rigenera tenendo le voci bloccate (maschera a 6 cifre su ROLE_ORDER, seed a 4)
+//   dbeat-16R-7F3A9B                 D-beat, 16 step, ritornello, senza fill
+//   motorik-32SF-00A1C2~4C21         motorik, 32 step, strofa con fill, poi una mutazione
+//   dbeat-16S-111111~R000005BEEF     cassa e rullante tenuti, il resto rigenerato
 (function (root) {
   "use strict";
 
@@ -26,6 +30,8 @@
     tom: { vol: 0.8, tune: 4 }, tom2: { vol: 0.85, tune: -5 }, cow: { vol: 0.6 }, conga: { vol: 0.7 },
     conga2: { vol: 0.7 }, tamb: { vol: 0.55 }, shaker: { vol: 0.5 }, clave: { vol: 0.6 }, perc: { vol: 0.65 },
   };
+  // L'ordine e' parte del formato dei codici (maschera delle voci bloccate):
+  // voci nuove vanno aggiunte in fondo, mai in mezzo.
   const ROLE_ORDER = ["kick", "kick2", "snare", "snare2", "snare3", "clap", "rim", "chh", "chh2", "ohh", "ride",
     "crash", "china", "tom", "tom2", "cow", "conga", "conga2", "clave", "tamb", "shaker", "perc"];
 
@@ -159,14 +165,21 @@
     const base = `${style}-${len}${section === "chorus" ? "R" : "S"}${fill ? "F" : ""}-${hex(seed, 6)}`;
     return [base, ...mutations.map(m => hex(m, 4))].join("~");
   }
+  function decodeStep(tok) {
+    if (/^[0-9A-F]{4}$/i.test(tok)) return { op: "mutate", seed: parseInt(tok, 16) };
+    const m = /^R([0-9A-F]{6})([0-9A-F]{4})$/i.exec(tok);
+    if (m && parseInt(m[1], 16) < 2 ** ROLE_ORDER.length) return { op: "relock", mask: parseInt(m[1], 16), seed: parseInt(m[2], 16) };
+    return null;
+  }
   function decode(code) {
-    const [base, ...muts] = String(code).trim().split("~");
+    const [base, ...toks] = String(code).trim().split("~");
     const m = /^([a-z0-9]+)-(16|32)([SR])(F?)-([0-9A-F]{6})$/i.exec(base || "");
-    if (!m || !STYLES[m[1].toLowerCase()] || muts.some(x => !/^[0-9A-F]{4}$/i.test(x))) return null;
+    const steps = toks.map(decodeStep);
+    if (!m || !STYLES[m[1].toLowerCase()] || steps.some(s => !s)) return null;
     return {
       opts: { style: m[1].toLowerCase(), len: +m[2], section: m[3].toUpperCase() === "R" ? "chorus" : "verse",
         fill: !!m[4], seed: parseInt(m[5], 16) },
-      mutations: muts.map(x => parseInt(x, 16)),
+      steps,
     };
   }
 
@@ -210,20 +223,10 @@
   // seed diverso) voce per voce, tenendo quasi sempre cassa e rullante del genitore,
   // poi applica 1-3 piccole mutazioni fuori dalla finestra del fill.
   const SKELETON = ["kick", "snare"];
-  function mutate(parent, mseed) {
-    const m16 = mseed & 0xFFFF;
-    const r = rng(Math.imul(m16 + 1, 2654435761));
-    const sib = generate({ style: parent.style, len: parent.len, section: parent.section, fill: parent.fill,
-      variant: parent.variant, seed: r.int(0, 0xFFFFFF) });
-    const roles = {};
-    new Set([...Object.keys(parent.roles), ...Object.keys(sib.roles)]).forEach(role => {
-      const fromParent = r.rnd(SKELETON.includes(role) ? 0.85 : 0.5);
-      const src = fromParent ? parent.roles[role] : sib.roles[role];
-      if (src) roles[role] = src.slice();
-    });
-    const safeEnd = parent.len - (parent.fill ? 8 : 0);
-    const voices = Object.keys(roles).filter(v => v !== "kick" && v !== "crash");
-    for (let n = r.int(1, 3); n > 0 && voices.length; n--) {
+  // Piccole modifiche puntuali: sposta o toglie un colpo non accentato, oppure ne aggiunge uno
+  // su un ottavo. Mai prima dello step 1 ne' dentro la finestra del fill.
+  function pointMutations(roles, voices, r, safeEnd, count) {
+    for (let n = count; n > 0 && voices.length; n--) {
       const arr = roles[r.pick(voices)];
       const i = r.int(1, safeEnd - 1);
       if (arr[i] === 2) continue;                       // gli accenti sono scheletro
@@ -236,6 +239,20 @@
         if (j > 0 && !arr[j]) arr[j] = 1;
       }
     }
+  }
+  function mutate(parent, mseed) {
+    const m16 = mseed & 0xFFFF;
+    const r = rng(Math.imul(m16 + 1, 2654435761));
+    const sib = generate({ style: parent.style, len: parent.len, section: parent.section, fill: parent.fill,
+      variant: parent.variant, seed: r.int(0, 0xFFFFFF) });
+    const roles = {};
+    new Set([...Object.keys(parent.roles), ...Object.keys(sib.roles)]).forEach(role => {
+      const fromParent = r.rnd(SKELETON.includes(role) ? 0.85 : 0.5);
+      const src = fromParent ? parent.roles[role] : sib.roles[role];
+      if (src) roles[role] = src.slice();
+    });
+    const voices = Object.keys(roles).filter(v => v !== "kick" && v !== "crash");
+    pointMutations(roles, voices, r, parent.len - (parent.fill ? 8 : 0), r.int(1, 3));
     const st = STYLES[parent.style];
     const [lo, hi] = Array.isArray(st.bpm) ? st.bpm : [st.bpm, st.bpm];
     const bpm = Math.max(lo, Math.min(hi, parent.bpm + r.int(-3, 3)));
@@ -247,10 +264,49 @@
     });
   }
 
+  // "Blocca voce": le voci nella maschera restano identiche, tutte le altre arrivano da un
+  // fratello generato con seed nuovo (stesso stile, variante, sezione e fill). Il tempo resta.
+  const lockMask = roles => roles.reduce((m, role) => {
+    const i = ROLE_ORDER.indexOf(role);
+    return i < 0 ? m : m | (1 << i);
+  }, 0);
+  const lockedRoles = mask => ROLE_ORDER.filter((_, i) => mask & (1 << i));
+  function relock(parent, mask, rseed) {
+    const s16 = rseed & 0xFFFF;
+    const r = rng(Math.imul(s16 + 7, 2246822519));
+    const same = (a, b) => ROLE_ORDER.every(k => String(a[k] || "") === String(b[k] || ""));
+    let roles;
+    // Negli stili rigidi un fratello puo' coincidere col genitore sulle voci libere: si prova
+    // qualche seed in piu' (sempre dallo stesso generatore, quindi resta riproducibile).
+    for (let attempt = 0; attempt < 8; attempt++) {
+      const sib = generate({ style: parent.style, len: parent.len, section: parent.section, fill: parent.fill,
+        variant: parent.variant, seed: r.int(0, 0xFFFFFF) });
+      roles = {};
+      ROLE_ORDER.forEach((role, i) => {
+        const src = (mask & (1 << i)) ? parent.roles[role] : sib.roles[role];
+        if (src) roles[role] = src.slice();
+      });
+      if (!same(clean(roles), parent.roles)) break;
+    }
+    if (same(clean(roles), parent.roles)) {
+      // Stile senza varianti sulle voci libere: si varia quelle, mai le bloccate.
+      const free = Object.keys(roles).filter(v => !(mask & (1 << ROLE_ORDER.indexOf(v))) && v !== "crash");
+      for (let tries = 0; tries < 6 && same(clean(roles), parent.roles); tries++)
+        pointMutations(roles, free, r, parent.len - (parent.fill ? 8 : 0), r.int(1, 3));
+    }
+    const st = STYLES[parent.style];
+    const suffix = "R" + hex(mask, 6) + hex(s16, 4);
+    const variant = (st.variants || []).find(v => v.id === parent.variant);
+    return Object.assign({}, parent, {
+      code: parent.code + "~" + suffix, name: `${st.label} ↻${hex(s16, 4)}`, roles: clean(roles),
+      tag: `${parent.bpm} bpm · ` + describe(parent.section, parent.fill, variant, "rigenerato"),
+    });
+  }
+
   function fromCode(code) {
     const d = decode(code);
     if (!d) return null;
-    return d.mutations.reduce((p, m) => mutate(p, m), generate(d.opts));
+    return d.steps.reduce((p, s) => s.op === "mutate" ? mutate(p, s.seed) : relock(p, s.mask, s.seed), generate(d.opts));
   }
 
   const E = {
@@ -258,7 +314,7 @@
     roles: { sample: ROLE_SAMPLE, defaults: ROLE_DEFAULTS, order: ROLE_ORDER },
     groups: GROUPS, styles: STYLES, fills: FILLS,
     defineGroup, defineStyles, stylesIn, resolveStyle,
-    generate, mutate, fromCode, encode, decode, randomSeed, rng,
+    generate, mutate, relock, lockMask, lockedRoles, fromCode, encode, decode, randomSeed, rng,
     h: { zeros, euclid, cells, hits, backbeat, cymbal, ghosts, euclidBars, openHat },
   };
   root.SPEngine = E;

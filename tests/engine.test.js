@@ -106,6 +106,37 @@ test("altri così: mutazioni riproducibili, vicine ma diverse", () => {
   ok(chain && chain.code === "motorik-32SF-00A1C2~4C21~0003", "catena di mutazioni");
 });
 
+test("blocca voce: le voci bloccate restano, il resto si rigenera, tutto riproducibile", () => {
+  let changed = 0, total = 0;
+  for (const id of Object.keys(E.styles)) {
+    for (let s = 0; s < 8; s++) {
+      const parent = E.generate({ style: id, len: s % 2 ? 32 : 16, section: s % 3 ? "verse" : "chorus", fill: s % 4 === 0, seed: s * 7331 + 1 });
+      const present = Object.keys(parent.roles);
+      const keep = present.filter((_, i) => i % 2 === 0);
+      const mask = E.lockMask(keep);
+      ok(JSON.stringify(E.lockedRoles(mask)) === JSON.stringify(E.roles.order.filter(r => keep.includes(r))), "maschera andata e ritorno");
+      const child = E.relock(parent, mask, s * 4099 + 3);
+      total++;
+      ok(/~R[0-9A-F]{10}$/.test(child.code), `${child.code}: formato`);
+      ok(child.bpm === parent.bpm && child.variant === parent.variant && child.len === parent.len, "tempo, variante e lunghezza invariati");
+      keep.forEach(r => ok(JSON.stringify(child.roles[r]) === JSON.stringify(parent.roles[r]), `${child.code}: voce bloccata ${r} cambiata`));
+      const again = E.fromCode(child.code);
+      ok(again && JSON.stringify(again.roles) === JSON.stringify(child.roles), `${child.code}: non riproducibile`);
+      if (JSON.stringify(child.roles) !== JSON.stringify(parent.roles)) changed++;
+      // Le voci assenti e non bloccate possono arrivare dal fratello: bloccando tutto non cambia nulla.
+      const all = E.relock(parent, E.lockMask(E.roles.order), 1);
+      const sameRoles = (a, b) => Object.keys(a).length === Object.keys(b).length
+        && Object.keys(a).every(k => JSON.stringify(a[k]) === JSON.stringify(b[k]));
+      ok(sameRoles(all.roles, parent.roles), "tutto bloccato = identico");
+    }
+  }
+  ok(changed / total > 0.8, `rigenerazioni troppo spesso identiche: ${changed}/${total}`);
+  const chain = "dbeat-16S-111111~4C21~R000005BEEF~0003";
+  ok(E.fromCode(chain)?.code === chain, "catena mista mutazione + blocca voce");
+  ["dbeat-16S-111111~R00000", "dbeat-16S-111111~RFFFFFF0000", "dbeat-16S-111111~Q000005BEEF"]
+    .forEach(bad => ok(E.decode(bad) === null, "passo invalido accettato: " + bad));
+});
+
 test("risoluzione casuale: any e gruppi", () => {
   let seed = 1;
   const random = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };

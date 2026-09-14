@@ -1,0 +1,23 @@
+{
+  "id": "/",
+  "name": "SP-1200 — Simulatore drum machine",
+  "short_name": "SP-1200",
+  "description": "Drum machine a step con i 42 campioni originali SP-1200: pattern, generatore di stili, canzone ed export MIDI. Funziona anche offline.",
+  "lang": "it",
+  "dir": "ltr",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#15171a",
+  "theme_color": "#15171a",
+  "categories": ["music", "entertainment"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "screenshots": [
+    { "src": "/assets/og-sp1200.png", "sizes": "1536x1024", "type": "image/png", "form_factor": "wide", "label": "SP-1200 nel browser" }
+  ]
+}

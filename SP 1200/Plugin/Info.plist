@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>en</string>
+	<key>CFBundleExecutable</key>
+	<string>Twelve</string>
+	<key>CFBundleIdentifier</key>
+	<string>local.tonga.audiounit.Twelve</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>Twelve</string>
+	<key>CFBundlePackageType</key>
+	<string>BNDL</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0.0</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>11.0</string>
+	<key>AudioComponents</key>
+	<array>
+		<dict>
+			<key>type</key>
+			<string>aufx</string>
+			<key>subtype</key>
+			<string>Sp12</string>
+			<key>manufacturer</key>
+			<string>Tnga</string>
+			<key>name</key>
+			<string>Tonga: Twelve</string>
+			<key>description</key>
+			<string>Carattere campionatore 12 bit / 26 kHz</string>
+			<key>factoryFunction</key>
+			<string>TwelveFactory</string>
+			<key>version</key>
+			<integer>65536</integer>
+			<key>sandboxSafe</key>
+			<true/>
+			<key>tags</key>
+			<array>
+				<string>Effects</string>
+				<string>Distortion</string>
+				<string>Filter</string>
+			</array>
+		</dict>
+	</array>
+</dict>
+</plist>

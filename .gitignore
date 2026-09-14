@@ -1,0 +1,12 @@
+.DS_Store
+__pycache__/
+
+# Credenziali del server in chiaro: non va nel repository.
+ServerHP-ubuntu.md
+
+# Dati dell'API (vivono solo sul server) e build del plugin.
+data/
+SP 1200/Plugin/build/
+SP 1200/Plugin/tmp/
+# SDK Apple clonato con il suo repository: si riscarica, non si versiona qui.
+SP 1200/Plugin/vendor/AudioUnitSDK/

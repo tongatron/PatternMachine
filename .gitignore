@@ -4,6 +4,9 @@ __pycache__/
 # Credenziali del server in chiaro: non va nel repository.
 ServerHP-ubuntu.md
 
+# Hash della password del sito e segreto dei cookie: solo sul server.
+auth.json
+
 # Dati dell'API (vivono solo sul server) e build del plugin.
 data/
 SP 1200/Plugin/build/

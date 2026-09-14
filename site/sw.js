@@ -7,7 +7,7 @@
 // Cloudflare tiene in cache i .js, l'URL nuovo lo scavalca.
 // Il worker nuovo si attiva subito (skipWaiting): la pagina aperta e' gia' quella
 // presa dalla rete, quindi non serve ricaricarla e non si perde lavoro non salvato.
-const VERSION = "2026-09-14.3";
+const VERSION = "2026-09-15.1";
 const SHELL_CACHE = `sp1200-shell-${VERSION}`;
 const SAMPLE_CACHE = "sp1200-samples-v1"; // non versionata: i campioni non si riscaricano ad ogni rilascio
 
@@ -68,7 +68,8 @@ self.addEventListener("fetch", event => {
   if (req.method !== "GET") return;
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
-  if (url.pathname.startsWith("/api/")) return;
+  // API e accesso vanno sempre in rete: la pagina di login non deve mai finire in cache.
+  if (url.pathname.startsWith("/api/") || url.pathname === "/login" || url.pathname === "/logout") return;
 
   if (req.mode === "navigate") {
     event.respondWith(networkFirst(req));
@@ -89,7 +90,7 @@ async function networkFirst(req) {
   const cache = await caches.open(SHELL_CACHE);
   try {
     const res = await fetch(req);
-    if (res.ok) cache.put(stripSearch(req.url), res.clone());
+    if (cacheable(res)) cache.put(stripSearch(req.url), res.clone());
     return res;
   } catch (err) {
     return (await cache.match(stripSearch(req.url)))
@@ -102,7 +103,7 @@ async function networkFirstAsset(req) {
   const cache = await caches.open(SHELL_CACHE);
   try {
     const res = await fetch(req);
-    if (res.ok) cache.put(stripSearch(req.url), res.clone());
+    if (cacheable(res)) cache.put(stripSearch(req.url), res.clone());
     return res;
   } catch (err) {
     return (await cache.match(stripSearch(req.url))) || Response.error();
@@ -114,7 +115,7 @@ async function cacheFirst(req, cacheName) {
   const hit = await cache.match(req, { ignoreSearch: true });
   if (hit) return hit;
   const res = await fetch(req);
-  if (res.ok) cache.put(req, res.clone());
+  if (cacheable(res)) cache.put(req, res.clone());
   return res;
 }
 
@@ -122,10 +123,15 @@ async function staleWhileRevalidate(req) {
   const cache = await caches.open(SHELL_CACHE);
   const hit = await cache.match(req);
   const fresh = fetch(req).then(res => {
-    if (res.ok) cache.put(req, res.clone());
+    if (cacheable(res)) cache.put(req, res.clone());
     return res;
   }).catch(() => hit || Response.error());
   return hit || fresh;
+}
+
+// Solo risposte vere del sito: niente redirect verso il login (sessione scaduta) ne' errori.
+function cacheable(res) {
+  return res.ok && res.type === "basic" && !res.redirected;
 }
 
 function stripSearch(href) {

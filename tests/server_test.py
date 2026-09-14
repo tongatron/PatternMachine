@@ -1,21 +1,27 @@
 """Test di server.py: python3 tests/server_test.py
 
 Costruisce in una cartella temporanea la stessa struttura del server (site/ + toolkit + server.py,
-dati di prova, un backup e un file nascosto), avvia il server in un thread e verifica
-quali file sono pubblici, le intestazioni di cache e le protezioni dell'API.
+dati di prova, un backup e un file nascosto), imposta una password di prova con
+scripts/set-password.py, avvia il server in un thread e verifica accesso, file pubblici,
+intestazioni di cache e protezioni dell'API.
 """
+import http.client
 import importlib.util
 import json
+import os
 import shutil
+import stat
+import subprocess
 import sys
 import tempfile
 import threading
-import urllib.error
-import urllib.request
+import time
 from http.server import ThreadingHTTPServer
 from pathlib import Path
+from urllib.parse import urlencode
 
 HERE = Path(__file__).resolve().parent.parent
+TEST_PASSWORD = "prova-di-test"
 failures = 0
 
 
@@ -24,34 +30,50 @@ def build_stage():
     shutil.copytree(HERE / "site", stage, dirs_exist_ok=True)
     shutil.copy(HERE / "index.html", stage / "toolkit.html")
     shutil.copy(HERE / "server.py", stage / "server.py")
+    shutil.copy(HERE / "scripts" / "set-password.py", stage / "set-password.py")
     (stage / "data").mkdir()
     (stage / "data" / "patterns.json").write_text(json.dumps([{
         "id": "abc", "name": "prova", "text": "PATTERNTXT 1.0",
         "created_at": "2026-01-01T00:00:00+00:00", "updated_at": "2026-01-01T00:00:00+00:00"}]))
     (stage / "backup-index-x.html").write_text("backup")
     (stage / ".env").write_text("x")
+    subprocess.run([sys.executable, str(stage / "set-password.py"), "--stdin"], input=TEST_PASSWORD,
+                   text=True, check=True, capture_output=True, env={**os.environ, "DRUMMACHINE_AUTH": ""})
     return stage
 
 
 def start(stage):
+    os.environ["DRUMMACHINE_AUTH"] = str(stage / "auth.json")
     spec = importlib.util.spec_from_file_location("server_under_test", stage / "server.py")
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     httpd = ThreadingHTTPServer(("127.0.0.1", 0), mod.Handler)
     threading.Thread(target=httpd.serve_forever, daemon=True).start()
-    return httpd, f"http://127.0.0.1:{httpd.server_address[1]}"
+    return mod, httpd, httpd.server_address[1]
 
 
-def call(base, path, method="GET", body=None, headers=None):
-    data = json.dumps(body).encode() if body is not None else None
-    req = urllib.request.Request(base + path, data=data, method=method, headers=headers or {})
-    if data is not None:
-        req.add_header("Content-Type", "application/json")
-    try:
-        with urllib.request.urlopen(req) as r:
-            return r.status, dict(r.headers), r.read()
-    except urllib.error.HTTPError as e:
-        return e.code, dict(e.headers), e.read()
+class Client:
+    """Richieste senza seguire i redirect, con un cookie di sessione facoltativo."""
+    def __init__(self, port):
+        self.port, self.cookie = port, None
+
+    def call(self, path, method="GET", body=None, headers=None, form=None):
+        conn = http.client.HTTPConnection("127.0.0.1", self.port)
+        h = dict(headers or {})
+        data = None
+        if form is not None:
+            data = urlencode(form).encode()
+            h["Content-Type"] = "application/x-www-form-urlencoded"
+        elif body is not None:
+            data = json.dumps(body).encode()
+            h["Content-Type"] = "application/json"
+        if self.cookie:
+            h["Cookie"] = self.cookie
+        conn.request(method, path, body=data, headers=h)
+        r = conn.getresponse()
+        out = (r.status, {k.lower(): v for k, v in r.getheaders()}, r.read())
+        conn.close()
+        return out
 
 
 def check(label, got, expected):
@@ -63,33 +85,85 @@ def check(label, got, expected):
 
 def main():
     stage = build_stage()
-    httpd, base = start(stage)
+    mod, httpd, port = start(stage)
     same = {"Sec-Fetch-Site": "same-origin"}
+    anon, user = Client(port), Client(port)
     try:
+        mode = stat.S_IMODE((stage / "auth.json").stat().st_mode)
+        check("auth.json leggibile solo dal proprietario", oct(mode), "0o600")
+        check("password non in chiaro nel file", TEST_PASSWORD in (stage / "auth.json").read_text(), False)
+
+        # --- senza password ---
+        s, h, _ = anon.call("/")
+        check("anonimo / -> login", (s, h.get("location")), (303, "/login?next=/"))
+        check("anonimo toolkit -> login", anon.call("/toolkit.html")[1].get("location"), "/login?next=/toolkit.html")
+        loc = anon.call("/?p=dbeat-16S-111111~R000005BEEF&x=1")[1].get("location")
+        check("link condiviso conserva la query", loc, "/login?next=/?p=dbeat-16S-111111~R000005BEEF%26x=1")
+        page = anon.call(loc)[2].decode()
+        check("la query arriva nel form di login", 'value="/?p=dbeat-16S-111111~R000005BEEF&amp;x=1"' in page, True)
+        for path in ["/engine/core.js", "/samples/Kick%201%20SP-1200.wav", "/sw.js", "/api/patterns", "/server.py"]:
+            check("anonimo bloccato " + path, anon.call(path)[0], 401)
+        check("anonimo POST api", anon.call("/api/patterns", "POST", {"text": "t"}, same)[0], 401)
+        check("anonimo DELETE api", anon.call("/api/patterns/abc", "DELETE", None, same)[0], 401)
+        for path in ["/login", "/manifest.json", "/icons/icon-192.png", "/assets/og-sp1200.png"]:
+            check("aperto " + path, anon.call(path)[0], 200)
+
+        # --- login ---
+        s, h, body = anon.call("/login", "POST", form={"password": "sbagliata", "next": "/"}, headers=same)
+        check("password errata", (s, "set-cookie" in h, b"Password errata" in body), (401, False, True))
+        s, h, _ = user.call("/login", "POST", form={"password": TEST_PASSWORD, "next": "/toolkit.html"}, headers=same)
+        cookie = h.get("set-cookie", "")
+        check("password giusta -> redirect a next", (s, h.get("location")), (303, "/toolkit.html"))
+        check("cookie HttpOnly e SameSite", ("HttpOnly" in cookie, "SameSite=Lax" in cookie, "Secure" in cookie), (True, True, False))
+        user.cookie = cookie.split(";")[0]
+        s, h, _ = Client(port).call("/login", "POST", form={"password": TEST_PASSWORD, "next": "//evil.example"},
+                                    headers={**same, "X-Forwarded-Proto": "https"})
+        check("next esterno ignorato", h.get("location"), "/")
+        check("cookie Secure dietro https", "Secure" in h.get("set-cookie", ""), True)
+        check("login da altro sito", anon.call("/login", "POST", form={"password": TEST_PASSWORD},
+                                               headers={"Sec-Fetch-Site": "cross-site"})[0], 403)
+        check("/login da loggato -> sito", user.call("/login?next=/toolkit.html")[1].get("location"), "/toolkit.html")
+
+        # --- con sessione ---
         for path in ["/", "/toolkit.html", "/engine/core.js?v=1", "/samples/Kick%201%20SP-1200.wav",
                      "/icons/icon-192.png", "/sw.js", "/manifest.json", "/api/patterns"]:
-            check("pubblico " + path, call(base, path)[0], 200)
-        for path in ["/server.py", "/data/patterns.json", "/backup-index-x.html", "/.env",
-                     "/engine/../server.py", "/samples/../data/patterns.json", "/nope.html"]:
-            check("nascosto " + path, call(base, path)[0], 404)
+            check("loggato " + path, user.call(path)[0], 200)
+        for path in ["/server.py", "/auth.json", "/set-password.py", "/data/patterns.json", "/backup-index-x.html",
+                     "/.env", "/engine/../server.py", "/samples/../data/patterns.json", "/nope.html"]:
+            check("nascosto anche da loggato " + path, user.call(path)[0], 404)
+        check("cache html privata", user.call("/")[1].get("cache-control"), "private, no-cache")
+        check("cache campioni privata", user.call("/samples/Kick%201%20SP-1200.wav")[1].get("cache-control"),
+              "private, max-age=604800")
 
-        check("cache html", call(base, "/")[1].get("Cache-Control"), "no-cache")
-        check("cache engine js", call(base, "/engine/core.js")[1].get("Cache-Control"), "no-cache")
-        check("cache campioni", call(base, "/samples/Kick%201%20SP-1200.wav")[1].get("Cache-Control"),
-              "public, max-age=604800")
+        tampered = Client(port)
+        tampered.cookie = user.cookie[:-1] + ("0" if user.cookie[-1] != "0" else "1")
+        check("cookie manomesso", tampered.call("/")[0], 303)
+        auth = mod.load_auth()
+        check("sessione scaduta", mod.valid_session(auth, mod.make_session(auth, now=time.time() - 31 * 86400)), False)
 
-        check("POST same-origin", call(base, "/api/patterns", "POST", {"name": "n", "text": "t"}, same)[0], 201)
-        check("POST cross-site", call(base, "/api/patterns", "POST", {"text": "t"}, {"Sec-Fetch-Site": "cross-site"})[0], 403)
-        check("POST Origin estraneo", call(base, "/api/patterns", "POST", {"text": "t"}, {"Origin": "https://evil.example"})[0], 403)
-        check("POST troppo grande", call(base, "/api/patterns", "POST", {"text": "x" * 300_000}, same)[0], 413)
-        check("POST senza text", call(base, "/api/patterns", "POST", {"name": "n"}, same)[0], 400)
+        check("POST same-origin", user.call("/api/patterns", "POST", {"name": "n", "text": "t"}, same)[0], 201)
+        check("POST cross-site", user.call("/api/patterns", "POST", {"text": "t"}, {"Sec-Fetch-Site": "cross-site"})[0], 403)
+        check("POST troppo grande", user.call("/api/patterns", "POST", {"text": "x" * 300_000}, same)[0], 413)
+        pid = json.loads(user.call("/api/patterns")[2])[-1]["id"]
+        check("PUT same-origin", user.call(f"/api/patterns/{pid}", "PUT", {"name": "r"}, same)[0], 200)
+        check("DELETE same-origin", user.call(f"/api/patterns/{pid}", "DELETE", None, same)[0], 204)
+        check("dati integri", [p["id"] for p in json.loads(user.call("/api/patterns")[2])], ["abc"])
 
-        pid = json.loads(call(base, "/api/patterns")[2])[-1]["id"]
-        check("PUT same-origin", call(base, f"/api/patterns/{pid}", "PUT", {"name": "r"}, same)[0], 200)
-        check("PUT cross-site", call(base, f"/api/patterns/{pid}", "PUT", {"name": "r"}, {"Sec-Fetch-Site": "cross-site"})[0], 403)
-        check("DELETE cross-site", call(base, f"/api/patterns/{pid}", "DELETE", None, {"Sec-Fetch-Site": "cross-site"})[0], 403)
-        check("DELETE same-origin", call(base, f"/api/patterns/{pid}", "DELETE", None, same)[0], 204)
-        check("dati integri", [p["id"] for p in json.loads(call(base, "/api/patterns")[2])][0], "abc")
+        # --- logout, limite tentativi, configurazione mancante ---
+        s, h, _ = user.call("/logout")
+        check("logout cancella il cookie", (s, "Max-Age=0" in h.get("set-cookie", "")), (303, True))
+        brute = Client(port)
+        ip = {**same, "CF-Connecting-IP": "203.0.113.9"}
+        for _ in range(10):
+            brute.call("/login", "POST", form={"password": "no"}, headers=ip)
+        check("troppi tentativi bloccano anche la password giusta",
+              brute.call("/login", "POST", form={"password": TEST_PASSWORD}, headers=ip)[0], 429)
+        check("altri IP non bloccati", Client(port).call("/login", "POST", form={"password": TEST_PASSWORD}, headers=same)[0], 303)
+
+        (stage / "auth.json").rename(stage / "auth.off")
+        check("senza auth.json il sito resta chiuso", anon.call("/")[0], 303)
+        check("senza auth.json anche il vecchio cookie non vale", user.call("/api/patterns")[0], 401)
+        check("senza auth.json il login lo dice", anon.call("/login", "POST", form={"password": TEST_PASSWORD}, headers=same)[0], 503)
     finally:
         httpd.shutdown()
         shutil.rmtree(stage, ignore_errors=True)

@@ -5,7 +5,7 @@
 #   scripts/deploy.sh --yes    pubblica davvero (backup sul server, upload, verifica)
 #
 # Sul server la cartella e' piatta: site/* nella radice, index.html del toolkit come toolkit.html,
-# server.py accanto. Non cancella nulla sul server (data/, assets/*.zip restano dove sono).
+# server.py e set-password.py accanto. auth.json (password) vive solo sul server e non si tocca. Non cancella nulla sul server (data/, assets/*.zip restano dove sono).
 set -euo pipefail
 
 HOST=hp-ubuntu
@@ -35,6 +35,7 @@ trap 'rm -rf "$STAGE"' EXIT
 rsync -a --exclude .DS_Store site/ "$STAGE/"
 cp index.html "$STAGE/toolkit.html"
 cp server.py "$STAGE/server.py"
+cp scripts/set-password.py "$STAGE/set-password.py"
 
 # --checksum confronta i contenuti: una data diversa da sola non conta come modifica.
 RSYNC=(rsync -rlt --checksum --exclude .DS_Store)

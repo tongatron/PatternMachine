@@ -87,6 +87,7 @@ button, .step, select, input{touch-action:manipulation;}
   body{overscroll-behavior-y:none;}
 }
 /* PWA: installazione, aggiornamento, stato offline */
+.logout{font-size:10px; letter-spacing:0.06em; text-transform:uppercase; color:var(--text-dim);}
 #installBtn{border-color:var(--accent-dim); color:var(--accent);}
 .net-badge{font-size:9.5px; letter-spacing:0.06em; text-transform:uppercase; color:var(--danger);
   border:1px solid currentColor; border-radius:4px; padding:1px 5px;}
@@ -417,6 +418,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     </div>
     <span class="net-badge" id="netBadge" hidden>offline</span>
     <button id="installBtn" class="mini" hidden>&#8681; Installa app</button>
+    <a class="logout" href="/logout" title="Esci dal sito protetto">Esci</a>
   </div>
 
   <div class="panel">
@@ -600,12 +602,12 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-14.3"></script>
-<script src="engine/styles-punk.js?v=2026-09-14.3"></script>
-<script src="engine/styles-post.js?v=2026-09-14.3"></script>
-<script src="engine/styles-machines.js?v=2026-09-14.3"></script>
-<script src="engine/styles-alt.js?v=2026-09-14.3"></script>
-<script src="engine/styles-groove.js?v=2026-09-14.3"></script>
+<script src="engine/core.js?v=2026-09-15.1"></script>
+<script src="engine/styles-punk.js?v=2026-09-15.1"></script>
+<script src="engine/styles-post.js?v=2026-09-15.1"></script>
+<script src="engine/styles-machines.js?v=2026-09-15.1"></script>
+<script src="engine/styles-alt.js?v=2026-09-15.1"></script>
+<script src="engine/styles-groove.js?v=2026-09-15.1"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -2335,7 +2337,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-14.3";
+const SW_VERSION="2026-09-15.1";
 (function pwa(){
   const standalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
   const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);

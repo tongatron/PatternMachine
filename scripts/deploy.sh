@@ -5,7 +5,8 @@
 #   scripts/deploy.sh --yes    pubblica davvero (backup sul server, upload, verifica)
 #
 # Sul server la cartella e' piatta: site/* nella radice, index.html del toolkit come toolkit.html,
-# server.py e set-password.py accanto. auth.json (password) vive solo sul server e non si tocca. Non cancella nulla sul server (data/, assets/*.zip restano dove sono).
+# server.py e set-password.py accanto. auth.json (password) vive solo sul server e non si tocca.
+# Non cancella nulla sul server (data/, assets/*.zip restano dove sono).
 set -euo pipefail
 
 HOST=hp-ubuntu
@@ -71,9 +72,11 @@ if [ -n "$left" ]; then
   echo "$left" >&2
   exit 1
 fi
+# Con la password attiva la home rimanda al login (303); la pagina di login deve rispondere 200.
 code=$(curl -s -o /dev/null -w '%{http_code}' "$SITE/")
-echo "sito: HTTP $code"
-[ "$code" = 200 ] || exit 1
+login=$(curl -s -o /dev/null -w '%{http_code}' "$SITE/login")
+echo "sito: home HTTP $code, login HTTP $login"
+case "$code" in 200|303) ;; *) exit 1 ;; esac
 
 echo
 echo "pubblicato. Ripristino: ssh $HOST \"cp -a $BACKUPS/$ts/* $REMOTE/\""

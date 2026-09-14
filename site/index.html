@@ -429,6 +429,8 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       <button id="newBtn">Nuovo</button>
       <button id="expPatternBtn">MIDI pattern</button>
       <button id="expSongBtn">MIDI canzone</button>
+      <button id="wavPatternBtn" title="Audio del pattern ripetuto 4 volte, con mixer ed effetti">WAV pattern</button>
+      <button id="wavSongBtn" title="Audio dell'intera canzone, con mixer ed effetti">WAV canzone</button>
       <span class="status" id="status"></span>
     </div>
   </div>
@@ -801,8 +803,8 @@ function busInput(ctx, n){
   return b.inp;
 }
 
-function trigger(track, time, velocity){
-  const ctx=actx();
+// ctx e chokes si passano per il render offline (export WAV); dal vivo sono il contesto e i choke globali.
+function trigger(track, time, velocity, ctx=actx(), chokes=chokeVoices){
   const raw=bufferCache.get(cacheKey(track.sampleIndex));
   if(!raw || typeof raw.then==="function"){ loadBuffer(track.sampleIndex); return; }
   const buf=voiceBuffer(track, raw);
@@ -839,7 +841,7 @@ function trigger(track, time, velocity){
     stopAt=time+hold+0.02;
   }
   if(track.choke>0){
-    const prev=chokeVoices.get(track.choke);
+    const prev=chokes.get(track.choke);
     if(prev){
       try{
         prev.gain.gain.cancelScheduledValues(time);
@@ -848,7 +850,7 @@ function trigger(track, time, velocity){
         prev.src.stop(time+0.02);
       }catch(e){}
     }
-    chokeVoices.set(track.choke,{src,gain});
+    chokes.set(track.choke,{src,gain});
   }
   src.start(time, offset);
   if(stopAt) src.stop(stopAt);   // stop() va sempre dopo start()
@@ -1862,33 +1864,116 @@ function buildMidi(which){
 }
 const safeName = s => (s||"pattern").replace(/[^\w\s\-()]+/g,"").trim()||"pattern";
 
-async function exportMidi(which){
-  const bytes=buildMidi(which);
-  const base=safeName(el("projectName").value)+(which==="song"?" - canzone":" - "+safeName(curPattern().name));
-  const blob=new Blob([bytes],{type:"audio/midi"});
+const exportBase = which => safeName(el("projectName").value)+(which==="song"?" - canzone":" - "+safeName(curPattern().name));
+
+async function saveBlob(blob, filename, label){
   if(!downloadsCap){
     const url=URL.createObjectURL(blob);
     const a=document.createElement("a");
-    a.href=url; a.download=base+".mid";
+    a.href=url; a.download=filename;
     document.body.appendChild(a); a.click();
     setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); },800);
-    setStatus("MIDI esportato");
+    setStatus(label+" esportato");
     return;
   }
   try{
-    await downloadsCap.save({filename:base+".mid", data:blob});
-    setStatus("MIDI esportato");
+    await downloadsCap.save({filename, data:blob});
+    setStatus(label+" esportato");
   }catch(e){
     if(e&&e.code==="declined") return;
     if(e&&e.code==="rejected_extension"){
-      setStatus("qui il .mid non e' scaricabile — usa SP-1200.html in locale","err");
+      setStatus(`qui il file ${label} non e' scaricabile — usa SP-1200.html in locale`,"err");
       return;
     }
     setStatus("esportazione non riuscita","err");
   }
 }
+
+function exportMidi(which){
+  return saveBlob(new Blob([buildMidi(which)],{type:"audio/midi"}), exportBase(which)+".mid", "MIDI");
+}
+
+// ---------- export WAV ----------
+// Stesso percorso del Play (trigger, bus del mixer, choke, mute/solo) ma su un OfflineAudioContext:
+// il render e' esatto e piu' veloce del tempo reale. Il pattern esce ripetuto 4 volte, la canzone intera;
+// in coda restano 2 secondi per le code dei piatti.
+const WAV_RATE=44100, WAV_TAIL=2, WAV_PATTERN_LOOPS=4;
+
+function wavEvents(which){
+  const live=audibleTracks(), base=60/bpm()/4, sw=swing(), events=[];
+  let t=0;
+  const emit=pat=>{
+    for(let s=0;s<pat.len;s++){
+      live.forEach(tr=>{ const v=(pat.grid[tr.id]||[])[s]; if(v) events.push([t,tr,v===2?1.0:0.76]); });
+      t+=base*(s%2===0?1+sw:1-sw);
+    }
+  };
+  if(which==="song") project.song.forEach(b=>{ const p=patternById(b.patternId); if(p) for(let r=0;r<Math.max(1,b.repeats||1);r++) emit(p); });
+  else for(let r=0;r<WAV_PATTERN_LOOPS;r++) emit(curPattern());
+  return {events, length:t, live};
+}
+
+async function renderWav(which){
+  const {events, length, live}=wavEvents(which);
+  if(!events.length) throw new Error("vuoto");
+  await Promise.all(live.map(t=>loadBuffer(t.sampleIndex)));
+  const OAC=window.OfflineAudioContext||window.webkitOfflineAudioContext;
+  const ctx=new OAC(2, Math.ceil((length+WAV_TAIL)*WAV_RATE), WAV_RATE);
+  const chokes=new Map();
+  events.forEach(([time,track,vel])=>trigger(track,time,vel,ctx,chokes));
+  const buf=await ctx.startRendering();
+  return {buf, seconds:length};
+}
+
+// PCM 16 bit stereo. Se il mix supera 0 dBFS si abbassa tutto quanto basta, altrimenti resta com'e'.
+function encodeWav(buf){
+  const chans=[0,1].map(c=>buf.getChannelData(Math.min(c,buf.numberOfChannels-1)));
+  let peak=0;
+  chans.forEach(d=>{ for(let i=0;i<d.length;i++){ const a=Math.abs(d[i]); if(a>peak) peak=a; } });
+  const gain=peak>0.989?0.989/peak:1;
+  const frames=buf.length, bytes=frames*4;
+  const view=new DataView(new ArrayBuffer(44+bytes));
+  const str=(o,s)=>{ for(let i=0;i<s.length;i++) view.setUint8(o+i,s.charCodeAt(i)); };
+  str(0,"RIFF"); view.setUint32(4,36+bytes,true); str(8,"WAVE");
+  str(12,"fmt "); view.setUint32(16,16,true); view.setUint16(20,1,true); view.setUint16(22,2,true);
+  view.setUint32(24,buf.sampleRate,true); view.setUint32(28,buf.sampleRate*4,true);
+  view.setUint16(32,4,true); view.setUint16(34,16,true);
+  str(36,"data"); view.setUint32(40,bytes,true);
+  let o=44;
+  for(let i=0;i<frames;i++){
+    for(let c=0;c<2;c++){
+      const v=Math.max(-1,Math.min(1,chans[c][i]*gain));
+      view.setInt16(o, v<0?v*0x8000:v*0x7FFF, true); o+=2;
+    }
+  }
+  return {blob:new Blob([view],{type:"audio/wav"}), peak, gain};
+}
+
+let wavBusy=false;
+async function exportWav(which){
+  if(wavBusy) return;
+  if(which==="song" && !project.song.length){ setStatus("la canzone e' vuota","err"); return; }
+  wavBusy=true;
+  const btns=[el("wavPatternBtn"),el("wavSongBtn")];
+  btns.forEach(b=>b.disabled=true);
+  setStatus("render WAV in corso…");
+  try{
+    const {buf, seconds}=await renderWav(which);
+    const {blob, gain}=encodeWav(buf);
+    await saveBlob(blob, exportBase(which)+".wav", "WAV");
+    if(gain<1) setStatus(`WAV esportato (${fmtClock(seconds)}, livello ridotto di ${(-20*Math.log10(gain)).toFixed(1)} dB per non clippare)`);
+  }catch(e){
+    setStatus(e&&e.message==="vuoto"?"niente da esportare: il pattern e' vuoto o tutto in mute":"render WAV non riuscito","err");
+  }finally{
+    wavBusy=false;
+    btns.forEach(b=>b.disabled=false);
+  }
+}
+
 el("expPatternBtn").onclick=()=>exportMidi("pattern");
 el("expSongBtn").onclick=()=>exportMidi("song");
+el("wavPatternBtn").onclick=()=>exportWav("pattern");
+el("wavSongBtn").onclick=()=>exportWav("song");
 
 // ---------- libreria pattern + motore ritmico ----------
 // Voci, campioni e default vengono dal motore (engine/core.js).

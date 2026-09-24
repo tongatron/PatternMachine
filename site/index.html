@@ -28,7 +28,7 @@ try{ const t=localStorage.getItem("sp1200.theme"); if(t==="light"||t==="dark") d
   if(ui==="plakat") document.documentElement.dataset.skin="plakat";
 })();
 </script>
-<link rel="stylesheet" href="/assets/skin-plakat.css?v=2026-09-24.20">
+<link rel="stylesheet" href="/assets/skin-plakat.css?v=2026-09-24.21">
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
@@ -215,6 +215,15 @@ label.fld input[type=number]{width:54px;}
 }
 
 .chips{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:9px;}
+#patternChips{align-items:center; gap:9px;}
+#pVaryPanel[hidden]{display:none;}
+.pattern-select{min-width:220px; max-width:100%; font-size:12px; padding:6px 8px;}
+.pattern-dot{width:10px; height:10px; border-radius:50%; flex:0 0 auto;}
+.machine-bar{display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-top:12px; padding-top:11px; border-top:1px solid var(--edge-soft);}
+.machine-label{font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--text-dim); font-weight:700;}
+.machine-buttons{display:flex; flex-wrap:wrap; gap:6px;}
+.machine-btn{font-size:13px; font-weight:700; padding:9px 16px; letter-spacing:.06em;}
+.machine-btn.on{background:var(--key-on,var(--accent)); color:var(--on-accent); border-color:var(--accent-dim);}
 .chip{
   display:flex; align-items:center; gap:6px; padding:5px 10px; border-radius:6px;
   border:1px solid var(--edge); background:var(--panel-2); cursor:pointer;
@@ -498,8 +507,12 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       <button id="tapBtn" class="mini">Tap</button>
       <label class="fld">Swing <input type="range" id="swingRange" min="0" max="60" value="0"></label>
       <label class="fld">Vol <input type="range" id="masterVol" min="0" max="100" value="85"></label>
-      <label class="fld" title="Macchina e set di campioni">Macchina <select id="kitSelect"></select></label>
+      <select id="kitSelect" hidden aria-hidden="true"></select>
       <div class="counter" id="counter">1 . 1</div>
+    </div>
+    <div class="machine-bar">
+      <span class="machine-label">Macchina</span>
+      <div class="machine-buttons" id="kitButtons" role="radiogroup" aria-label="Macchina"></div>
     </div>
   </div>
 
@@ -660,18 +673,18 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-24.20"></script>
-<script src="engine/styles-punk.js?v=2026-09-24.20"></script>
-<script src="engine/styles-post.js?v=2026-09-24.20"></script>
-<script src="engine/styles-machines.js?v=2026-09-24.20"></script>
-<script src="engine/styles-alt.js?v=2026-09-24.20"></script>
-<script src="engine/styles-groove.js?v=2026-09-24.20"></script>
-<script src="engine/styles-dub.js?v=2026-09-24.20"></script>
-<script src="engine/styles-break.js?v=2026-09-24.20"></script>
-<script src="engine/styles-soul.js?v=2026-09-24.20"></script>
-<script src="engine/styles-metal.js?v=2026-09-24.20"></script>
-<script src="engine/styles-electro.js?v=2026-09-24.20"></script>
-<script src="engine/variations.js?v=2026-09-24.20"></script>
+<script src="engine/core.js?v=2026-09-24.21"></script>
+<script src="engine/styles-punk.js?v=2026-09-24.21"></script>
+<script src="engine/styles-post.js?v=2026-09-24.21"></script>
+<script src="engine/styles-machines.js?v=2026-09-24.21"></script>
+<script src="engine/styles-alt.js?v=2026-09-24.21"></script>
+<script src="engine/styles-groove.js?v=2026-09-24.21"></script>
+<script src="engine/styles-dub.js?v=2026-09-24.21"></script>
+<script src="engine/styles-break.js?v=2026-09-24.21"></script>
+<script src="engine/styles-soul.js?v=2026-09-24.21"></script>
+<script src="engine/styles-metal.js?v=2026-09-24.21"></script>
+<script src="engine/styles-electro.js?v=2026-09-24.21"></script>
+<script src="engine/variations.js?v=2026-09-24.21"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -798,6 +811,7 @@ function setSampleSet(k){
   if(KITS[k].ok===false){ setStatus(KITS[k].label+": non disponibile su questo server"); const sel=document.getElementById("kitSelect"); if(sel) sel.value=sampleSet; return; }
   sampleSet=k;
   const sel=document.getElementById("kitSelect"); if(sel) sel.value=k;
+  if(typeof paintKitButtons==="function" && document.getElementById("kitButtons")) paintKitButtons();
   let moved=0;
   project.tracks.forEach(t=>{
     if(!sampleAvailable(t.sampleIndex)){ t.sampleIndex=sampleIdx(SAMPLES[t.sampleIndex].fallback||"Perc 1"); moved++; }
@@ -1442,23 +1456,24 @@ el("timeline").onclick=e=>{
   renderSong();
 };
 
+// I pattern del progetto in un menu a tendina (chiuso finche' non lo apri).
 function renderPatterns(){
   const host=el("patternChips");
   host.innerHTML="";
-  project.patterns.forEach(p=>{
-    const c=document.createElement("div");
-    c.className="chip"+(p.id===ui.patternId?" sel":"");
-    c.dataset.id=p.id;
-    const dot=document.createElement("span");
-    dot.className="dot"; dot.style.background=`hsl(${patternHue(p.id)} 70% 55%)`;
-    c.appendChild(dot);
-    c.appendChild(document.createTextNode(p.name));
-    const len=document.createElement("span");
-    len.className="tiny"; len.textContent=p.len;
-    c.appendChild(len);
-    c.onclick=()=>{ ui.patternId=p.id; el("pLen").value=p.len; renderPatterns(); renderRuler(); renderTracks(); };
-    host.appendChild(c);
+  const sel=document.createElement("select"); sel.id="patternSelect"; sel.className="pattern-select";
+  sel.setAttribute("aria-label","Pattern da modificare");
+  project.patterns.forEach((p,i)=>{
+    const o=document.createElement("option"); o.value=p.id;
+    o.textContent=`${i+1}. ${p.name} · ${p.len} step`;
+    sel.appendChild(o);
   });
+  sel.value=ui.patternId;
+  sel.onchange=()=>{ const p=patternById(sel.value); if(!p) return; ui.patternId=p.id; el("pLen").value=p.len; renderPatterns(); renderRuler(); renderTracks(); };
+  const dot=document.createElement("span"); dot.className="dot pattern-dot";
+  dot.style.background=`hsl(${patternHue(ui.patternId)} 70% 55%)`;
+  const count=document.createElement("span"); count.className="tiny";
+  count.textContent=`${project.patterns.length} ${project.patterns.length===1?"pattern":"pattern"}`;
+  host.append(dot, sel, count);
 }
 
 function blockBars(b){ const p=patternById(b.patternId); return (p?p.len:16)/16*b.repeats; }
@@ -1689,11 +1704,27 @@ el("seqClear").onclick=()=>{
   if(!confirm("Svuotare l'arrangiamento? I pattern restano.")) return;
   pushUndo(); project.song=[]; ui.blockId=null; renderSong(); setStatus("canzone svuotata");
 };
+// I pulsanti della macchina seguono le opzioni del select (che resta lo stato: le macchine non raggiungibili
+// ne vengono tolte), quindi si ridisegnano da li'.
+const KIT_SHORT=k=>KITS[k].label.replace(" · kit Boutique (Logic)","").replace("Yamaha ","");
+function paintKitButtons(){
+  const host=el("kitButtons"), sel=el("kitSelect");
+  host.innerHTML="";
+  [...sel.options].forEach(o=>{
+    const b=document.createElement("button"); b.type="button";
+    const on=o.value===sampleSet;
+    b.className="machine-btn"+(on?" on":""); b.setAttribute("role","radio"); b.setAttribute("aria-checked",String(on));
+    b.textContent=KIT_SHORT(o.value); b.title=KITS[o.value].label;
+    b.onclick=()=>{ setSampleSet(o.value); paintKitButtons(); };
+    host.appendChild(b);
+  });
+}
 (function initKitSelect(){
   const sel=el("kitSelect");
   Object.entries(KITS).forEach(([k,x])=>{ const o=document.createElement("option"); o.value=k; o.textContent=x.label; sel.appendChild(o); });
   sel.value=sampleSet;
   sel.onchange=()=>setSampleSet(sel.value);
+  paintKitButtons();
   // Un kit i cui file il server non serve (cartella mancante, non pubblicata) non deve restare in lista muto:
   // si prova il primo suono di ogni macchina e, se non risponde, la macchina sparisce dal selettore.
   const kick=SAMPLES[sampleIdx("Kick 1")];
@@ -1703,6 +1734,7 @@ el("seqClear").onclick=()=>{
       x.ok=false;
       sel.querySelector(`option[value="${k}"]`)?.remove();
       if(sampleSet===k) setSampleSet("std");
+      paintKitButtons();
     });
   }),800);
 })();
@@ -2713,7 +2745,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-24.20";
+const SW_VERSION="2026-09-24.21";
 (function pwa(){
   const standalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
   const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);

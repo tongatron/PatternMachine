@@ -26,7 +26,7 @@ STATIC_FILES = {"index.html", "toolkit.html", "manifest.json", "sw.js"}
 STATIC_DIRS = ("engine/", "icons/", "samples/", "samples12/", "machines/", "assets/")
 
 # Visibili senza password: servono al browser per installare la PWA e alle anteprime dei link.
-OPEN_PATHS = {"/login", "/logout", "/manifest.json", "/assets/og-sp1200.png"}
+OPEN_PATHS = {"/login", "/logout", "/manifest.json", "/assets/og-sp1200.png", "/assets/og-drum-machine-lab.jpg"}
 OPEN_DIRS = ("/icons/",)
 
 # Dietro la password niente cache condivise (Cloudflare): "private" tiene la copia solo nel
@@ -153,6 +153,23 @@ LOGIN_PAGE = """<!doctype html>
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#15171a">
 <title>Drum Machine Lab — Accesso</title>
+<meta name="description" content="Drum machine a step con SP-1200, RX-5, 808 e 909: generatore di pattern in decine di stili, variazioni, arrangiamento della canzone ed export MIDI.">
+<!-- Anteprima dei link: chi condivide un link arriva qui (il sito e' dietro password), quindi i tag stanno in questa pagina. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Drum Machine Lab">
+<meta property="og:title" content="Drum Machine Lab — drum machine a step con generatore di pattern">
+<meta property="og:description" content="Drum machine a step con SP-1200, RX-5, 808 e 909: generatore di pattern in decine di stili, variazioni, arrangiamento della canzone ed export MIDI.">
+<meta property="og:image" content="https://drummachine.tongatron.org/assets/og-drum-machine-lab.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="800">
+<meta property="og:image:alt" content="SP-1200, TR-808, TR-909 e Yamaha RX5 con l'interfaccia di Drum Machine Lab in primo piano">
+<meta property="og:url" content="https://drummachine.tongatron.org/">
+<meta property="og:locale" content="it_IT">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Drum Machine Lab — drum machine a step con generatore di pattern">
+<meta name="twitter:description" content="Drum machine a step con SP-1200, RX-5, 808 e 909: generatore di pattern in decine di stili, variazioni, arrangiamento della canzone ed export MIDI.">
+<meta name="twitter:image" content="https://drummachine.tongatron.org/assets/og-drum-machine-lab.jpg">
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <style>

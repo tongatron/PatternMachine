@@ -7,6 +7,7 @@
 //   M dinamica (hat e percussioni con accenti e colpi morbidi)
 //   X ibrido (una famiglia di voci presa da un altro stile)   Y strato percussivo (euclideo)
 //   T groove di tom     N sfasato (una voce spostata di uno step)     B stacco (un buco nel groove)
+//   C ritmo d'altro stile (cassa e rullante di un altro stile)   J metà e metà   E mix di voci   U doppio ibrido
 //
 // Livelli degli step: 0 vuoto, 1 normale, 2 accento, 3 nota fantasma (morbida).
 //
@@ -33,6 +34,10 @@
     { id: "T", label: "groove di tom", hint: "porta l'hi-hat sui tom" },
     { id: "N", label: "sfasato", hint: "sposta una voce di uno step: sincope" },
     { id: "B", label: "stacco", hint: "un buco nel groove: cassa, rullante e hat tacciono per un beat" },
+    { id: "C", label: "ritmo d'altro stile", hint: "cassa e rullante di un altro stile, con i tuoi piatti e le tue percussioni" },
+    { id: "J", label: "metà e metà", hint: "la prima metà è la tua, la seconda arriva da un altro stile" },
+    { id: "E", label: "mix di voci", hint: "ogni voce arriva a caso dal tuo pattern o da un altro stile" },
+    { id: "U", label: "doppio ibrido", hint: "due famiglie di voci prese da due stili diversi" },
   ];
 
   // Stili che l'ibrido (~VX) puo' pescare. Lista FISSA: l'indice e' scritto nel codice, quindi non si tocca
@@ -85,6 +90,22 @@
     const firstOf = list => list.find(has);
     return { len, bars, safe, roles, has, arr, ok, put, clear, slots, perBar, firstOf, r, seed, parent, note: "", fill: parent.fill };
   }
+
+  // Ibridi: un "donatore" (uno stile della lista fissa) genera un pattern con lo stesso passo e la stessa
+  // sezione, e alcune sue voci passano al pattern di partenza. Il donatore esce dal seed, il resto dal generatore.
+  function donorAt(w, index) {
+    const id = X_DONORS[index % X_DONORS.length];
+    if (!E.styles[id]) return null;
+    const pattern = E.generate({ style: id, len: w.len, section: w.parent.section, fill: false, seed: w.r.int(0, 0xFFFFFF) });
+    return { id, label: E.styles[id].label, roles: pattern.roles };
+  }
+  const hasFamily = (d, group) => group.some(role => role in d.roles);
+  // Nel tratto [from, to) le voci di `group` del pattern di partenza spariscono e arrivano quelle del donatore.
+  function graft(w, d, group, from = 0, to = w.safe) {
+    group.forEach(role => { if (w.roles[role]) for (let i = from; i < to; i++) w.roles[role][i] = 0; });
+    group.forEach(role => { if (d.roles[role]) for (let i = from; i < to; i++) if (d.roles[role][i]) w.arr(role)[i] = d.roles[role][i]; });
+  }
+  const unionRoles = (w, d) => [...new Set([...Object.keys(w.roles), ...Object.keys(d.roles)])];
 
   // Ogni operazione modifica w.roles e ritorna false se non ha nulla da fare su questo pattern.
   const OPS = {
@@ -153,15 +174,46 @@
       });
     },
     X(w) {
-      // Il donatore e il gruppo di voci escono dal seed (byte alto = stile, poi dal generatore).
-      const id = X_DONORS[(w.seed >> 8) % X_DONORS.length];
-      if (!E.styles[id]) return false;
-      const donor = E.generate({ style: id, len: w.len, section: w.parent.section, fill: false, seed: w.r.int(0, 0xFFFFFF) });
-      const group = X_GROUPS[w.r.int(0, X_GROUPS.length - 1)].filter(role => role in donor.roles);
-      if (!group.length) return false;
-      X_GROUPS.find(g => g.includes(group[0])).forEach(role => { for (let i = 0; i < w.safe; i++) if (w.roles[role]) w.roles[role][i] = 0; });
-      group.forEach(role => { for (let i = 0; i < w.safe; i++) if (donor.roles[role][i]) w.arr(role)[i] = donor.roles[role][i]; });
-      w.note = E.styles[id].label;
+      const d = donorAt(w, w.seed >> 8);
+      if (!d) return false;
+      const families = X_GROUPS.filter(g => hasFamily(d, g));      // solo famiglie che il donatore ha davvero
+      if (!families.length) return false;
+      graft(w, d, w.r.pick(families));
+      w.note = d.label;
+    },
+    C(w) {
+      const d = donorAt(w, w.seed >> 8);
+      if (!d) return false;
+      const families = [X_GROUPS[0], X_GROUPS[1]].filter(g => hasFamily(d, g));
+      if (!families.length) return false;
+      families.forEach(g => graft(w, d, g));
+      w.note = d.label;
+    },
+    J(w) {
+      const d = donorAt(w, w.seed >> 8), cut = w.len / 2;
+      if (!d || w.safe <= cut) return false;
+      graft(w, d, unionRoles(w, d), cut);
+      w.note = d.label;
+    },
+    E(w) {
+      const d = donorAt(w, w.seed >> 8);
+      if (!d) return false;
+      const roles = unionRoles(w, d).filter(role => role !== "crash" && d.roles[role]);
+      if (!roles.length) return false;
+      let taken = 0;
+      roles.forEach(role => { if (w.r.rnd(0.5)) { graft(w, d, [role]); taken++; } });
+      if (!taken) graft(w, d, [w.r.pick(roles)]);
+      w.note = d.label;
+    },
+    U(w) {
+      const d1 = donorAt(w, w.seed >> 8), d2 = donorAt(w, w.seed & 0xFF);
+      if (!d1 || !d2) return false;
+      const f1 = X_GROUPS.filter(g => hasFamily(d1, g)), f2 = X_GROUPS.filter(g => hasFamily(d2, g));
+      if (!f1.length || !f2.length) return false;
+      const g1 = w.r.pick(f1), other = f2.filter(g => g !== g1), g2 = w.r.pick(other.length ? other : f2);
+      graft(w, d1, g1);
+      graft(w, d2, g2);
+      w.note = d1.id === d2.id ? d1.label : `${d1.label} + ${d2.label}`;
     },
     Y(w) {
       const free = ["shaker", "tamb", "clave", "cow", "conga", "conga2", "perc"].filter(role => !w.has(role));
@@ -256,6 +308,7 @@
   TYPES.forEach(t => E.defineOp(t.id, (p, seed) => vary(p, t.id, seed)));
   E.variationTypes = TYPES;
   E.vary = vary;
+  E.hybridDonors = X_DONORS.slice();
   E.arrange = arrange;
   E.fills = FILLS;
 })(typeof SPEngine !== "undefined" ? SPEngine : require("./core.js"));

@@ -241,6 +241,35 @@ test("arrangia: sezioni riproducibili dallo stesso pattern", () => {
   }
 });
 
+test("ibridi: donatori (nuovi inclusi), pochi ripieghi, garanzie di ciascun tipo", () => {
+  const NEW = ["rockclassic", "hardrock", "doom", "thrash", "deathmetal", "blackmetal", "groovemetal", "electro", "techno", "gabber", "footwork"];
+  ok(E.hybridDonors.length === 67, "lista donatori fissa a 67");
+  ok(E.hybridDonors.every(id => E.styles[id]), "ogni donatore esiste");
+  ok(NEW.every(id => E.hybridDonors.includes(id)), "gli stili metal ed elettronica sono donatori");
+  const base = E.generate({ style: "boombap", len: 16, section: "verse", fill: false, seed: 7 });
+  const labelOf = q => (/\(([^)]+)\)$/.exec(q.tag) || [])[1];
+  const seen = new Set();
+  let noted = 0, total = 0;
+  for (const t of "XCJEU") for (let hi = 0; hi < 256; hi += 3) {
+    const q = E.vary(base, t, (hi << 8) | 5);
+    total++; const l = labelOf(q); if (l) { noted++; l.split(" + ").forEach(x => seen.add(x)); }
+  }
+  ok(noted / total > 0.95, `ibridi senza donatore: ${total - noted}/${total}`);
+  NEW.forEach(id => ok(seen.has(E.styles[id].label), `donatore mai raggiunto: ${id}`));
+  // C: piatti e percussioni restano quelli di partenza; J: la prima meta' resta identica
+  const KS = ["kick", "kick2", "snare", "snare2", "snare3", "rim", "clap"];
+  for (const id of Object.keys(E.styles)) for (let sd = 0; sd < 3; sd++) {
+    const p = E.generate({ style: id, len: sd === 2 ? 32 : 16, section: "verse", fill: false, seed: sd * 313 + 9 });
+    const c = E.vary(p, "C", sd * 1024 + 77);
+    Object.keys(p.roles).filter(r => !KS.includes(r)).forEach(r => ok(JSON.stringify(c.roles[r] || new Array(p.len).fill(0)) === JSON.stringify(p.roles[r]), `${c.code}: C ha toccato ${r}`));
+    const j = E.vary(p, "J", sd * 1024 + 78), cut = p.len / 2;
+    Object.keys(p.roles).forEach(r => ok(JSON.stringify((j.roles[r] || new Array(p.len).fill(0)).slice(0, cut)) === JSON.stringify(p.roles[r].slice(0, cut)), `${j.code}: J ha toccato la prima meta' di ${r}`));
+  }
+  let plus = 0, n = 0;
+  for (let hi = 0; hi < 256; hi += 5) { n++; if (/ \+ /.test(E.vary(base, "U", (hi << 8) | (hi * 7 & 255)).tag)) plus++; }
+  ok(plus / n > 0.85, `doppio ibrido con due stili diversi: ${plus}/${n}`);
+});
+
 test("variazioni: passi nel codice, catene con altri passi, rifiuto dei non validi", () => {
   const chain = "dbeat-16S-111111~VP00A1~4C21~VF0003~R000005BEEF";
   ok(E.fromCode(chain)?.code === chain, "catena mista");

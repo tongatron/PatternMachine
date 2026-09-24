@@ -103,6 +103,14 @@ def main():
         check("la query arriva nel form di login", 'value="/?p=dbeat-16S-111111~R000005BEEF&amp;x=1"' in page, True)
         for path in ["/engine/core.js", "/samples/Kick%201%20SP-1200.wav", "/machines/rx5/BDrum1-RX5.wav", "/sw.js", "/api/patterns", "/server.py"]:
             check("anonimo bloccato " + path, anon.call(path)[0], 401)
+        # Anteprima dei link: senza password si vede l'immagine e la pagina di accesso porta i tag og:
+        st, hd, body = anon.call("/assets/og-drum-machine-lab.jpg")
+        check("immagine di anteprima pubblica", st, 200)
+        check("immagine di anteprima jpeg", hd.get("content-type"), "image/jpeg")
+        check("immagine di anteprima leggera", len(body) < 600_000, True)
+        login_html = anon.call("/login")[2].decode()
+        check("pagina di accesso con og:image", 'property="og:image" content="https://drummachine.tongatron.org/assets/og-drum-machine-lab.jpg"' in login_html, True)
+        check("pagina di accesso con og:title", 'property="og:title"' in login_html, True)
         check("anonimo POST api", anon.call("/api/patterns", "POST", {"text": "t"}, same)[0], 401)
         check("anonimo DELETE api", anon.call("/api/patterns/abc", "DELETE", None, same)[0], 401)
         for path in ["/login", "/manifest.json", "/icons/icon-192.png", "/assets/og-sp1200.png"]:

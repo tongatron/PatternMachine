@@ -18,6 +18,6 @@
     { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
   "screenshots": [
-    { "src": "/assets/og-sp1200.png", "sizes": "1536x1024", "type": "image/png", "form_factor": "wide", "label": "Drum Machine Lab nel browser" }
+    { "src": "/assets/og-drum-machine-lab.jpg", "sizes": "1200x800", "type": "image/jpeg", "form_factor": "wide", "label": "Drum Machine Lab nel browser" }
   ]
 }

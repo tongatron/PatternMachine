@@ -7,6 +7,7 @@ Drum machine a step (SP-1200, Yamaha RX-5, 808, 909) con generatore di pattern, 
 - `server.py` — server statico + API `/api/patterns` usata dal toolkit.
 - `SP-1200.html` — versione autonoma con i campioni incorporati (non aggiornata al motore nuovo).
 - `SP 1200/` — campioni originali, plugin Audio Unit, remap dei pad MPK.
+- `TODO.md` — idee e lavori rimandati.
 
 ## Macchine (kit di campioni)
 

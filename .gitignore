@@ -13,3 +13,7 @@ SP 1200/Plugin/build/
 SP 1200/Plugin/tmp/
 # SDK Apple clonato con il suo repository: si riscarica, non si versiona qui.
 SP 1200/Plugin/vendor/AudioUnitSDK/
+
+# Kit estratti da Logic Pro (contenuti Apple, si rigenerano con scripts/extract-logic-kits.sh).
+site/machines/tr808/
+site/machines/tr909/

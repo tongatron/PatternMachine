@@ -3,6 +3,7 @@
 #
 #   scripts/deploy.sh          prova a secco: test, controllo versioni, elenco dei file che cambierebbero
 #   scripts/deploy.sh --yes    pubblica davvero (backup sul server, upload, verifica)
+#   --con-kit-logic            pubblica anche i kit 808/909 estratti da Logic (contenuti Apple: di norma restano solo in locale)
 #
 # Sul server la cartella e' piatta: site/* nella radice, index.html del toolkit come toolkit.html,
 # server.py e set-password.py accanto. auth.json (password) vive solo sul server e non si tocca.
@@ -19,6 +20,7 @@ cd "$(dirname "$0")/.."
 echo "== test"
 node tests/engine.test.js | tail -1
 python3 tests/server_test.py | tail -1
+python3 tests/site_test.py
 
 echo "== versioni"
 # Service worker, pagina e script del motore devono avere la stessa versione.
@@ -33,7 +35,10 @@ echo "ok $sw"
 
 STAGE=$(mktemp -d)
 trap 'rm -rf "$STAGE"' EXIT
-rsync -a --exclude .DS_Store site/ "$STAGE/"
+# I kit estratti da Logic (site/machines/tr808, tr909) sono contenuti Apple: non vanno online se non richiesto.
+EXCLUDE_LOGIC=(--exclude machines/tr808 --exclude machines/tr909)
+for arg in "$@"; do [ "$arg" = "--con-kit-logic" ] && EXCLUDE_LOGIC=(); done
+rsync -a --exclude .DS_Store ${EXCLUDE_LOGIC[@]+"${EXCLUDE_LOGIC[@]}"} site/ "$STAGE/"
 cp index.html "$STAGE/toolkit.html"
 cp server.py "$STAGE/server.py"
 cp scripts/set-password.py "$STAGE/set-password.py"
@@ -50,7 +55,8 @@ fi
 echo "$changes"
 server_changed=$(echo "$changes" | grep -c ' server.py$' || true)
 
-if [ "${1:-}" != "--yes" ]; then
+YES=0; for arg in "$@"; do [ "$arg" = "--yes" ] && YES=1; done
+if [ "$YES" != 1 ]; then
   echo
   echo "prova a secco: rilancia con --yes per pubblicare"
   exit 0

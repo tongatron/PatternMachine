@@ -477,11 +477,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       <button id="tapBtn" class="mini">Tap</button>
       <label class="fld">Swing <input type="range" id="swingRange" min="0" max="60" value="0"></label>
       <label class="fld">Vol <input type="range" id="masterVol" min="0" max="100" value="85"></label>
-      <div class="modeswitch" title="Set di campioni">
-        <button id="setStd" class="on">16 bit</button>
-        <button id="set12">12 bit</button>
-        <button id="setRx5" title="Kit Yamaha RX-5">RX-5</button>
-      </div>
+      <label class="fld" title="Macchina e set di campioni">Macchina <select id="kitSelect"></select></label>
       <div class="counter" id="counter">1 . 1</div>
     </div>
   </div>
@@ -629,7 +625,8 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <kbd>cmd</kbd>+<kbd>Z</kbd> annulla, <kbd>cmd</kbd>+<kbd>shift</kbd>+<kbd>Z</kbd> ripristina.
     <b>Note fantasma:</b> <kbd>shift</kbd>+click su uno step. <b>Feel</b> (nel pannello ⚙) anticipa o ritarda i colpi di una riga, da &minus;30 a +30 ms,
     per dare al rullante un tocco &ldquo;in ritardo&rdquo; o alla cassa uno &ldquo;in anticipo&rdquo;.
-    <b>16/12 bit</b> commuta tra i campioni originali e quelli passati dal convertitore; <b>RX-5</b> passa al kit Yamaha RX-5.
+    <b>Macchina</b> cambia i suoni: SP-1200 a 16 bit (originali), a 12 bit (passati dal convertitore) oppure Yamaha RX-5 con tutti i suoi 51 campioni;
+    le righe che usavano un suono assente sull'altra macchina passano al suono equivalente.
     <b>Scegli…</b> apre la libreria di pattern e il generatore: cambiando stile, sezione, step o fill nascono subito 4 pattern nuovi.
     Su ogni pattern: <b>Simili</b> ne crea 4 vicini, <b>Varia</b> lo trasforma (scarno, mezzo tempo, hat aperto, nuovo fill&hellip;),
     <b>Arrangia</b> ricava intro, ritornello, break e outro, <b>Blocca</b> tiene alcune voci e rigenera le altre.
@@ -638,16 +635,16 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-24.8"></script>
-<script src="engine/styles-punk.js?v=2026-09-24.8"></script>
-<script src="engine/styles-post.js?v=2026-09-24.8"></script>
-<script src="engine/styles-machines.js?v=2026-09-24.8"></script>
-<script src="engine/styles-alt.js?v=2026-09-24.8"></script>
-<script src="engine/styles-groove.js?v=2026-09-24.8"></script>
-<script src="engine/styles-dub.js?v=2026-09-24.8"></script>
-<script src="engine/styles-break.js?v=2026-09-24.8"></script>
-<script src="engine/styles-soul.js?v=2026-09-24.8"></script>
-<script src="engine/variations.js?v=2026-09-24.8"></script>
+<script src="engine/core.js?v=2026-09-24.10"></script>
+<script src="engine/styles-punk.js?v=2026-09-24.10"></script>
+<script src="engine/styles-post.js?v=2026-09-24.10"></script>
+<script src="engine/styles-machines.js?v=2026-09-24.10"></script>
+<script src="engine/styles-alt.js?v=2026-09-24.10"></script>
+<script src="engine/styles-groove.js?v=2026-09-24.10"></script>
+<script src="engine/styles-dub.js?v=2026-09-24.10"></script>
+<script src="engine/styles-break.js?v=2026-09-24.10"></script>
+<script src="engine/styles-soul.js?v=2026-09-24.10"></script>
+<script src="engine/variations.js?v=2026-09-24.10"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -663,8 +660,82 @@ const SAMPLES = [
   ["Cabasa 1","B"],["Cabasa 2","B"],["Triangle","B"],["Vibraslap","B"],
   ["Clave 1","C"],["Clave 2","C"],["Guiro 1","C"],["Guiro 2","C"],
   ["Perc 1","C"],["Perc 2","C"],["Perc 3","C"],["Perc 4","C"],["Perc 5","C"],["Perc 6","C"]
-].map(([name,bank])=>({name,bank,file:`samples/${name} SP-1200.wav`}));
-const BANK_LABEL={A:"Core kit",B:"Percussioni",C:"Altro"};
+].map(([name,bank])=>({name,bank}));
+
+// ---------- macchine ----------
+// Ogni macchina e' un kit: dove stanno i suoi file e come si chiamano i suoni. Gli slot sono i 42 "pad"
+// dell'SP-1200 (il generatore ragiona per slot); ogni macchina assegna a ogni slot il suo suono piu' vicino.
+// I suoni senza un corrispondente stanno in fondo come slot "extra", visibili solo su quella macchina:
+// se cambi macchina, una riga che li usava passa allo slot indicato in `fallback`.
+// Aggiungere una macchina = una cartella di WAV in machines/<id>/ + una tabella come questa + una voce in KITS.
+const RX5_SLOTS=[ // [slot, file, nome]
+  ["Kick 1","BDrum1-RX5","BDrum 1"],["Kick 2","BDrum2-RX5","BDrum 2"],
+  ["Snare 1","SDrum1-RX5","SDrum 1"],["Snare 2","SDrum2-RX5","SDrum 2"],["Snare 3","SDrum3-RX5","SDrum 3"],
+  ["Rimshot","Rim1-RX5","Rim 1"],["Finger Snap","Clap-RX5","Clap"],
+  ["Closed Hat 1","CHat-RX5","Closed Hat"],["Closed Hat 2","CHat-RX5","Closed Hat"],["Open Hat 1","OHat-RX5","Open Hat"],
+  ["Tom 1","Tom1-RX5","Tom 1"],["Tom 2","Tom3-RX5","Tom 3"],
+  ["Crash 1","Crash-RX5","Crash"],["Ride 1","RideEdge-RX5","Ride Edge"],["China","China-RX5","China"],["Cymbal","GlsCsh-RX5","Glass Crash"],
+  ["Cowbell 1","Cowbell-RX5","Cowbell"],["Cowbell 2","RideBell-RX5","Ride Bell"],["Cowbell 3","FMprc1-RX5","FM Perc 1"],["Cowbell 4","FMPrc2-RX5","FM Perc 2"],
+  ["Conga 1","CGaHOP-RX5","Conga Open"],["Conga 2","CGaLO-RX5","Conga Low"],["Conga 3","CGaHMT-RX5","Conga Hi Mute"],["Conga 4","BgoHI-RX5","Bongo Hi"],
+  ["Timbale 1","TimblH-RX5","Timbale Hi"],["Timbale 2","TimblL-RX5","Timbale Lo"],["Agogo 1","AgoHI-RX5","Agogo Hi"],["Tambourine","Tamb-RX5","Tambourine"],
+  ["Cabasa 1","Shaker-RX5","Shaker"],["Cabasa 2","AgoLO-RX5","Agogo Lo"],["Triangle","BgoLO-RX5","Bongo Lo"],["Vibraslap","Cuica-RX5","Cuica"],
+  ["Clave 1","Cstnt-RX5","Castanets"],["Clave 2","Timpn-RX5","Timpani"],["Guiro 1","Wao-RX5","Wao"],["Guiro 2","Ooo-RX5","Ooo"],
+  ["Perc 1","FMprc3-RX5","FM Perc 3"],["Perc 2","Hey-RX5","Hey"],["Perc 3","Gun-RX5","Gun"],["Perc 4","Whstl-RX5","Whistle"],
+  ["Perc 5","DXmrmb-RX5","DX Marimba"],["Perc 6","ETom1-RX5","E-Tom 1"],
+];
+const RX5_EXTRA=[ // [slot, file, nome, fallback]
+  ["BDrum 3","BDrum3-RX5","BDrum 3","Kick 2"],["Rim 2","Rim2-RX5","Rim 2","Rimshot"],
+  ["RX Tom 2","Tom2-RX5","Tom 2","Tom 1"],["RX Tom 4","Tom4-RX5","Tom 4","Tom 2"],
+  ["E-Tom 2","ETom2-RX5","E-Tom 2","Tom 2"],["E-Tom 3","ETom3-RX5","E-Tom 3","Tom 2"],["E-Tom 4","ETom4-RX5","E-Tom 4","Tom 2"],
+  ["DX Orchestra","DXorch-RX5","DX Orchestra","Perc 6"],["E-Bass Low","EBassL-RX5","E-Bass Low","Kick 1"],["E-Bass High","EbassH-RX5","E-Bass High","Kick 2"],
+];
+// 808 e 909: i kit "Boutique" di Logic Pro (ricreazioni di Apple, non i campioni Roland originali),
+// estratti con scripts/extract-logic-kits.sh. Le macchine senza rullante/hat separati coprono gli slot
+// del generatore con il suono piu' vicino; ogni file del kit e' comunque raggiungibile.
+const TR808_SLOTS=[ // [slot, file, nome]
+  ["Kick 1","BD1","BD 1"],["Kick 2","BD2","BD 2"],
+  ["Snare 1","SD1","SD 1"],["Snare 2","SD2","SD 2"],["Snare 3","SD3","SD 3"],
+  ["Rimshot","Rim","Rim"],["Finger Snap","Clap","Clap"],
+  ["Closed Hat 1","HH1","HH 1"],["Closed Hat 2","HH2","HH 2"],["Open Hat 1","HHo","Open Hat"],
+  ["Tom 1","Tom1","Tom 1"],["Tom 2","Tom3","Tom 3"],
+  ["Crash 1","Cym","Cymbal"],["Ride 1","HH3","HH 3"],["China","HHo_st","Open Hat (st)"],["Cymbal","Cym","Cymbal"],
+  ["Cowbell 1","Cow","Cowbell"],
+  ["Conga 1","Conga1","Conga 1"],["Conga 2","Conga2","Conga 2"],["Conga 3","Conga3","Conga 3"],
+  ["Tambourine","Maracas1","Maracas 1"],["Cabasa 1","Maracas2","Maracas 2"],
+  ["Clave 1","Clave","Clave"],["Perc 1","Tom2","Tom 2"],
+];
+const TR808_EXTRA=[["808 BD 3","BD3","BD 3","Kick 2"],["808 BD 4","BD4","BD 4","Kick 2"]];
+const TR909_SLOTS=[
+  ["Kick 1","BD1","BD 1"],["Kick 2","BD2","BD 2"],
+  ["Snare 1","SD1","SD 1"],["Snare 2","SD2","SD 2"],["Snare 3","SD2","SD 2"],
+  ["Rimshot","Rim1","Rim"],["Finger Snap","ClapST","Clap"],
+  ["Closed Hat 1","HH1","HH 1"],["Closed Hat 2","HH2","HH 2"],["Open Hat 1","HHo1","Open Hat 1"],
+  ["Tom 1","Tom1","Tom 1"],["Tom 2","Tom4","Tom 4"],
+  ["Crash 1","Crash","Crash"],["Ride 1","Ride1","Ride 1"],["China","Ride2","Ride 2"],["Cymbal","CrashST","Crash (st)"],
+  ["Cowbell 1","Perc3","Perc 3"],
+  ["Conga 1","Tom2","Tom 2"],["Conga 3","Tom5","Tom 5"],
+  ["Tambourine","Perc2","Perc 2"],["Cabasa 1","HH2","HH 2"],
+  ["Clave 1","Click1","Click"],["Perc 1","Perc1","Perc 1"],["Perc 2","Perc2","Perc 2"],["Perc 3","Perc3","Perc 3"],
+];
+const TR909_EXTRA=[["909 Open Hat 2","HHo2","Open Hat 2","Open Hat 1"],["909 Tom 3","Tom3","Tom 3","Tom 2"],["909 Ride ST","RideST","Ride (st)","Ride 1"]];
+
+const KITS={
+  std:{label:"SP-1200 · 16 bit", url:x=>`samples/${x.name} SP-1200.wav`, name:x=>x.name, has:x=>!x.extra},
+  "12bit":{label:"SP-1200 · 12 bit", url:x=>`samples12/${x.name} SP-1200.wav`, name:x=>x.name, has:x=>!x.extra},
+};
+// Le altre macchine si costruiscono tutte allo stesso modo dalla loro tabella.
+const MACHINES={
+  rx5:{label:"Yamaha RX-5", slots:RX5_SLOTS, extra:RX5_EXTRA},
+  tr808:{label:"808 · kit Boutique (Logic)", slots:TR808_SLOTS, extra:TR808_EXTRA},
+  tr909:{label:"909 · kit Boutique (Logic)", slots:TR909_SLOTS, extra:TR909_EXTRA},
+};
+Object.entries(MACHINES).forEach(([id,m])=>{
+  m.extra.forEach(([name,,,fallback])=>SAMPLES.push({name,bank:"D",extra:true,fallback}));
+  const sounds=Object.fromEntries([...m.slots,...m.extra].map(([slot,file,label])=>[slot,{file,label}]));
+  KITS[id]={label:m.label, remote:true, url:x=>`machines/${id}/${sounds[x.name].file}.wav`,
+    name:x=>sounds[x.name].label, has:x=>x.name in sounds};
+});
+const BANK_LABEL={A:"Core kit",B:"Percussioni",C:"Altro",D:"Solo questa macchina"};
 const PATTERN_HUES=[18,42,150,200,265,320,95,0];
 
 // Il kit "SP-1200 Kit" di Logic e' stato creato con Convert Regions to New Sampler
@@ -676,23 +747,11 @@ const sampleIdx = name => SAMPLES.findIndex(s=>s.name===name);
 
 let audioCtx=null;
 let sampleSet="std";
-const SET_DIR={std:"samples","12bit":"samples12",rx5:"samples-rx5"};
-const SET_SUFFIX={std:"SP-1200","12bit":"SP-1200",rx5:"RX-5"};
-// Nel set RX-5 ogni slot suona il campione Yamaha RX-5 piu' vicino (i file sono nominati per slot):
-// qui il nome vero del suono, da mostrare al posto del nome dello slot.
-const RX5_LABEL={"Kick 1":"BDrum 1","Kick 2":"BDrum 2","Snare 1":"SDrum 1","Snare 2":"SDrum 2","Snare 3":"SDrum 3",
-  "Rimshot":"Rim 1","Finger Snap":"Clap","Closed Hat 1":"Closed Hat","Closed Hat 2":"Closed Hat","Open Hat 1":"Open Hat",
-  "Tom 1":"Tom 1","Tom 2":"Tom 3","Crash 1":"Crash","Ride 1":"Ride Edge","China":"China","Cymbal":"Glass Crash",
-  "Cowbell 1":"Cowbell","Cowbell 2":"Ride Bell","Cowbell 3":"FM Perc 1","Cowbell 4":"FM Perc 2",
-  "Conga 1":"Conga Open","Conga 2":"Conga Low","Conga 3":"Conga Hi Mute","Conga 4":"Bongo Hi",
-  "Timbale 1":"Timbale Hi","Timbale 2":"Timbale Lo","Agogo 1":"Agogo Hi","Tambourine":"Tambourine",
-  "Cabasa 1":"Shaker","Cabasa 2":"Agogo Lo","Triangle":"Bongo Lo","Vibraslap":"Cuica",
-  "Clave 1":"Castanets","Clave 2":"Timpani","Guiro 1":"Wao","Guiro 2":"Ooo",
-  "Perc 1":"FM Perc 3","Perc 2":"Hey","Perc 3":"Gun","Perc 4":"Whistle","Perc 5":"DX Marimba","Perc 6":"E-Tom 1"};
-const sampleLabel = i => sampleSet==="rx5" ? (RX5_LABEL[SAMPLES[i].name]||SAMPLES[i].name) : SAMPLES[i].name;
+const sampleLabel = i => KITS[sampleSet].name(SAMPLES[i]);
+const sampleAvailable = i => KITS[sampleSet].has(SAMPLES[i]);
 const bufferCache=new Map();
 function actx(){ if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)(); return audioCtx; }
-const sampleFile = i => `${SET_DIR[sampleSet]}/${SAMPLES[i].name} ${SET_SUFFIX[sampleSet]}.wav`;
+const sampleFile = i => KITS[sampleSet].url(SAMPLES[i]);
 const cacheKey = i => sampleSet+":"+i;
 function sampleUrl(i){
   const f=sampleFile(i);
@@ -706,15 +765,19 @@ function loadBuffer(i){
   p.then(b=>bufferCache.set(k,b)).catch(()=>bufferCache.delete(k));
   return p;
 }
-function setSampleSet(s){
-  if(sampleSet===s) return;
-  sampleSet=s;
-  document.getElementById("setStd").classList.toggle("on",s==="std");
-  document.getElementById("set12").classList.toggle("on",s==="12bit");
-  document.getElementById("setRx5").classList.toggle("on",s==="rx5");
-  project.tracks.forEach(t=>loadBuffer(t.sampleIndex));
+// Cambia macchina. Le righe che usavano un suono che l'altra macchina non ha passano allo slot di riserva.
+function setSampleSet(k){
+  if(!KITS[k]) return;
+  if(KITS[k].ok===false){ setStatus(KITS[k].label+": non disponibile su questo server"); const sel=document.getElementById("kitSelect"); if(sel) sel.value=sampleSet; return; }
+  sampleSet=k;
+  const sel=document.getElementById("kitSelect"); if(sel) sel.value=k;
+  let moved=0;
+  project.tracks.forEach(t=>{
+    if(!sampleAvailable(t.sampleIndex)){ t.sampleIndex=sampleIdx(SAMPLES[t.sampleIndex].fallback||"Perc 1"); moved++; }
+    loadBuffer(t.sampleIndex);
+  });
   if(typeof renderAll==="function" && project.patterns) renderAll();
-  setStatus(s==="12bit" ? "campioni 12 bit" : s==="rx5" ? "kit Yamaha RX-5" : "campioni 16 bit");
+  setStatus(KITS[k].label+(moved?` · ${moved} ${moved===1?"riga passata":"righe passate"} a un suono equivalente`:""));
 }
 
 let idSeq=1;
@@ -1017,13 +1080,13 @@ let stepEls=new Map();
 
 function fillSampleSelect(sel){
   sel.innerHTML="";
-  ["A","B","C"].forEach(bank=>{
+  ["A","B","C","D"].forEach(bank=>{
     const og=document.createElement("optgroup"); og.label=BANK_LABEL[bank];
     SAMPLES.forEach((s,i)=>{
-      if(s.bank!==bank) return;
+      if(s.bank!==bank || !sampleAvailable(i)) return;
       const o=document.createElement("option"); o.value=i; o.textContent=sampleLabel(i); og.appendChild(o);
     });
-    sel.appendChild(og);
+    if(og.children.length) sel.appendChild(og);
   });
 }
 
@@ -1595,9 +1658,23 @@ el("seqClear").onclick=()=>{
   if(!confirm("Svuotare l'arrangiamento? I pattern restano.")) return;
   pushUndo(); project.song=[]; ui.blockId=null; renderSong(); setStatus("canzone svuotata");
 };
-el("setStd").onclick=()=>setSampleSet("std");
-el("set12").onclick=()=>setSampleSet("12bit");
-el("setRx5").onclick=()=>setSampleSet("rx5");
+(function initKitSelect(){
+  const sel=el("kitSelect");
+  Object.entries(KITS).forEach(([k,x])=>{ const o=document.createElement("option"); o.value=k; o.textContent=x.label; sel.appendChild(o); });
+  sel.value=sampleSet;
+  sel.onchange=()=>setSampleSet(sel.value);
+  // Un kit i cui file il server non serve (cartella mancante, non pubblicata) non deve restare in lista muto:
+  // si prova il primo suono di ogni macchina e, se non risponde, la macchina sparisce dal selettore.
+  const kick=SAMPLES[sampleIdx("Kick 1")];
+  setTimeout(()=>Object.entries(KITS).forEach(([k,x])=>{
+    if(!x.remote) return;
+    fetch(encodeURI(x.url(kick)),{cache:"no-cache"}).then(r=>{ if(!r.ok) throw new Error(r.status); }).catch(()=>{
+      x.ok=false;
+      sel.querySelector(`option[value="${k}"]`)?.remove();
+      if(sampleSet===k) setSampleSet("std");
+    });
+  }),800);
+})();
 el("recBtn").onclick=()=>{ recording=!recording; el("recBtn").classList.toggle("on",recording); };
 function setMode(m){
   ui.mode=m;
@@ -1753,7 +1830,7 @@ function deserialize(d,keepSel){
   if(!project.patterns.length) project.patterns=[makePattern("Beat 1",16)];
   ui.patternId=(keepSel && project.patterns.some(p=>p.id===prevPattern)) ? prevPattern : project.patterns[0].id;
   ui.blockId=(keepSel && project.song.some(b=>b.id===prevBlock)) ? prevBlock : (project.song[0]?.id||null);
-  if(SET_DIR[d.sampleSet] && d.sampleSet!==sampleSet) setSampleSet(d.sampleSet);
+  if(KITS[d.sampleSet] && d.sampleSet!==sampleSet) setSampleSet(d.sampleSet);
   el("projectName").value=project.name;
   el("bpmNum").value=project.bpm; el("bpmRange").value=Math.min(180,Math.max(60,project.bpm));
   el("swingRange").value=project.swing;
@@ -2542,7 +2619,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-24.8";
+const SW_VERSION="2026-09-24.10";
 (function pwa(){
   const standalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
   const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);

@@ -7,7 +7,7 @@
 // Cloudflare tiene in cache i .js, l'URL nuovo lo scavalca.
 // Il worker nuovo si attiva subito (skipWaiting): la pagina aperta e' gia' quella
 // presa dalla rete, quindi non serve ricaricarla e non si perde lavoro non salvato.
-const VERSION = "2026-09-24.8";
+const VERSION = "2026-09-24.10";
 const SHELL_CACHE = `sp1200-shell-${VERSION}`;
 const SAMPLE_CACHE = "sp1200-samples-v1"; // non versionata: i campioni non si riscaricano ad ogni rilascio
 
@@ -39,8 +39,14 @@ const SAMPLE_NAMES = [
   "Snare 1", "Snare 2", "Snare 3", "Tambourine", "Timbale 1", "Timbale 2", "Tom 1", "Tom 2",
   "Triangle", "Vibraslap",
 ];
-const SAMPLE_URLS = [["samples", "SP-1200"], ["samples12", "SP-1200"], ["samples-rx5", "RX-5"]].flatMap(([dir, suffix]) =>
-  SAMPLE_NAMES.map(n => encodeURI(`/${dir}/${n} ${suffix}.wav`)));
+// Yamaha RX-5: file nominati come i suoni originali (vedi RX5_SLOTS ed RX5_EXTRA in index.html).
+const RX5_FILES = [
+  "AgoHI-RX5", "AgoLO-RX5", "BDrum1-RX5", "BDrum2-RX5", "BDrum3-RX5", "BgoHI-RX5", "BgoLO-RX5", "CGaHMT-RX5", "CGaHOP-RX5", "CGaLO-RX5", "CHat-RX5", "China-RX5", "Clap-RX5", "Cowbell-RX5", "Crash-RX5", "Cstnt-RX5", "Cuica-RX5", "DXmrmb-RX5", "DXorch-RX5", "EBassL-RX5", "ETom1-RX5", "ETom2-RX5", "ETom3-RX5", "ETom4-RX5", "EbassH-RX5", "FMPrc2-RX5", "FMprc1-RX5", "FMprc3-RX5", "GlsCsh-RX5", "Gun-RX5", "Hey-RX5", "OHat-RX5", "Ooo-RX5", "RideBell-RX5", "RideEdge-RX5", "Rim1-RX5", "Rim2-RX5", "SDrum1-RX5", "SDrum2-RX5", "SDrum3-RX5", "Shaker-RX5", "Tamb-RX5", "TimblH-RX5", "TimblL-RX5", "Timpn-RX5", "Tom1-RX5", "Tom2-RX5", "Tom3-RX5", "Tom4-RX5", "Wao-RX5", "Whstl-RX5",
+];
+const SAMPLE_URLS = [
+  ...["samples", "samples12"].flatMap(dir => SAMPLE_NAMES.map(n => encodeURI(`/${dir}/${n} SP-1200.wav`))),
+  ...RX5_FILES.map(f => encodeURI(`/machines/rx5/${f}.wav`)),
+];
 
 self.addEventListener("install", event => {
   event.waitUntil((async () => {

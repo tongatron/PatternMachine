@@ -101,7 +101,7 @@ def main():
         check("link condiviso conserva la query", loc, "/login?next=/?p=dbeat-16S-111111~R000005BEEF%26x=1")
         page = anon.call(loc)[2].decode()
         check("la query arriva nel form di login", 'value="/?p=dbeat-16S-111111~R000005BEEF&amp;x=1"' in page, True)
-        for path in ["/engine/core.js", "/samples/Kick%201%20SP-1200.wav", "/sw.js", "/api/patterns", "/server.py"]:
+        for path in ["/engine/core.js", "/samples/Kick%201%20SP-1200.wav", "/machines/rx5/BDrum1-RX5.wav", "/sw.js", "/api/patterns", "/server.py"]:
             check("anonimo bloccato " + path, anon.call(path)[0], 401)
         check("anonimo POST api", anon.call("/api/patterns", "POST", {"text": "t"}, same)[0], 401)
         check("anonimo DELETE api", anon.call("/api/patterns/abc", "DELETE", None, same)[0], 401)
@@ -126,7 +126,7 @@ def main():
 
         # --- con sessione ---
         for path in ["/", "/toolkit.html", "/engine/core.js?v=1", "/samples/Kick%201%20SP-1200.wav",
-                     "/icons/icon-192.png", "/sw.js", "/manifest.json", "/api/patterns"]:
+                     "/icons/icon-192.png", "/sw.js", "/manifest.json", "/api/patterns", "/machines/rx5/BDrum1-RX5.wav"]:
             check("loggato " + path, user.call(path)[0], 200)
         for path in ["/server.py", "/auth.json", "/set-password.py", "/data/patterns.json", "/backup-index-x.html",
                      "/.env", "/engine/../server.py", "/samples/../data/patterns.json", "/nope.html"]:

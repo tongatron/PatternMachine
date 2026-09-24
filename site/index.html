@@ -27,7 +27,7 @@ try{ const t=localStorage.getItem("sp1200.theme"); if(t==="light"||t==="dark") d
   }catch(e){ skin=new URLSearchParams(location.search).get("ui"); }
   if(!skin || !SKINS[skin]) return;
   document.documentElement.dataset.skin=skin;
-  const l=document.createElement("link"); l.rel="stylesheet"; l.href=SKINS[skin]+"?v=2026-09-24.18";
+  const l=document.createElement("link"); l.rel="stylesheet"; l.href=SKINS[skin]+"?v=2026-09-24.19";
   document.head.appendChild(l);
   addEventListener("DOMContentLoaded",()=>{
     const a=document.createElement("a"); a.className="skin-badge"; a.href="?ui=off";
@@ -666,18 +666,18 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-24.18"></script>
-<script src="engine/styles-punk.js?v=2026-09-24.18"></script>
-<script src="engine/styles-post.js?v=2026-09-24.18"></script>
-<script src="engine/styles-machines.js?v=2026-09-24.18"></script>
-<script src="engine/styles-alt.js?v=2026-09-24.18"></script>
-<script src="engine/styles-groove.js?v=2026-09-24.18"></script>
-<script src="engine/styles-dub.js?v=2026-09-24.18"></script>
-<script src="engine/styles-break.js?v=2026-09-24.18"></script>
-<script src="engine/styles-soul.js?v=2026-09-24.18"></script>
-<script src="engine/styles-metal.js?v=2026-09-24.18"></script>
-<script src="engine/styles-electro.js?v=2026-09-24.18"></script>
-<script src="engine/variations.js?v=2026-09-24.18"></script>
+<script src="engine/core.js?v=2026-09-24.19"></script>
+<script src="engine/styles-punk.js?v=2026-09-24.19"></script>
+<script src="engine/styles-post.js?v=2026-09-24.19"></script>
+<script src="engine/styles-machines.js?v=2026-09-24.19"></script>
+<script src="engine/styles-alt.js?v=2026-09-24.19"></script>
+<script src="engine/styles-groove.js?v=2026-09-24.19"></script>
+<script src="engine/styles-dub.js?v=2026-09-24.19"></script>
+<script src="engine/styles-break.js?v=2026-09-24.19"></script>
+<script src="engine/styles-soul.js?v=2026-09-24.19"></script>
+<script src="engine/styles-metal.js?v=2026-09-24.19"></script>
+<script src="engine/styles-electro.js?v=2026-09-24.19"></script>
+<script src="engine/variations.js?v=2026-09-24.19"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -1788,7 +1788,14 @@ el("pDel").onclick=()=>{
 };
 el("pLen").onchange=()=>{
   pushUndo();
-  const p=curPattern(); p.len=+el("pLen").value;
+  const p=curPattern(), from=p.len, to=+el("pLen").value;
+  // Allungando, il ritmo si ripete nelle battute nuove (altrimenti la seconda battuta resterebbe muta).
+  // Accorciando, si taglia la coda come prima; cmd+Z la riporta indietro.
+  if(to>from) Object.keys(p.grid).forEach(id=>{
+    const g=p.grid[id].slice(0,from);
+    p.grid[id]=Array.from({length:to},(_,i)=>g[i%from]||0);
+  });
+  p.len=to;
   normalize(); renderRuler(); renderTracks(); renderPatterns(); renderSong();
 };
 
@@ -2688,7 +2695,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-24.18";
+const SW_VERSION="2026-09-24.19";
 (function pwa(){
   const standalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
   const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);

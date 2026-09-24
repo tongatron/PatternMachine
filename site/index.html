@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
 <title>SP-1200 — Simulatore drum machine</title>
-<meta name="description" content="Simulatore SP-1200: drum machine a step con i campioni originali, arrangiamento della canzone, generatore di pattern ed export MIDI.">
+<meta name="description" content="Simulatore SP-1200: drum machine a step con i campioni originali e il kit Yamaha RX-5, generatore di pattern in decine di stili, variazioni, arrangiamento della canzone ed export MIDI.">
 <meta name="theme-color" content="#15171a" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#b4b1a8" media="(prefers-color-scheme: light)">
 
@@ -24,7 +24,7 @@ try{ const t=localStorage.getItem("sp1200.theme"); if(t==="light"||t==="dark") d
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="SP-1200">
 <meta property="og:title" content="SP-1200 — Simulatore drum machine">
-<meta property="og:description" content="Drum machine a step con i 42 campioni originali SP-1200: pattern, arrangiamento della canzone ed export MIDI, direttamente nel browser.">
+<meta property="og:description" content="Drum machine a step con i campioni SP-1200 e il kit Yamaha RX-5: generatore di pattern in decine di stili (punk, dub, breakbeat, soul e altri), variazioni, arrangiamento della canzone ed export MIDI, direttamente nel browser.">
 <meta property="og:image" content="https://drummachine.tongatron.org/assets/og-sp1200.png">
 <meta property="og:image:width" content="1536">
 <meta property="og:image:height" content="1024">
@@ -33,7 +33,7 @@ try{ const t=localStorage.getItem("sp1200.theme"); if(t==="light"||t==="dark") d
 
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="SP-1200 — Simulatore drum machine">
-<meta name="twitter:description" content="Drum machine a step con i 42 campioni originali SP-1200: pattern, arrangiamento della canzone ed export MIDI, direttamente nel browser.">
+<meta name="twitter:description" content="Drum machine a step con i campioni SP-1200 e il kit Yamaha RX-5: generatore di pattern in decine di stili (punk, dub, breakbeat, soul e altri), variazioni, arrangiamento della canzone ed export MIDI, direttamente nel browser.">
 <meta name="twitter:image" content="https://drummachine.tongatron.org/assets/og-sp1200.png">
 </head>
 <body style="margin:0">
@@ -56,7 +56,7 @@ try{ const t=localStorage.getItem("sp1200.theme"); if(t==="light"||t==="dark") d
     --edge:#7b786f; --edge-soft:#9a978d;
     --text:#1c1b19; --text-dim:#35332f; --text-faint:#45433e;
     --accent:#c8471f; --accent-dim:#8a3418; --on-accent:#fff6ee;
-    --led-off:#3f3d39; --led-on:#e8672e; --led-accent:#b0201a; --led-head:#ffe9c9;
+    --led-off:#dcd9cf; --led-on:#a83f14; --led-accent:#8a1610; --led-head:#1c1b19;
     --danger:#a8231a; --ok:#3d7a48; --on-ok:#ffffff; --song:#c8471f;
     --shadow:inset 0 1px 0 rgba(255,255,255,.65), inset 0 -1px 0 rgba(0,0,0,.18), 0 2px 0 rgba(0,0,0,.25);
     /* Materiali: scocca in metallo verniciato, tasti in rilievo, pad in gomma, display a LED rosso. */
@@ -64,11 +64,12 @@ try{ const t=localStorage.getItem("sp1200.theme"); if(t==="light"||t==="dark") d
     --key:linear-gradient(180deg,#dcd9cf,#b5b2a8); --key-shadow:inset 0 1px 0 rgba(255,255,255,.8), 0 1px 0 rgba(0,0,0,.35);
     --key-on:linear-gradient(180deg,#8f8c83,#7a776e); --key-primary:linear-gradient(180deg,#e0743f,#b8471f);
     --r-panel:3px; --r-key:3px; --r-step:3px;
-    --step-off:linear-gradient(180deg,#54514b,#3a3833);
-    --step-shadow:inset 0 1px 0 rgba(255,255,255,.18), 0 1px 0 rgba(255,255,255,.35);
-    --step-on:linear-gradient(180deg,#f07f3e,#d4551f); --step-on-shadow:inset 0 1px 0 rgba(255,255,255,.45), 0 0 8px rgba(232,103,46,.55);
-    --step-acc:linear-gradient(180deg,#e0382a,#a51c14); --step-acc-shadow:inset 0 1px 0 rgba(255,255,255,.4), 0 0 9px rgba(224,56,42,.6);
-    --step-gho:linear-gradient(180deg,#8a5a3c,#684330); --gho-opacity:1;
+    --step-off:linear-gradient(180deg,#e9e6dd,#d2cfc5);
+    --step-shadow:inset 0 1px 0 rgba(255,255,255,.85), inset 0 -1px 0 rgba(0,0,0,.14), 0 1px 0 rgba(0,0,0,.3);
+    --step-on:linear-gradient(180deg,#ff8a3d,#e0561a); --step-on-shadow:inset 0 1px 0 rgba(255,255,255,.5), 0 1px 0 rgba(0,0,0,.35);
+    --step-acc:linear-gradient(180deg,#e8352a,#b3160d); --step-acc-shadow:inset 0 1px 0 rgba(255,255,255,.4), 0 1px 0 rgba(0,0,0,.4);
+    --step-gho:linear-gradient(180deg,#f0b58e,#dc9466); --gho-opacity:1;
+    --mini-edge:inset 0 0 0 1px rgba(0,0,0,.28);
     --counter-bg:#1a0b09; --counter-fg:#ff4126; --counter-glow:0 0 8px #ff2a10; --counter-shadow:inset 0 2px 6px rgba(0,0,0,.8);
   }
 }
@@ -77,7 +78,7 @@ try{ const t=localStorage.getItem("sp1200.theme"); if(t==="light"||t==="dark") d
     --edge:#7b786f; --edge-soft:#9a978d;
     --text:#1c1b19; --text-dim:#35332f; --text-faint:#45433e;
     --accent:#c8471f; --accent-dim:#8a3418; --on-accent:#fff6ee;
-    --led-off:#3f3d39; --led-on:#e8672e; --led-accent:#b0201a; --led-head:#ffe9c9;
+    --led-off:#dcd9cf; --led-on:#a83f14; --led-accent:#8a1610; --led-head:#1c1b19;
     --danger:#a8231a; --ok:#3d7a48; --on-ok:#ffffff; --song:#c8471f;
     --shadow:inset 0 1px 0 rgba(255,255,255,.65), inset 0 -1px 0 rgba(0,0,0,.18), 0 2px 0 rgba(0,0,0,.25);
     /* Materiali: scocca in metallo verniciato, tasti in rilievo, pad in gomma, display a LED rosso. */
@@ -85,11 +86,12 @@ try{ const t=localStorage.getItem("sp1200.theme"); if(t==="light"||t==="dark") d
     --key:linear-gradient(180deg,#dcd9cf,#b5b2a8); --key-shadow:inset 0 1px 0 rgba(255,255,255,.8), 0 1px 0 rgba(0,0,0,.35);
     --key-on:linear-gradient(180deg,#8f8c83,#7a776e); --key-primary:linear-gradient(180deg,#e0743f,#b8471f);
     --r-panel:3px; --r-key:3px; --r-step:3px;
-    --step-off:linear-gradient(180deg,#54514b,#3a3833);
-    --step-shadow:inset 0 1px 0 rgba(255,255,255,.18), 0 1px 0 rgba(255,255,255,.35);
-    --step-on:linear-gradient(180deg,#f07f3e,#d4551f); --step-on-shadow:inset 0 1px 0 rgba(255,255,255,.45), 0 0 8px rgba(232,103,46,.55);
-    --step-acc:linear-gradient(180deg,#e0382a,#a51c14); --step-acc-shadow:inset 0 1px 0 rgba(255,255,255,.4), 0 0 9px rgba(224,56,42,.6);
-    --step-gho:linear-gradient(180deg,#8a5a3c,#684330); --gho-opacity:1;
+    --step-off:linear-gradient(180deg,#e9e6dd,#d2cfc5);
+    --step-shadow:inset 0 1px 0 rgba(255,255,255,.85), inset 0 -1px 0 rgba(0,0,0,.14), 0 1px 0 rgba(0,0,0,.3);
+    --step-on:linear-gradient(180deg,#ff8a3d,#e0561a); --step-on-shadow:inset 0 1px 0 rgba(255,255,255,.5), 0 1px 0 rgba(0,0,0,.35);
+    --step-acc:linear-gradient(180deg,#e8352a,#b3160d); --step-acc-shadow:inset 0 1px 0 rgba(255,255,255,.4), 0 1px 0 rgba(0,0,0,.4);
+    --step-gho:linear-gradient(180deg,#f0b58e,#dc9466); --gho-opacity:1;
+    --mini-edge:inset 0 0 0 1px rgba(0,0,0,.28);
     --counter-bg:#1a0b09; --counter-fg:#ff4126; --counter-glow:0 0 8px #ff2a10; --counter-shadow:inset 0 2px 6px rgba(0,0,0,.8);
 }
 :root[data-theme="light"]{color-scheme:light;}
@@ -298,9 +300,9 @@ label.fld input[type=number]{width:54px;}
 .lib-ref{font-size:9px; color:var(--text-faint); font-style:italic; max-width:190px; margin-top:2px;}
 .lib-mini{display:flex; flex-direction:column; gap:2px; flex:1 1 auto; min-width:120px;}
 .mini-row{display:grid; gap:1.5px;}
-.mini-cell{height:5px; border-radius:1px; background:var(--led-off);}
-.mini-cell.on{background:var(--led-on);}
-.mini-cell.acc{background:var(--led-accent);}
+.mini-cell{height:5px; border-radius:1px; background:var(--step-off,var(--led-off)); box-shadow:var(--mini-edge,none);}
+.mini-cell.on{background:var(--step-on,var(--led-on));}
+.mini-cell.acc{background:var(--step-acc,var(--led-accent));}
 .mini-cell.gho{opacity:.45;}
 .lib-acts{display:grid; grid-template-columns:auto auto; gap:5px; flex:0 0 auto;}
 .lib-item{flex-wrap:wrap;}
@@ -434,7 +436,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 <div class="wrap">
   <div class="topbar">
     <h1>SP&#8209;1200</h1>
-    <span class="tagline">42 campioni originali &middot; pattern, canzone, export MIDI</span>
+    <span class="tagline">42 campioni SP-1200 + kit RX-5 &middot; generatore di pattern, canzone, export MIDI</span>
     <span class="tagline" style="margin-left:auto"><a href="/toolkit.html" style="color:var(--text-dim)">Drum Machine Toolkit &rarr;</a></span>
     <div class="modeswitch theme-switch" role="group" aria-label="Tema dell'interfaccia">
       <button type="button" data-theme-choice="auto" title="Segue il sistema">Auto</button>
@@ -625,19 +627,27 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     come i VCF sulle uscite della macchina, <b>Start</b> sposta il punto d'attacco, <b>Rev</b> suona al contrario,
     <b>Uscita</b> manda la riga a una delle 8 uscite individuali (scheda <b>Mixer</b>).
     <kbd>cmd</kbd>+<kbd>Z</kbd> annulla, <kbd>cmd</kbd>+<kbd>shift</kbd>+<kbd>Z</kbd> ripristina.
-    <b>16/12 bit</b> commuta tra i campioni originali e quelli passati dal convertitore. <b>Scegli…</b> apre la libreria di pattern e il generatore.
+    <b>Note fantasma:</b> <kbd>shift</kbd>+click su uno step. <b>Feel</b> (nel pannello ⚙) anticipa o ritarda i colpi di una riga, da &minus;30 a +30 ms,
+    per dare al rullante un tocco &ldquo;in ritardo&rdquo; o alla cassa uno &ldquo;in anticipo&rdquo;.
+    <b>16/12 bit</b> commuta tra i campioni originali e quelli passati dal convertitore; <b>RX-5</b> passa al kit Yamaha RX-5.
+    <b>Scegli…</b> apre la libreria di pattern e il generatore: cambiando stile, sezione, step o fill nascono subito 4 pattern nuovi.
+    Su ogni pattern: <b>Simili</b> ne crea 4 vicini, <b>Varia</b> lo trasforma (scarno, mezzo tempo, hat aperto, nuovo fill&hellip;),
+    <b>Arrangia</b> ricava intro, ritornello, break e outro, <b>Blocca</b> tiene alcune voci e rigenera le altre.
+    Ogni pattern ha un codice: lo stesso codice rigenera lo stesso pattern.
   </p>
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-24.5"></script>
-<script src="engine/styles-punk.js?v=2026-09-24.5"></script>
-<script src="engine/styles-post.js?v=2026-09-24.5"></script>
-<script src="engine/styles-machines.js?v=2026-09-24.5"></script>
-<script src="engine/styles-alt.js?v=2026-09-24.5"></script>
-<script src="engine/styles-groove.js?v=2026-09-24.5"></script>
-<script src="engine/styles-dub.js?v=2026-09-24.5"></script>
-<script src="engine/variations.js?v=2026-09-24.5"></script>
+<script src="engine/core.js?v=2026-09-24.8"></script>
+<script src="engine/styles-punk.js?v=2026-09-24.8"></script>
+<script src="engine/styles-post.js?v=2026-09-24.8"></script>
+<script src="engine/styles-machines.js?v=2026-09-24.8"></script>
+<script src="engine/styles-alt.js?v=2026-09-24.8"></script>
+<script src="engine/styles-groove.js?v=2026-09-24.8"></script>
+<script src="engine/styles-dub.js?v=2026-09-24.8"></script>
+<script src="engine/styles-break.js?v=2026-09-24.8"></script>
+<script src="engine/styles-soul.js?v=2026-09-24.8"></script>
+<script src="engine/variations.js?v=2026-09-24.8"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -2373,7 +2383,7 @@ function renderLibrary(){
       nm.appendChild(star);
     }
     nm.appendChild(document.createTextNode(item.name));
-    const tg=document.createElement("div"); tg.className="lib-tag"; tg.textContent=`${item.tag} · ${item.len} step`;
+    const tg=document.createElement("div"); tg.className="lib-tag"; tg.textContent=`${item.tag} · ${item.len} step`+(item.code?"":" · preset");
     meta.appendChild(nm); meta.appendChild(tg);
     if(item.ref){ const rf=document.createElement("div"); rf.className="lib-ref"; rf.textContent=item.ref; meta.appendChild(rf); }
     if(item.code){ const cd=document.createElement("div"); cd.className="lib-code"; cd.textContent=item.code; cd.title="codice del pattern"; meta.appendChild(cd); }
@@ -2392,7 +2402,7 @@ function renderLibrary(){
       r.className="mini-row"; r.style.gridTemplateColumns=`repeat(${item.len},1fr)`;
       arr.forEach(v=>{
         const c=document.createElement("div");
-        c.className="mini-cell"+(v===1?" on":"")+(v===2?" acc":"");
+        c.className="mini-cell"+(v===1||v===3?" on":"")+(v===2?" acc":"")+(v===3?" gho":"");
         r.appendChild(c);
       });
       mini.appendChild(r);
@@ -2414,11 +2424,14 @@ function renderLibrary(){
       lock.textContent="\u{1F512} Blocca"; lock.title="tieni alcune voci e rigenera le altre";
       lock.setAttribute("aria-expanded",String(lockOpen.has(item)));
       lock.onclick=()=>toggleLockPanel(item);
+      const arr=document.createElement("button"); arr.className="mini"; arr.textContent="\u2630 Arrangia";
+      arr.title="ricava intro, ritornello, break e outro da questo pattern";
+      arr.onclick=()=>pushToLibrary(SPEngine.arrange(item),item);
       const vary=document.createElement("button"); vary.className="mini"+(varyOpen.has(item)?" on":"");
       vary.textContent="\u2726 Varia"; vary.title="scarno, mezzo tempo, hat aperto, nuovo fill...";
       vary.setAttribute("aria-expanded",String(varyOpen.has(item)));
       vary.onclick=()=>toggleVaryPanel(item);
-      acts.appendChild(sim); acts.appendChild(vary); acts.appendChild(link); acts.appendChild(lock);
+      acts.appendChild(sim); acts.appendChild(vary); acts.appendChild(arr); acts.appendChild(link); acts.appendChild(lock);
     }
     row.appendChild(acts);
     if(item.code && varyOpen.has(item)) row.appendChild(varyPanel(item));
@@ -2428,7 +2441,11 @@ function renderLibrary(){
   paintAudition();
 }
 
-function openLib(){ el("libOverlay").hidden=false; renderLibrary(); }
+function openLib(){
+  el("libOverlay").hidden=false;
+  // Alla prima apertura la libreria contiene solo i preset fissi: si parte da 4 pattern dello stile scelto.
+  if(!library.some(i=>i.code)) el("genBtn").click(); else renderLibrary();
+}
 function closeLib(){ stopAudition(); el("libOverlay").hidden=true; }
 el("libTabAll").onclick=()=>setLibView("all");
 el("libTabFav").onclick=()=>setLibView("fav");
@@ -2444,9 +2461,13 @@ el("genBtn").onclick=()=>{
   const style=el("genStyle").value, len=+el("genLen").value;
   const section=el("genSection").value, fill=el("genFill").checked;
   const made=[];
+  const sig=p=>JSON.stringify(p.roles);
   for(let i=0;i<4;i++){
     const sec=section==="both"?(i%2?"chorus":"verse"):section;
-    made.push(genPattern(style,len,{section:sec, fill}));
+    let p=genPattern(style,len,{section:sec, fill});
+    // negli stili rigidi due seed possono dare lo stesso ritmo: si riprova qualche volta
+    for(let t=0;t<8 && made.some(q=>sig(q)===sig(p));t++) p=genPattern(style,len,{section:sec, fill});
+    made.push(p);
   }
   pushToLibrary(made);
 };
@@ -2521,7 +2542,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-24.5";
+const SW_VERSION="2026-09-24.8";
 (function pwa(){
   const standalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
   const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);

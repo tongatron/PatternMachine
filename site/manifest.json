@@ -2,7 +2,7 @@
   "id": "/",
   "name": "SP-1200 — Simulatore drum machine",
   "short_name": "SP-1200",
-  "description": "Drum machine a step con i 42 campioni originali SP-1200: pattern, generatore di stili, canzone ed export MIDI. Funziona anche offline.",
+  "description": "Drum machine a step con i campioni SP-1200 e il kit Yamaha RX-5: generatore di pattern in decine di stili, variazioni, canzone ed export MIDI. Funziona anche offline.",
   "lang": "it",
   "dir": "ltr",
   "start_url": "/?source=pwa",

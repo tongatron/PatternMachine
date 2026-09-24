@@ -144,8 +144,15 @@
     const did = OPS[type](w);
     // Un pattern gia' pieno o senza le voci giuste puo' non cambiare: si ripiega su piccoli ritocchi.
     if (did === false || snapshot(w.roles) === before) {
-      const voices = Object.keys(w.roles).filter(v => v !== "kick" && v !== "crash");
-      for (let t = 0; t < 4 && snapshot(w.roles) === before; t++) E.h.pointMutations(w.roles, voices, r, w.safe, r.int(1, 3));
+      if (type === "P") {
+        // "scarno" non deve mai aggiungere: se non ha tolto nulla, toglie uno o due colpi non accentati.
+        const cands = [];
+        Object.keys(w.roles).forEach(role => { if (role !== "crash") for (let i = 0; i < w.safe; i++) if (w.roles[role][i] === 1 || w.roles[role][i] === 3) cands.push([role, i]); });
+        r.some(cands, 1, 2).forEach(([role, i]) => { w.roles[role][i] = 0; });
+      } else {
+        const voices = Object.keys(w.roles).filter(v => v !== "kick" && v !== "crash");
+        for (let t = 0; t < 4 && snapshot(w.roles) === before; t++) E.h.pointMutations(w.roles, voices, r, w.safe, r.int(1, 3));
+      }
     }
     const meta = TYPES.find(t => t.id === type);
     const st = E.styles[parent.style];
@@ -156,8 +163,24 @@
     });
   }
 
+  // Arrangiamento: da un pattern (la strofa) ricava le altre sezioni con le variazioni. Ogni sezione
+  // e' un normale pattern con il suo codice, quindi si ascolta, si carica e si condivide come gli altri.
+  const hash = str => { let h = 2166136261; for (const ch of str) h = Math.imul(h ^ ch.charCodeAt(0), 16777619); return h >>> 0; };
+  function arrange(parent) {
+    const r = rng(hash(parent.code));
+    const seed = () => r.int(0, 0xFFFF);
+    const named = (p, label) => Object.assign({}, p, { name: `${parent.name} · ${label}`, tag: `${parent.tag} · ${label}` });
+    return [
+      named(vary(vary(parent, "P", seed()), "P", seed()), "intro"),
+      named(vary(parent, "F", seed()), "ritornello"),
+      named(vary(vary(parent, "P", seed()), "H", seed()), "break"),
+      named(vary(vary(parent, "P", seed()), "L", seed()), "outro"),
+    ];
+  }
+
   TYPES.forEach(t => E.defineOp(t.id, (p, seed) => vary(p, t.id, seed)));
   E.variationTypes = TYPES;
   E.vary = vary;
+  E.arrange = arrange;
   E.fills = FILLS;
 })(typeof SPEngine !== "undefined" ? SPEngine : require("./core.js"));

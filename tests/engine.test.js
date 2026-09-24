@@ -5,7 +5,7 @@ const path = require("path");
 
 const dir = path.join(__dirname, "..", "site", "engine");
 const E = require(path.join(dir, "core.js"));
-["styles-punk", "styles-post", "styles-machines", "styles-alt", "styles-groove", "styles-dub"]
+["styles-punk", "styles-post", "styles-machines", "styles-alt", "styles-groove", "styles-dub", "styles-break", "styles-soul"]
   .forEach(f => require(path.join(dir, f + ".js")));
 require(path.join(dir, "variations.js"));
 
@@ -208,6 +208,25 @@ test("feel e ghost: micro-timing per stile, livello 3 solo nelle variazioni", ()
     ok(g.roles.snare.filter(v => v === 3).length >= 1, `boombap ${seed}: nessuna nota fantasma sul rullante`);
   }
   ok(ghosts / tries > 0.8, `ghost e dinamica emettono il livello 3: ${ghosts}/${tries}`);
+});
+
+test("arrangia: sezioni riproducibili dallo stesso pattern", () => {
+  for (const id of Object.keys(E.styles)) for (const fill of [false, true]) {
+    const p = E.generate({ style: id, len: 16, section: "verse", fill, seed: 0x1234 + id.length });
+    const parts = E.arrange(p);
+    ok(parts.length === 4, `${id}: 4 sezioni`);
+    ok(JSON.stringify(parts.map(x => x.code)) === JSON.stringify(E.arrange(p).map(x => x.code)), `${id}: arrange deterministico`);
+    for (const part of parts) {
+      ok(part.code.startsWith(p.code + "~V"), `${id}: codice ${part.code}`);
+      const again = E.fromCode(part.code);
+      ok(again && JSON.stringify(again.roles) === JSON.stringify(part.roles), `${part.code}: non riproducibile`);
+      ok(Object.keys(part.roles).length > 0, `${part.code}: vuota`);
+    }
+    const [intro, chorus] = parts;
+    const hits = q => Object.values(q.roles).flat().filter(v => v).length;
+    ok(hits(intro) <= hits(p), `${id}: l'intro non e' piu' piena della strofa`);
+    ok(hits(chorus) >= hits(p) - 2 || Object.keys(chorus.roles).length >= Object.keys(p.roles).length, `${id}: il ritornello non e' piu' scarno`);
+  }
 });
 
 test("variazioni: passi nel codice, catene con altri passi, rifiuto dei non validi", () => {

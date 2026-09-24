@@ -2,7 +2,7 @@
 
 Simulatore SP-1200 con generatore di pattern, online su https://drummachine.tongatron.org.
 
-- `site/` — il sito: `index.html`, motore ritmico in `site/engine/` (core + schede degli stili), PWA (`sw.js`, `manifest.json`, `icons/`), campioni.
+- `site/` — il sito: `index.html`, motore ritmico in `site/engine/` (core, variazioni e arrangiamento, schede degli stili in gruppi: punk, post-punk, macchine, alternative, hip hop/dance/latin, reggae/dub, breakbeat/DnB, soul/disco/afro), PWA (`sw.js`, `manifest.json`, `icons/`), campioni (`samples`, `samples12`, e il kit Yamaha RX-5 in `samples-rx5`).
 - `index.html` — Drum Machine Toolkit (sul server diventa `toolkit.html`).
 - `server.py` — server statico + API `/api/patterns` usata dal toolkit.
 - `SP-1200.html` — versione autonoma con i campioni incorporati (non aggiornata al motore nuovo).

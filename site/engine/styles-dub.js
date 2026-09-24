@@ -1,6 +1,6 @@
 // Schede: reggae, ska e dub. Formato dei campi in styles-punk.js.
-// Il "feel" (rim e cassa un po' in ritardo) e lo swing leggero fanno la parte del terzinato:
-// la griglia resta a sedicesimi, quindi qui non c'e' un vero 6/8.
+// Il "feel" (rim e cassa un po' in ritardo) da' il passo rilassato. Lo swing del sito sposta solo i
+// sedicesimi dispari, quindi qui non c'e' un vero terzinato ne' un 6/8: servirebbe una griglia a 12 step.
 (function (E) {
   const { euclid, hits, cells, backbeat, cymbal, openHat } = E.h;
   E.defineGroup({ id: "dub", label: "Reggae / Dub" });

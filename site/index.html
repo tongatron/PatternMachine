@@ -6,8 +6,8 @@
 <meta name="color-scheme" content="light dark">
 <title>SP-1200 — Simulatore drum machine</title>
 <meta name="description" content="Simulatore SP-1200: drum machine a step con i campioni originali e il kit Yamaha RX-5, generatore di pattern in decine di stili, variazioni, arrangiamento della canzone ed export MIDI.">
-<meta name="theme-color" content="#15171a" media="(prefers-color-scheme: dark)">
-<meta name="theme-color" content="#b4b1a8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1114" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#a3a097" media="(prefers-color-scheme: light)">
 
 <script>
 // Tema scelto dall'utente, applicato prima del primo render per evitare il lampo del tema sbagliato.
@@ -41,57 +41,57 @@ try{ const t=localStorage.getItem("sp1200.theme"); if(t==="light"||t==="dark") d
 /* Pelle "Originale": ricalca il pannello della E-mu SP-1200 — scocca ardesia,
    filo blu sotto le etichette di sezione, blu sui colpi e rosso Record sugli accenti. */
 :root{
-  --bg:#15171a; --panel:#1e2126; --panel-2:#272b31; --panel-3:#31363d;
-  --edge:#3b424a; --edge-soft:#2b3036;
-  --text:#e9e6de; --text-dim:#9aa1aa; --text-faint:#6b737c;
+  --bg:#0f1114; --panel:#1e2126; --panel-2:#2a2f36; --panel-3:#353b43;
+  --edge:#58626e; --edge-soft:#3e454e;
+  --text:#f2efe8; --text-dim:#b8bfc8; --text-faint:#8d959f;
   --accent:#3b8fd6; --accent-dim:#255d8c; --on-accent:#15171a;
-  --led-off:#22262b; --led-on:#3b8fd6; --led-accent:#d4402f; --led-head:#eceadf;
+  --led-off:#2c3138; --led-on:#3b8fd6; --led-accent:#d4402f; --led-head:#eceadf;
   --danger:#d4402f; --ok:#4f9e63; --on-ok:#0e1a11; --song:#62a8e0;
   --shadow:0 1px 0 rgba(255,255,255,0.04) inset, 0 4px 14px rgba(0,0,0,0.32);
 }
 /* Tema chiaro: la macchina vera: scocca grigia, tasti in rilievo, pad in gomma, display a LED rosso. */
 @media (prefers-color-scheme: light){
   :root:not([data-theme="dark"]){
-    --bg:#b4b1a8; --body-bg:linear-gradient(180deg,#bdbab1,#aaa79e); --panel:#cfccc2; --panel-2:#bab7ad; --panel-3:#a8a59b;
-    --edge:#7b786f; --edge-soft:#9a978d;
-    --text:#1c1b19; --text-dim:#35332f; --text-faint:#45433e;
+    --bg:#a3a097; --body-bg:linear-gradient(180deg,#adaaa1,#9a978e); --panel:#d9d6cc; --panel-2:#c4c1b7; --panel-3:#a8a59b;
+    --edge:#55534b; --edge-soft:#7d7a71;
+    --text:#1c1b19; --text-dim:#2b2a26; --text-faint:#3a3833;
     --accent:#c8471f; --accent-dim:#8a3418; --on-accent:#fff6ee;
     --led-off:#dcd9cf; --led-on:#a83f14; --led-accent:#8a1610; --led-head:#1c1b19;
     --danger:#a8231a; --ok:#3d7a48; --on-ok:#ffffff; --song:#c8471f;
     --shadow:inset 0 1px 0 rgba(255,255,255,.65), inset 0 -1px 0 rgba(0,0,0,.18), 0 2px 0 rgba(0,0,0,.25);
     /* Materiali: scocca in metallo verniciato, tasti in rilievo, pad in gomma, display a LED rosso. */
-    --plate:linear-gradient(180deg,#d6d3c9,#c6c3b9);
+    --plate:linear-gradient(180deg,#e2dfd6,#cfccc2);
     --key:linear-gradient(180deg,#dcd9cf,#b5b2a8); --key-shadow:inset 0 1px 0 rgba(255,255,255,.8), 0 1px 0 rgba(0,0,0,.35);
     --key-on:linear-gradient(180deg,#8f8c83,#7a776e); --key-primary:linear-gradient(180deg,#e0743f,#b8471f);
     --r-panel:3px; --r-key:3px; --r-step:3px;
-    --step-off:linear-gradient(180deg,#e9e6dd,#d2cfc5);
+    --step-off:linear-gradient(180deg,#f1eee5,#dbd8ce);
     --step-shadow:inset 0 1px 0 rgba(255,255,255,.85), inset 0 -1px 0 rgba(0,0,0,.14), 0 1px 0 rgba(0,0,0,.3);
     --step-on:linear-gradient(180deg,#ff8a3d,#e0561a); --step-on-shadow:inset 0 1px 0 rgba(255,255,255,.5), 0 1px 0 rgba(0,0,0,.35);
     --step-acc:linear-gradient(180deg,#e8352a,#b3160d); --step-acc-shadow:inset 0 1px 0 rgba(255,255,255,.4), 0 1px 0 rgba(0,0,0,.4);
     --step-gho:linear-gradient(180deg,#f0b58e,#dc9466); --gho-opacity:1;
-    --mini-edge:inset 0 0 0 1px rgba(0,0,0,.28);
+    --mini-edge:inset 0 0 0 1px rgba(0,0,0,.42);
     --counter-bg:#1a0b09; --counter-fg:#ff4126; --counter-glow:0 0 8px #ff2a10; --counter-shadow:inset 0 2px 6px rgba(0,0,0,.8);
   }
 }
 :root[data-theme="light"]{
-  --bg:#b4b1a8; --body-bg:linear-gradient(180deg,#bdbab1,#aaa79e); --panel:#cfccc2; --panel-2:#bab7ad; --panel-3:#a8a59b;
-    --edge:#7b786f; --edge-soft:#9a978d;
-    --text:#1c1b19; --text-dim:#35332f; --text-faint:#45433e;
+  --bg:#a3a097; --body-bg:linear-gradient(180deg,#adaaa1,#9a978e); --panel:#d9d6cc; --panel-2:#c4c1b7; --panel-3:#a8a59b;
+    --edge:#55534b; --edge-soft:#7d7a71;
+    --text:#1c1b19; --text-dim:#2b2a26; --text-faint:#3a3833;
     --accent:#c8471f; --accent-dim:#8a3418; --on-accent:#fff6ee;
     --led-off:#dcd9cf; --led-on:#a83f14; --led-accent:#8a1610; --led-head:#1c1b19;
     --danger:#a8231a; --ok:#3d7a48; --on-ok:#ffffff; --song:#c8471f;
     --shadow:inset 0 1px 0 rgba(255,255,255,.65), inset 0 -1px 0 rgba(0,0,0,.18), 0 2px 0 rgba(0,0,0,.25);
     /* Materiali: scocca in metallo verniciato, tasti in rilievo, pad in gomma, display a LED rosso. */
-    --plate:linear-gradient(180deg,#d6d3c9,#c6c3b9);
+    --plate:linear-gradient(180deg,#e2dfd6,#cfccc2);
     --key:linear-gradient(180deg,#dcd9cf,#b5b2a8); --key-shadow:inset 0 1px 0 rgba(255,255,255,.8), 0 1px 0 rgba(0,0,0,.35);
     --key-on:linear-gradient(180deg,#8f8c83,#7a776e); --key-primary:linear-gradient(180deg,#e0743f,#b8471f);
     --r-panel:3px; --r-key:3px; --r-step:3px;
-    --step-off:linear-gradient(180deg,#e9e6dd,#d2cfc5);
+    --step-off:linear-gradient(180deg,#f1eee5,#dbd8ce);
     --step-shadow:inset 0 1px 0 rgba(255,255,255,.85), inset 0 -1px 0 rgba(0,0,0,.14), 0 1px 0 rgba(0,0,0,.3);
     --step-on:linear-gradient(180deg,#ff8a3d,#e0561a); --step-on-shadow:inset 0 1px 0 rgba(255,255,255,.5), 0 1px 0 rgba(0,0,0,.35);
     --step-acc:linear-gradient(180deg,#e8352a,#b3160d); --step-acc-shadow:inset 0 1px 0 rgba(255,255,255,.4), 0 1px 0 rgba(0,0,0,.4);
     --step-gho:linear-gradient(180deg,#f0b58e,#dc9466); --gho-opacity:1;
-    --mini-edge:inset 0 0 0 1px rgba(0,0,0,.28);
+    --mini-edge:inset 0 0 0 1px rgba(0,0,0,.42);
     --counter-bg:#1a0b09; --counter-fg:#ff4126; --counter-glow:0 0 8px #ff2a10; --counter-shadow:inset 0 2px 6px rgba(0,0,0,.8);
 }
 :root[data-theme="light"]{color-scheme:light;}
@@ -417,6 +417,8 @@ table.recent th{text-align:left; color:var(--text-faint); font-weight:700; font-
 table.recent td{padding:5px 7px; border-bottom:1px solid var(--edge-soft);}
 table.recent tr:last-child td{border-bottom:none;}
 table.recent .nm{font-weight:700;}
+table.recent tr.current td{background:var(--panel-3);}
+table.recent tr.current .nm::before{content:"\25B6  "; color:var(--accent);}
 table.recent .empty td{color:var(--text-faint); font-style:italic; text-align:center; padding:12px;}
 .recent-wrap{overflow-x:auto;}
 .acts{display:flex; gap:5px;}
@@ -486,6 +488,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <button id="viewGrid" class="on">Griglia</button>
     <button id="viewSeq">Sequencer</button>
     <button id="viewMix">Mixer</button>
+    <button id="viewRecent">Progetti recenti <span id="recentCount"></span></button>
   </div>
 
   <div class="panel" id="panelPatterns">
@@ -563,12 +566,12 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     </p>
   </div>
 
-  <div class="panel">
+  <div class="panel" id="panelRecent" hidden>
     <h2>Progetti recenti</h2>
     <div class="recent-wrap">
       <table class="recent">
-        <thead><tr><th>Nome</th><th>Aggiornato</th><th>BPM</th><th>Pattern</th><th></th></tr></thead>
-        <tbody id="recentBody"><tr class="empty"><td colspan="5">nessun progetto salvato</td></tr></tbody>
+        <thead><tr><th>Nome</th><th>Macchina</th><th>Aggiornato</th><th>BPM</th><th>Pattern</th><th></th></tr></thead>
+        <tbody id="recentBody"><tr class="empty"><td colspan="6">nessun progetto salvato: usa Salva o Salva come</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -627,7 +630,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     per dare al rullante un tocco &ldquo;in ritardo&rdquo; o alla cassa uno &ldquo;in anticipo&rdquo;.
     <b>Macchina</b> cambia i suoni: SP-1200 a 16 bit (originali), a 12 bit (passati dal convertitore) oppure Yamaha RX-5 con tutti i suoi 51 campioni;
     le righe che usavano un suono assente sull'altra macchina passano al suono equivalente.
-    <b>Scegli…</b> apre la libreria di pattern e il generatore: cambiando stile, sezione, step o fill nascono subito 4 pattern nuovi.
+    <b>Scegli…</b> apre la libreria di pattern e il generatore: <b>Genera 4</b> crea 4 pattern nuovi dello stile scelto (nient'altro ne crea da solo).
     Su ogni pattern: <b>Simili</b> ne crea 4 vicini, <b>Varia</b> lo trasforma (scarno, mezzo tempo, hat aperto, nuovo fill&hellip;),
     <b>Arrangia</b> ricava intro, ritornello, break e outro, <b>Blocca</b> tiene alcune voci e rigenera le altre.
     Ogni pattern ha un codice: lo stesso codice rigenera lo stesso pattern.
@@ -635,16 +638,16 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-24.10"></script>
-<script src="engine/styles-punk.js?v=2026-09-24.10"></script>
-<script src="engine/styles-post.js?v=2026-09-24.10"></script>
-<script src="engine/styles-machines.js?v=2026-09-24.10"></script>
-<script src="engine/styles-alt.js?v=2026-09-24.10"></script>
-<script src="engine/styles-groove.js?v=2026-09-24.10"></script>
-<script src="engine/styles-dub.js?v=2026-09-24.10"></script>
-<script src="engine/styles-break.js?v=2026-09-24.10"></script>
-<script src="engine/styles-soul.js?v=2026-09-24.10"></script>
-<script src="engine/variations.js?v=2026-09-24.10"></script>
+<script src="engine/core.js?v=2026-09-24.11"></script>
+<script src="engine/styles-punk.js?v=2026-09-24.11"></script>
+<script src="engine/styles-post.js?v=2026-09-24.11"></script>
+<script src="engine/styles-machines.js?v=2026-09-24.11"></script>
+<script src="engine/styles-alt.js?v=2026-09-24.11"></script>
+<script src="engine/styles-groove.js?v=2026-09-24.11"></script>
+<script src="engine/styles-dub.js?v=2026-09-24.11"></script>
+<script src="engine/styles-break.js?v=2026-09-24.11"></script>
+<script src="engine/styles-soul.js?v=2026-09-24.11"></script>
+<script src="engine/variations.js?v=2026-09-24.11"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -1591,10 +1594,13 @@ function setView(v){
   el("viewGrid").classList.toggle("on",v==="grid");
   el("viewSeq").classList.toggle("on",v==="seq");
   el("viewMix").classList.toggle("on",v==="mix");
+  el("viewRecent").classList.toggle("on",v==="recent");
   el("panelPatterns").hidden = v!=="grid";
   el("panelGrid").hidden = v!=="grid";
   el("panelSeq").hidden = v!=="seq";
   el("panelMix").hidden = v!=="mix";
+  el("panelRecent").hidden = v!=="recent";
+  if(v==="recent") refreshRecent();
   if(v==="seq") renderSong();
   if(v==="mix") renderMixer();
 }
@@ -1651,6 +1657,7 @@ document.addEventListener("keydown",(e)=>{
 // ---------- transport UI ----------
 el("playBtn").onclick=togglePlay;
 el("viewMix").onclick=()=>setView("mix");
+el("viewRecent").onclick=()=>setView("recent");
 el("viewGrid").onclick=()=>setView("grid");
 el("viewSeq").onclick=()=>setView("seq");
 el("seqClear").onclick=()=>{
@@ -1915,20 +1922,25 @@ function renderRecent(list){
   const body=el("recentBody");
   body.innerHTML="";
   if(!list.length){
-    body.innerHTML='<tr class="empty"><td colspan="5">nessun progetto salvato</td></tr>';
+    body.innerHTML='<tr class="empty"><td colspan="6">nessun progetto salvato: usa Salva o Salva come</td></tr>';
+    el("recentCount").textContent="";
     return;
   }
+  el("recentCount").textContent=`(${list.length})`;
   list.forEach(p=>{
     const tr=document.createElement("tr");
+    if(p.id===currentProjectId) tr.className="current";
     const td=(txt,cls)=>{ const c=document.createElement("td"); if(cls)c.className=cls; c.textContent=txt; return c; };
     tr.appendChild(td(p.name||"Senza titolo","nm"));
+    tr.appendChild(td((KITS[p.sampleSet]||KITS.std).label));
     tr.appendChild(td(fmtDate(p.updatedAt)));
     tr.appendChild(td(p.bpm||"–"));
     tr.appendChild(td((p.patterns||[]).length));
     const acts=document.createElement("td");
     const wrap=document.createElement("div"); wrap.className="acts";
-    const edit=document.createElement("button"); edit.className="mini"; edit.textContent="Modifica";
-    edit.onclick=()=>loadProject(p.id);
+    const edit=document.createElement("button"); edit.className="mini primary"; edit.textContent="Accedi";
+    edit.title="apre il progetto nella griglia, pronto da modificare";
+    edit.onclick=async()=>{ await loadProject(p.id); setView("grid"); };
     const del=document.createElement("button"); del.className="mini danger"; del.textContent="Rimuovi";
     del.onclick=()=>removeProject(p.id,p.name||"Senza titolo");
     wrap.appendChild(edit); wrap.appendChild(del); acts.appendChild(wrap); tr.appendChild(acts);
@@ -2518,22 +2530,13 @@ function renderLibrary(){
   paintAudition();
 }
 
-function openLib(){
-  el("libOverlay").hidden=false;
-  // Alla prima apertura la libreria contiene solo i preset fissi: si parte da 4 pattern dello stile scelto.
-  if(!library.some(i=>i.code)) el("genBtn").click(); else renderLibrary();
-}
+function openLib(){ el("libOverlay").hidden=false; renderLibrary(); }
 function closeLib(){ stopAudition(); el("libOverlay").hidden=true; }
 el("libTabAll").onclick=()=>setLibView("all");
 el("libTabFav").onclick=()=>setLibView("fav");
 el("pChoose").onclick=openLib;
 el("libClose").onclick=closeLib;
 el("libOverlay").onclick=(e)=>{ if(e.target===el("libOverlay")) closeLib(); };
-// Cambiare stile, sezione, step o fill genera subito 4 pattern (con una breve attesa per chi scorre il menu con le frecce).
-let genAutoTimer=null;
-["genStyle","genSection","genLen","genFill"].forEach(id=>{
-  el(id).addEventListener("change",()=>{ clearTimeout(genAutoTimer); genAutoTimer=setTimeout(()=>el("genBtn").click(),250); });
-});
 el("genBtn").onclick=()=>{
   const style=el("genStyle").value, len=+el("genLen").value;
   const section=el("genSection").value, fill=el("genFill").checked;
@@ -2619,7 +2622,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-24.10";
+const SW_VERSION="2026-09-24.11";
 (function pwa(){
   const standalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
   const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);

@@ -1650,7 +1650,12 @@ function renderSong(){
       if(p){ ui.patternId=p.id; el("pLen").value=p.len; renderPatterns(); renderRuler(); renderTracks(); }
       renderSong();
     };
-    card.ondblclick=()=>{ if(p){ selectPattern(p.id); setView("grid"); } };
+    // Solo sul blocco: due click veloci su +/−, ripetizioni, duplica o menu non devono portare alla griglia
+    // (stopPropagation sul click non ferma il dblclick).
+    card.ondblclick=e=>{
+      if(e.target.closest("button,input,select,.seqblock-foot")) return;
+      if(p){ selectPattern(p.id); setView("grid"); }
+    };
 
     card.ondragstart=e=>{ dragFrom=idx; card.classList.add("dragging"); e.dataTransfer.effectAllowed="move"; };
     card.ondragend=()=>{ dragFrom=null; card.classList.remove("dragging"); clearDropMarks(); };

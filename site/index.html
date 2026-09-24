@@ -14,21 +14,24 @@
 try{ const t=localStorage.getItem("sp1200.theme"); if(t==="light"||t==="dark") document.documentElement.dataset.theme=t; }catch(e){}
 </script>
 <script>
-// Interfaccia: "plakat" (predefinita) oppure "classic" (la grafica precedente, con i temi chiaro/scuro).
-// La scelta si ricorda nel browser; ?ui=classic e ?ui=plakat la forzano da link (?ui=off = classic).
+// Interfaccia: "plakat" (predefinita), "studio" (scura, accento ambra) oppure "classic" (la grafica
+// precedente, con i temi chiaro/scuro). La scelta si ricorda nel browser; ?ui=plakat|studio|classic la
+// forzano da link (?ui=off = classic).
 (function(){
-  const KEY="dml.skin";
+  const KEY="dml.skin", SKINS=["plakat","studio","classic"];
   let ui="plakat";
   try{
-    const q=new URLSearchParams(location.search).get("ui");
-    if(q==="plakat") localStorage.setItem(KEY,"plakat");
-    else if(q==="classic"||q==="off") localStorage.setItem(KEY,"classic");
-    ui=localStorage.getItem(KEY)==="classic" ? "classic" : "plakat";
+    let q=new URLSearchParams(location.search).get("ui");
+    if(q==="off") q="classic";
+    if(SKINS.includes(q)) localStorage.setItem(KEY,q);
+    const saved=localStorage.getItem(KEY);
+    if(SKINS.includes(saved)) ui=saved;
   }catch(e){}
-  if(ui==="plakat") document.documentElement.dataset.skin="plakat";
+  if(ui!=="classic") document.documentElement.dataset.skin=ui;
 })();
 </script>
-<link rel="stylesheet" href="/assets/skin-plakat.css?v=2026-09-24.23">
+<link rel="stylesheet" href="/assets/skin-plakat.css?v=2026-09-24.24">
+<link rel="stylesheet" href="/assets/skin-studio.css?v=2026-09-24.24">
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
@@ -471,7 +474,13 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <h1>Drum Machine Lab</h1>
     <span class="tagline">Drum machine a step &middot; SP-1200, RX-5, 808, 909 &middot; generatore di pattern, canzone, export MIDI</span>
     <span class="tagline" style="margin-left:auto"><a href="/funzioni.html" style="color:var(--text-dim)">Funzioni tecniche</a> &middot; <a href="/toolkit.html" style="color:var(--text-dim)">Drum Machine Toolkit &rarr;</a></span>
-    <button type="button" id="uiSwitch" class="mini" title="cambia grafica"></button>
+    <label class="fld" title="cambia grafica">Interfaccia
+      <select id="uiSwitch">
+        <option value="plakat">Plakat</option>
+        <option value="studio">Studio</option>
+        <option value="classic">Classica</option>
+      </select>
+    </label>
     <div class="modeswitch theme-switch" role="group" aria-label="Tema dell'interfaccia">
       <button type="button" data-theme-choice="auto" title="Segue il sistema">Auto</button>
       <button type="button" data-theme-choice="light" title="Tema chiaro">&#9728;&#xFE0E; Chiaro</button>
@@ -687,18 +696,18 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-24.23"></script>
-<script src="engine/styles-punk.js?v=2026-09-24.23"></script>
-<script src="engine/styles-post.js?v=2026-09-24.23"></script>
-<script src="engine/styles-machines.js?v=2026-09-24.23"></script>
-<script src="engine/styles-alt.js?v=2026-09-24.23"></script>
-<script src="engine/styles-groove.js?v=2026-09-24.23"></script>
-<script src="engine/styles-dub.js?v=2026-09-24.23"></script>
-<script src="engine/styles-break.js?v=2026-09-24.23"></script>
-<script src="engine/styles-soul.js?v=2026-09-24.23"></script>
-<script src="engine/styles-metal.js?v=2026-09-24.23"></script>
-<script src="engine/styles-electro.js?v=2026-09-24.23"></script>
-<script src="engine/variations.js?v=2026-09-24.23"></script>
+<script src="engine/core.js?v=2026-09-24.24"></script>
+<script src="engine/styles-punk.js?v=2026-09-24.24"></script>
+<script src="engine/styles-post.js?v=2026-09-24.24"></script>
+<script src="engine/styles-machines.js?v=2026-09-24.24"></script>
+<script src="engine/styles-alt.js?v=2026-09-24.24"></script>
+<script src="engine/styles-groove.js?v=2026-09-24.24"></script>
+<script src="engine/styles-dub.js?v=2026-09-24.24"></script>
+<script src="engine/styles-break.js?v=2026-09-24.24"></script>
+<script src="engine/styles-soul.js?v=2026-09-24.24"></script>
+<script src="engine/styles-metal.js?v=2026-09-24.24"></script>
+<script src="engine/styles-electro.js?v=2026-09-24.24"></script>
+<script src="engine/variations.js?v=2026-09-24.24"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -2775,28 +2784,21 @@ window.addEventListener("resize",()=>{
   }
 })();
 
-// ---------- interfaccia Plakat / classica ----------
+// ---------- interfaccia Plakat / Studio / classica ----------
 (function uiSwitch(){
-  const btn=el("uiSwitch"), root=document.documentElement;
-  const paint=()=>{
-    const plakat=root.dataset.skin==="plakat";
-    btn.textContent=plakat ? "Interfaccia classica" : "Interfaccia Plakat";
-    btn.title=plakat ? "torna alla grafica precedente (chiara)" : "passa alla grafica Plakat";
-  };
-  btn.onclick=()=>{
-    const toPlakat=root.dataset.skin!=="plakat";
-    try{ localStorage.setItem("dml.skin", toPlakat ? "plakat" : "classic"); }catch(e){}
-    if(toPlakat) root.dataset.skin="plakat";
-    else {
+  const sel=el("uiSwitch"), root=document.documentElement;
+  sel.value=root.dataset.skin||"classic";
+  sel.onchange=()=>{
+    const ui=sel.value;
+    try{ localStorage.setItem("dml.skin", ui); }catch(e){}
+    if(ui==="classic"){
       delete root.dataset.skin;
       // la grafica precedente torna nella sua versione chiara
       document.querySelector('[data-theme-choice="light"]')?.click();
-    }
+    } else root.dataset.skin=ui;
     // toglie ?ui= dall'indirizzo, cosi' un ricaricamento non annulla la scelta
     if(new URLSearchParams(location.search).has("ui")) history.replaceState(null,"",location.pathname);
-    paint();
   };
-  paint();
 })();
 
 // ---------- tema chiaro / scuro ----------
@@ -2827,7 +2829,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-24.23";
+const SW_VERSION="2026-09-24.24";
 (function pwa(){
   const standalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
   const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);

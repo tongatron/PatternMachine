@@ -22,7 +22,7 @@ PATTERN_ID_RE = re.compile(r"^/api/patterns/([A-Za-z0-9\-]+)$")
 
 # Si serve solo cio' che fa parte del sito: server.py, auth.json, data/ e qualunque altro
 # file lasciato nella cartella (backup, appunti) restano fuori.
-STATIC_FILES = {"index.html", "toolkit.html", "manifest.json", "sw.js"}
+STATIC_FILES = {"index.html", "toolkit.html", "funzioni.html", "manifest.json", "sw.js"}
 STATIC_DIRS = ("engine/", "icons/", "samples/", "samples12/", "machines/", "assets/")
 
 # Visibili senza password: servono al browser per installare la PWA e alle anteprime dei link.

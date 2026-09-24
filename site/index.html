@@ -28,7 +28,7 @@ try{ const t=localStorage.getItem("sp1200.theme"); if(t==="light"||t==="dark") d
   if(ui==="plakat") document.documentElement.dataset.skin="plakat";
 })();
 </script>
-<link rel="stylesheet" href="/assets/skin-plakat.css?v=2026-09-24.21">
+<link rel="stylesheet" href="/assets/skin-plakat.css?v=2026-09-24.23">
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
@@ -299,6 +299,10 @@ label.fld input[type=number]{width:54px;}
 .step.beat:not(.on){box-shadow:var(--step-shadow,inset 0 0 0 1px var(--edge));}
 .step.on{background:var(--step-on,var(--led-on)); border-color:var(--led-on); box-shadow:var(--step-on-shadow,none);}
 .step.acc{background:var(--step-acc,var(--led-accent)); border-color:var(--led-accent); box-shadow:var(--step-acc-shadow,none);}
+.step{position:relative;}
+.step.mod::after{content:attr(data-label); position:absolute; left:2px; right:2px; bottom:2px; font-size:9.5px; font-weight:800;
+  line-height:1; text-align:center; letter-spacing:0; text-transform:none; color:var(--text); background:var(--panel-2); padding:1px 0; pointer-events:none;}
+.step-mode-line{margin:-2px 0 9px;}
 .step.gho{opacity:var(--gho-opacity,.5); background:var(--step-gho,var(--led-on)); box-shadow:none;}
 .step.head{outline:2px solid var(--led-head); outline-offset:1px;}
 .step.g, .ruler span.g{margin-left:9px;}
@@ -466,7 +470,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
   <div class="topbar">
     <h1>Drum Machine Lab</h1>
     <span class="tagline">Drum machine a step &middot; SP-1200, RX-5, 808, 909 &middot; generatore di pattern, canzone, export MIDI</span>
-    <span class="tagline" style="margin-left:auto"><a href="/toolkit.html" style="color:var(--text-dim)">Drum Machine Toolkit &rarr;</a></span>
+    <span class="tagline" style="margin-left:auto"><a href="/funzioni.html" style="color:var(--text-dim)">Funzioni tecniche</a> &middot; <a href="/toolkit.html" style="color:var(--text-dim)">Drum Machine Toolkit &rarr;</a></span>
     <button type="button" id="uiSwitch" class="mini" title="cambia grafica"></button>
     <div class="modeswitch theme-switch" role="group" aria-label="Tema dell'interfaccia">
       <button type="button" data-theme-choice="auto" title="Segue il sistema">Auto</button>
@@ -549,6 +553,15 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 
   <div class="panel" id="panelGrid">
     <h2 id="gridTitle">Griglia</h2>
+    <div class="flexline step-mode-line">
+      <span class="tiny">Click sugli step:</span>
+      <div class="modeswitch" id="stepMode" role="group" aria-label="Cosa cambia il click su uno step">
+        <button type="button" data-mode="hit" class="on" title="accende e spegne i colpi (alt = accento, shift = nota fantasma)">Colpi</button>
+        <button type="button" data-mode="prob" title="quante volte suona lo step: 100, 75, 50, 25%">Probabilit&agrave;</button>
+        <button type="button" data-mode="rat" title="quanti colpi rapidi dentro lo step: 1, 2, 3, 4">Ripetizioni</button>
+      </div>
+      <span class="tiny" id="stepModeHint"></span>
+    </div>
     <div class="ruler" id="ruler"></div>
     <div class="rows" id="rows"></div>
     <div class="flexline" style="margin-top:9px;">
@@ -660,7 +673,8 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     come i VCF sulle uscite della macchina, <b>Start</b> sposta il punto d'attacco, <b>Rev</b> suona al contrario,
     <b>Uscita</b> manda la riga a una delle 8 uscite individuali (scheda <b>Mixer</b>).
     <kbd>cmd</kbd>+<kbd>Z</kbd> annulla, <kbd>cmd</kbd>+<kbd>shift</kbd>+<kbd>Z</kbd> ripristina.
-    <b>Note fantasma:</b> <kbd>shift</kbd>+click su uno step. <b>Feel</b> (nel pannello ⚙) anticipa o ritarda i colpi di una riga, da &minus;30 a +30 ms,
+    <b>Note fantasma:</b> <kbd>shift</kbd>+click su uno step.
+    <b>Probabilit&agrave;</b> e <b>Ripetizioni</b> (sopra la griglia): con la modalit&agrave; scelta, il click su uno step acceso lo fa suonare solo a volte (75, 50, 25%) o ripetere 2, 3, 4 volte dentro lo step; valgono anche per WAV e MIDI. <b>Feel</b> (nel pannello ⚙) anticipa o ritarda i colpi di una riga, da &minus;30 a +30 ms,
     per dare al rullante un tocco &ldquo;in ritardo&rdquo; o alla cassa uno &ldquo;in anticipo&rdquo;.
     <b>Macchina</b> cambia i suoni: SP-1200 a 16 bit (originali), a 12 bit (passati dal convertitore) oppure Yamaha RX-5 con tutti i suoi 51 campioni;
     le righe che usavano un suono assente sull'altra macchina passano al suono equivalente.
@@ -673,18 +687,18 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-24.21"></script>
-<script src="engine/styles-punk.js?v=2026-09-24.21"></script>
-<script src="engine/styles-post.js?v=2026-09-24.21"></script>
-<script src="engine/styles-machines.js?v=2026-09-24.21"></script>
-<script src="engine/styles-alt.js?v=2026-09-24.21"></script>
-<script src="engine/styles-groove.js?v=2026-09-24.21"></script>
-<script src="engine/styles-dub.js?v=2026-09-24.21"></script>
-<script src="engine/styles-break.js?v=2026-09-24.21"></script>
-<script src="engine/styles-soul.js?v=2026-09-24.21"></script>
-<script src="engine/styles-metal.js?v=2026-09-24.21"></script>
-<script src="engine/styles-electro.js?v=2026-09-24.21"></script>
-<script src="engine/variations.js?v=2026-09-24.21"></script>
+<script src="engine/core.js?v=2026-09-24.23"></script>
+<script src="engine/styles-punk.js?v=2026-09-24.23"></script>
+<script src="engine/styles-post.js?v=2026-09-24.23"></script>
+<script src="engine/styles-machines.js?v=2026-09-24.23"></script>
+<script src="engine/styles-alt.js?v=2026-09-24.23"></script>
+<script src="engine/styles-groove.js?v=2026-09-24.23"></script>
+<script src="engine/styles-dub.js?v=2026-09-24.23"></script>
+<script src="engine/styles-break.js?v=2026-09-24.23"></script>
+<script src="engine/styles-soul.js?v=2026-09-24.23"></script>
+<script src="engine/styles-metal.js?v=2026-09-24.23"></script>
+<script src="engine/styles-electro.js?v=2026-09-24.23"></script>
+<script src="engine/variations.js?v=2026-09-24.23"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -840,7 +854,20 @@ function voiceDefaults(o={}){
 const OUTS=8;
 const busDefaults = o => ({level:o?.level??100, pan:o?.pan??0, low:o?.low??0, high:o?.high??0, comp:o?.comp??0});
 const makeMixer = src => Array.from({length:OUTS}, (_,i)=>busDefaults(src?.[i]));
-function makePattern(name,len=16){ return {id:uid(), name, len, grid:{}}; }
+function makePattern(name,len=16){ return {id:uid(), name, len, grid:{}, mods:{}}; }
+// Probabilita' e ripetizioni per step, sparse: mods[traccia][step] = {p:percentuale, r:colpi}.
+// Uno step senza voce suona sempre (p 100) una volta sola (r 1): i progetti vecchi restano identici.
+const PROBS=[100,75,50,25], RATS=[1,2,3,4];
+const cloneMods = m => JSON.parse(JSON.stringify(m||{}));
+const modOf = (pat,tid,i) => { const m=pat.mods&&pat.mods[tid]&&pat.mods[tid][i]; return {p:m&&m.p||100, r:m&&m.r||1}; };
+function setMod(pat,tid,i,key,val){
+  pat.mods=pat.mods||{};
+  const row=pat.mods[tid]||(pat.mods[tid]={}), cur=Object.assign({p:100,r:1},row[i]);
+  cur[key]=val;
+  if(cur.p===100 && cur.r===1) delete row[i]; else row[i]={p:cur.p,r:cur.r};
+  if(!Object.keys(row).length) delete pat.mods[tid];
+}
+const stepPlays = m => m.p>=100 || Math.random()*100<m.p;
 
 let project=null;
 let ui={patternId:null, blockId:null, mode:"pattern", recording:false, clip:null};
@@ -875,6 +902,12 @@ function normalize(){
       }
     });
     Object.keys(p.grid).forEach(k=>{ if(!project.tracks.some(t=>t.id===k)) delete p.grid[k]; });
+    p.mods=p.mods||{};
+    Object.keys(p.mods).forEach(k=>{
+      if(!project.tracks.some(t=>t.id===k)) { delete p.mods[k]; return; }
+      Object.keys(p.mods[k]).forEach(i=>{ if(+i>=p.len) delete p.mods[k][i]; });
+      if(!Object.keys(p.mods[k]).length) delete p.mods[k];
+    });
   });
   project.song=project.song.filter(b=>project.patterns.some(p=>p.id===b.patternId));
 }
@@ -1049,11 +1082,15 @@ function scheduler(){
     const pat=playingPattern();
     if(!pat){ stop(); return; }
     const live=audibleTracks();
+    const dur=stepDur(cursor.step);
     live.forEach(t=>{
       const v=(pat.grid[t.id]||[])[cursor.step];
-      if(v) trigger(t, nextTime+nudgeOf(t), stepVel(v));
+      if(!v) return;
+      const m=modOf(pat,t.id,cursor.step);
+      if(!stepPlays(m)) return;
+      // ripetizioni: colpi uguali dentro lo step, quelli dopo il primo un po' piu' morbidi
+      for(let k=0;k<m.r;k++) trigger(t, nextTime+nudgeOf(t)+k*dur/m.r, stepVel(v)*(k?0.82:1));
     });
-    const dur=stepDur(cursor.step);
     queue.push({time:nextTime, dur, step:cursor.step, rep:cursor.rep||0, patternId:pat.id, blockIndex:cursor.blockIndex, bar:barCount});
     nextTime += dur;
     cursor.step++;
@@ -1314,15 +1351,23 @@ function renderTracks(){
     for(let i=0;i<pat.len;i++){
       const b=document.createElement("button");
       b.className="step"; b.dataset.i=i;
-      paintStep(b,arr[i],i);
+      paintStep(b,arr[i],i,modOf(pat,t.id,i));
       b.onclick=(ev)=>{
+        if(ui.stepMode==="prob"||ui.stepMode==="rat"){
+          if(!arr[i]){ setStatus("prima accendi il colpo (modalita' Colpi)"); return; }
+          pushUndo();
+          const key=ui.stepMode==="prob"?"p":"r", list=key==="p"?PROBS:RATS, cur=modOf(pat,t.id,i)[key];
+          setMod(pat,t.id,i,key,list[(list.indexOf(cur)+1)%list.length]);
+          paintStep(b,arr[i],i,modOf(pat,t.id,i));
+          return;
+        }
         pushUndo();
         if(ev.altKey) arr[i]= arr[i]===2?0:2;
         else if(ev.shiftKey) arr[i]= arr[i]===3?0:3;
         else arr[i]= arr[i]?0:1;
-        paintStep(b,arr[i],i);
+        paintStep(b,arr[i],i,modOf(pat,t.id,i));
       };
-      b.oncontextmenu=(ev)=>{ ev.preventDefault(); pushUndo(); arr[i]= arr[i]===2?0:2; paintStep(b,arr[i],i); };
+      b.oncontextmenu=(ev)=>{ ev.preventDefault(); pushUndo(); arr[i]= arr[i]===2?0:2; paintStep(b,arr[i],i,modOf(pat,t.id,i)); };
       steps.appendChild(b); els.push(b);
     }
     stepEls.set(t.id,els);
@@ -1332,9 +1377,13 @@ function renderTracks(){
   paintPlayhead();
 }
 
-function paintStep(b,v,i){
+function paintStep(b,v,i,m){
   b.className="step"+(i%4===0?" beat":"")+(i%4===0&&i>0?" g":"")
     +(v===1?" on":"")+(v===2?" on acc":"")+(v===3?" on gho":"");
+  // su uno step acceso: "50%" se suona solo a volte, "x3" se ripete; su uno spento non si mostra nulla
+  const label = v && m ? [m.p<100?m.p+"%":"", m.r>1?"×"+m.r:""].filter(Boolean).join(" ") : "";
+  if(label){ b.dataset.label=label; b.classList.add("mod"); } else delete b.dataset.label;
+  b.setAttribute("aria-label",`step ${i+1}${v?"":" vuoto"}${label?" "+label:""}`);
 }
 
 function paintPlayhead(){
@@ -1676,7 +1725,7 @@ function recordHit(track){
   if(pat.id===curPattern().id){
     const els=stepEls.get(track.id);
     const i=(step+pat.len)%pat.len;
-    if(els&&els[i]) paintStep(els[i],arr[i],i);
+    if(els&&els[i]) paintStep(els[i],arr[i],i,modOf(pat,track.id,i));
   }
 }
 
@@ -1777,11 +1826,12 @@ el("pDup").onclick=()=>{
   const src=curPattern();
   const p=makePattern(src.name+" copia", src.len);
   Object.entries(src.grid).forEach(([k,v])=>p.grid[k]=v.slice());
+  p.mods=cloneMods(src.mods);
   project.patterns.push(p); normalize(); selectPattern(p.id);
 };
 el("pCopy").onclick=()=>{
   const src=curPattern();
-  ui.clip={len:src.len, grid:Object.fromEntries(Object.entries(src.grid).map(([k,v])=>[k,v.slice()]))};
+  ui.clip={len:src.len, grid:Object.fromEntries(Object.entries(src.grid).map(([k,v])=>[k,v.slice()])), mods:cloneMods(src.mods)};
   setStatus("pattern copiato");
 };
 el("pPaste").onclick=()=>{
@@ -1790,6 +1840,7 @@ el("pPaste").onclick=()=>{
   const p=curPattern();
   p.len=ui.clip.len; el("pLen").value=p.len;
   p.grid={}; Object.entries(ui.clip.grid).forEach(([k,v])=>p.grid[k]=v.slice());
+  p.mods=cloneMods(ui.clip.mods);
   normalize(); renderRuler(); renderTracks(); renderPatterns(); setStatus("incollato");
 };
 el("pRename").onclick=()=>{
@@ -1801,6 +1852,7 @@ el("pClear").onclick=()=>{
   pushUndo();
   const p=curPattern();
   Object.keys(p.grid).forEach(k=>p.grid[k]=new Array(p.len).fill(0));
+  p.mods={};
   renderTracks();
 };
 el("pDel").onclick=()=>{
@@ -1817,10 +1869,15 @@ el("pLen").onchange=()=>{
   const p=curPattern(), from=p.len, to=+el("pLen").value;
   // Allungando, il ritmo si ripete nelle battute nuove (altrimenti la seconda battuta resterebbe muta).
   // Accorciando, si taglia la coda come prima; cmd+Z la riporta indietro.
-  if(to>from) Object.keys(p.grid).forEach(id=>{
-    const g=p.grid[id].slice(0,from);
-    p.grid[id]=Array.from({length:to},(_,i)=>g[i%from]||0);
-  });
+  if(to>from){
+    Object.keys(p.grid).forEach(id=>{
+      const g=p.grid[id].slice(0,from);
+      p.grid[id]=Array.from({length:to},(_,i)=>g[i%from]||0);
+    });
+    Object.values(p.mods||{}).forEach(row=>Object.keys(row).forEach(i=>{
+      for(let j=+i+from;j<to;j+=from) row[j]={...row[i]};
+    }));
+  }
   p.len=to;
   normalize(); renderRuler(); renderTracks(); renderPatterns(); renderSong();
 };
@@ -1879,7 +1936,8 @@ function serialize(){
       decay:t.decay, cutoff:t.cutoff, reso:t.reso, start:t.start, reverse:t.reverse, out:t.out||0, nudge:t.nudge||0})),
     mixer: makeMixer(project.mixer),
     patterns: project.patterns.map(p=>({id:p.id, name:p.name, len:p.len,
-      grid:Object.fromEntries(Object.entries(p.grid).map(([k,v])=>[k,v.slice()]))})),
+      grid:Object.fromEntries(Object.entries(p.grid).map(([k,v])=>[k,v.slice()])),
+      ...(p.mods&&Object.keys(p.mods).length?{mods:cloneMods(p.mods)}:{})})),
     song: project.song.map(b=>({id:b.id, patternId:b.patternId, repeats:b.repeats})),
     updatedAt: Date.now(),
   };
@@ -1891,7 +1949,7 @@ function deserialize(d,keepSel){
     tracks:(d.tracks||[]).map(t=>({id:t.id, sampleIndex:t.sampleIndex, vol:t.vol??0.8,
       tune:t.tune||0, choke:t.choke||0, mute:false, solo:false, ...voiceDefaults(t)})),
     patterns:(d.patterns||[]).map(p=>({id:p.id, name:p.name, len:p.len||16,
-      grid:Object.fromEntries(Object.entries(p.grid||{}).map(([k,v])=>[k,v.slice()]))})),
+      grid:Object.fromEntries(Object.entries(p.grid||{}).map(([k,v])=>[k,v.slice()])), mods:cloneMods(p.mods)})),
     song:(d.song||[]).map(b=>({id:b.id, patternId:b.patternId, repeats:b.repeats||1})),
     mixer: makeMixer(d.mixer),
   };
@@ -2051,8 +2109,15 @@ function patternEvents(pat, startTick, events){
       const note=midiNoteFor(t.sampleIndex);
       const vel=Math.max(1,Math.min(127,Math.round(midiVelOf(v)*(t.vol??0.8)*127)));
       const shift=Math.round((t.nudge||0)/1000*(bpm()/60)*MIDI_PPQ);
-      events.push({tick:Math.max(0,tick+shift), order:1, note, vel});
-      events.push({tick:Math.max(1,tick+shift)+Math.max(1,Math.floor(dur*0.9)), order:0, note, vel:64});
+      // probabilita': nel file si decide a ogni ripetizione, cosi' in Logic ogni giro della canzone e' un po' diverso
+      const m=modOf(pat,t.id,i); if(!stepPlays(m)) return;
+      const sub=dur/m.r;
+      for(let k=0;k<m.r;k++){
+        const on=Math.max(0,tick+shift+Math.round(k*sub));
+        const kv=k?Math.max(1,Math.round(vel*0.82)):vel;
+        events.push({tick:on, order:1, note, vel:kv});
+        events.push({tick:on+Math.max(1,Math.floor(sub*0.9)), order:0, note, vel:64});
+      }
     });
     tick+=dur;
   }
@@ -2129,8 +2194,13 @@ function wavEvents(which){
   let t=0;
   const emit=pat=>{
     for(let s=0;s<pat.len;s++){
-      live.forEach(tr=>{ const v=(pat.grid[tr.id]||[])[s]; if(v) events.push([t+nudgeOf(tr),tr,stepVel(v)]); });
-      t+=base*(s%2===0?1+sw:1-sw);
+      const d=base*(s%2===0?1+sw:1-sw);
+      live.forEach(tr=>{
+        const v=(pat.grid[tr.id]||[])[s]; if(!v) return;
+        const m=modOf(pat,tr.id,s); if(!stepPlays(m)) return;
+        for(let k=0;k<m.r;k++) events.push([t+nudgeOf(tr)+k*d/m.r,tr,stepVel(v)*(k?0.82:1)]);
+      });
+      t+=d;
     }
   };
   if(which==="song") project.song.forEach(b=>{ const p=patternById(b.patternId); if(p) for(let r=0;r<Math.max(1,b.repeats||1);r++) emit(p); });
@@ -2487,7 +2557,7 @@ function applyLibrary(item, asNew){
     pat=makePattern(n,item.len); project.patterns.push(pat);
   }
   else { pat=curPattern(); pat.name=item.name; pat.len=item.len; }
-  pat.grid={};
+  pat.grid={}; pat.mods={};
   if(item.byTrack){
     Object.entries(item.byTrack).forEach(([tid,arr])=>{ if(project.tracks.some(t=>t.id===tid)) pat.grid[tid]=arr.slice(); });
   } else {
@@ -2600,6 +2670,18 @@ el("libTabFav").onclick=()=>setLibView("fav");
 el("pChoose").onclick=openLib;
 el("libClose").onclick=closeLib;
 el("libOverlay").onclick=(e)=>{ if(e.target===el("libOverlay")) closeLib(); };
+// ---------- modalita' del click sugli step ----------
+ui.stepMode="hit";
+(function initStepMode(){
+  const hints={hit:"", prob:"click su uno step acceso: 100 > 75 > 50 > 25%", rat:"click su uno step acceso: 1 > 2 > 3 > 4 colpi"};
+  const btns=[...document.querySelectorAll("#stepMode button")];
+  btns.forEach(b=>b.onclick=()=>{
+    ui.stepMode=b.dataset.mode;
+    btns.forEach(x=>{ x.classList.toggle("on",x===b); x.setAttribute("aria-pressed",String(x===b)); });
+    el("stepModeHint").textContent=hints[ui.stepMode];
+  });
+})();
+
 // ---------- varia il pattern della griglia ----------
 // Le variazioni del motore lavorano per ruolo (kick, snare, chh...): ogni riga si riconosce dal suo slot.
 // Le righe con un suono che non corrisponde a nessun ruolo restano come sono. Si annulla con cmd+Z.
@@ -2745,7 +2827,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-24.21";
+const SW_VERSION="2026-09-24.23";
 (function pwa(){
   const standalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
   const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);

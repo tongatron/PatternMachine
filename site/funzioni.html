@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Funzioni tecniche · Drum Machine Lab</title>
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+<style>
+/* Pagina di consultazione: stessa grafica Plakat del sito (chiara, bordi neri, rosso segnale). */
+:root{--bg:#d6d5ce; --paper:#f6f5f1; --ink:#000; --dim:#2b2a26; --red:#ff3b00; --line:#0a0a0a; color-scheme:light;}
+*{box-sizing:border-box}
+body{margin:0; background:var(--bg); color:var(--ink); font:15px/1.6 "Helvetica Neue",Helvetica,Arial,sans-serif;
+  padding:max(18px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) 40px max(16px,env(safe-area-inset-left));}
+.wrap{max-width:960px; margin:0 auto;}
+header{display:flex; flex-wrap:wrap; align-items:baseline; gap:8px 18px; margin-bottom:14px;}
+h1{font-size:20px; letter-spacing:.08em; text-transform:uppercase; margin:0; font-weight:800;}
+header a{color:var(--ink); font-weight:700;}
+.back{margin-left:auto; border:2px solid var(--line); padding:6px 12px; text-decoration:none; background:#fff;}
+.back:hover{background:var(--ink); color:var(--paper);}
+nav{display:flex; flex-wrap:wrap; gap:0; margin-bottom:16px;}
+nav a{border:2px solid var(--line); margin:0 -2px -2px 0; padding:6px 12px; background:#fff; color:var(--ink);
+  text-decoration:none; font-size:13px; font-weight:700;}
+nav a:hover{background:var(--ink); color:var(--paper);}
+section{background:var(--paper); border:2px solid var(--line); padding:14px 18px 16px; margin-bottom:14px;}
+h2{font-size:13px; letter-spacing:.14em; text-transform:uppercase; margin:0 0 10px; padding-bottom:6px; border-bottom:2px solid var(--line); font-weight:800;}
+h3{font-size:15px; margin:14px 0 4px; font-weight:800;}
+p{margin:6px 0;}
+ul{margin:6px 0; padding-left:20px;}
+li{margin:3px 0;}
+code{font:13px ui-monospace,Menlo,monospace; background:#fff; border:1px solid var(--line); padding:0 4px;}
+table{width:100%; border-collapse:collapse; font-size:14px; margin:6px 0;}
+th,td{text-align:left; padding:6px 8px; border-bottom:1px solid var(--line); vertical-align:top;}
+th{border-bottom:2px solid var(--line); font-size:12px; letter-spacing:.08em; text-transform:uppercase;}
+.num{font:800 30px/1 "Helvetica Neue",Helvetica,Arial,sans-serif; letter-spacing:-.02em;}
+.stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:0;}
+.stat{border:2px solid var(--line); margin:0 -2px -2px 0; padding:10px 12px; background:#fff;}
+.stat span{display:block; font-size:12px; letter-spacing:.08em; text-transform:uppercase; font-weight:700;}
+.tag{display:inline-block; border:2px solid var(--line); padding:0 6px; font-size:12px; font-weight:800; margin-right:4px;}
+.tag.red{background:var(--red);}
+.groups{columns:2 320px; column-gap:24px;}
+.group{break-inside:avoid; margin-bottom:12px;}
+.group h3{margin-top:0;}
+.group li{font-size:14px;}
+.muted{color:var(--dim); font-size:13px;}
+.table-wrap{overflow-x:auto;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Funzioni tecniche</h1>
+  <span class="muted">Drum Machine Lab · <span id="ver"></span></span>
+  <a class="back" href="/">&larr; Torna alla drum machine</a>
+</header>
+
+<nav>
+  <a href="#numeri">In breve</a><a href="#macchine">Macchine</a><a href="#griglia">Griglia e step</a>
+  <a href="#motore">Motore dei pattern</a><a href="#variazioni">Variazioni</a><a href="#stili">Stili</a>
+  <a href="#export">Export per Logic</a><a href="#progetti">Progetti e link</a><a href="#limiti">Limiti</a>
+</nav>
+
+<section id="numeri">
+  <h2>In breve</h2>
+  <div class="stats">
+    <div class="stat"><span>Stili</span><div class="num" id="nStyles">–</div></div>
+    <div class="stat"><span>Gruppi</span><div class="num" id="nGroups">–</div></div>
+    <div class="stat"><span>Variazioni</span><div class="num" id="nVars">–</div></div>
+    <div class="stat"><span>Macchine</span><div class="num">5</div></div>
+    <div class="stat"><span>Step</span><div class="num">8·16·32</div></div>
+    <div class="stat"><span>BPM</span><div class="num">40–240</div></div>
+  </div>
+  <p class="muted">Stili, gruppi e variazioni sono letti dal motore caricato in questa pagina: i numeri sono sempre quelli in uso.</p>
+</section>
+
+<section id="macchine">
+  <h2>Macchine (kit di suoni)</h2>
+  <div class="table-wrap"><table>
+    <tr><th>Macchina</th><th>Suoni</th><th>Origine</th></tr>
+    <tr><td>SP-1200 · 16 bit</td><td>42</td><td>campioni originali E-mu SP-1200</td></tr>
+    <tr><td>SP-1200 · 12 bit</td><td>42</td><td>gli stessi, passati dal convertitore 12 bit (plugin Twelve)</td></tr>
+    <tr><td>Yamaha RX-5</td><td>51</td><td>campioni RX-5, tutti raggiungibili (10 in "Solo questa macchina")</td></tr>
+    <tr><td>808</td><td>25</td><td>kit "Boutique 808" di Logic Pro (ricreazione Apple, non campioni Roland)</td></tr>
+    <tr><td>909</td><td>24</td><td>kit "Boutique 909" di Logic Pro (ricreazione Apple, non campioni Roland)</td></tr>
+  </table></div>
+  <ul>
+    <li>Il generatore ragiona per <b>slot</b> (i 42 pad dell'SP-1200): ogni macchina assegna a ogni slot il suo suono pi&ugrave; vicino.</li>
+    <li>Cambiando macchina, una riga che usava un suono assente passa al suono equivalente; la barra di stato lo dice.</li>
+    <li>Tutti i campioni sono WAV mono 16 bit / 44,1 kHz, normalizzati a &minus;0,1 dB.</li>
+    <li>Una macchina i cui file il server non serve sparisce dal selettore invece di restare muta.</li>
+  </ul>
+</section>
+
+<section id="griglia">
+  <h2>Griglia e step</h2>
+  <h3>Livelli di uno step</h3>
+  <div class="table-wrap"><table>
+    <tr><th>Livello</th><th>Come si mette</th><th>Volume</th></tr>
+    <tr><td><span class="tag">normale</span></td><td>click</td><td>76%</td></tr>
+    <tr><td><span class="tag red">accento</span></td><td>click destro o alt+click</td><td>100%</td></tr>
+    <tr><td><span class="tag">nota fantasma</span></td><td>shift+click</td><td>42%</td></tr>
+  </table></div>
+  <h3>Probabilit&agrave; e ripetizioni</h3>
+  <ul>
+    <li><b>Probabilit&agrave;</b>: uno step acceso suona il 100, 75, 50 o 25% delle volte (modalit&agrave; "Probabilit&agrave;" sopra la griglia).</li>
+    <li><b>Ripetizioni</b> (ratchet): 1, 2, 3 o 4 colpi rapidi dentro lo step; quelli dopo il primo all'82%.</li>
+    <li>Valgono in riproduzione, nell'export WAV e nel MIDI.</li>
+  </ul>
+  <h3>Tempo e feel</h3>
+  <ul>
+    <li><b>Swing</b> 0&ndash;60: allunga i sedicesimi pari e accorcia i dispari.</li>
+    <li><b>Feel</b> per riga, da &minus;30 a +30 ms: anticipa o ritarda i colpi (rullante "in ritardo", cassa "in anticipo"). Caricando un pattern generato, il feel suggerito dallo stile si applica da solo.</li>
+    <li>Allungando un pattern (8&rarr;16&rarr;32) il ritmo si ripete nelle battute nuove; accorciando si taglia la coda.</li>
+  </ul>
+  <h3>Per ogni riga</h3>
+  <p>Mute, solo, gruppo esclusivo (gli hi-hat si troncano), intonazione &plusmn;12 semitoni, volume; nel pannello &#9881;: decay, filtro passa-basso a 4 poli con risonanza, punto d'attacco, reverse, feel, uscita individuale (8 uscite con EQ, compressore e pan nel Mixer).</p>
+</section>
+
+<section id="motore">
+  <h2>Motore dei pattern</h2>
+  <ul>
+    <li>Ogni stile &egrave; una "scheda": gamma di BPM, swing, varianti pesate, fill ammessi, colpi obbligatori (verificati dai test) e un generatore.</li>
+    <li>Tutto il caso passa da un generatore con <b>seed</b>: lo stesso codice rigenera sempre lo stesso pattern.</li>
+    <li>Sezioni <b>strofa</b> e <b>ritornello</b>, lunghezza 16 o 32 step, <b>fill</b> finale facoltativo.</li>
+    <li><b>Genera 4</b> crea quattro pattern diversi tra loro dello stile scelto (o "a caso" da un gruppo o da tutti).</li>
+    <li><b>Simili</b>: quattro pattern vicini (incrocio con un pattern dello stesso stile e piccole mutazioni).</li>
+    <li><b>Blocca</b>: tieni alcune voci (per esempio cassa e rullante) e rigenera le altre.</li>
+    <li><b>Arrangia</b>: da un pattern ricava intro, ritornello, break e outro.</li>
+    <li><b>Varia</b>: nella libreria su un pattern generato, e nel pannello Pattern su quello che stai modificando (anche scritto a mano).</li>
+  </ul>
+</section>
+
+<section id="variazioni">
+  <h2>Variazioni</h2>
+  <p class="muted">Ognuna ha una lettera che finisce nel codice del pattern (<code>~V&lt;lettera&gt;&lt;seed&gt;</code>). Gli ibridi innestano voci prese da un altro stile.</p>
+  <div class="table-wrap"><table id="varTable"><tr><th>Codice</th><th>Nome</th><th>Cosa fa</th></tr></table></div>
+</section>
+
+<section id="stili">
+  <h2>Stili</h2>
+  <div class="groups" id="groups"></div>
+</section>
+
+<section id="export">
+  <h2>Export per Logic</h2>
+  <h3>MIDI (pattern o canzone)</h3>
+  <ul>
+    <li>File MIDI tipo 0, <b>96 PPQ</b> (24 tick per sedicesimo), canale 10, tempo del progetto incluso.</li>
+    <li>Note: <b>36 + numero dello slot</b> (C1 in su, in ordine cromatico), cio&egrave; la mappa del kit "SP-1200 Kit" di Logic.
+      Con altri kit di Logic (Drum Machine Designer) le note vanno rimappate.</li>
+    <li>Velocity: accento 100%, normale 78%, fantasma 40%, moltiplicate per il volume della riga.</li>
+    <li>Swing, feel e ripetizioni diventano posizioni e note vere; la probabilit&agrave; si decide a ogni giro, quindi ogni ripetizione della canzone &egrave; un po' diversa.</li>
+  </ul>
+  <h3>WAV</h3>
+  <ul>
+    <li>44,1 kHz stereo, reso offline con gli stessi suoni, filtri, mixer e macchina scelta.</li>
+    <li>"WAV pattern" = 4 giri del pattern; "WAV canzone" = tutta la canzone; pi&ugrave; 2 secondi di coda.</li>
+  </ul>
+</section>
+
+<section id="progetti">
+  <h2>Progetti, codici e link</h2>
+  <ul>
+    <li>I progetti si salvano (Salva / Salva come) e si riaprono dalla scheda <b>Progetti recenti</b> con <b>Accedi</b>.</li>
+    <li>Annulla e ripristina: cmd+Z / cmd+shift+Z, fino a 80 passi.</li>
+    <li>I preferiti della libreria salvano solo il <b>codice</b> del pattern: pochi byte, rigenera sempre lo stesso pattern.</li>
+    <li>Formato del codice: <code>stile-16S-7F3A9B</code> (stile, step, S strofa / R ritornello, F fill, seed), seguito dai passi di trasformazione:
+      <code>~4C21</code> simili, <code>~R000005BEEF</code> blocca e rigenera, <code>~VP00A1</code> variazione.</li>
+    <li>Il pulsante <b>Link</b> copia un indirizzo che riapre quel pattern.</li>
+    <li>Il sito &egrave; una PWA: si installa come app e funziona anche offline.</li>
+  </ul>
+</section>
+
+<section id="limiti">
+  <h2>Limiti noti</h2>
+  <ul>
+    <li>Griglia a sedicesimi: niente terzine vere, quindi niente shuffle jazz o 6/8. Lo swing sposta solo i sedicesimi dispari.</li>
+    <li>BPM da 40 a 240: il blast beat pi&ugrave; veloce resta sotto questo tetto.</li>
+    <li>Le variazioni agiscono solo sulle righe con un suono di batteria riconosciuto (gli slot del generatore).</li>
+    <li>L'export MIDI usa la mappa del kit SP-1200: con 808, 909 e RX-5 in Logic le note vanno rimappate.</li>
+    <li>I kit 808 e 909 sono ricreazioni di Apple incluse in Logic Pro, non i campioni Roland originali.</li>
+  </ul>
+</section>
+</div>
+
+<script src="engine/core.js?v=2026-09-24.23"></script>
+<script src="engine/styles-punk.js?v=2026-09-24.23"></script>
+<script src="engine/styles-post.js?v=2026-09-24.23"></script>
+<script src="engine/styles-machines.js?v=2026-09-24.23"></script>
+<script src="engine/styles-alt.js?v=2026-09-24.23"></script>
+<script src="engine/styles-groove.js?v=2026-09-24.23"></script>
+<script src="engine/styles-dub.js?v=2026-09-24.23"></script>
+<script src="engine/styles-break.js?v=2026-09-24.23"></script>
+<script src="engine/styles-soul.js?v=2026-09-24.23"></script>
+<script src="engine/styles-metal.js?v=2026-09-24.23"></script>
+<script src="engine/styles-electro.js?v=2026-09-24.23"></script>
+<script src="engine/variations.js?v=2026-09-24.23"></script>
+<script>
+// Stili, gruppi e variazioni vengono dal motore: questa pagina non va aggiornata a mano quando se ne aggiungono.
+(function(){
+  const E=window.SPEngine; if(!E) return;
+  const $=id=>document.getElementById(id);
+  const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  $("ver").textContent="motore v"+E.version;
+  $("nStyles").textContent=Object.keys(E.styles).length;
+  $("nGroups").textContent=E.groups.length;
+  $("nVars").textContent=E.variationTypes.length;
+  $("varTable").insertAdjacentHTML("beforeend", E.variationTypes.map(t=>
+    `<tr><td><code>${esc(t.id)}</code></td><td><b>${esc(t.label)}</b></td><td>${esc(t.hint)}</td></tr>`).join(""));
+  const bpm=b=>Array.isArray(b)?`${b[0]}–${b[1]}`:b;
+  $("groups").innerHTML=E.groups.map(g=>{
+    const list=E.stylesIn(g.id);
+    return `<div class="group"><h3>${esc(g.label)} <span class="muted">(${list.length})</span></h3><ul>`+
+      list.map(s=>`<li><b>${esc(s.label)}</b> · ${bpm(s.bpm)} bpm${s.variants?` · ${s.variants.length} varianti`:""}<br><span class="muted">${esc(s.ref)}</span></li>`).join("")+
+      `</ul></div>`;
+  }).join("");
+})();
+</script>
+</body>
+</html>

@@ -26,7 +26,7 @@ echo "== versioni"
 # Service worker, pagina e script del motore devono avere la stessa versione.
 sw=$(sed -n 's/^const VERSION = "\(.*\)";$/\1/p' site/sw.js)
 page=$(sed -n 's/^const SW_VERSION="\(.*\)";$/\1/p' site/index.html)
-tags=$(grep -o 'engine/[a-z-]*\.js?v=[0-9.-]*' site/index.html | sed 's/.*?v=//' | sort -u)
+tags=$(grep -oh 'engine/[a-z-]*\.js?v=[0-9.-]*' site/index.html site/funzioni.html | sed 's/.*?v=//' | sort -u)
 if [ -z "$sw" ] || [ "$sw" != "$page" ] || [ "$tags" != "$sw" ]; then
   echo "versioni non allineate: sw.js=$sw  SW_VERSION=$page  engine ?v=$tags" >&2
   exit 1

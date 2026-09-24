@@ -14,28 +14,21 @@
 try{ const t=localStorage.getItem("sp1200.theme"); if(t==="light"||t==="dark") document.documentElement.dataset.theme=t; }catch(e){}
 </script>
 <script>
-// Skin di prova: ?ui=plakat la attiva (e la ricorda in questo browser), ?ui=off torna alla UI normale.
-// Senza skin non si carica nulla in piu' e la pagina resta identica.
+// Interfaccia: "plakat" (predefinita) oppure "classic" (la grafica precedente, con i temi chiaro/scuro).
+// La scelta si ricorda nel browser; ?ui=classic e ?ui=plakat la forzano da link (?ui=off = classic).
 (function(){
-  const KEY="dml.skin", SKINS={plakat:"/assets/skin-plakat.css"};
-  let skin=null;
+  const KEY="dml.skin";
+  let ui="plakat";
   try{
     const q=new URLSearchParams(location.search).get("ui");
-    if(q==="off") localStorage.removeItem(KEY);
-    else if(q && SKINS[q]) localStorage.setItem(KEY,q);
-    skin=localStorage.getItem(KEY);
-  }catch(e){ skin=new URLSearchParams(location.search).get("ui"); }
-  if(!skin || !SKINS[skin]) return;
-  document.documentElement.dataset.skin=skin;
-  const l=document.createElement("link"); l.rel="stylesheet"; l.href=SKINS[skin]+"?v=2026-09-24.19";
-  document.head.appendChild(l);
-  addEventListener("DOMContentLoaded",()=>{
-    const a=document.createElement("a"); a.className="skin-badge"; a.href="?ui=off";
-    a.textContent=skin+" (prova) · esci"; a.title="torna all'interfaccia normale";
-    document.body.appendChild(a);
-  });
+    if(q==="plakat") localStorage.setItem(KEY,"plakat");
+    else if(q==="classic"||q==="off") localStorage.setItem(KEY,"classic");
+    ui=localStorage.getItem(KEY)==="classic" ? "classic" : "plakat";
+  }catch(e){}
+  if(ui==="plakat") document.documentElement.dataset.skin="plakat";
 })();
 </script>
+<link rel="stylesheet" href="/assets/skin-plakat.css?v=2026-09-24.20">
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
@@ -465,6 +458,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <h1>Drum Machine Lab</h1>
     <span class="tagline">Drum machine a step &middot; SP-1200, RX-5, 808, 909 &middot; generatore di pattern, canzone, export MIDI</span>
     <span class="tagline" style="margin-left:auto"><a href="/toolkit.html" style="color:var(--text-dim)">Drum Machine Toolkit &rarr;</a></span>
+    <button type="button" id="uiSwitch" class="mini" title="cambia grafica"></button>
     <div class="modeswitch theme-switch" role="group" aria-label="Tema dell'interfaccia">
       <button type="button" data-theme-choice="auto" title="Segue il sistema">Auto</button>
       <button type="button" data-theme-choice="light" title="Tema chiaro">&#9728;&#xFE0E; Chiaro</button>
@@ -666,18 +660,18 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-24.19"></script>
-<script src="engine/styles-punk.js?v=2026-09-24.19"></script>
-<script src="engine/styles-post.js?v=2026-09-24.19"></script>
-<script src="engine/styles-machines.js?v=2026-09-24.19"></script>
-<script src="engine/styles-alt.js?v=2026-09-24.19"></script>
-<script src="engine/styles-groove.js?v=2026-09-24.19"></script>
-<script src="engine/styles-dub.js?v=2026-09-24.19"></script>
-<script src="engine/styles-break.js?v=2026-09-24.19"></script>
-<script src="engine/styles-soul.js?v=2026-09-24.19"></script>
-<script src="engine/styles-metal.js?v=2026-09-24.19"></script>
-<script src="engine/styles-electro.js?v=2026-09-24.19"></script>
-<script src="engine/variations.js?v=2026-09-24.19"></script>
+<script src="engine/core.js?v=2026-09-24.20"></script>
+<script src="engine/styles-punk.js?v=2026-09-24.20"></script>
+<script src="engine/styles-post.js?v=2026-09-24.20"></script>
+<script src="engine/styles-machines.js?v=2026-09-24.20"></script>
+<script src="engine/styles-alt.js?v=2026-09-24.20"></script>
+<script src="engine/styles-groove.js?v=2026-09-24.20"></script>
+<script src="engine/styles-dub.js?v=2026-09-24.20"></script>
+<script src="engine/styles-break.js?v=2026-09-24.20"></script>
+<script src="engine/styles-soul.js?v=2026-09-24.20"></script>
+<script src="engine/styles-metal.js?v=2026-09-24.20"></script>
+<script src="engine/styles-electro.js?v=2026-09-24.20"></script>
+<script src="engine/variations.js?v=2026-09-24.20"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -2667,6 +2661,30 @@ window.addEventListener("resize",()=>{
   }
 })();
 
+// ---------- interfaccia Plakat / classica ----------
+(function uiSwitch(){
+  const btn=el("uiSwitch"), root=document.documentElement;
+  const paint=()=>{
+    const plakat=root.dataset.skin==="plakat";
+    btn.textContent=plakat ? "Interfaccia classica" : "Interfaccia Plakat";
+    btn.title=plakat ? "torna alla grafica precedente (chiara)" : "passa alla grafica Plakat";
+  };
+  btn.onclick=()=>{
+    const toPlakat=root.dataset.skin!=="plakat";
+    try{ localStorage.setItem("dml.skin", toPlakat ? "plakat" : "classic"); }catch(e){}
+    if(toPlakat) root.dataset.skin="plakat";
+    else {
+      delete root.dataset.skin;
+      // la grafica precedente torna nella sua versione chiara
+      document.querySelector('[data-theme-choice="light"]')?.click();
+    }
+    // toglie ?ui= dall'indirizzo, cosi' un ricaricamento non annulla la scelta
+    if(new URLSearchParams(location.search).has("ui")) history.replaceState(null,"",location.pathname);
+    paint();
+  };
+  paint();
+})();
+
 // ---------- tema chiaro / scuro ----------
 // "Auto" segue il sistema (nessun data-theme); Chiaro e Scuro forzano i token e la barra del browser.
 (function themeSwitch(){
@@ -2695,7 +2713,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-24.19";
+const SW_VERSION="2026-09-24.20";
 (function pwa(){
   const standalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
   const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);

@@ -1,6 +1,6 @@
-/* Skin di prova "Plakat": grafica da manifesto, chiara, bordi neri netti, rosso segnale solo su play e accenti.
-   Si attiva con ?ui=plakat e si toglie con ?ui=off (vedi lo script in testa a index.html).
-   Ogni regola e' limitata a :root[data-skin="plakat"]: senza la skin il sito resta identico. */
+/* Interfaccia "Plakat" (predefinita): grafica da manifesto, chiara, bordi neri netti, rosso segnale solo su play e accenti.
+   La sceglie lo script in testa a index.html; il pulsante "Interfaccia classica" torna alla grafica precedente.
+   Ogni regola e' limitata a :root[data-skin="plakat"]: con l'interfaccia classica non si applica nulla. */
 
 :root[data-skin="plakat"][data-skin]{
   color-scheme:light;
@@ -111,10 +111,5 @@
 :root[data-skin="plakat"] table.recent th{color:#0a0a0a; border-bottom:2px solid #0a0a0a;}
 :root[data-skin="plakat"] table.recent td{border-bottom:1px solid #0a0a0a;}
 
-/* Etichetta che ricorda che si sta provando una skin. */
-.skin-badge{
-  position:fixed; right:12px; bottom:12px; z-index:100;
-  font:700 11px/1 "Helvetica Neue",Helvetica,Arial,sans-serif; letter-spacing:.1em; text-transform:uppercase;
-  background:#ff3b00; color:#0a0a0a; border:2px solid #0a0a0a; padding:8px 10px; text-decoration:none;
-}
-.skin-badge:hover{background:#0a0a0a; color:#ff3b00;}
+/* Plakat e' sempre chiara: il selettore Auto/Chiaro/Scuro serve solo all'interfaccia classica. */
+:root[data-skin="plakat"] .theme-switch{display:none;}

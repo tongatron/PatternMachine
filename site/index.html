@@ -467,6 +467,14 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
   .trk-name{min-width:70px;}
   .counter{margin-left:0;}
 }
+/* Comandi principali piu' grandi, uguali in tutte le interfacce (gli id battono le regole delle skin). */
+#machinePanel .machine-bar{margin-top:0; padding-top:0; border-top:none;}
+#viewGrid, #viewSeq, #viewMix, #viewRecent{font-size:14px; padding:11px 22px; min-height:44px;}
+#pChoose, #pVary, #pNew{font-size:13px; padding:9px 16px; min-height:40px;}
+#modePattern, #modeSong, #recBtn{font-size:13.5px; padding:11px 18px; min-height:44px;}
+@media (max-width:560px){
+  #viewGrid, #viewSeq, #viewMix, #viewRecent{padding:10px 14px;}
+}
 </style>
 
 <div class="wrap">
@@ -503,6 +511,13 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       <button id="wavSongBtn" title="Audio dell'intera canzone, con mixer ed effetti">WAV canzone</button>
       <button id="logicBtn" title="Zip per Logic Pro: MIDI General MIDI, uno stem WAV per strumento, campioni del kit. Segue Pattern/Canzone">Logic (zip)</button>
       <span class="status" id="status"></span>
+    </div>
+  </div>
+
+  <div class="panel" id="machinePanel">
+    <div class="machine-bar">
+      <span class="machine-label">Macchina</span>
+      <div class="machine-buttons" id="kitButtons" role="radiogroup" aria-label="Macchina"></div>
     </div>
   </div>
 
@@ -554,10 +569,6 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       <label class="fld">Vol <input type="range" id="masterVol" min="0" max="100" value="85"></label>
       <select id="kitSelect" hidden aria-hidden="true"></select>
       <div class="counter" id="counter">1 . 1</div>
-    </div>
-    <div class="machine-bar">
-      <span class="machine-label">Macchina</span>
-      <div class="machine-buttons" id="kitButtons" role="radiogroup" aria-label="Macchina"></div>
     </div>
   </div>
 

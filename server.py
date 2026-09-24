@@ -152,7 +152,7 @@ LOGIN_PAGE = """<!doctype html>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#15171a">
-<title>SP-1200 — Accesso</title>
+<title>Drum Machine Lab — Accesso</title>
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <style>
@@ -166,7 +166,7 @@ body{margin:0;min-height:100vh;display:grid;place-items:center;background:var(--
   padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));}
 form{width:min(340px,100%);background:var(--panel);border:1px solid var(--edge);border-radius:12px;padding:22px 20px;
   box-shadow:0 18px 50px rgba(0,0,0,.35);}
-h1{margin:0 0 4px;font-size:16px;letter-spacing:.3em;}
+h1{margin:0 0 4px;font-size:16px;letter-spacing:.2em;text-transform:uppercase;}
 .line{height:2px;background:var(--accent);margin:0 0 18px;}
 p{margin:0 0 14px;font-size:11px;color:var(--dim);line-height:1.5;}
 label{display:block;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin-bottom:6px;}
@@ -180,7 +180,7 @@ button{width:100%;margin-top:14px;font:inherit;font-size:14px;font-weight:800;le
 </head>
 <body>
 <form method="post" action="/login">
-  <h1>SP&#8209;1200</h1>
+  <h1>Drum Machine Lab</h1>
   <div class="line"></div>
   <p>Il sito è protetto. Inserisci la password per entrare.</p>
   <label for="pw">Password</label>

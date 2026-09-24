@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<title>SP-1200 — Simulatore drum machine</title>
-<meta name="description" content="Simulatore SP-1200: drum machine a step con i campioni originali e il kit Yamaha RX-5, generatore di pattern in decine di stili, variazioni, arrangiamento della canzone ed export MIDI.">
+<title>Drum Machine Lab</title>
+<meta name="description" content="Drum Machine Lab: drum machine a step con SP-1200, RX-5, 808 e 909, generatore di pattern in decine di stili, variazioni, arrangiamento della canzone ed export MIDI.">
 <meta name="theme-color" content="#0f1114" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#a3a097" media="(prefers-color-scheme: light)">
 
@@ -18,13 +18,13 @@ try{ const t=localStorage.getItem("sp1200.theme"); if(t==="light"||t==="dark") d
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="SP-1200">
+<meta name="apple-mobile-web-app-title" content="Drum Lab">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="SP-1200">
-<meta property="og:title" content="SP-1200 — Simulatore drum machine">
-<meta property="og:description" content="Drum machine a step con i campioni SP-1200 e il kit Yamaha RX-5: generatore di pattern in decine di stili (punk, dub, breakbeat, soul e altri), variazioni, arrangiamento della canzone ed export MIDI, direttamente nel browser.">
+<meta property="og:site_name" content="Drum Machine Lab">
+<meta property="og:title" content="Drum Machine Lab — drum machine a step con generatore di pattern">
+<meta property="og:description" content="Drum machine a step con SP-1200, RX-5, 808 e 909: generatore di pattern in decine di stili (punk, dub, breakbeat, soul e altri), variazioni, arrangiamento della canzone ed export MIDI, direttamente nel browser.">
 <meta property="og:image" content="https://drummachine.tongatron.org/assets/og-sp1200.png">
 <meta property="og:image:width" content="1536">
 <meta property="og:image:height" content="1024">
@@ -32,8 +32,8 @@ try{ const t=localStorage.getItem("sp1200.theme"); if(t==="light"||t==="dark") d
 <meta property="og:locale" content="it_IT">
 
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="SP-1200 — Simulatore drum machine">
-<meta name="twitter:description" content="Drum machine a step con i campioni SP-1200 e il kit Yamaha RX-5: generatore di pattern in decine di stili (punk, dub, breakbeat, soul e altri), variazioni, arrangiamento della canzone ed export MIDI, direttamente nel browser.">
+<meta name="twitter:title" content="Drum Machine Lab — drum machine a step con generatore di pattern">
+<meta name="twitter:description" content="Drum machine a step con SP-1200, RX-5, 808 e 909: generatore di pattern in decine di stili (punk, dub, breakbeat, soul e altri), variazioni, arrangiamento della canzone ed export MIDI, direttamente nel browser.">
 <meta name="twitter:image" content="https://drummachine.tongatron.org/assets/og-sp1200.png">
 </head>
 <body style="margin:0">
@@ -126,7 +126,7 @@ button, .step, select, input{touch-action:manipulation;}
 .wrap{max-width:1100px; margin:0 auto;}
 
 .topbar{display:flex; flex-wrap:wrap; align-items:baseline; gap:10px 16px; margin-bottom:12px;}
-h1{font-size:15px; letter-spacing:0.3em; text-transform:uppercase; margin:0;}
+h1{font-size:15px; letter-spacing:0.2em; text-transform:uppercase; margin:0;}
 .tagline{font-size:10.5px; color:var(--text-faint); letter-spacing:0.04em;}
 
 .panel{
@@ -340,7 +340,7 @@ label.fld input[type=number]{width:54px;}
   .lib-acts{grid-template-columns:repeat(2,1fr);}
 }
 
-.tabs{display:flex; gap:6px; margin-bottom:10px;}
+.tabs{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;}
 .tabs button{padding:7px 14px; font-size:11px;}
 .tabs button.on{background:var(--key-on,var(--accent)); color:var(--on-accent); border-color:var(--accent-dim); font-weight:700;}
 
@@ -437,8 +437,8 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 
 <div class="wrap">
   <div class="topbar">
-    <h1>SP&#8209;1200</h1>
-    <span class="tagline">42 campioni SP-1200 + kit RX-5 &middot; generatore di pattern, canzone, export MIDI</span>
+    <h1>Drum Machine Lab</h1>
+    <span class="tagline">Drum machine a step &middot; SP-1200, RX-5, 808, 909 &middot; generatore di pattern, canzone, export MIDI</span>
     <span class="tagline" style="margin-left:auto"><a href="/toolkit.html" style="color:var(--text-dim)">Drum Machine Toolkit &rarr;</a></span>
     <div class="modeswitch theme-switch" role="group" aria-label="Tema dell'interfaccia">
       <button type="button" data-theme-choice="auto" title="Segue il sistema">Auto</button>
@@ -638,16 +638,16 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-24.11"></script>
-<script src="engine/styles-punk.js?v=2026-09-24.11"></script>
-<script src="engine/styles-post.js?v=2026-09-24.11"></script>
-<script src="engine/styles-machines.js?v=2026-09-24.11"></script>
-<script src="engine/styles-alt.js?v=2026-09-24.11"></script>
-<script src="engine/styles-groove.js?v=2026-09-24.11"></script>
-<script src="engine/styles-dub.js?v=2026-09-24.11"></script>
-<script src="engine/styles-break.js?v=2026-09-24.11"></script>
-<script src="engine/styles-soul.js?v=2026-09-24.11"></script>
-<script src="engine/variations.js?v=2026-09-24.11"></script>
+<script src="engine/core.js?v=2026-09-24.13"></script>
+<script src="engine/styles-punk.js?v=2026-09-24.13"></script>
+<script src="engine/styles-post.js?v=2026-09-24.13"></script>
+<script src="engine/styles-machines.js?v=2026-09-24.13"></script>
+<script src="engine/styles-alt.js?v=2026-09-24.13"></script>
+<script src="engine/styles-groove.js?v=2026-09-24.13"></script>
+<script src="engine/styles-dub.js?v=2026-09-24.13"></script>
+<script src="engine/styles-break.js?v=2026-09-24.13"></script>
+<script src="engine/styles-soul.js?v=2026-09-24.13"></script>
+<script src="engine/variations.js?v=2026-09-24.13"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -2622,7 +2622,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-24.11";
+const SW_VERSION="2026-09-24.13";
 (function pwa(){
   const standalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
   const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);

@@ -1,4 +1,4 @@
-/* Interfaccia "Plakat" (predefinita): grafica da manifesto, chiara, bordi neri netti, rosso segnale solo su play e accenti.
+/* Interfaccia "Plakat": grafica da manifesto, chiara, bordi neri netti, rosso segnale solo su play e accenti.
    La sceglie lo script in testa a index.html; il pulsante "Interfaccia classica" torna alla grafica precedente.
    Ogni regola e' limitata a :root[data-skin="plakat"]: con l'interfaccia classica non si applica nulla. */
 

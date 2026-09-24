@@ -14,12 +14,12 @@
 try{ const t=localStorage.getItem("sp1200.theme"); if(t==="light"||t==="dark") document.documentElement.dataset.theme=t; }catch(e){}
 </script>
 <script>
-// Interfaccia: "plakat" (predefinita), "studio" (scura, accento ambra) oppure "classic" (la grafica
+// Interfaccia: "studio" (predefinita: scura, accento ambra), "plakat" (chiara, da manifesto) oppure "classic" (la grafica
 // precedente, con i temi chiaro/scuro). La scelta si ricorda nel browser; ?ui=plakat|studio|classic la
 // forzano da link (?ui=off = classic).
 (function(){
   const KEY="dml.skin", SKINS=["plakat","studio","classic"];
-  let ui="plakat";
+  let ui="studio";
   try{
     let q=new URLSearchParams(location.search).get("ui");
     if(q==="off") q="classic";
@@ -476,8 +476,8 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <span class="tagline" style="margin-left:auto"><a href="/funzioni.html" style="color:var(--text-dim)">Funzioni tecniche</a> &middot; <a href="/toolkit.html" style="color:var(--text-dim)">Drum Machine Toolkit &rarr;</a></span>
     <label class="fld" title="cambia grafica">Interfaccia
       <select id="uiSwitch">
-        <option value="plakat">Plakat</option>
         <option value="studio">Studio</option>
+        <option value="plakat">Plakat</option>
         <option value="classic">Classica</option>
       </select>
     </label>

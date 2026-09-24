@@ -246,6 +246,19 @@ label.fld input[type=number]{width:54px;}
 .rows{display:flex; flex-direction:column; gap:6px;}
 .trk{background:var(--plate,var(--panel)); border:1px solid var(--edge); border-radius:var(--r-panel,9px); padding:8px 11px 9px; box-shadow:var(--shadow);}
 .trk.muted{opacity:0.5;}
+.trk.expanded{border-color:var(--accent); box-shadow:0 0 0 1px var(--accent) inset, var(--shadow);}
+.lanes{display:flex; flex-direction:column; gap:3px; margin-top:10px; padding-top:9px; border-top:1px dashed var(--edge);}
+.lane-lab{font-size:9px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-faint); margin-top:4px;}
+.lane{display:grid; gap:3px;}
+.lcell{min-height:24px; min-width:0; padding:0; font-size:10.5px; letter-spacing:0; text-transform:none; border-radius:var(--r-step,4px);
+  background:var(--panel-2); color:var(--text-faint); box-shadow:none;}
+.lcell.g{margin-left:9px;}
+.lcell:disabled{opacity:.25;}
+.lcell.set{background:var(--panel-3); color:var(--accent); border-color:var(--accent); font-weight:700;}
+.lane-hint{margin-top:6px;}
+/* piu' specifico delle regole dei pulsanti delle skin: celle tutte alte uguali */
+.trk .lanes .lcell{height:26px; min-height:0; padding:0; font-size:10.5px; letter-spacing:0; text-transform:none; line-height:1;}
+.trk-name{cursor:pointer;}
 .trk-top{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-bottom:7px;}
 .pad{
   width:30px; height:26px; flex:0 0 auto; border-radius:5px; font-size:10px; font-weight:700;
@@ -1341,12 +1354,12 @@ function renderMixer(){
 function renderTracks(){
   const pat=curPattern();
   const host=el("rows");
-  host.innerHTML=""; stepEls=new Map();
+  host.innerHTML=""; stepEls=new Map(); lanePaint.clear();
   el("gridTitle").textContent = "Griglia — " + pat.name;
 
   project.tracks.forEach((t,idx)=>{
     const wrap=document.createElement("div");
-    wrap.className="trk"+(t.mute?" muted":"");
+    wrap.className="trk"+(t.mute?" muted":"")+(ui.expanded===t.id?" expanded":"");
 
     const top=document.createElement("div"); top.className="trk-top";
 
@@ -1358,6 +1371,7 @@ function renderTracks(){
 
     const nm=document.createElement("div");
     nm.className="trk-name"; nm.textContent=sampleLabel(t.sampleIndex);
+    nm.title="click: apre o chiude tutte le opzioni della riga"; nm.onclick=()=>toggleExpand(t.id);
     top.appendChild(nm);
 
     const smp=document.createElement("select");
@@ -1395,6 +1409,11 @@ function renderTracks(){
     vol.oninput=()=>{ t.vol=vol.value/100; };
     top.appendChild(vol);
 
+    const exp=mk("x",ui.expanded===t.id?"▴":"▾",ui.expanded===t.id,()=>toggleExpand(t.id));
+    exp.title="Tutte le opzioni della riga: suono e, sotto gli step, una corsia per ogni blocco";
+    exp.setAttribute("aria-expanded",String(ui.expanded===t.id));
+    top.appendChild(exp);
+
     top.appendChild(mk("v","⚙",openVoices.has(t.id),()=>{
       if(openVoices.has(t.id)) openVoices.delete(t.id); else openVoices.add(t.id);
       renderTracks();
@@ -1406,7 +1425,7 @@ function renderTracks(){
     top.appendChild(kill);
     wrap.appendChild(top);
 
-    if(openVoices.has(t.id)) wrap.appendChild(voicePanel(t));
+    if(openVoices.has(t.id) || ui.expanded===t.id) wrap.appendChild(voicePanel(t));
 
     const steps=document.createElement("div");
     steps.className="steps";
@@ -1428,6 +1447,7 @@ function renderTracks(){
           setMod(pat,t.id,i,key,list[(list.indexOf(cur)+1)%list.length]);
           if(key==="t"||key==="d"||key==="c") hitPreview(lockedTrack(t,modOf(pat,t.id,i)));
           paintStep(b,arr[i],i,modOf(pat,t.id,i));
+          lanePaint.get(t.id)?.();
           return;
         }
         pushUndo();
@@ -1435,15 +1455,78 @@ function renderTracks(){
         else if(ev.shiftKey) arr[i]= arr[i]===3?0:3;
         else arr[i]= arr[i]?0:1;
         paintStep(b,arr[i],i,modOf(pat,t.id,i));
+        lanePaint.get(t.id)?.();
       };
-      b.oncontextmenu=(ev)=>{ ev.preventDefault(); pushUndo(); arr[i]= arr[i]===2?0:2; paintStep(b,arr[i],i,modOf(pat,t.id,i)); };
+      b.oncontextmenu=(ev)=>{ ev.preventDefault(); pushUndo(); arr[i]= arr[i]===2?0:2; paintStep(b,arr[i],i,modOf(pat,t.id,i)); lanePaint.get(t.id)?.(); };
       steps.appendChild(b); els.push(b);
     }
     stepEls.set(t.id,els);
     wrap.appendChild(steps);
+    if(ui.expanded===t.id) wrap.appendChild(stripLanes(t,pat,arr,els,L));
     host.appendChild(wrap);
   });
   paintPlayhead();
+}
+
+// ---------- riga espansa: tutte le opzioni della strip ----------
+// Una riga alla volta. Sotto gli step, una corsia per ogni blocco allineata alla griglia:
+// click = valore successivo, alt+click = torna al default. Le corsie seguono gli step accesi.
+const lanePaint=new Map();
+function toggleExpand(tid){
+  ui.expanded = ui.expanded===tid ? null : tid;
+  renderTracks();
+}
+const LANES=[
+  {key:"lvl", label:"Livello", show:v=>({1:"",2:"acc",3:"fant"})[v]||""},
+  {key:"p", label:"Probabilità", show:x=>x<100?x+"%":""},
+  {key:"r", label:"Ripetizioni", show:x=>x>1?"×"+x:""},
+  {key:"f", label:"Flam", show:x=>x?"fl":""},
+  {key:"t", label:"Intonazione", show:x=>x?(x>0?"+":"")+x:""},
+  {key:"d", label:"Decay", show:x=>x?String(x):""},
+  {key:"c", label:"Filtro", show:x=>x?String(x):""},
+];
+const LVL_CYCLE={1:2,2:3,3:1};
+function stripLanes(t,pat,arr,els,L){
+  const box=document.createElement("div"); box.className="lanes";
+  const cells=[];
+  LANES.forEach(ln=>{
+    const lab=document.createElement("div"); lab.className="lane-lab"; lab.textContent=ln.label;
+    const row=document.createElement("div"); row.className="lane";
+    row.style.gridTemplateColumns=`repeat(${gridCols(pat.len)},1fr)`;
+    for(let i=0;i<pat.len;i++){
+      const c=document.createElement("button"); c.type="button";
+      c.className="lcell"+(i%4===0&&i>0?" g":"");
+      c.onclick=ev=>{
+        if(!arr[i] || i>=L) return;
+        pushUndo();
+        if(ln.key==="lvl") arr[i]= ev.altKey ? 1 : LVL_CYCLE[arr[i]];
+        else {
+          const list=MOD_LISTS[ln.key], cur=modOf(pat,t.id,i)[ln.key];
+          setMod(pat,t.id,i,ln.key, ev.altKey ? MOD_DEF[ln.key] : list[(list.indexOf(cur)+1)%list.length]);
+          if(["t","d","c"].includes(ln.key)) hitPreview(lockedTrack(t,modOf(pat,t.id,i)));
+        }
+        paintStep(els[i],arr[i],i,modOf(pat,t.id,i));
+        paint();
+      };
+      row.appendChild(c); cells.push({c,i,ln});
+    }
+    box.appendChild(lab); box.appendChild(row);
+  });
+  const hint=document.createElement("div"); hint.className="tiny lane-hint";
+  hint.textContent="click su una cella: valore successivo · alt+click: torna al default · valgono solo sugli step accesi";
+  box.appendChild(hint);
+  function paint(){
+    cells.forEach(({c,i,ln})=>{
+      const on=!!arr[i] && i<L;
+      const txt=on ? (ln.key==="lvl" ? (ln.show(arr[i])||"·") : ln.show(modOf(pat,t.id,i)[ln.key])) : "";
+      c.textContent=txt; c.disabled=!on;
+      c.classList.toggle("set", on && txt!=="" && txt!=="·");
+      c.title=on?`${ln.label}, step ${i+1}`:"";
+    });
+  }
+  paint();
+  lanePaint.set(t.id,paint);
+  return box;
 }
 
 function paintStep(b,v,i,m){

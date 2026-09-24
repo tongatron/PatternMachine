@@ -27,7 +27,7 @@ try{ const t=localStorage.getItem("sp1200.theme"); if(t==="light"||t==="dark") d
   }catch(e){ skin=new URLSearchParams(location.search).get("ui"); }
   if(!skin || !SKINS[skin]) return;
   document.documentElement.dataset.skin=skin;
-  const l=document.createElement("link"); l.rel="stylesheet"; l.href=SKINS[skin]+"?v=2026-09-24.17";
+  const l=document.createElement("link"); l.rel="stylesheet"; l.href=SKINS[skin]+"?v=2026-09-24.18";
   document.head.appendChild(l);
   addEventListener("DOMContentLoaded",()=>{
     const a=document.createElement("a"); a.className="skin-badge"; a.href="?ui=off";
@@ -521,6 +521,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <div class="chips" id="patternChips"></div>
     <div class="flexline">
       <button id="pChoose" class="mini primary">Scegli&hellip;</button>
+      <button id="pVary" class="mini" aria-expanded="false" title="trasforma il pattern che stai modificando: scarno, mezzo tempo, nuovo fill, ibrido...">&#10022; Varia</button>
       <button id="pNew" class="mini">+ Nuovo</button>
       <button id="pDup" class="mini">Duplica</button>
       <button id="pCopy" class="mini">Copia</button>
@@ -536,6 +537,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
         </select>
       </label>
     </div>
+    <div class="lib-locks" id="pVaryPanel" hidden></div>
   </div>
 
   <div class="panel" id="panelGrid">
@@ -655,6 +657,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     per dare al rullante un tocco &ldquo;in ritardo&rdquo; o alla cassa uno &ldquo;in anticipo&rdquo;.
     <b>Macchina</b> cambia i suoni: SP-1200 a 16 bit (originali), a 12 bit (passati dal convertitore) oppure Yamaha RX-5 con tutti i suoi 51 campioni;
     le righe che usavano un suono assente sull'altra macchina passano al suono equivalente.
+    <b>&#10022; Varia</b> (nel pannello Pattern) trasforma il pattern che stai modificando, anche scritto a mano; cmd+Z annulla.
     <b>Scegli…</b> apre la libreria di pattern e il generatore: <b>Genera 4</b> crea 4 pattern nuovi dello stile scelto (nient'altro ne crea da solo).
     Su ogni pattern: <b>Simili</b> ne crea 4 vicini, <b>Varia</b> lo trasforma in 20 modi (scarno, mezzo tempo, hat aperto, nuovo fill, strato percussivo, stacco&hellip; e cinque <b>ibridi</b> che innestano voci di un altro stile: ibrido, ritmo d'altro stile, met&agrave; e met&agrave;, mix di voci, doppio ibrido),
     <b>Arrangia</b> ricava intro, ritornello, break e outro, <b>Blocca</b> tiene alcune voci e rigenera le altre.
@@ -663,18 +666,18 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-24.17"></script>
-<script src="engine/styles-punk.js?v=2026-09-24.17"></script>
-<script src="engine/styles-post.js?v=2026-09-24.17"></script>
-<script src="engine/styles-machines.js?v=2026-09-24.17"></script>
-<script src="engine/styles-alt.js?v=2026-09-24.17"></script>
-<script src="engine/styles-groove.js?v=2026-09-24.17"></script>
-<script src="engine/styles-dub.js?v=2026-09-24.17"></script>
-<script src="engine/styles-break.js?v=2026-09-24.17"></script>
-<script src="engine/styles-soul.js?v=2026-09-24.17"></script>
-<script src="engine/styles-metal.js?v=2026-09-24.17"></script>
-<script src="engine/styles-electro.js?v=2026-09-24.17"></script>
-<script src="engine/variations.js?v=2026-09-24.17"></script>
+<script src="engine/core.js?v=2026-09-24.18"></script>
+<script src="engine/styles-punk.js?v=2026-09-24.18"></script>
+<script src="engine/styles-post.js?v=2026-09-24.18"></script>
+<script src="engine/styles-machines.js?v=2026-09-24.18"></script>
+<script src="engine/styles-alt.js?v=2026-09-24.18"></script>
+<script src="engine/styles-groove.js?v=2026-09-24.18"></script>
+<script src="engine/styles-dub.js?v=2026-09-24.18"></script>
+<script src="engine/styles-break.js?v=2026-09-24.18"></script>
+<script src="engine/styles-soul.js?v=2026-09-24.18"></script>
+<script src="engine/styles-metal.js?v=2026-09-24.18"></script>
+<script src="engine/styles-electro.js?v=2026-09-24.18"></script>
+<script src="engine/variations.js?v=2026-09-24.18"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -2564,6 +2567,42 @@ el("libTabFav").onclick=()=>setLibView("fav");
 el("pChoose").onclick=openLib;
 el("libClose").onclick=closeLib;
 el("libOverlay").onclick=(e)=>{ if(e.target===el("libOverlay")) closeLib(); };
+// ---------- varia il pattern della griglia ----------
+// Le variazioni del motore lavorano per ruolo (kick, snare, chh...): ogni riga si riconosce dal suo slot.
+// Le righe con un suono che non corrisponde a nessun ruolo restano come sono. Si annulla con cmd+Z.
+const ROLE_OF_SAMPLE=Object.fromEntries(Object.entries(ROLE_SAMPLE).map(([role,name])=>[sampleIdx(name),role]));
+function varyCurrent(type){
+  const pat=curPattern(), roles={}, trackOf={};
+  project.tracks.forEach(t=>{
+    const role=ROLE_OF_SAMPLE[t.sampleIndex];
+    if(!role || trackOf[role]) return;
+    trackOf[role]=t;
+    const g=pat.grid[t.id];
+    if(g && g.some(v=>v)) roles[role]=g.slice(0,pat.len);
+  });
+  if(!Object.keys(roles).length){ setStatus("pattern vuoto: niente da variare","err"); return; }
+  const parent={code:"griglia", style:Object.keys(SPEngine.styles)[0], len:pat.len, section:"verse", fill:false, tag:"", roles};
+  const out=SPEngine.vary(parent,type,SPEngine.randomSeed(16));
+  pushUndo();
+  Object.values(trackOf).forEach(t=>{ pat.grid[t.id]=new Array(pat.len).fill(0); });
+  Object.entries(out.roles).forEach(([role,arr])=>{ pat.grid[(trackOf[role]||trackForRole(role)).id]=arr.slice(0,pat.len); });
+  normalize(); renderAll();
+  const meta=SPEngine.variationTypes.find(x=>x.id===type), note=(/\(([^)]+)\)$/.exec(out.tag)||[])[1];
+  setStatus(`${meta.label}${note?` (${note})`:""} · cmd+Z per annullare`);
+}
+(function initGridVary(){
+  const box=el("pVaryPanel"), btn=el("pVary");
+  const hint=document.createElement("span"); hint.className="tiny";
+  hint.textContent="trasforma il pattern che stai modificando; ogni click ne fa una nuova, cmd+Z annulla";
+  box.appendChild(hint);
+  SPEngine.variationTypes.forEach(t=>{
+    const b=document.createElement("button"); b.type="button"; b.className="mini";
+    b.textContent=t.label; b.title=t.hint; b.onclick=()=>varyCurrent(t.id);
+    box.appendChild(b);
+  });
+  btn.onclick=()=>{ box.hidden=!box.hidden; btn.classList.toggle("on",!box.hidden); btn.setAttribute("aria-expanded",String(!box.hidden)); };
+})();
+
 el("genBtn").onclick=()=>{
   const style=el("genStyle").value, len=+el("genLen").value;
   const section=el("genSection").value, fill=el("genFill").checked;
@@ -2649,7 +2688,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-24.17";
+const SW_VERSION="2026-09-24.18";
 (function pwa(){
   const standalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
   const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);

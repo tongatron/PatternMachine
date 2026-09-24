@@ -270,6 +270,19 @@ test("ibridi: donatori (nuovi inclusi), pochi ripieghi, garanzie di ciascun tipo
   ok(plus / n > 0.85, `doppio ibrido con due stili diversi: ${plus}/${n}`);
 });
 
+test("variazioni su un pattern scritto a mano (griglia): ogni lunghezza, nessun errore", () => {
+  for (const len of [8, 16, 32]) for (const t of E.variationTypes) for (let sd = 0; sd < 12; sd++) {
+    const roles = { kick: new Array(len).fill(0), snare: new Array(len).fill(0), chh: new Array(len).fill(0) };
+    for (let i = 0; i < len; i++) { if (i % 8 === 0) roles.kick[i] = 2; if (i % 8 === 4) roles.snare[i] = 2; if (i % 2 === 0) roles.chh[i] = 1; }
+    const parent = { code: "griglia", style: Object.keys(E.styles)[0], len, section: "verse", fill: false, tag: "", roles };
+    const out = E.vary(parent, t.id, sd * 997 + 3);
+    for (const [role, arr] of Object.entries(out.roles)) {
+      ok(E.roles.order.includes(role), `griglia ${len} ${t.id}: voce ${role}`);
+      ok(arr.length === len && arr.every(v => v >= 0 && v <= 3 && Number.isInteger(v)), `griglia ${len} ${t.id}: griglia ${role}`);
+    }
+  }
+});
+
 test("variazioni: passi nel codice, catene con altri passi, rifiuto dei non validi", () => {
   const chain = "dbeat-16S-111111~VP00A1~4C21~VF0003~R000005BEEF";
   ok(E.fromCode(chain)?.code === chain, "catena mista");

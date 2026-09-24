@@ -501,6 +501,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       <button id="expSongBtn">MIDI canzone</button>
       <button id="wavPatternBtn" title="Audio del pattern ripetuto 4 volte, con mixer ed effetti">WAV pattern</button>
       <button id="wavSongBtn" title="Audio dell'intera canzone, con mixer ed effetti">WAV canzone</button>
+      <button id="logicBtn" title="Zip per Logic Pro: MIDI General MIDI, uno stem WAV per strumento, campioni del kit. Segue Pattern/Canzone">Logic (zip)</button>
       <span class="status" id="status"></span>
     </div>
   </div>
@@ -2273,6 +2274,185 @@ async function exportWav(which){
     btns.forEach(b=>b.disabled=false);
   }
 }
+
+// ---------- pacchetto per Logic Pro ----------
+// Uno zip con: MIDI sulla mappa General MIDI (lo capiscono Drummer, Drum Kit Designer e Drum Machine
+// Designer), uno stem WAV per strumento (stessa durata, tutti da zero: trascinati insieme in Logic
+// restano allineati) e i campioni della macchina col numero di nota nel nome.
+// Segue il selettore Pattern/Canzone del trasporto.
+const GM_NOTE={
+  "Kick 1":36,"Kick 2":35,"Snare 1":38,"Snare 2":40,"Snare 3":40,"Rimshot":37,"Finger Snap":39,
+  "Closed Hat 1":42,"Closed Hat 2":44,"Open Hat 1":46,"Tom 1":48,"Tom 2":45,
+  "Crash 1":49,"Ride 1":51,"China":52,"Cymbal":57,
+  "Cowbell 1":56,"Cowbell 2":56,"Cowbell 3":56,"Cowbell 4":56,
+  "Conga 1":63,"Conga 2":64,"Conga 3":62,"Conga 4":60,
+  "Timbale 1":65,"Timbale 2":66,"Agogo 1":67,"Tambourine":54,
+  "Cabasa 1":69,"Cabasa 2":70,"Triangle":81,"Vibraslap":58,
+  "Clave 1":75,"Clave 2":75,"Guiro 1":73,"Guiro 2":74,
+  "Perc 1":76,"Perc 2":77,"Perc 3":78,"Perc 4":79,"Perc 5":80,"Perc 6":50,
+};
+// i suoni "solo questa macchina" prendono la nota dello slot di riserva
+const gmNoteFor = i => { const s=SAMPLES[i]; return GM_NOTE[s.name] ?? GM_NOTE[s.fallback] ?? 76; };
+
+function buildLogicMidi(which){
+  const events=[];
+  let tick=0;
+  const add=p=>{ tick=patternEvents(p,tick,events); };
+  if(which==="song") project.song.forEach(b=>{ const p=patternById(b.patternId); if(p) for(let r=0;r<Math.max(1,b.repeats);r++) add(p); });
+  else add(curPattern());
+  // patternEvents scrive le note del kit SP-1200 di Logic (36+indice): qui si passa alla mappa GM
+  events.forEach(e=>{ e.note=gmNoteFor(e.note-36); });
+  events.sort((a,b)=>(a.tick-b.tick)||(a.order-b.order));
+  const text=(type,s)=>{ const b=[...new TextEncoder().encode(s)]; return [0xFF,type,...varLen(b.length),...b]; };
+  const chunk=bytes=>[0x4D,0x54,0x72,0x6B,(bytes.length>>>24)&0xff,(bytes.length>>>16)&0xff,(bytes.length>>>8)&0xff,bytes.length&0xff,...bytes];
+  const mpq=Math.round(60000000/bpm());
+  const tempo=[0,...text(0x03,safeName(el("projectName").value)),
+    0,0xFF,0x51,0x03,(mpq>>16)&0xff,(mpq>>8)&0xff,mpq&0xff,
+    0,0xFF,0x58,0x04,4,2,24,8,
+    ...varLen(tick),0xFF,0x2F,0x00];
+  const drums=[0,...text(0x03,"Drums")];
+  let last=0;
+  events.forEach(e=>{
+    drums.push(...varLen(e.tick-last)); last=e.tick;
+    drums.push(e.order===1?0x99:0x89, e.note, e.order===1?e.vel:0x40);
+  });
+  drums.push(...varLen(Math.max(0,tick-last)),0xFF,0x2F,0x00);
+  return new Uint8Array([0x4D,0x54,0x68,0x64, 0,0,0,6, 0,1, 0,2, (MIDI_PPQ>>8)&0xff,MIDI_PPQ&0xff, ...chunk(tempo), ...chunk(drums)]);
+}
+
+// Uno stem per traccia udibile, con mixer ed effetti come nel WAV normale. Per non perdere il choke
+// (l'hat chiuso che taglia quello aperto) le altre tracce dello stesso gruppo suonano a volume zero.
+async function renderStems(which){
+  const {events, length, live}=wavEvents(which);
+  if(!events.length) throw new Error("vuoto");
+  await Promise.all(live.map(t=>loadBuffer(t.sampleIndex)));
+  const OAC=window.OfflineAudioContext||window.webkitOfflineAudioContext;
+  const frames=Math.ceil((length+WAV_TAIL)*WAV_RATE);
+  const stems=[];
+  for(const tr of live){
+    if(!events.some(e=>e[1]===tr)) continue;
+    const ctx=new OAC(2, frames, WAV_RATE), chokes=new Map();
+    events.forEach(([time,t,vel])=>{
+      if(t===tr) trigger(t,time,vel,ctx,chokes);
+      else if(tr.choke>0 && t.choke===tr.choke) trigger(t,time,0,ctx,chokes);
+    });
+    stems.push({track:tr, buf:await ctx.startRendering()});
+  }
+  return {stems, seconds:length};
+}
+
+// PCM 24 bit stereo, guadagno imposto da fuori (uguale per tutti gli stem, cosi' il mix resta quello)
+function encodeWav24(buf, gain){
+  const chans=[0,1].map(c=>buf.getChannelData(Math.min(c,buf.numberOfChannels-1)));
+  const frames=buf.length, bytes=frames*6;
+  const view=new DataView(new ArrayBuffer(44+bytes));
+  const str=(o,s)=>{ for(let i=0;i<s.length;i++) view.setUint8(o+i,s.charCodeAt(i)); };
+  str(0,"RIFF"); view.setUint32(4,36+bytes,true); str(8,"WAVE");
+  str(12,"fmt "); view.setUint32(16,16,true); view.setUint16(20,1,true); view.setUint16(22,2,true);
+  view.setUint32(24,buf.sampleRate,true); view.setUint32(28,buf.sampleRate*6,true);
+  view.setUint16(32,6,true); view.setUint16(34,24,true);
+  str(36,"data"); view.setUint32(40,bytes,true);
+  let o=44;
+  for(let i=0;i<frames;i++){
+    for(let c=0;c<2;c++){
+      const v=Math.max(-1,Math.min(1,chans[c][i]*gain));
+      const n=Math.round(v<0?v*0x800000:v*0x7FFFFF);
+      view.setUint8(o,n&0xff); view.setUint8(o+1,(n>>8)&0xff); view.setUint8(o+2,(n>>16)&0xff); o+=3;
+    }
+  }
+  return new Uint8Array(view.buffer);
+}
+
+// Zip senza compressione (i WAV non si comprimono comunque): intestazioni locali, directory centrale, fine.
+const CRC_TABLE=(()=>{ const t=new Uint32Array(256); for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c=c&1?0xEDB88320^(c>>>1):c>>>1; t[n]=c>>>0; } return t; })();
+function crc32(d){ let c=0xFFFFFFFF; for(let i=0;i<d.length;i++) c=CRC_TABLE[(c^d[i])&0xff]^(c>>>8); return (c^0xFFFFFFFF)>>>0; }
+function makeZip(files){ // [{name, data:Uint8Array}]
+  const parts=[], central=[];
+  let offset=0;
+  const now=new Date();
+  const dosTime=(now.getHours()<<11)|(now.getMinutes()<<5)|(now.getSeconds()>>1);
+  const dosDate=((now.getFullYear()-1980)<<9)|((now.getMonth()+1)<<5)|now.getDate();
+  const u16=v=>[v&0xff,(v>>>8)&0xff], u32=v=>[v&0xff,(v>>>8)&0xff,(v>>>16)&0xff,(v>>>24)&0xff];
+  files.forEach(f=>{
+    const name=new TextEncoder().encode(f.name), crc=crc32(f.data), size=f.data.length;
+    // flag 0x0800: nomi in UTF-8
+    const common=[...u16(20),...u16(0x0800),...u16(0),...u16(dosTime),...u16(dosDate),...u32(crc),...u32(size),...u32(size),...u16(name.length),...u16(0)];
+    const local=new Uint8Array([...u32(0x04034b50),...common,...name]);
+    parts.push(local, f.data);
+    central.push(new Uint8Array([...u32(0x02014b50),...u16(20),...common,...u16(0),...u16(0),...u16(0),...u32(0),...u32(offset),...name]));
+    offset+=local.length+size;
+  });
+  const cdSize=central.reduce((s,c)=>s+c.length,0);
+  const end=new Uint8Array([...u32(0x06054b50),...u16(0),...u16(0),...u16(files.length),...u16(files.length),...u32(cdSize),...u32(offset),...u16(0)]);
+  return new Blob([...parts,...central,end],{type:"application/zip"});
+}
+
+async function buildLogicZip(which){
+  const base=exportBase(which), tempo=bpm();
+  const dir=`${base} - ${tempo} BPM/`;
+  const files=[{name:dir+`${base} - GM.mid`, data:buildLogicMidi(which)}];
+
+  const {stems, seconds}=await renderStems(which);
+  let peak=0;
+  stems.forEach(({buf})=>{ for(let c=0;c<buf.numberOfChannels;c++){ const d=buf.getChannelData(c); for(let i=0;i<d.length;i++){ const a=Math.abs(d[i]); if(a>peak) peak=a; } } });
+  const gain=peak>0.989?0.989/peak:1;
+  const used=new Map();
+  stems.forEach(({track,buf},n)=>{
+    let nm=safeName(sampleLabel(track.sampleIndex));
+    const k=(used.get(nm)||0)+1; used.set(nm,k); if(k>1) nm+=" "+k;
+    files.push({name:dir+`Stem/${String(n+1).padStart(2,"0")} ${nm}.wav`, data:encodeWav24(buf,gain)});
+  });
+
+  let samples=0;
+  for(const i of new Set(project.tracks.map(t=>t.sampleIndex))){
+    try{
+      const r=await fetch(sampleUrl(i)); if(!r.ok) continue;
+      files.push({name:dir+`Campioni/${gmNoteFor(i)} ${safeName(sampleLabel(i))}.wav`, data:new Uint8Array(await r.arrayBuffer())});
+      samples++;
+    }catch(e){}
+  }
+
+  const mode=which==="song"?"canzone intera":`pattern "${curPattern().name}" (MIDI: 1 giro; stem: ${WAV_PATTERN_LOOPS} giri)`;
+  const readme=[
+    base,
+    `Macchina: ${KITS[sampleSet].label} · ${tempo} BPM · 4/4 · swing ${el("swingRange").value}% · ${mode}`,
+    ``,
+    `COME PORTARLO IN LOGIC PRO`,
+    `1. Imposta il tempo del progetto a ${tempo} BPM (File > Importa > MIDI sul file .mid importa anche il tempo).`,
+    `2. MIDI: trascina "${base} - GM.mid" su una traccia Drummer / Drum Kit Designer / Drum Machine Designer.`,
+    `   Le note seguono la mappa General MIDI (36 cassa, 38 rullante, 42 hat chiuso, 46 hat aperto...).`,
+    `3. Stem: seleziona tutti i file della cartella Stem e trascinali insieme nell'area tracce, alla battuta 1,`,
+    `   scegliendo "tracce separate": partono tutti da zero e restano allineati.`,
+    `   24 bit, 44,1 kHz, con mixer ed effetti del sito${gain<1?`; livello ridotto di ${(-20*Math.log10(gain)).toFixed(1)} dB (uguale per tutti) per non clippare`:""}.`,
+    `4. Campioni: i singoli colpi della macchina, col numero di nota GM davanti al nome.`,
+    `   Per rifare il kit: nuova traccia Drum Machine Designer, trascina ogni file sul pad con quella nota.`,
+    ``,
+    `Swing e micro-timing sono gia' nelle posizioni delle note: in Logic lascia la quantizzazione spenta.`,
+    ``,
+  ].join("\n");
+  files.push({name:dir+"Leggimi.txt", data:new TextEncoder().encode(readme)});
+  return {zip:makeZip(files), base, stems:stems.length, samples, seconds};
+}
+
+let logicBusy=false;
+async function exportLogic(){
+  if(logicBusy) return;
+  const which=ui.mode==="song"?"song":"pattern";
+  if(which==="song" && !project.song.length){ setStatus("la canzone e' vuota","err"); return; }
+  logicBusy=true;
+  const btn=el("logicBtn"); btn.disabled=true;
+  setStatus("preparo il pacchetto per Logic…");
+  try{
+    const r=await buildLogicZip(which);
+    await saveBlob(r.zip, `${r.base} - Logic.zip`, "pacchetto Logic");
+    setStatus(`pacchetto Logic esportato (${which==="song"?"canzone":"pattern"}): MIDI GM, ${r.stems} stem, ${r.samples} campioni`);
+  }catch(e){
+    setStatus(e&&e.message==="vuoto"?"niente da esportare: il pattern e' vuoto o tutto in mute":"pacchetto Logic non riuscito","err");
+  }finally{
+    logicBusy=false; btn.disabled=false;
+  }
+}
+el("logicBtn").onclick=exportLogic;
 
 el("expPatternBtn").onclick=()=>exportMidi("pattern");
 el("expSongBtn").onclick=()=>exportMidi("song");

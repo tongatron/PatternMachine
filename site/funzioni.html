@@ -100,15 +100,19 @@ th{border-bottom:2px solid var(--line); font-size:12px; letter-spacing:.08em; te
     <tr><td><span class="tag red">accento</span></td><td>click destro o alt+click</td><td>100%</td></tr>
     <tr><td><span class="tag">nota fantasma</span></td><td>shift+click</td><td>42%</td></tr>
   </table></div>
-  <h3>Probabilit&agrave; e ripetizioni</h3>
+  <h3>Blocchi per step</h3>
   <ul>
     <li><b>Probabilit&agrave;</b>: uno step acceso suona il 100, 75, 50 o 25% delle volte (modalit&agrave; "Probabilit&agrave;" sopra la griglia).</li>
     <li><b>Ripetizioni</b> (ratchet): 1, 2, 3 o 4 colpi rapidi dentro lo step; quelli dopo il primo all'82%.</li>
-    <li>Valgono in riproduzione, nell'export WAV e nel MIDI.</li>
+    <li><b>Flam</b>: un colpo al 50% 24 ms prima di quello vero.</li>
+    <li><b>Intonazione</b> (+2, +5, +7, +12, &minus;12, &minus;7, &minus;5 semitoni), <b>Decay</b> (70, 40, 15) e <b>Filtro</b> (70, 50, 30): valgono solo per quel colpo e si sommano o sostituiscono le impostazioni della riga. In Colpi un pallino in alto a destra segnala lo step che li ha.</li>
+    <li>Valgono in riproduzione, nell'export WAV e negli stem; il MIDI porta probabilit&agrave;, ripetizioni e flam (intonazione, decay e filtro sono suono, non note).</li>
+    <li><b>Lunghezza per riga</b> (menu "Lung."): con meno step della battuta la riga gira per conto suo e non si riallinea a fine pattern (in Canzone riparte a ogni blocco). Gli step oltre la lunghezza restano spenti.</li>
   </ul>
   <h3>Tempo e feel</h3>
   <ul>
-    <li><b>Swing</b> 0&ndash;60: allunga i sedicesimi pari e accorcia i dispari.</li>
+    <li><b>Swing</b> alla MPC, dal 50% (dritto) al 75%: 66% &egrave; il terzinato. Allunga i sedicesimi pari e accorcia i dispari.</li>
+    <li><b>Umano</b>: piccole differenze a caso a ogni colpo, fino a &plusmn;10 ms e &plusmn;15% di forza; vale anche per WAV, stem e MIDI.</li>
     <li><b>Feel</b> per riga, da &minus;30 a +30 ms: anticipa o ritarda i colpi (rullante "in ritardo", cassa "in anticipo"). Caricando un pattern generato, il feel suggerito dallo stile si applica da solo.</li>
     <li>Allungando un pattern (8&rarr;16&rarr;32) il ritmo si ripete nelle battute nuove; accorciando si taglia la coda.</li>
   </ul>

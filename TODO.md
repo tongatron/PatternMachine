@@ -3,15 +3,16 @@
 Idee e lavori rimandati per Drum Machine Lab. In ordine di utilità per il lavoro con Logic.
 
 ## Export per Logic
-- [ ] **Mappa MIDI a scelta**: oltre a "Kit SP-1200" (nota 36 + slot, in ordine cromatico) aggiungere
+- [x] **Mappa MIDI a scelta** (fatto: pacchetto "Logic (zip)"): oltre a "Kit SP-1200" (nota 36 + slot, in ordine cromatico) aggiungere
   "General MIDI" (cassa 36, rullante 38, clap 39, hi-hat chiuso 42, aperto 46, tom e piatti ai loro posti),
   così i pattern fatti con 808, 909 e RX-5 suonano subito con Drum Machine Designer / Drum Kit Designer.
 - [ ] **Una traccia per voce** nel MIDI (cassa, rullante, hat... su tracce separate).
 - [ ] **Marker delle sezioni** nell'export della canzone (nomi dei blocchi nella timeline di Logic).
 - [ ] **Un solo file** con tutto il progetto: pattern come regioni separate più la canzone.
-- [ ] **Stems WAV**: un file audio per voce.
+- [x] **Stems WAV** (fatto: nel pacchetto "Logic (zip)"): un file audio per voce.
 
 ## Per creare meglio
+- [x] Blocchi per step (flam, intonazione, decay, filtro), lunghezza per riga, swing MPC, umanizza.
 - [ ] **Web MIDI**: suonare i pad dall'MPK e sincronizzarsi al clock di Logic.
 - [ ] **Griglia a 12 step (terzine)** per shuffle, swing jazz e 6/8 veri. Lavoro grande: tocca motore,
   formato dei codici, interfaccia, sequencer ed export. Oggi lo swing sposta solo i sedicesimi dispari.

@@ -308,6 +308,11 @@ label.fld input[type=number]{width:54px;}
 .step-mode-line{margin:-2px 0 9px;}
 .step.gho{opacity:var(--gho-opacity,.5); background:var(--step-gho,var(--led-on)); box-shadow:none;}
 .step.head{outline:2px solid var(--led-head); outline-offset:1px;}
+/* intonazione, decay o filtro bloccati sullo step (visibili in Colpi/Probabilita'/Ripetizioni) */
+.step.lock::before{content:""; position:absolute; top:3px; right:3px; width:5px; height:5px; border-radius:50%;
+  background:var(--text); box-shadow:0 0 0 1px var(--panel); pointer-events:none;}
+/* step oltre la lunghezza della traccia */
+.step.outlen, .step.outlen:disabled{opacity:.18; cursor:default;}
 .step.g, .ruler span.g{margin-left:9px;}
 
 .overlay{
@@ -565,7 +570,8 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
         <input type="number" id="bpmNum" min="40" max="240" value="93">
       </label>
       <button id="tapBtn" class="mini">Tap</button>
-      <label class="fld">Swing <input type="range" id="swingRange" min="0" max="60" value="0"></label>
+      <label class="fld" title="swing alla MPC: 50% dritto, 66% terzinato, 75% massimo">Swing <input type="range" id="swingRange" min="0" max="100" value="0"> <span id="swingPct" class="tiny">50%</span></label>
+      <label class="fld" title="umanizza: piccole differenze a caso di tempo (fino a 10 ms) e forza (fino al 15%)">Umano <input type="range" id="humanRange" min="0" max="100" value="0"></label>
       <label class="fld">Vol <input type="range" id="masterVol" min="0" max="100" value="85"></label>
       <select id="kitSelect" hidden aria-hidden="true"></select>
       <div class="counter" id="counter">1 . 1</div>
@@ -580,6 +586,10 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
         <button type="button" data-mode="hit" class="on" title="accende e spegne i colpi (alt = accento, shift = nota fantasma)">Colpi</button>
         <button type="button" data-mode="prob" title="quante volte suona lo step: 100, 75, 50, 25%">Probabilit&agrave;</button>
         <button type="button" data-mode="rat" title="quanti colpi rapidi dentro lo step: 1, 2, 3, 4">Ripetizioni</button>
+        <button type="button" data-mode="flam" title="flam: un colpo morbido appena prima di quello vero">Flam</button>
+        <button type="button" data-mode="tune" title="intonazione di questo solo colpo: +2, +5, +7, +12, -12, -7, -5 semitoni">Intonazione</button>
+        <button type="button" data-mode="dec" title="decay di questo solo colpo: 70, 40, 15 (piu' corto)">Decay</button>
+        <button type="button" data-mode="cut" title="filtro di questo solo colpo: 70, 50, 30 (piu' scuro)">Filtro</button>
       </div>
       <span class="tiny" id="stepModeHint"></span>
     </div>
@@ -695,7 +705,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <b>Uscita</b> manda la riga a una delle 8 uscite individuali (scheda <b>Mixer</b>).
     <kbd>cmd</kbd>+<kbd>Z</kbd> annulla, <kbd>cmd</kbd>+<kbd>shift</kbd>+<kbd>Z</kbd> ripristina.
     <b>Note fantasma:</b> <kbd>shift</kbd>+click su uno step.
-    <b>Probabilit&agrave;</b> e <b>Ripetizioni</b> (sopra la griglia): con la modalit&agrave; scelta, il click su uno step acceso lo fa suonare solo a volte (75, 50, 25%) o ripetere 2, 3, 4 volte dentro lo step; valgono anche per WAV e MIDI. <b>Feel</b> (nel pannello ⚙) anticipa o ritarda i colpi di una riga, da &minus;30 a +30 ms,
+    <b>Probabilit&agrave;</b>, <b>Ripetizioni</b>, <b>Flam</b>, <b>Intonazione</b>, <b>Decay</b> e <b>Filtro</b> (sopra la griglia): con la modalit&agrave; scelta, il click su uno step acceso cambia solo quel colpo. <b>Lung.</b> su una riga la fa girare con meno step (poliritmi). <b>Swing</b> alla MPC (50&ndash;75%) e <b>Umano</b> accanto al BPM. <b>Feel</b> (nel pannello ⚙) anticipa o ritarda i colpi di una riga, da &minus;30 a +30 ms,
     per dare al rullante un tocco &ldquo;in ritardo&rdquo; o alla cassa uno &ldquo;in anticipo&rdquo;.
     <b>Macchina</b> cambia i suoni: SP-1200 a 16 bit (originali), a 12 bit (passati dal convertitore) oppure Yamaha RX-5 con tutti i suoi 51 campioni;
     le righe che usavano un suono assente sull'altra macchina passano al suono equivalente.
@@ -875,20 +885,42 @@ function voiceDefaults(o={}){
 const OUTS=8;
 const busDefaults = o => ({level:o?.level??100, pan:o?.pan??0, low:o?.low??0, high:o?.high??0, comp:o?.comp??0});
 const makeMixer = src => Array.from({length:OUTS}, (_,i)=>busDefaults(src?.[i]));
-function makePattern(name,len=16){ return {id:uid(), name, len, grid:{}, mods:{}}; }
-// Probabilita' e ripetizioni per step, sparse: mods[traccia][step] = {p:percentuale, r:colpi}.
-// Uno step senza voce suona sempre (p 100) una volta sola (r 1): i progetti vecchi restano identici.
-const PROBS=[100,75,50,25], RATS=[1,2,3,4];
+function makePattern(name,len=16){ return {id:uid(), name, len, grid:{}, mods:{}, lens:{}}; }
+// Blocchi per step, sparsi: mods[traccia][step] = {p:percentuale, r:colpi, f:flam, t:semitoni, d:decay, c:filtro}.
+// Si salva solo cio' che differisce dal default: i progetti vecchi restano identici.
+// d e c a 0 = "usa quello della traccia"; t si somma all'intonazione della traccia.
+const MOD_DEF={p:100,r:1,f:0,t:0,d:0,c:0};
+const MOD_LISTS={p:[100,75,50,25], r:[1,2,3,4], f:[0,1], t:[0,2,5,7,12,-12,-7,-5], d:[0,70,40,15], c:[0,70,50,30]};
+const PROBS=MOD_LISTS.p, RATS=MOD_LISTS.r;
 const cloneMods = m => JSON.parse(JSON.stringify(m||{}));
-const modOf = (pat,tid,i) => { const m=pat.mods&&pat.mods[tid]&&pat.mods[tid][i]; return {p:m&&m.p||100, r:m&&m.r||1}; };
+const modOf = (pat,tid,i) => Object.assign({},MOD_DEF,pat.mods&&pat.mods[tid]&&pat.mods[tid][i]);
 function setMod(pat,tid,i,key,val){
   pat.mods=pat.mods||{};
-  const row=pat.mods[tid]||(pat.mods[tid]={}), cur=Object.assign({p:100,r:1},row[i]);
+  const row=pat.mods[tid]||(pat.mods[tid]={}), cur=Object.assign({},row[i]);
   cur[key]=val;
-  if(cur.p===100 && cur.r===1) delete row[i]; else row[i]={p:cur.p,r:cur.r};
+  Object.keys(cur).forEach(k=>{ if(cur[k]===MOD_DEF[k]) delete cur[k]; });
+  if(Object.keys(cur).length) row[i]=cur; else delete row[i];
   if(!Object.keys(row).length) delete pat.mods[tid];
 }
 const stepPlays = m => m.p>=100 || Math.random()*100<m.p;
+// La traccia con i blocchi dello step applicati (intonazione, decay, filtro).
+const lockedTrack = (t,m) => (m.t||m.d||m.c)
+  ? {...t, tune:(t.tune||0)+m.t, decay:m.d||t.decay, cutoff:m.c||t.cutoff} : t;
+// I colpi di uno step: [spostamento, fattore di velocity]. Ripetizioni dentro lo step, flam = un colpo
+// morbido poco prima. `flam` e' l'anticipo nell'unita' di `dur` (secondi dal vivo, tick nel MIDI).
+function stepHits(m,dur,flam){
+  const out=m.f?[[-flam,0.5]]:[];
+  for(let k=0;k<m.r;k++) out.push([k*dur/m.r, k?0.82:1]);
+  return out;
+}
+const FLAM_SEC=0.024;
+// Lunghezza per traccia (poliritmi): lens[traccia] = step < len. La traccia gira sulla sua lunghezza e
+// non si riallinea a fine pattern: `cycle` conta i giri del pattern (in Canzone riparte a ogni blocco).
+const stepIdx = (pat,tid,step,cycle=0) => { const L=pat.lens&&pat.lens[tid]; return L&&L<pat.len ? (cycle*pat.len+step)%L : step; };
+// Umanizzazione: 0..100 -> fino a +-10 ms e +-15% di velocity, a caso per colpo.
+const human = ()=> (+el("humanRange").value||0)/100;
+const jitterT = ()=> (Math.random()*2-1)*human()*0.010;
+const jitterV = ()=> 1+(Math.random()*2-1)*human()*0.15;
 
 let project=null;
 let ui={patternId:null, blockId:null, mode:"pattern", recording:false, clip:null};
@@ -923,6 +955,8 @@ function normalize(){
       }
     });
     Object.keys(p.grid).forEach(k=>{ if(!project.tracks.some(t=>t.id===k)) delete p.grid[k]; });
+    p.lens=p.lens||{};
+    Object.keys(p.lens).forEach(k=>{ if(!project.tracks.some(t=>t.id===k) || !(p.lens[k]<p.len)) delete p.lens[k]; });
     p.mods=p.mods||{};
     Object.keys(p.mods).forEach(k=>{
       if(!project.tracks.some(t=>t.id===k)) { delete p.mods[k]; return; }
@@ -1075,7 +1109,7 @@ const audibleTracks = ()=>{
 // ---------- transport ----------
 let playing=false, recording=false;
 let nextTime=0, timer=null;
-let cursor={step:0, blockIndex:0, rep:0, patternId:null};
+let cursor={step:0, blockIndex:0, rep:0, loops:0, patternId:null};
 let queue=[];
 let visible={step:-1, patternId:null, blockIndex:-1, bar:1};
 let barCount=1;
@@ -1104,19 +1138,22 @@ function scheduler(){
     if(!pat){ stop(); return; }
     const live=audibleTracks();
     const dur=stepDur(cursor.step);
+    const cycle=ui.mode==="song" ? (cursor.rep||0) : (cursor.loops||0);
     live.forEach(t=>{
-      const v=(pat.grid[t.id]||[])[cursor.step];
+      const i=stepIdx(pat,t.id,cursor.step,cycle);
+      const v=(pat.grid[t.id]||[])[i];
       if(!v) return;
-      const m=modOf(pat,t.id,cursor.step);
+      const m=modOf(pat,t.id,i);
       if(!stepPlays(m)) return;
-      // ripetizioni: colpi uguali dentro lo step, quelli dopo il primo un po' piu' morbidi
-      for(let k=0;k<m.r;k++) trigger(t, nextTime+nudgeOf(t)+k*dur/m.r, stepVel(v)*(k?0.82:1));
+      // ripetizioni: colpi uguali dentro lo step, quelli dopo il primo un po' piu' morbidi; flam poco prima
+      const tr=lockedTrack(t,m), j=jitterT(), jv=jitterV();
+      stepHits(m,dur,FLAM_SEC).forEach(([at,f])=>trigger(tr, nextTime+nudgeOf(t)+j+at, stepVel(v)*f*jv));
     });
-    queue.push({time:nextTime, dur, step:cursor.step, rep:cursor.rep||0, patternId:pat.id, blockIndex:cursor.blockIndex, bar:barCount});
+    queue.push({time:nextTime, dur, step:cursor.step, cycle, rep:cursor.rep||0, patternId:pat.id, blockIndex:cursor.blockIndex, bar:barCount});
     nextTime += dur;
     cursor.step++;
     if(cursor.step>=pat.len){
-      cursor.step=0; barCount++;
+      cursor.step=0; barCount++; cursor.loops=(cursor.loops||0)+1;
       if(ui.mode==="song"){
         cursor.rep++;
         const block=project.song[cursor.blockIndex];
@@ -1135,7 +1172,7 @@ function frame(){
     let changed=false;
     while(queue.length && queue[0].time<=now){
       const e=queue.shift();
-      visible={step:e.step, patternId:e.patternId, blockIndex:e.blockIndex, bar:e.bar, rep:e.rep, time:e.time, dur:e.dur};
+      visible={step:e.step, cycle:e.cycle, patternId:e.patternId, blockIndex:e.blockIndex, bar:e.bar, rep:e.rep, time:e.time, dur:e.dur};
       changed=true;
     }
     if(changed) paintPlayhead();
@@ -1341,6 +1378,13 @@ function renderTracks(){
     grp.value=t.choke; grp.onchange=()=>{ t.choke=+grp.value; };
     top.appendChild(grp);
 
+    const lenSel=document.createElement("select"); lenSel.className="tune"; lenSel.title="Lunghezza della traccia: con meno step gira per conto suo (poliritmo)";
+    { const o=document.createElement("option"); o.value=0; o.textContent="Lung. –"; lenSel.appendChild(o); }
+    for(let n=2;n<pat.len;n++){ const o=document.createElement("option"); o.value=n; o.textContent=n+" step"; lenSel.appendChild(o); }
+    lenSel.value=(pat.lens&&pat.lens[t.id])||0;
+    lenSel.onchange=()=>{ pushUndo(); pat.lens=pat.lens||{}; if(+lenSel.value) pat.lens[t.id]=+lenSel.value; else delete pat.lens[t.id]; renderTracks(); };
+    top.appendChild(lenSel);
+
     const tune=document.createElement("select"); tune.className="tune"; tune.title="Intonazione (semitoni)";
     for(let s=-12;s<=12;s++){ const o=document.createElement("option"); o.value=s; o.textContent=(s>0?"+":"")+s+"st"; tune.appendChild(o); }
     tune.value=t.tune||0; tune.onchange=()=>{ t.tune=+tune.value; };
@@ -1368,17 +1412,21 @@ function renderTracks(){
     steps.className="steps";
     steps.style.gridTemplateColumns=`repeat(${gridCols(pat.len)},1fr)`;
     const arr=pat.grid[t.id]||(pat.grid[t.id]=new Array(pat.len).fill(0));
+    const L=(pat.lens&&pat.lens[t.id])||pat.len;
     const els=[];
     for(let i=0;i<pat.len;i++){
       const b=document.createElement("button");
       b.className="step"; b.dataset.i=i;
       paintStep(b,arr[i],i,modOf(pat,t.id,i));
+      if(i>=L){ b.disabled=true; b.classList.add("outlen"); b.title="fuori dalla lunghezza della traccia"; }
       b.onclick=(ev)=>{
-        if(ui.stepMode==="prob"||ui.stepMode==="rat"){
+        const key=STEP_MODE_KEY[ui.stepMode];
+        if(key){
           if(!arr[i]){ setStatus("prima accendi il colpo (modalita' Colpi)"); return; }
           pushUndo();
-          const key=ui.stepMode==="prob"?"p":"r", list=key==="p"?PROBS:RATS, cur=modOf(pat,t.id,i)[key];
+          const list=MOD_LISTS[key], cur=modOf(pat,t.id,i)[key];
           setMod(pat,t.id,i,key,list[(list.indexOf(cur)+1)%list.length]);
+          if(key==="t"||key==="d"||key==="c") hitPreview(lockedTrack(t,modOf(pat,t.id,i)));
           paintStep(b,arr[i],i,modOf(pat,t.id,i));
           return;
         }
@@ -1399,10 +1447,20 @@ function renderTracks(){
 }
 
 function paintStep(b,v,i,m){
+  const out=b.classList.contains("outlen");
   b.className="step"+(i%4===0?" beat":"")+(i%4===0&&i>0?" g":"")
-    +(v===1?" on":"")+(v===2?" on acc":"")+(v===3?" on gho":"");
-  // su uno step acceso: "50%" se suona solo a volte, "x3" se ripete; su uno spento non si mostra nulla
-  const label = v && m ? [m.p<100?m.p+"%":"", m.r>1?"×"+m.r:""].filter(Boolean).join(" ") : "";
+    +(v===1?" on":"")+(v===2?" on acc":"")+(v===3?" on gho":"")+(out?" outlen":"");
+  // su uno step acceso: l'etichetta mostra il blocco della modalita' scelta; in Colpi/Probabilita'/Ripetizioni
+  // "50%", "x3", "fl" (flam) e un pallino se ci sono intonazione, decay o filtro bloccati
+  const mode=ui.stepMode||"hit";
+  let label="";
+  if(v && m){
+    if(mode==="tune") label=m.t?(m.t>0?"+":"")+m.t:"";
+    else if(mode==="dec") label=m.d?"d"+m.d:"";
+    else if(mode==="cut") label=m.c?"f"+m.c:"";
+    else label=[m.p<100?m.p+"%":"", m.r>1?"×"+m.r:"", m.f?"fl":""].filter(Boolean).join(" ");
+    if((m.t||m.d||m.c) && !["tune","dec","cut"].includes(mode)) b.classList.add("lock");
+  }
   if(label){ b.dataset.label=label; b.classList.add("mod"); } else delete b.dataset.label;
   b.setAttribute("aria-label",`step ${i+1}${v?"":" vuoto"}${label?" "+label:""}`);
 }
@@ -1410,8 +1468,9 @@ function paintStep(b,v,i,m){
 function paintPlayhead(){
   const pat=curPattern();
   const showHead = playing && (ui.mode==="pattern" ? true : visible.patternId===pat.id);
-  stepEls.forEach(els=>{
-    els.forEach((b,i)=> b.classList.toggle("head", showHead && i===visible.step));
+  stepEls.forEach((els,tid)=>{
+    const at=stepIdx(pat,tid,visible.step,visible.cycle||0);
+    els.forEach((b,i)=> b.classList.toggle("head", showHead && i===at));
   });
   el("counter").textContent = playing
     ? (ui.mode==="song"
@@ -1726,6 +1785,15 @@ function fmtDuration(sec){
 function renderAll(){ renderPatterns(); renderRuler(); renderTracks(); renderSong(); renderMixer(); }
 
 // ---------- playing pads ----------
+// Modalita' del click sugli step -> campo del blocco che cambia (Colpi non ne ha)
+const STEP_MODE_KEY={prob:"p", rat:"r", flam:"f", tune:"t", dec:"d", cut:"c"};
+// Suona una volta il colpo con i blocchi appena scelti, per sentire subito la differenza (non a trasporto acceso).
+function hitPreview(t){
+  if(playing) return;
+  const ctx=actx();
+  if(ctx.state==="suspended") ctx.resume();
+  loadBuffer(t.sampleIndex).then(()=>trigger(t,actx().currentTime,0.9));
+}
 function hitPad(idx){
   const t=project.tracks[idx];
   if(!t) return;
@@ -1747,10 +1815,10 @@ function recordHit(track){
   for(const q of queue){ if(q.time>now){ ref=q; break; } }
   if(ref && (ref.time-now) < stepDur(step)/2) step=ref.step;
   const arr=pat.grid[track.id]||(pat.grid[track.id]=new Array(pat.len).fill(0));
-  arr[(step+pat.len)%pat.len]=1;
+  const i=stepIdx(pat,track.id,(step+pat.len)%pat.len,visible.cycle||0);
+  arr[i]=1;
   if(pat.id===curPattern().id){
     const els=stepEls.get(track.id);
-    const i=(step+pat.len)%pat.len;
     if(els&&els[i]) paintStep(els[i],arr[i],i,modOf(pat,track.id,i));
   }
 }
@@ -1826,7 +1894,11 @@ el("modeSong").onclick=()=>{ setMode("song"); setView("seq"); };
 const bpmRange=el("bpmRange"), bpmNum=el("bpmNum");
 bpmRange.oninput=()=>{ bpmNum.value=bpmRange.value; project.bpm=+bpmRange.value; paintTimeline(); };
 bpmNum.oninput=()=>{ bpmRange.value=bpmNum.value; project.bpm=+bpmNum.value; paintTimeline(); };
-el("swingRange").oninput=()=>{ project.swing=+el("swingRange").value; };
+// Swing alla MPC: la coppia di sedicesimi si divide 50/50 (dritto) fino a 75/25; il cursore va da 0 a 100.
+const swingPct = ()=> Math.round(50+(+el("swingRange").value||0)/4);
+function paintSwing(){ el("swingPct").textContent=swingPct()+"%"; }
+el("swingRange").oninput=()=>{ project.swing=+el("swingRange").value; paintSwing(); };
+el("humanRange").oninput=()=>{ project.human=+el("humanRange").value; };
 
 let taps=[];
 el("tapBtn").onclick=()=>{
@@ -1852,12 +1924,12 @@ el("pDup").onclick=()=>{
   const src=curPattern();
   const p=makePattern(src.name+" copia", src.len);
   Object.entries(src.grid).forEach(([k,v])=>p.grid[k]=v.slice());
-  p.mods=cloneMods(src.mods);
+  p.mods=cloneMods(src.mods); p.lens={...(src.lens||{})};
   project.patterns.push(p); normalize(); selectPattern(p.id);
 };
 el("pCopy").onclick=()=>{
   const src=curPattern();
-  ui.clip={len:src.len, grid:Object.fromEntries(Object.entries(src.grid).map(([k,v])=>[k,v.slice()])), mods:cloneMods(src.mods)};
+  ui.clip={len:src.len, grid:Object.fromEntries(Object.entries(src.grid).map(([k,v])=>[k,v.slice()])), mods:cloneMods(src.mods), lens:{...(src.lens||{})}};
   setStatus("pattern copiato");
 };
 el("pPaste").onclick=()=>{
@@ -1866,7 +1938,7 @@ el("pPaste").onclick=()=>{
   const p=curPattern();
   p.len=ui.clip.len; el("pLen").value=p.len;
   p.grid={}; Object.entries(ui.clip.grid).forEach(([k,v])=>p.grid[k]=v.slice());
-  p.mods=cloneMods(ui.clip.mods);
+  p.mods=cloneMods(ui.clip.mods); p.lens={...(ui.clip.lens||{})};
   normalize(); renderRuler(); renderTracks(); renderPatterns(); setStatus("incollato");
 };
 el("pRename").onclick=()=>{
@@ -1878,7 +1950,7 @@ el("pClear").onclick=()=>{
   pushUndo();
   const p=curPattern();
   Object.keys(p.grid).forEach(k=>p.grid[k]=new Array(p.len).fill(0));
-  p.mods={};
+  p.mods={}; p.lens={};
   renderTracks();
 };
 el("pDel").onclick=()=>{
@@ -1956,14 +2028,15 @@ const lsWrite=o=>{ try{ localStorage.setItem(LS_KEY,JSON.stringify(o)); }catch(e
 function serialize(){
   return {
     name: el("projectName").value.trim()||"Senza titolo",
-    bpm: bpm(), swing: +el("swingRange").value||0,
+    bpm: bpm(), swing: +el("swingRange").value||0, human: +el("humanRange").value||0,
     sampleSet,
     tracks: project.tracks.map(t=>({id:t.id, sampleIndex:t.sampleIndex, vol:t.vol, tune:t.tune||0, choke:t.choke||0,
       decay:t.decay, cutoff:t.cutoff, reso:t.reso, start:t.start, reverse:t.reverse, out:t.out||0, nudge:t.nudge||0})),
     mixer: makeMixer(project.mixer),
     patterns: project.patterns.map(p=>({id:p.id, name:p.name, len:p.len,
       grid:Object.fromEntries(Object.entries(p.grid).map(([k,v])=>[k,v.slice()])),
-      ...(p.mods&&Object.keys(p.mods).length?{mods:cloneMods(p.mods)}:{})})),
+      ...(p.mods&&Object.keys(p.mods).length?{mods:cloneMods(p.mods)}:{}),
+      ...(p.lens&&Object.keys(p.lens).length?{lens:{...p.lens}}:{})})),
     song: project.song.map(b=>({id:b.id, patternId:b.patternId, repeats:b.repeats})),
     updatedAt: Date.now(),
   };
@@ -1971,11 +2044,11 @@ function serialize(){
 function deserialize(d,keepSel){
   const prevPattern=ui.patternId, prevBlock=ui.blockId;
   project={
-    name:d.name||"Senza titolo", bpm:d.bpm||93, swing:d.swing||0,
+    name:d.name||"Senza titolo", bpm:d.bpm||93, swing:d.swing||0, human:d.human||0,
     tracks:(d.tracks||[]).map(t=>({id:t.id, sampleIndex:t.sampleIndex, vol:t.vol??0.8,
       tune:t.tune||0, choke:t.choke||0, mute:false, solo:false, ...voiceDefaults(t)})),
     patterns:(d.patterns||[]).map(p=>({id:p.id, name:p.name, len:p.len||16,
-      grid:Object.fromEntries(Object.entries(p.grid||{}).map(([k,v])=>[k,v.slice()])), mods:cloneMods(p.mods)})),
+      grid:Object.fromEntries(Object.entries(p.grid||{}).map(([k,v])=>[k,v.slice()])), mods:cloneMods(p.mods), lens:{...(p.lens||{})}})),
     song:(d.song||[]).map(b=>({id:b.id, patternId:b.patternId, repeats:b.repeats||1})),
     mixer: makeMixer(d.mixer),
   };
@@ -1987,7 +2060,7 @@ function deserialize(d,keepSel){
   if(KITS[d.sampleSet] && d.sampleSet!==sampleSet) setSampleSet(d.sampleSet);
   el("projectName").value=project.name;
   el("bpmNum").value=project.bpm; el("bpmRange").value=Math.min(180,Math.max(60,project.bpm));
-  el("swingRange").value=project.swing;
+  el("swingRange").value=project.swing; el("humanRange").value=project.human||0; paintSwing();
   el("pLen").value=curPattern().len;
   normalize();
   project.tracks.forEach(t=>loadBuffer(t.sampleIndex));
@@ -2111,7 +2184,7 @@ el("newBtn").onclick=()=>{
   currentProjectId=null; project=starterProject(); ui.patternId=project.patterns[0].id;
   ui.blockId=project.song[0].id;
   el("projectName").value=project.name; el("bpmNum").value=project.bpm;
-  el("bpmRange").value=project.bpm; el("swingRange").value=0; el("pLen").value=16;
+  el("bpmRange").value=project.bpm; el("swingRange").value=0; el("humanRange").value=0; paintSwing(); el("pLen").value=16;
   project.tracks.forEach(t=>loadBuffer(t.sampleIndex));
   renderAll(); setStatus("nuovo progetto");
 };
@@ -2123,27 +2196,28 @@ function varLen(v){
   return out;
 }
 const MIDI_PPQ=96;   // 24 tick per sedicesimo
-function patternEvents(pat, startTick, events){
+function patternEvents(pat, startTick, events, cycle=0){
   const base=MIDI_PPQ/4;
   const s=swing();
+  const perSec=bpm()/60*MIDI_PPQ;   // tick al secondo
   let tick=startTick;
-  for(let i=0;i<pat.len;i++){
-    const dur=Math.round(base*(i%2===0?1+s:1-s));
+  for(let s16=0;s16<pat.len;s16++){
+    const dur=Math.round(base*(s16%2===0?1+s:1-s));
     project.tracks.forEach(t=>{
+      const i=stepIdx(pat,t.id,s16,cycle);
       const v=(pat.grid[t.id]||[])[i];
       if(!v) return;
       const note=midiNoteFor(t.sampleIndex);
-      const vel=Math.max(1,Math.min(127,Math.round(midiVelOf(v)*(t.vol??0.8)*127)));
-      const shift=Math.round((t.nudge||0)/1000*(bpm()/60)*MIDI_PPQ);
+      const shift=Math.round(((t.nudge||0)/1000+jitterT())*perSec);
+      const vel=midiVelOf(v)*(t.vol??0.8)*127*jitterV();
       // probabilita': nel file si decide a ogni ripetizione, cosi' in Logic ogni giro della canzone e' un po' diverso
       const m=modOf(pat,t.id,i); if(!stepPlays(m)) return;
       const sub=dur/m.r;
-      for(let k=0;k<m.r;k++){
-        const on=Math.max(0,tick+shift+Math.round(k*sub));
-        const kv=k?Math.max(1,Math.round(vel*0.82)):vel;
-        events.push({tick:on, order:1, note, vel:kv});
+      stepHits(m,dur,Math.round(FLAM_SEC*perSec)).forEach(([at,f])=>{
+        const on=Math.max(0,tick+shift+Math.round(at));
+        events.push({tick:on, order:1, note, vel:Math.max(1,Math.min(127,Math.round(vel*f)))});
         events.push({tick:on+Math.max(1,Math.floor(sub*0.9)), order:0, note, vel:64});
-      }
+      });
     });
     tick+=dur;
   }
@@ -2156,7 +2230,7 @@ function buildMidi(which){
     project.song.forEach(b=>{
       const p=patternById(b.patternId);
       if(!p) return;
-      for(let r=0;r<Math.max(1,b.repeats);r++) tick=patternEvents(p,tick,events);
+      for(let r=0;r<Math.max(1,b.repeats);r++) tick=patternEvents(p,tick,events,r);
     });
   } else {
     tick=patternEvents(curPattern(),0,events);
@@ -2218,19 +2292,22 @@ const WAV_RATE=44100, WAV_TAIL=2, WAV_PATTERN_LOOPS=4;
 function wavEvents(which){
   const live=audibleTracks(), base=60/bpm()/4, sw=swing(), events=[];
   let t=0;
-  const emit=pat=>{
+  const emit=(pat,cycle)=>{
     for(let s=0;s<pat.len;s++){
       const d=base*(s%2===0?1+sw:1-sw);
       live.forEach(tr=>{
-        const v=(pat.grid[tr.id]||[])[s]; if(!v) return;
-        const m=modOf(pat,tr.id,s); if(!stepPlays(m)) return;
-        for(let k=0;k<m.r;k++) events.push([t+nudgeOf(tr)+k*d/m.r,tr,stepVel(v)*(k?0.82:1)]);
+        const i=stepIdx(pat,tr.id,s,cycle);
+        const v=(pat.grid[tr.id]||[])[i]; if(!v) return;
+        const m=modOf(pat,tr.id,i); if(!stepPlays(m)) return;
+        const lt=lockedTrack(tr,m), j=jitterT(), jv=jitterV();
+        // il terzo campo e' la traccia originale (stem, choke), il quarto quella con i blocchi dello step
+        stepHits(m,d,FLAM_SEC).forEach(([at,f])=>events.push([t+nudgeOf(tr)+j+at,tr,stepVel(v)*f*jv,lt]));
       });
       t+=d;
     }
   };
-  if(which==="song") project.song.forEach(b=>{ const p=patternById(b.patternId); if(p) for(let r=0;r<Math.max(1,b.repeats||1);r++) emit(p); });
-  else for(let r=0;r<WAV_PATTERN_LOOPS;r++) emit(curPattern());
+  if(which==="song") project.song.forEach(b=>{ const p=patternById(b.patternId); if(p) for(let r=0;r<Math.max(1,b.repeats||1);r++) emit(p,r); });
+  else for(let r=0;r<WAV_PATTERN_LOOPS;r++) emit(curPattern(),r);
   return {events, length:t, live};
 }
 
@@ -2241,7 +2318,7 @@ async function renderWav(which){
   const OAC=window.OfflineAudioContext||window.webkitOfflineAudioContext;
   const ctx=new OAC(2, Math.ceil((length+WAV_TAIL)*WAV_RATE), WAV_RATE);
   const chokes=new Map();
-  events.forEach(([time,track,vel])=>trigger(track,time,vel,ctx,chokes));
+  events.forEach(([time,,vel,lt])=>trigger(lt,time,vel,ctx,chokes));
   const buf=await ctx.startRendering();
   return {buf, seconds:length};
 }
@@ -2313,8 +2390,8 @@ const gmNoteFor = i => { const s=SAMPLES[i]; return GM_NOTE[s.name] ?? GM_NOTE[s
 function buildLogicMidi(which){
   const events=[];
   let tick=0;
-  const add=p=>{ tick=patternEvents(p,tick,events); };
-  if(which==="song") project.song.forEach(b=>{ const p=patternById(b.patternId); if(p) for(let r=0;r<Math.max(1,b.repeats);r++) add(p); });
+  const add=(p,r=0)=>{ tick=patternEvents(p,tick,events,r); };
+  if(which==="song") project.song.forEach(b=>{ const p=patternById(b.patternId); if(p) for(let r=0;r<Math.max(1,b.repeats);r++) add(p,r); });
   else add(curPattern());
   // patternEvents scrive le note del kit SP-1200 di Logic (36+indice): qui si passa alla mappa GM
   events.forEach(e=>{ e.note=gmNoteFor(e.note-36); });
@@ -2348,9 +2425,9 @@ async function renderStems(which){
   for(const tr of live){
     if(!events.some(e=>e[1]===tr)) continue;
     const ctx=new OAC(2, frames, WAV_RATE), chokes=new Map();
-    events.forEach(([time,t,vel])=>{
-      if(t===tr) trigger(t,time,vel,ctx,chokes);
-      else if(tr.choke>0 && t.choke===tr.choke) trigger(t,time,0,ctx,chokes);
+    events.forEach(([time,t,vel,lt])=>{
+      if(t===tr) trigger(lt,time,vel,ctx,chokes);
+      else if(tr.choke>0 && t.choke===tr.choke) trigger(lt,time,0,ctx,chokes);
     });
     stems.push({track:tr, buf:await ctx.startRendering()});
   }
@@ -2431,7 +2508,7 @@ async function buildLogicZip(which){
   const mode=which==="song"?"canzone intera":`pattern "${curPattern().name}" (MIDI: 1 giro; stem: ${WAV_PATTERN_LOOPS} giri)`;
   const readme=[
     base,
-    `Macchina: ${KITS[sampleSet].label} · ${tempo} BPM · 4/4 · swing ${el("swingRange").value}% · ${mode}`,
+    `Macchina: ${KITS[sampleSet].label} · ${tempo} BPM · 4/4 · swing ${swingPct()}% · ${mode}`,
     ``,
     `COME PORTARLO IN LOGIC PRO`,
     `1. Imposta il tempo del progetto a ${tempo} BPM (File > Importa > MIDI sul file .mid importa anche il tempo).`,
@@ -2773,7 +2850,7 @@ function applyLibrary(item, asNew){
     // "feel" suggerito dallo stile: rullante in ritardo, cassa in anticipo, ecc. Si puo' regolare poi per riga.
     Object.keys(item.roles||{}).forEach(role=>{ trackForRole(role).nudge=(item.feel&&item.feel[role])||0; });
     if(item.bpm){ el("bpmNum").value=item.bpm; el("bpmRange").value=Math.min(180,Math.max(60,item.bpm)); project.bpm=item.bpm; }
-    if(item.swing!=null){ el("swingRange").value=item.swing; project.swing=item.swing; }
+    if(item.swing!=null){ el("swingRange").value=item.swing; project.swing=item.swing; paintSwing(); }
   }
   ui.patternId=pat.id; el("pLen").value=pat.len;
   renderAll(); closeLib();
@@ -2878,12 +2955,15 @@ el("libOverlay").onclick=(e)=>{ if(e.target===el("libOverlay")) closeLib(); };
 // ---------- modalita' del click sugli step ----------
 ui.stepMode="hit";
 (function initStepMode(){
-  const hints={hit:"", prob:"click su uno step acceso: 100 > 75 > 50 > 25%", rat:"click su uno step acceso: 1 > 2 > 3 > 4 colpi"};
+  const hints={hit:"", prob:"click su uno step acceso: 100 > 75 > 50 > 25%", rat:"click su uno step acceso: 1 > 2 > 3 > 4 colpi",
+    flam:"click su uno step acceso: flam si / no", tune:"click su uno step acceso: +2 > +5 > +7 > +12 > -12 > -7 > -5 > 0 semitoni",
+    dec:"click su uno step acceso: decay 70 > 40 > 15 > come la traccia", cut:"click su uno step acceso: filtro 70 > 50 > 30 > come la traccia"};
   const btns=[...document.querySelectorAll("#stepMode button")];
   btns.forEach(b=>b.onclick=()=>{
     ui.stepMode=b.dataset.mode;
     btns.forEach(x=>{ x.classList.toggle("on",x===b); x.setAttribute("aria-pressed",String(x===b)); });
     el("stepModeHint").textContent=hints[ui.stepMode];
+    renderTracks();
   });
 })();
 

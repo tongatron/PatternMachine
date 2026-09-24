@@ -247,6 +247,7 @@ label.fld input[type=number]{width:54px;}
 .step.beat:not(.on){box-shadow:inset 0 0 0 1px var(--edge);}
 .step.on{background:var(--led-on); border-color:var(--led-on);}
 .step.acc{background:var(--led-accent); border-color:var(--led-accent);}
+.step.gho{opacity:.5;}
 .step.head{outline:2px solid var(--led-head); outline-offset:1px;}
 .step.g, .ruler span.g{margin-left:9px;}
 
@@ -277,6 +278,7 @@ label.fld input[type=number]{width:54px;}
 .mini-cell{height:5px; border-radius:1px; background:var(--led-off);}
 .mini-cell.on{background:var(--led-on);}
 .mini-cell.acc{background:var(--led-accent);}
+.mini-cell.gho{opacity:.45;}
 .lib-acts{display:grid; grid-template-columns:auto auto; gap:5px; flex:0 0 auto;}
 .lib-item{flex-wrap:wrap;}
 .lib-name{display:flex; align-items:center; gap:4px;}
@@ -453,6 +455,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       <div class="modeswitch" title="Set di campioni">
         <button id="setStd" class="on">16 bit</button>
         <button id="set12">12 bit</button>
+        <button id="setRx5" title="Kit Yamaha RX-5">RX-5</button>
       </div>
       <div class="counter" id="counter">1 . 1</div>
     </div>
@@ -593,7 +596,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <b>Suonare:</b> i tasti <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><kbd>4</kbd> <kbd>Q</kbd><kbd>W</kbd><kbd>E</kbd><kbd>R</kbd>
     <kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><kbd>F</kbd> <kbd>Z</kbd><kbd>X</kbd><kbd>C</kbd><kbd>V</kbd> suonano le prime 16 righe.
     <kbd>spazio</kbd> play/stop &middot; con <b>Rec</b> attivo quello che suoni entra nel pattern quantizzato allo step.
-    <b>Step:</b> click = on/off, click destro (o <kbd>alt</kbd>+click) = accento.
+    <b>Step:</b> click = on/off, click destro (o <kbd>alt</kbd>+click) = accento, <kbd>shift</kbd>+click = nota fantasma (morbida).
     <b>Grp</b> = gruppo esclusivo (gli hi&#8209;hat si troncano tra loro). <b>Tune</b> = intonazione per riga, in semitoni.
     <b>⚙</b> apre i parametri della voce: <b>Decay</b> accorcia la coda, <b>Filtro</b>+<b>Reso</b> sono il lowpass a 4 poli
     come i VCF sulle uscite della macchina, <b>Start</b> sposta il punto d'attacco, <b>Rev</b> suona al contrario,
@@ -604,12 +607,14 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-15.1"></script>
-<script src="engine/styles-punk.js?v=2026-09-15.1"></script>
-<script src="engine/styles-post.js?v=2026-09-15.1"></script>
-<script src="engine/styles-machines.js?v=2026-09-15.1"></script>
-<script src="engine/styles-alt.js?v=2026-09-15.1"></script>
-<script src="engine/styles-groove.js?v=2026-09-15.1"></script>
+<script src="engine/core.js?v=2026-09-24.4"></script>
+<script src="engine/styles-punk.js?v=2026-09-24.4"></script>
+<script src="engine/styles-post.js?v=2026-09-24.4"></script>
+<script src="engine/styles-machines.js?v=2026-09-24.4"></script>
+<script src="engine/styles-alt.js?v=2026-09-24.4"></script>
+<script src="engine/styles-groove.js?v=2026-09-24.4"></script>
+<script src="engine/styles-dub.js?v=2026-09-24.4"></script>
+<script src="engine/variations.js?v=2026-09-24.4"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -638,10 +643,23 @@ const sampleIdx = name => SAMPLES.findIndex(s=>s.name===name);
 
 let audioCtx=null;
 let sampleSet="std";
-const SET_DIR={std:"samples","12bit":"samples12"};
+const SET_DIR={std:"samples","12bit":"samples12",rx5:"samples-rx5"};
+const SET_SUFFIX={std:"SP-1200","12bit":"SP-1200",rx5:"RX-5"};
+// Nel set RX-5 ogni slot suona il campione Yamaha RX-5 piu' vicino (i file sono nominati per slot):
+// qui il nome vero del suono, da mostrare al posto del nome dello slot.
+const RX5_LABEL={"Kick 1":"BDrum 1","Kick 2":"BDrum 2","Snare 1":"SDrum 1","Snare 2":"SDrum 2","Snare 3":"SDrum 3",
+  "Rimshot":"Rim 1","Finger Snap":"Clap","Closed Hat 1":"Closed Hat","Closed Hat 2":"Closed Hat","Open Hat 1":"Open Hat",
+  "Tom 1":"Tom 1","Tom 2":"Tom 3","Crash 1":"Crash","Ride 1":"Ride Edge","China":"China","Cymbal":"Glass Crash",
+  "Cowbell 1":"Cowbell","Cowbell 2":"Ride Bell","Cowbell 3":"FM Perc 1","Cowbell 4":"FM Perc 2",
+  "Conga 1":"Conga Open","Conga 2":"Conga Low","Conga 3":"Conga Hi Mute","Conga 4":"Bongo Hi",
+  "Timbale 1":"Timbale Hi","Timbale 2":"Timbale Lo","Agogo 1":"Agogo Hi","Tambourine":"Tambourine",
+  "Cabasa 1":"Shaker","Cabasa 2":"Agogo Lo","Triangle":"Bongo Lo","Vibraslap":"Cuica",
+  "Clave 1":"Castanets","Clave 2":"Timpani","Guiro 1":"Wao","Guiro 2":"Ooo",
+  "Perc 1":"FM Perc 3","Perc 2":"Hey","Perc 3":"Gun","Perc 4":"Whistle","Perc 5":"DX Marimba","Perc 6":"E-Tom 1"};
+const sampleLabel = i => sampleSet==="rx5" ? (RX5_LABEL[SAMPLES[i].name]||SAMPLES[i].name) : SAMPLES[i].name;
 const bufferCache=new Map();
 function actx(){ if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)(); return audioCtx; }
-const sampleFile = i => `${SET_DIR[sampleSet]}/${SAMPLES[i].name} SP-1200.wav`;
+const sampleFile = i => `${SET_DIR[sampleSet]}/${SAMPLES[i].name} ${SET_SUFFIX[sampleSet]}.wav`;
 const cacheKey = i => sampleSet+":"+i;
 function sampleUrl(i){
   const f=sampleFile(i);
@@ -660,8 +678,10 @@ function setSampleSet(s){
   sampleSet=s;
   document.getElementById("setStd").classList.toggle("on",s==="std");
   document.getElementById("set12").classList.toggle("on",s==="12bit");
+  document.getElementById("setRx5").classList.toggle("on",s==="rx5");
   project.tracks.forEach(t=>loadBuffer(t.sampleIndex));
-  setStatus(s==="12bit" ? "campioni 12 bit" : "campioni 16 bit");
+  if(typeof renderAll==="function" && project.patterns) renderAll();
+  setStatus(s==="12bit" ? "campioni 12 bit" : s==="rx5" ? "kit Yamaha RX-5" : "campioni 16 bit");
 }
 
 let idSeq=1;
@@ -676,7 +696,7 @@ function makeTrack(sampleIndex,opts={}){
 // identico a prima finche' non si tocca niente.
 function voiceDefaults(o={}){
   return {decay:o.decay??100, cutoff:o.cutoff??100, reso:o.reso??0,
-    start:o.start??0, reverse:!!o.reverse, out:o.out??0};
+    start:o.start??0, reverse:!!o.reverse, out:o.out??0, nudge:o.nudge??0};
 }
 
 // Le 8 uscite individuali del retro macchina: ognuna e' una striscia di canale.
@@ -805,6 +825,7 @@ function busInput(ctx, n){
 
 // ctx e chokes si passano per il render offline (export WAV); dal vivo sono il contesto e i choke globali.
 function trigger(track, time, velocity, ctx=actx(), chokes=chokeVoices){
+  time=Math.max(0,time);          // un anticipo (feel negativo) sul primo colpo non puo' cadere prima dello zero
   const raw=bufferCache.get(cacheKey(track.sampleIndex));
   if(!raw || typeof raw.then==="function"){ loadBuffer(track.sampleIndex); return; }
   const buf=voiceBuffer(track, raw);
@@ -868,6 +889,10 @@ let queue=[];
 let visible={step:-1, patternId:null, blockIndex:-1, bar:1};
 let barCount=1;
 
+// Livelli dello step: 1 normale, 2 accento, 3 nota fantasma (morbida).
+const stepVel = v => v===2 ? 1.0 : (v===3 ? 0.42 : 0.76);
+const midiVelOf = v => v===2 ? 1.0 : (v===3 ? 0.4 : 0.78);
+const nudgeOf = t => (t.nudge||0)/1000;      // micro-timing per traccia, in ms
 const bpm = ()=> Math.min(240, Math.max(40, parseInt(document.getElementById("bpmNum").value,10)||93));
 const swing = ()=> (parseInt(document.getElementById("swingRange").value,10)||0)/100*0.5;
 const baseStepDur = ()=> 60/bpm()/4;
@@ -889,7 +914,7 @@ function scheduler(){
     const live=audibleTracks();
     live.forEach(t=>{
       const v=(pat.grid[t.id]||[])[cursor.step];
-      if(v) trigger(t, nextTime, v===2?1.0:0.76);
+      if(v) trigger(t, nextTime+nudgeOf(t), stepVel(v));
     });
     const dur=stepDur(cursor.step);
     queue.push({time:nextTime, dur, step:cursor.step, rep:cursor.rep||0, patternId:pat.id, blockIndex:cursor.blockIndex, bar:barCount});
@@ -963,7 +988,7 @@ function fillSampleSelect(sel){
     const og=document.createElement("optgroup"); og.label=BANK_LABEL[bank];
     SAMPLES.forEach((s,i)=>{
       if(s.bank!==bank) return;
-      const o=document.createElement("option"); o.value=i; o.textContent=s.name; og.appendChild(o);
+      const o=document.createElement("option"); o.value=i; o.textContent=sampleLabel(i); og.appendChild(o);
     });
     sel.appendChild(og);
   });
@@ -1005,6 +1030,17 @@ function voicePanel(t){
   slider("Reso","reso", v=> v+"%");
   slider("Start","start", v=> v+"%");
 
+  const nw=document.createElement("label"); nw.className="vparam";
+  nw.title="micro-timing: negativo = colpo in anticipo, positivo = in ritardo";
+  const nval=document.createElement("span"); nval.className="val";
+  const nr=document.createElement("input"); nr.type="range"; nr.min=-30; nr.max=30; nr.step=1; nr.value=t.nudge||0;
+  const nfmt=v=> v===0 ? "0 ms" : (v>0?"+":"")+v+" ms";
+  nval.textContent=nfmt(t.nudge||0);
+  nr.oninput=()=>{ t.nudge=+nr.value; nval.textContent=nfmt(t.nudge); };
+  nr.onchange=()=>pushUndo();
+  nw.append("Feel ", nr, nval);
+  box.appendChild(nw);
+
   const outW=document.createElement("label"); outW.className="vparam";
   const out=document.createElement("select"); out.className="tune"; out.title="Uscita individuale";
   for(let i=0;i<=OUTS;i++){
@@ -1040,7 +1076,7 @@ function renderMixer(){
 
     const who=document.createElement("div"); who.className="assigned";
     who.innerHTML = used.length
-      ? used.map(t=>`<b>${SAMPLES[t.sampleIndex].name}</b>`).join("<br>")
+      ? used.map(t=>`<b>${sampleLabel(t.sampleIndex)}</b>`).join("<br>")
       : "nessuna riga";
     strip.appendChild(who);
 
@@ -1089,7 +1125,7 @@ function renderTracks(){
     top.appendChild(pad);
 
     const nm=document.createElement("div");
-    nm.className="trk-name"; nm.textContent=SAMPLES[t.sampleIndex].name;
+    nm.className="trk-name"; nm.textContent=sampleLabel(t.sampleIndex);
     top.appendChild(nm);
 
     const smp=document.createElement("select");
@@ -1145,6 +1181,7 @@ function renderTracks(){
       b.onclick=(ev)=>{
         pushUndo();
         if(ev.altKey) arr[i]= arr[i]===2?0:2;
+        else if(ev.shiftKey) arr[i]= arr[i]===3?0:3;
         else arr[i]= arr[i]?0:1;
         paintStep(b,arr[i],i);
       };
@@ -1160,7 +1197,7 @@ function renderTracks(){
 
 function paintStep(b,v,i){
   b.className="step"+(i%4===0?" beat":"")+(i%4===0&&i>0?" g":"")
-    +(v===1?" on":"")+(v===2?" on acc":"");
+    +(v===1?" on":"")+(v===2?" on acc":"")+(v===3?" on gho":"");
 }
 
 function paintPlayhead(){
@@ -1316,7 +1353,7 @@ function miniPreview(pattern){
     r.className="mini-row"; r.style.gridTemplateColumns=`repeat(${pattern.len},1fr)`;
     arr.forEach(v=>{
       const c=document.createElement("div");
-      c.className="mini-cell"+(v===1?" on":"")+(v===2?" acc":"");
+      c.className="mini-cell"+(v===1||v===3?" on":"")+(v===2?" acc":"")+(v===3?" gho":"");
       r.appendChild(c);
     });
     box.appendChild(r);
@@ -1527,6 +1564,7 @@ el("seqClear").onclick=()=>{
 };
 el("setStd").onclick=()=>setSampleSet("std");
 el("set12").onclick=()=>setSampleSet("12bit");
+el("setRx5").onclick=()=>setSampleSet("rx5");
 el("recBtn").onclick=()=>{ recording=!recording; el("recBtn").classList.toggle("on",recording); };
 function setMode(m){
   ui.mode=m;
@@ -1658,7 +1696,7 @@ function serialize(){
     bpm: bpm(), swing: +el("swingRange").value||0,
     sampleSet,
     tracks: project.tracks.map(t=>({id:t.id, sampleIndex:t.sampleIndex, vol:t.vol, tune:t.tune||0, choke:t.choke||0,
-      decay:t.decay, cutoff:t.cutoff, reso:t.reso, start:t.start, reverse:t.reverse, out:t.out||0})),
+      decay:t.decay, cutoff:t.cutoff, reso:t.reso, start:t.start, reverse:t.reverse, out:t.out||0, nudge:t.nudge||0})),
     mixer: makeMixer(project.mixer),
     patterns: project.patterns.map(p=>({id:p.id, name:p.name, len:p.len,
       grid:Object.fromEntries(Object.entries(p.grid).map(([k,v])=>[k,v.slice()]))})),
@@ -1682,7 +1720,7 @@ function deserialize(d,keepSel){
   if(!project.patterns.length) project.patterns=[makePattern("Beat 1",16)];
   ui.patternId=(keepSel && project.patterns.some(p=>p.id===prevPattern)) ? prevPattern : project.patterns[0].id;
   ui.blockId=(keepSel && project.song.some(b=>b.id===prevBlock)) ? prevBlock : (project.song[0]?.id||null);
-  if(d.sampleSet && d.sampleSet!==sampleSet) setSampleSet(d.sampleSet);
+  if(SET_DIR[d.sampleSet] && d.sampleSet!==sampleSet) setSampleSet(d.sampleSet);
   el("projectName").value=project.name;
   el("bpmNum").value=project.bpm; el("bpmRange").value=Math.min(180,Math.max(60,project.bpm));
   el("swingRange").value=project.swing;
@@ -1815,8 +1853,9 @@ function varLen(v){
   while(v>0){ out.unshift((v&0x7f)|0x80); v>>=7; }
   return out;
 }
+const MIDI_PPQ=96;   // 24 tick per sedicesimo
 function patternEvents(pat, startTick, events){
-  const base=24;
+  const base=MIDI_PPQ/4;
   const s=swing();
   let tick=startTick;
   for(let i=0;i<pat.len;i++){
@@ -1825,9 +1864,10 @@ function patternEvents(pat, startTick, events){
       const v=(pat.grid[t.id]||[])[i];
       if(!v) return;
       const note=midiNoteFor(t.sampleIndex);
-      const vel=Math.max(1,Math.min(127,Math.round((v===2?1.0:0.78)*(t.vol??0.8)*127)));
-      events.push({tick, order:1, note, vel});
-      events.push({tick:tick+Math.max(1,Math.floor(dur*0.9)), order:0, note, vel:64});
+      const vel=Math.max(1,Math.min(127,Math.round(midiVelOf(v)*(t.vol??0.8)*127)));
+      const shift=Math.round((t.nudge||0)/1000*(bpm()/60)*MIDI_PPQ);
+      events.push({tick:Math.max(0,tick+shift), order:1, note, vel});
+      events.push({tick:Math.max(1,tick+shift)+Math.max(1,Math.floor(dur*0.9)), order:0, note, vel:64});
     });
     tick+=dur;
   }
@@ -1904,7 +1944,7 @@ function wavEvents(which){
   let t=0;
   const emit=pat=>{
     for(let s=0;s<pat.len;s++){
-      live.forEach(tr=>{ const v=(pat.grid[tr.id]||[])[s]; if(v) events.push([t,tr,v===2?1.0:0.76]); });
+      live.forEach(tr=>{ const v=(pat.grid[tr.id]||[])[s]; if(v) events.push([t+nudgeOf(tr),tr,stepVel(v)]); });
       t+=base*(s%2===0?1+sw:1-sw);
     }
   };
@@ -2072,7 +2112,7 @@ async function startAudition(item){
     const it=audition.item; if(!it) return;
     const base=60/(it.bpm||bpm())/4, sw=(it.swing||0)/100*0.5;
     while(audition.next<ctx.currentTime+0.12){
-      audition.voices.forEach(v=>{ const x=v.arr[audition.step]; if(x) trigger(v.track,audition.next,x===2?1:0.76); });
+      audition.voices.forEach(v=>{ const x=v.arr[audition.step]; if(x) trigger(v.track,audition.next+nudgeOf(v.track),stepVel(x)); });
       audition.next+=base*(audition.step%2===0?1+sw:1-sw);
       audition.step=(audition.step+1)%it.len;
     }
@@ -2157,7 +2197,31 @@ const ROLE_LABEL={kick:"Cassa", kick2:"Cassa 2", snare:"Rullante", snare2:"Rulla
   clap:"Clap", rim:"Rim", chh:"HH chiuso", chh2:"HH 2", ohh:"HH aperto", ride:"Ride", crash:"Crash",
   china:"China", tom:"Tom", tom2:"Floor tom", cow:"Campanaccio", conga:"Conga", conga2:"Conga 2",
   clave:"Clave", tamb:"Tamburello", shaker:"Shaker", perc:"Perc"};
-const locks=new WeakMap(), lockOpen=new WeakSet();
+const locks=new WeakMap(), lockOpen=new WeakSet(), varyOpen=new WeakSet();
+function toggleVaryPanel(item){
+  if(varyOpen.has(item)) varyOpen.delete(item); else varyOpen.add(item);
+  const host=el("libList"), top=host.scrollTop;
+  renderLibrary(); host.scrollTop=top;
+}
+// Una variazione dello stesso pattern (scarno, mezzo tempo, nuovo fill...): finisce sotto l'originale.
+function varyPanel(item){
+  const box=document.createElement("div"); box.className="lib-locks";
+  const hint=document.createElement("span"); hint.className="tiny";
+  hint.textContent="una variazione dello stesso pattern: ogni click ne crea una nuova sotto questo";
+  box.appendChild(hint);
+  SPEngine.variationTypes.forEach(t=>{
+    const b=document.createElement("button"); b.type="button"; b.className="mini";
+    b.textContent=t.label; b.title=t.hint;
+    b.onclick=()=>{
+      const child=SPEngine.vary(item,t.id,SPEngine.randomSeed(16));
+      const wasPlaying=audition.item===item;
+      pushToLibrary([child],item);
+      if(wasPlaying) startAudition(child);
+    };
+    box.appendChild(b);
+  });
+  return box;
+}
 function toggleLockPanel(item){
   if(lockOpen.has(item)) lockOpen.delete(item);
   else {
@@ -2246,6 +2310,8 @@ function applyLibrary(item, asNew){
   }
   normalize();
   if(!asNew){
+    // "feel" suggerito dallo stile: rullante in ritardo, cassa in anticipo, ecc. Si puo' regolare poi per riga.
+    Object.keys(item.roles||{}).forEach(role=>{ trackForRole(role).nudge=(item.feel&&item.feel[role])||0; });
     if(item.bpm){ el("bpmNum").value=item.bpm; el("bpmRange").value=Math.min(180,Math.max(60,item.bpm)); project.bpm=item.bpm; }
     if(item.swing!=null){ el("swingRange").value=item.swing; project.swing=item.swing; }
   }
@@ -2325,9 +2391,14 @@ function renderLibrary(){
       lock.textContent="\u{1F512} Blocca"; lock.title="tieni alcune voci e rigenera le altre";
       lock.setAttribute("aria-expanded",String(lockOpen.has(item)));
       lock.onclick=()=>toggleLockPanel(item);
-      acts.appendChild(sim); acts.appendChild(link); acts.appendChild(lock);
+      const vary=document.createElement("button"); vary.className="mini"+(varyOpen.has(item)?" on":"");
+      vary.textContent="\u2726 Varia"; vary.title="scarno, mezzo tempo, hat aperto, nuovo fill...";
+      vary.setAttribute("aria-expanded",String(varyOpen.has(item)));
+      vary.onclick=()=>toggleVaryPanel(item);
+      acts.appendChild(sim); acts.appendChild(vary); acts.appendChild(link); acts.appendChild(lock);
     }
     row.appendChild(acts);
+    if(item.code && varyOpen.has(item)) row.appendChild(varyPanel(item));
     if(item.code && lockOpen.has(item)) row.appendChild(lockPanel(item));
     host.appendChild(row);
   });
@@ -2341,6 +2412,11 @@ el("libTabFav").onclick=()=>setLibView("fav");
 el("pChoose").onclick=openLib;
 el("libClose").onclick=closeLib;
 el("libOverlay").onclick=(e)=>{ if(e.target===el("libOverlay")) closeLib(); };
+// Cambiare stile, sezione, step o fill genera subito 4 pattern (con una breve attesa per chi scorre il menu con le frecce).
+let genAutoTimer=null;
+["genStyle","genSection","genLen","genFill"].forEach(id=>{
+  el(id).addEventListener("change",()=>{ clearTimeout(genAutoTimer); genAutoTimer=setTimeout(()=>el("genBtn").click(),250); });
+});
 el("genBtn").onclick=()=>{
   const style=el("genStyle").value, len=+el("genLen").value;
   const section=el("genSection").value, fill=el("genFill").checked;
@@ -2422,7 +2498,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-15.1";
+const SW_VERSION="2026-09-24.4";
 (function pwa(){
   const standalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
   const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);

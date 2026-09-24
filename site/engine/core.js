@@ -8,6 +8,7 @@
 // Ogni passo dopo la base e' una trasformazione riproducibile:
 //   ~HHHH           "altri cosi'" (mutazione con seed a 4 cifre)
 //   ~RMMMMMMHHHH    rigenera tenendo le voci bloccate (maschera a 6 cifre su ROLE_ORDER, seed a 4)
+//   ~V<T>HHHH       variazione di tipo T (lettera, vedi variations.js) con seed a 4 cifre
 //   dbeat-16R-7F3A9B                 D-beat, 16 step, ritornello, senza fill
 //   motorik-32SF-00A1C2~4C21         motorik, 32 step, strofa con fill, poi una mutazione
 //   dbeat-16S-111111~R000005BEEF     cassa e rullante tenuti, il resto rigenerato
@@ -150,6 +151,20 @@
       STYLES[st.id] = Object.assign({ group: groupId, swing: 0, fills: ["roll"], variants: null }, st);
     });
   }
+  // Micro-timing suggerito, in ms per voce (negativo = in anticipo, positivo = in ritardo).
+  // Dal gruppo, con eccezioni per stile; le macchine e il resto rigido restano a zero.
+  const GROUP_FEEL = {
+    punk: { kick: -3, snare: -2, chh: -2 },
+    post: { snare: 3 },
+    alt: { snare: 3 },
+    groove: { snare: 6, clap: 6, kick: -2 },
+  };
+  const STYLE_FEEL = {
+    boombap: { snare: 14, clap: 14, kick: -4, chh: 3 },
+    funk: { snare: 4, kick: -3 },
+    trap: {}, house: {}, euclid: {}, latin: { conga: 3, conga2: 3 },
+  };
+  const feelFor = st => st.feel || STYLE_FEEL[st.id] || GROUP_FEEL[st.group] || {};
   const stylesIn = groupId => Object.values(STYLES).filter(s => s.group === groupId);
 
   // "any" e "group:<id>" si risolvono prima di generare: il codice contiene lo stile vero.
@@ -165,7 +180,12 @@
     const base = `${style}-${len}${section === "chorus" ? "R" : "S"}${fill ? "F" : ""}-${hex(seed, 6)}`;
     return [base, ...mutations.map(m => hex(m, 4))].join("~");
   }
+  // Operazioni registrate da altri file (variations.js): ~V<lettera><seed a 4 cifre>.
+  const OPS = {};
+  function defineOp(letter, fn) { OPS[letter] = fn; }
   function decodeStep(tok) {
+    const v = /^V([A-Z])([0-9A-F]{4})$/i.exec(tok);
+    if (v && OPS[v[1].toUpperCase()]) return { op: "vary", type: v[1].toUpperCase(), seed: parseInt(v[2], 16) };
     if (/^[0-9A-F]{4}$/i.test(tok)) return { op: "mutate", seed: parseInt(tok, 16) };
     const m = /^R([0-9A-F]{6})([0-9A-F]{4})$/i.exec(tok);
     if (m && parseInt(m[1], 16) < 2 ** ROLE_ORDER.length) return { op: "relock", mask: parseInt(m[1], 16), seed: parseInt(m[2], 16) };
@@ -215,7 +235,7 @@
       style: st.id, group: st.group, variant: variant ? variant.id : "", section, fill,
       name: `${st.label} ${hex(seed, 6)}`, label: st.label, ref: st.ref,
       tag: `${bpm} bpm · ` + describe(section, fill, variant, c.note),
-      bpm, swing, len, roles: clean(c.R),
+      bpm, swing, len, roles: clean(c.R), feel: feelFor(st),
     };
   }
 
@@ -306,16 +326,17 @@
   function fromCode(code) {
     const d = decode(code);
     if (!d) return null;
-    return d.steps.reduce((p, s) => s.op === "mutate" ? mutate(p, s.seed) : relock(p, s.mask, s.seed), generate(d.opts));
+    return d.steps.reduce((p, s) => s.op === "mutate" ? mutate(p, s.seed)
+      : s.op === "vary" ? OPS[s.type](p, s.seed) : relock(p, s.mask, s.seed), generate(d.opts));
   }
 
   const E = {
     version: "2",
     roles: { sample: ROLE_SAMPLE, defaults: ROLE_DEFAULTS, order: ROLE_ORDER },
     groups: GROUPS, styles: STYLES, fills: FILLS,
-    defineGroup, defineStyles, stylesIn, resolveStyle,
+    defineOp, defineGroup, defineStyles, stylesIn, resolveStyle,
     generate, mutate, relock, lockMask, lockedRoles, fromCode, encode, decode, randomSeed, rng,
-    h: { zeros, euclid, cells, hits, backbeat, cymbal, ghosts, euclidBars, openHat },
+    h: { zeros, euclid, cells, hits, backbeat, cymbal, ghosts, euclidBars, openHat, pointMutations, hex },
   };
   root.SPEngine = E;
   if (typeof module !== "undefined" && module.exports) module.exports = E;

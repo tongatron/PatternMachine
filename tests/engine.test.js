@@ -5,8 +5,9 @@ const path = require("path");
 
 const dir = path.join(__dirname, "..", "site", "engine");
 const E = require(path.join(dir, "core.js"));
-["styles-punk", "styles-post", "styles-machines", "styles-alt", "styles-groove"]
+["styles-punk", "styles-post", "styles-machines", "styles-alt", "styles-groove", "styles-dub"]
   .forEach(f => require(path.join(dir, f + ".js")));
+require(path.join(dir, "variations.js"));
 
 let checks = 0;
 const ok = (cond, msg) => { checks++; assert.ok(cond, msg); };
@@ -135,6 +136,91 @@ test("blocca voce: le voci bloccate restano, il resto si rigenera, tutto riprodu
   ok(E.fromCode(chain)?.code === chain, "catena mista mutazione + blocca voce");
   ["dbeat-16S-111111~R00000", "dbeat-16S-111111~RFFFFFF0000", "dbeat-16S-111111~Q000005BEEF"]
     .forEach(bad => ok(E.decode(bad) === null, "passo invalido accettato: " + bad));
+});
+
+// I 33 stili della prima versione: il loro output non deve cambiare mai (i codici gia' condivisi restano validi).
+const ORIGINAL_STYLES = ["punk77", "oi", "dbeat", "skank", "breakdown", "postpunk", "morris", "dubpunk", "fallbeat", "wire",
+  "funkpunk", "afro", "motorik", "newwave", "dancepunk", "suicide", "ebm", "cabaret", "avalanche", "coldwave", "industrial",
+  "grunge", "garage", "shoegaze", "noiserock", "posthc", "math", "boombap", "funk", "trap", "house", "latin", "euclid"];
+test("regressione: i pattern di base non cambiano (i codici gia' condivisi restano validi)", () => {
+  const h = require("crypto").createHash("md5");
+  for (const id of ORIGINAL_STYLES) for (const len of [16, 32]) for (const sec of ["verse", "chorus"])
+    for (const fill of [false, true]) for (let s = 0; s < 20; s++) {
+      const p = E.generate({ style: id, len, section: sec, fill, seed: s * 7919 + 5 });
+      h.update(p.code + JSON.stringify(p.roles) + p.bpm + p.swing);
+    }
+  ok(h.digest("hex") === "b6374c42d790f6317c5aed1d0c5782d7", "l'output di generate() e' cambiato");
+});
+
+test("variazioni: riproducibili, valide, fill intatto, quasi sempre diverse", () => {
+  const seen = {}, total = {};
+  for (const t of E.variationTypes) { seen[t.id] = 0; total[t.id] = 0; }
+  for (const id of Object.keys(E.styles)) {
+    for (let s = 0; s < 4; s++) {
+      const len = s % 2 ? 32 : 16, fill = s >= 2;
+      const parent = E.generate({ style: id, len, section: s % 3 ? "verse" : "chorus", fill, seed: s * 9973 + 11 });
+      for (const t of E.variationTypes) {
+        const child = E.vary(parent, t.id, s * 577 + 5);
+        total[t.id]++;
+        ok(child.code === `${parent.code}~V${t.id}${(s * 577 + 5).toString(16).toUpperCase().padStart(4, "0")}`, "codice " + child.code);
+        ok(child.style === parent.style && child.len === parent.len && child.bpm === parent.bpm, "identita' " + child.code);
+        ok(Object.keys(child.roles).length > 0, `${child.code}: vuoto`);
+        for (const [role, arr] of Object.entries(child.roles)) {
+          ok(ROLES.has(role), `${child.code}: voce ${role}`);
+          ok(arr.length === len && arr.every(v => v === 0 || v === 1 || v === 2 || v === 3), `${child.code}: griglia ${role}`);
+        }
+        const again = E.fromCode(child.code);
+        ok(again && JSON.stringify(again.roles) === JSON.stringify(child.roles), `${child.code}: non riproducibile`);
+        if (fill && t.id !== "L") {                         // la finestra del fill non si tocca
+          const w = len >= 32 ? 8 : 4;
+          for (const [role, arr] of Object.entries(parent.roles))
+            ok(JSON.stringify(arr.slice(len - w)) === JSON.stringify((child.roles[role] || new Array(len).fill(0)).slice(len - w)),
+              `${child.code}: fill toccato su ${role}`);
+        }
+        if (JSON.stringify(child.roles) !== JSON.stringify(parent.roles)) seen[t.id]++;
+      }
+    }
+  }
+  for (const t of E.variationTypes) ok(seen[t.id] / total[t.id] > 0.9, `variazione ${t.id} quasi sempre identica: ${seen[t.id]}/${total[t.id]}`);
+});
+
+test("feel e ghost: micro-timing per stile, livello 3 solo nelle variazioni", () => {
+  for (const st of Object.values(E.styles)) {
+    const p = E.generate({ style: st.id, len: 16, section: "verse", fill: false, seed: 42 });
+    ok(p.feel && typeof p.feel === "object", `${st.id}: feel`);
+    for (const [role, ms] of Object.entries(p.feel)) ok(E.roles.order.includes(role) && Math.abs(ms) <= 30, `${st.id}: feel ${role}`);
+    ok(Object.values(p.roles).every(a => a.every(v => v <= 2)), `${st.id}: generate() non emette ghost`);
+    ok(JSON.stringify(E.vary(p, "G", 1).feel) === JSON.stringify(p.feel), `${st.id}: feel mantenuto`);
+  }
+  ok(E.generate({ style: "boombap", len: 16, section: "verse", fill: false, seed: 1 }).feel.snare > 0, "boom bap: rullante in ritardo");
+  const rigid = Object.values(E.styles).filter(st => st.group === "machines");
+  ok(rigid.length > 0 && rigid.every(st => Object.keys(E.generate({ style: st.id, len: 16, section: "verse", fill: false, seed: 1 }).feel).length === 0), "macchine: rigide");
+  let ghosts = 0, tries = 0;
+  for (const id of Object.keys(E.styles)) for (let s = 0; s < 3; s++) {
+    const p = E.generate({ style: id, len: 16, section: "verse", fill: false, seed: s * 31 + 2 });
+    const g = E.vary(p, "G", s + 1), m = E.vary(p, "M", s + 1);
+    tries++; if (Object.values(g.roles).some(a => a.includes(3)) || Object.values(m.roles).some(a => a.includes(3))) ghosts++;
+  }
+  // le note fantasma vanno sul rullante (o sulla voce di backbeat), non altrove
+  for (let seed = 0; seed < 40; seed++) {
+    const p = E.generate({ style: "boombap", len: 16, section: "verse", fill: false, seed });
+    const g = E.vary(p, "G", seed);
+    ok(g.roles.snare.filter(v => v === 3).length >= 1, `boombap ${seed}: nessuna nota fantasma sul rullante`);
+  }
+  ok(ghosts / tries > 0.8, `ghost e dinamica emettono il livello 3: ${ghosts}/${tries}`);
+});
+
+test("variazioni: passi nel codice, catene con altri passi, rifiuto dei non validi", () => {
+  const chain = "dbeat-16S-111111~VP00A1~4C21~VF0003~R000005BEEF";
+  ok(E.fromCode(chain)?.code === chain, "catena mista");
+  ["dbeat-16S-111111~VZ0000", "dbeat-16S-111111~VG00", "dbeat-16S-111111~V0000", "dbeat-16S-111111~vg00001"]
+    .forEach(bad => ok(E.decode(bad) === null, "passo invalido accettato: " + bad));
+  ok(E.decode("dbeat-16S-111111~vg00a1") !== null, "minuscole accettate");
+  const p = E.generate({ style: "boombap", len: 16, section: "verse", fill: false, seed: 5 });
+  const stop = E.vary(p, "L", 0);
+  ok(stop.fill === true, "L aggiunge un fill");
+  ok(E.vary(p, "H", 3).roles.snare[8] === 2 && !E.vary(p, "H", 3).roles.snare[4], "mezzo tempo: rullante sul 3");
+  ok(E.vary(p, "P", 9).roles.kick.some(v => v === 2), "scarno: mantiene gli accenti di cassa");
 });
 
 test("risoluzione casuale: any e gruppi", () => {

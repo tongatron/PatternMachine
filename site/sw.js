@@ -7,7 +7,7 @@
 // Cloudflare tiene in cache i .js, l'URL nuovo lo scavalca.
 // Il worker nuovo si attiva subito (skipWaiting): la pagina aperta e' gia' quella
 // presa dalla rete, quindi non serve ricaricarla e non si perde lavoro non salvato.
-const VERSION = "2026-09-15.1";
+const VERSION = "2026-09-24.4";
 const SHELL_CACHE = `sp1200-shell-${VERSION}`;
 const SAMPLE_CACHE = "sp1200-samples-v1"; // non versionata: i campioni non si riscaricano ad ogni rilascio
 
@@ -25,6 +25,8 @@ const SHELL = [
   "/engine/styles-machines.js",
   "/engine/styles-alt.js",
   "/engine/styles-groove.js",
+  "/engine/styles-dub.js",
+  "/engine/variations.js",
 ];
 
 const SAMPLE_NAMES = [
@@ -35,8 +37,8 @@ const SAMPLE_NAMES = [
   "Snare 1", "Snare 2", "Snare 3", "Tambourine", "Timbale 1", "Timbale 2", "Tom 1", "Tom 2",
   "Triangle", "Vibraslap",
 ];
-const SAMPLE_URLS = ["samples", "samples12"].flatMap(dir =>
-  SAMPLE_NAMES.map(n => encodeURI(`/${dir}/${n} SP-1200.wav`)));
+const SAMPLE_URLS = [["samples", "SP-1200"], ["samples12", "SP-1200"], ["samples-rx5", "RX-5"]].flatMap(([dir, suffix]) =>
+  SAMPLE_NAMES.map(n => encodeURI(`/${dir}/${n} ${suffix}.wav`)));
 
 self.addEventListener("install", event => {
   event.waitUntil((async () => {

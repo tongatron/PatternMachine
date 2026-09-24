@@ -13,6 +13,29 @@
 // Tema scelto dall'utente, applicato prima del primo render per evitare il lampo del tema sbagliato.
 try{ const t=localStorage.getItem("sp1200.theme"); if(t==="light"||t==="dark") document.documentElement.dataset.theme=t; }catch(e){}
 </script>
+<script>
+// Skin di prova: ?ui=plakat la attiva (e la ricorda in questo browser), ?ui=off torna alla UI normale.
+// Senza skin non si carica nulla in piu' e la pagina resta identica.
+(function(){
+  const KEY="dml.skin", SKINS={plakat:"/assets/skin-plakat.css"};
+  let skin=null;
+  try{
+    const q=new URLSearchParams(location.search).get("ui");
+    if(q==="off") localStorage.removeItem(KEY);
+    else if(q && SKINS[q]) localStorage.setItem(KEY,q);
+    skin=localStorage.getItem(KEY);
+  }catch(e){ skin=new URLSearchParams(location.search).get("ui"); }
+  if(!skin || !SKINS[skin]) return;
+  document.documentElement.dataset.skin=skin;
+  const l=document.createElement("link"); l.rel="stylesheet"; l.href=SKINS[skin]+"?v=2026-09-24.17";
+  document.head.appendChild(l);
+  addEventListener("DOMContentLoaded",()=>{
+    const a=document.createElement("a"); a.className="skin-badge"; a.href="?ui=off";
+    a.textContent=skin+" (prova) · esci"; a.title="torna all'interfaccia normale";
+    document.body.appendChild(a);
+  });
+})();
+</script>
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
@@ -640,18 +663,18 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-24.16"></script>
-<script src="engine/styles-punk.js?v=2026-09-24.16"></script>
-<script src="engine/styles-post.js?v=2026-09-24.16"></script>
-<script src="engine/styles-machines.js?v=2026-09-24.16"></script>
-<script src="engine/styles-alt.js?v=2026-09-24.16"></script>
-<script src="engine/styles-groove.js?v=2026-09-24.16"></script>
-<script src="engine/styles-dub.js?v=2026-09-24.16"></script>
-<script src="engine/styles-break.js?v=2026-09-24.16"></script>
-<script src="engine/styles-soul.js?v=2026-09-24.16"></script>
-<script src="engine/styles-metal.js?v=2026-09-24.16"></script>
-<script src="engine/styles-electro.js?v=2026-09-24.16"></script>
-<script src="engine/variations.js?v=2026-09-24.16"></script>
+<script src="engine/core.js?v=2026-09-24.17"></script>
+<script src="engine/styles-punk.js?v=2026-09-24.17"></script>
+<script src="engine/styles-post.js?v=2026-09-24.17"></script>
+<script src="engine/styles-machines.js?v=2026-09-24.17"></script>
+<script src="engine/styles-alt.js?v=2026-09-24.17"></script>
+<script src="engine/styles-groove.js?v=2026-09-24.17"></script>
+<script src="engine/styles-dub.js?v=2026-09-24.17"></script>
+<script src="engine/styles-break.js?v=2026-09-24.17"></script>
+<script src="engine/styles-soul.js?v=2026-09-24.17"></script>
+<script src="engine/styles-metal.js?v=2026-09-24.17"></script>
+<script src="engine/styles-electro.js?v=2026-09-24.17"></script>
+<script src="engine/variations.js?v=2026-09-24.17"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -2626,7 +2649,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-24.16";
+const SW_VERSION="2026-09-24.17";
 (function pwa(){
   const standalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
   const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);

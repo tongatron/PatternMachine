@@ -1,0 +1,120 @@
+/* Skin di prova "Plakat": grafica da manifesto, chiara, bordi neri netti, rosso segnale solo su play e accenti.
+   Si attiva con ?ui=plakat e si toglie con ?ui=off (vedi lo script in testa a index.html).
+   Ogni regola e' limitata a :root[data-skin="plakat"]: senza la skin il sito resta identico. */
+
+:root[data-skin="plakat"][data-skin]{
+  color-scheme:light;
+  --bg:#efeee9; --body-bg:#efeee9; --panel:#efeee9; --panel-2:#ffffff; --panel-3:#e2e1db;
+  --edge:#0a0a0a; --edge-soft:#0a0a0a;
+  --text:#0a0a0a; --text-dim:#0a0a0a; --text-faint:#3d3d3a;
+  --accent:#0a0a0a; --accent-dim:#0a0a0a; --on-accent:#efeee9;
+  --led-off:#ffffff; --led-on:#0a0a0a; --led-accent:#ff3b00; --led-head:#ff3b00;
+  --danger:#ff3b00; --ok:#ff3b00; --on-ok:#0a0a0a; --song:#0a0a0a;
+  --shadow:none;
+  --plate:#efeee9; --key:#ffffff; --key-shadow:none; --key-on:#0a0a0a; --key-primary:#0a0a0a;
+  --r-panel:0; --r-key:0; --r-step:0;
+  --step-off:#ffffff; --step-shadow:none;
+  --step-on:#0a0a0a; --step-on-shadow:none;
+  --step-acc:#ff3b00; --step-acc-shadow:none;
+  --step-gho:#a3a29c; --gho-opacity:1;
+  --mini-edge:inset 0 0 0 1px #0a0a0a;
+  --counter-bg:#0a0a0a; --counter-fg:#efeee9; --counter-glow:none; --counter-shadow:none;
+}
+
+/* Tipografia: sans grottesca in grassetto, niente monospazio tranne i numeri. */
+:root[data-skin="plakat"] body{
+  font-family:"Helvetica Neue",Helvetica,Arial,sans-serif; font-size:13px;
+}
+:root[data-skin="plakat"] h1{font-size:18px; letter-spacing:.06em; font-weight:800;}
+:root[data-skin="plakat"] .tagline{font-size:12px; color:#0a0a0a; letter-spacing:0;}
+:root[data-skin="plakat"] .panel h2{
+  font-size:11px; letter-spacing:.14em; color:#0a0a0a; font-weight:800;
+  border-bottom:2px solid #0a0a0a;
+}
+
+/* Struttura: bordi 2px, angoli vivi, nessuna ombra. */
+:root[data-skin="plakat"] .panel,
+:root[data-skin="plakat"] .trk,
+:root[data-skin="plakat"] .strip,
+:root[data-skin="plakat"] .lib-item,
+:root[data-skin="plakat"] .seqblock{
+  border:2px solid #0a0a0a; border-radius:0; box-shadow:none;
+}
+:root[data-skin="plakat"] button,
+:root[data-skin="plakat"] select,
+:root[data-skin="plakat"] input[type=text],
+:root[data-skin="plakat"] input[type=number]{
+  border:2px solid #0a0a0a; border-radius:0; box-shadow:none;
+  font-family:inherit; font-size:12px; letter-spacing:.04em; font-weight:700;
+  min-height:32px;
+}
+:root[data-skin="plakat"] button.mini{min-height:30px; font-size:11.5px;}
+:root[data-skin="plakat"] button:hover{background:#0a0a0a; color:#efeee9;}
+:root[data-skin="plakat"] button.danger{color:#ff3b00;}
+:root[data-skin="plakat"] button.danger:hover{background:#ff3b00; color:#0a0a0a;}
+:root[data-skin="plakat"] .modeswitch{border:2px solid #0a0a0a; border-radius:0;}
+:root[data-skin="plakat"] .modeswitch button{border:none; min-height:28px;}
+:root[data-skin="plakat"] input[type=range]{accent-color:#0a0a0a;}
+
+/* Play: il blocco rosso e' l'unico elemento "caldo" in pagina. */
+:root[data-skin="plakat"] #playBtn{
+  background:#ff3b00; color:#0a0a0a; border:2px solid #0a0a0a; border-radius:0;
+  box-shadow:none; font-size:18px; font-weight:800; letter-spacing:.14em;
+  min-width:170px; padding:14px 24px;
+}
+:root[data-skin="plakat"] #playBtn:hover{filter:none; background:#0a0a0a; color:#ff3b00;}
+:root[data-skin="plakat"] #playBtn.on{background:#0a0a0a; color:#ff3b00; animation:none;}
+:root[data-skin="plakat"] #playBtn kbd{border-radius:0; opacity:1;}
+
+/* Numeri grandi: BPM e contatore. */
+:root[data-skin="plakat"] #bpmNum{
+  font-family:"Helvetica Neue",Helvetica,Arial,sans-serif; font-size:26px; font-weight:800;
+  width:92px; min-height:44px; letter-spacing:-.02em;
+}
+:root[data-skin="plakat"] .counter{
+  font-family:ui-monospace,Menlo,monospace; font-size:18px; border:2px solid #0a0a0a; border-radius:0;
+}
+
+/* Schede: nero pieno per quella attiva. */
+:root[data-skin="plakat"] .tabs{gap:0;}
+:root[data-skin="plakat"] .tabs button{margin-right:-2px; font-size:13px; letter-spacing:.1em; padding:9px 18px;}
+:root[data-skin="plakat"] .tabs button.on{background:#0a0a0a; color:#efeee9; border-color:#0a0a0a;}
+
+/* Step: quadrati netti. Bianco vuoto, nero colpo, rosso accento, grigio nota fantasma. */
+:root[data-skin="plakat"] .step{border:2px solid #0a0a0a; border-radius:0; background:#ffffff; box-shadow:none;}
+:root[data-skin="plakat"] .step.beat{border-width:2px;}
+:root[data-skin="plakat"] .step.beat:not(.on){box-shadow:inset 0 0 0 2px #0a0a0a;}
+:root[data-skin="plakat"] .step.on{background:#0a0a0a; border-color:#0a0a0a;}
+:root[data-skin="plakat"] .step.acc{background:#ff3b00; border-color:#0a0a0a;}
+:root[data-skin="plakat"] .step.gho{background:#a3a29c; opacity:1;}
+:root[data-skin="plakat"] .step.head{outline:3px solid #ff3b00; outline-offset:1px;}
+
+/* Righe delle tracce e controlli piccoli. */
+:root[data-skin="plakat"] .trk-name{font-size:14px; font-weight:800;}
+:root[data-skin="plakat"] .pad{border:2px solid #0a0a0a; border-radius:0; background:#ffffff; font-weight:800;}
+:root[data-skin="plakat"] .pad:active,
+:root[data-skin="plakat"] .pad.hit{background:#ff3b00; color:#0a0a0a;}
+:root[data-skin="plakat"] .chip-btn{border:2px solid #0a0a0a; border-radius:0; width:28px; height:28px; min-height:28px; font-size:11px;}
+:root[data-skin="plakat"] .chip-btn.on.m,
+:root[data-skin="plakat"] .chip-btn.on.s{background:#0a0a0a; color:#efeee9; border-color:#0a0a0a;}
+:root[data-skin="plakat"] .chip{border:2px solid #0a0a0a; border-radius:0; font-weight:700;}
+:root[data-skin="plakat"] .chip.sel{background:#0a0a0a; color:#efeee9; box-shadow:none;}
+
+/* Libreria (finestra sopra la pagina). */
+:root[data-skin="plakat"] .overlay{background:rgba(10,10,10,.55);}
+:root[data-skin="plakat"] .lib-name{font-size:14px; font-weight:800;}
+:root[data-skin="plakat"] .lib-tag{font-size:11px; color:#0a0a0a;}
+:root[data-skin="plakat"] .mini-cell{border-radius:0;}
+
+/* Tabella dei progetti recenti. */
+:root[data-skin="plakat"] table.recent{font-size:13px;}
+:root[data-skin="plakat"] table.recent th{color:#0a0a0a; border-bottom:2px solid #0a0a0a;}
+:root[data-skin="plakat"] table.recent td{border-bottom:1px solid #0a0a0a;}
+
+/* Etichetta che ricorda che si sta provando una skin. */
+.skin-badge{
+  position:fixed; right:12px; bottom:12px; z-index:100;
+  font:700 11px/1 "Helvetica Neue",Helvetica,Arial,sans-serif; letter-spacing:.1em; text-transform:uppercase;
+  background:#ff3b00; color:#0a0a0a; border:2px solid #0a0a0a; padding:8px 10px; text-decoration:none;
+}
+.skin-badge:hover{background:#0a0a0a; color:#ff3b00;}

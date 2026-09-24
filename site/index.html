@@ -24,7 +24,7 @@ try{ const t=localStorage.getItem("sp1200.theme"); if(t==="light"||t==="dark") d
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Drum Machine Lab">
 <meta property="og:title" content="Drum Machine Lab — drum machine a step con generatore di pattern">
-<meta property="og:description" content="Drum machine a step con SP-1200, RX-5, 808 e 909: generatore di pattern in decine di stili (punk, dub, breakbeat, soul e altri), variazioni, arrangiamento della canzone ed export MIDI, direttamente nel browser.">
+<meta property="og:description" content="Drum machine a step con SP-1200, RX-5, 808 e 909: generatore di pattern in decine di stili (punk, dub, metal, breakbeat, elettronica, soul e altri), variazioni, arrangiamento della canzone ed export MIDI, direttamente nel browser.">
 <meta property="og:image" content="https://drummachine.tongatron.org/assets/og-sp1200.png">
 <meta property="og:image:width" content="1536">
 <meta property="og:image:height" content="1024">
@@ -33,7 +33,7 @@ try{ const t=localStorage.getItem("sp1200.theme"); if(t==="light"||t==="dark") d
 
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Drum Machine Lab — drum machine a step con generatore di pattern">
-<meta name="twitter:description" content="Drum machine a step con SP-1200, RX-5, 808 e 909: generatore di pattern in decine di stili (punk, dub, breakbeat, soul e altri), variazioni, arrangiamento della canzone ed export MIDI, direttamente nel browser.">
+<meta name="twitter:description" content="Drum machine a step con SP-1200, RX-5, 808 e 909: generatore di pattern in decine di stili (punk, dub, metal, breakbeat, elettronica, soul e altri), variazioni, arrangiamento della canzone ed export MIDI, direttamente nel browser.">
 <meta name="twitter:image" content="https://drummachine.tongatron.org/assets/og-sp1200.png">
 </head>
 <body style="margin:0">
@@ -631,23 +631,25 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <b>Macchina</b> cambia i suoni: SP-1200 a 16 bit (originali), a 12 bit (passati dal convertitore) oppure Yamaha RX-5 con tutti i suoi 51 campioni;
     le righe che usavano un suono assente sull'altra macchina passano al suono equivalente.
     <b>Scegli…</b> apre la libreria di pattern e il generatore: <b>Genera 4</b> crea 4 pattern nuovi dello stile scelto (nient'altro ne crea da solo).
-    Su ogni pattern: <b>Simili</b> ne crea 4 vicini, <b>Varia</b> lo trasforma (scarno, mezzo tempo, hat aperto, nuovo fill&hellip;),
+    Su ogni pattern: <b>Simili</b> ne crea 4 vicini, <b>Varia</b> lo trasforma in 16 modi (scarno, mezzo tempo, hat aperto, nuovo fill, ibrido con un altro stile, strato percussivo, groove di tom, stacco&hellip;),
     <b>Arrangia</b> ricava intro, ritornello, break e outro, <b>Blocca</b> tiene alcune voci e rigenera le altre.
     Ogni pattern ha un codice: lo stesso codice rigenera lo stesso pattern.
   </p>
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-24.13"></script>
-<script src="engine/styles-punk.js?v=2026-09-24.13"></script>
-<script src="engine/styles-post.js?v=2026-09-24.13"></script>
-<script src="engine/styles-machines.js?v=2026-09-24.13"></script>
-<script src="engine/styles-alt.js?v=2026-09-24.13"></script>
-<script src="engine/styles-groove.js?v=2026-09-24.13"></script>
-<script src="engine/styles-dub.js?v=2026-09-24.13"></script>
-<script src="engine/styles-break.js?v=2026-09-24.13"></script>
-<script src="engine/styles-soul.js?v=2026-09-24.13"></script>
-<script src="engine/variations.js?v=2026-09-24.13"></script>
+<script src="engine/core.js?v=2026-09-24.14"></script>
+<script src="engine/styles-punk.js?v=2026-09-24.14"></script>
+<script src="engine/styles-post.js?v=2026-09-24.14"></script>
+<script src="engine/styles-machines.js?v=2026-09-24.14"></script>
+<script src="engine/styles-alt.js?v=2026-09-24.14"></script>
+<script src="engine/styles-groove.js?v=2026-09-24.14"></script>
+<script src="engine/styles-dub.js?v=2026-09-24.14"></script>
+<script src="engine/styles-break.js?v=2026-09-24.14"></script>
+<script src="engine/styles-soul.js?v=2026-09-24.14"></script>
+<script src="engine/styles-metal.js?v=2026-09-24.14"></script>
+<script src="engine/styles-electro.js?v=2026-09-24.14"></script>
+<script src="engine/variations.js?v=2026-09-24.14"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -2622,7 +2624,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-24.13";
+const SW_VERSION="2026-09-24.14";
 (function pwa(){
   const standalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
   const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);

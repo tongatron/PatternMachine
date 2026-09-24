@@ -2,7 +2,7 @@
 
 Drum machine a step (SP-1200, Yamaha RX-5, 808, 909) con generatore di pattern, online su https://drummachine.tongatron.org.
 
-- `site/` — il sito: `index.html`, motore ritmico in `site/engine/` (core, variazioni e arrangiamento, schede degli stili in gruppi: punk, post-punk, macchine, alternative, hip hop/dance/latin, reggae/dub, breakbeat/DnB, soul/disco/afro), PWA (`sw.js`, `manifest.json`, `icons/`), campioni (`samples`, `samples12`) e macchine selezionabili in `machines/` (Yamaha RX-5; kit 808 e 909 estratti da Logic).
+- `site/` — il sito: `index.html`, motore ritmico in `site/engine/` (core, variazioni e arrangiamento, schede degli stili in gruppi: punk, post-punk, macchine, alternative, hip hop/dance/latin, reggae/dub, breakbeat/DnB, soul/disco/afro, rock pesante/metal, elettronica/club), PWA (`sw.js`, `manifest.json`, `icons/`), campioni (`samples`, `samples12`) e macchine selezionabili in `machines/` (Yamaha RX-5; kit 808 e 909 estratti da Logic).
 - `index.html` — Drum Machine Toolkit (sul server diventa `toolkit.html`).
 - `server.py` — server statico + API `/api/patterns` usata dal toolkit.
 - `SP-1200.html` — versione autonoma con i campioni incorporati (non aggiornata al motore nuovo).

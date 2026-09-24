@@ -5,7 +5,7 @@ const path = require("path");
 
 const dir = path.join(__dirname, "..", "site", "engine");
 const E = require(path.join(dir, "core.js"));
-["styles-punk", "styles-post", "styles-machines", "styles-alt", "styles-groove", "styles-dub", "styles-break", "styles-soul"]
+["styles-punk", "styles-post", "styles-machines", "styles-alt", "styles-groove", "styles-dub", "styles-break", "styles-soul", "styles-metal", "styles-electro"]
   .forEach(f => require(path.join(dir, f + ".js")));
 require(path.join(dir, "variations.js"));
 
@@ -150,6 +150,18 @@ test("regressione: i pattern di base non cambiano (i codici gia' condivisi resta
       h.update(p.code + JSON.stringify(p.roles) + p.bpm + p.swing);
     }
   ok(h.digest("hex") === "b6374c42d790f6317c5aed1d0c5782d7", "l'output di generate() e' cambiato");
+});
+
+// I 56 stili e le 11 variazioni pubblicati il 2026-09-24: i codici ~V... gia' condivisi devono restare validi.
+const PUBLISHED_STYLES = Object.keys(E.styles).slice(0, 56);
+test("regressione: le variazioni pubblicate non cambiano", () => {
+  ok(PUBLISHED_STYLES.length === 56 && PUBLISHED_STYLES[55] === "cumbia", "ordine degli stili pubblicati");
+  const h = require("crypto").createHash("md5");
+  for (const id of PUBLISHED_STYLES) for (let s = 0; s < 4; s++) {
+    const p = E.generate({ style: id, len: s % 2 ? 32 : 16, section: s % 3 ? "verse" : "chorus", fill: s >= 2, seed: s * 9973 + id.length });
+    for (const t of "GOSHDPFRWLM") { const c = E.vary(p, t, s * 577 + 5); h.update(c.code + JSON.stringify(c.roles) + c.fill); }
+  }
+  ok(h.digest("hex") === "e368a2eae94529a8917afe39edd083df", "l'output delle variazioni pubblicate e' cambiato");
 });
 
 test("variazioni: riproducibili, valide, fill intatto, quasi sempre diverse", () => {

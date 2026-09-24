@@ -5,6 +5,8 @@
 //   G note fantasma     O hat aperto      S cassa sincopata   H mezzo tempo     D doppio tempo (hat)
 //   P scarno (break)    F spinto (drive)  R sul ride          W rullante alternativo   L nuovo fill
 //   M dinamica (hat e percussioni con accenti e colpi morbidi)
+//   X ibrido (una famiglia di voci presa da un altro stile)   Y strato percussivo (euclideo)
+//   T groove di tom     N sfasato (una voce spostata di uno step)     B stacco (un buco nel groove)
 //
 // Livelli degli step: 0 vuoto, 1 normale, 2 accento, 3 nota fantasma (morbida).
 //
@@ -26,6 +28,34 @@
     { id: "W", label: "rullante alternativo", hint: "cambia il suono del backbeat" },
     { id: "L", label: "nuovo fill", hint: "riscrive la chiusura della battuta" },
     { id: "M", label: "dinamica", hint: "hat e percussioni con accenti e colpi morbidi, piu' umano" },
+    { id: "X", label: "ibrido", hint: "sostituisce cassa, rullante, piatti o percussioni con quelli di un altro stile" },
+    { id: "Y", label: "strato percussivo", hint: "aggiunge shaker, tamburello, clave, cowbell, conga o percussioni su un ritmo euclideo" },
+    { id: "T", label: "groove di tom", hint: "porta l'hi-hat sui tom" },
+    { id: "N", label: "sfasato", hint: "sposta una voce di uno step: sincope" },
+    { id: "B", label: "stacco", hint: "un buco nel groove: cassa, rullante e hat tacciono per un beat" },
+  ];
+
+  // Stili che l'ibrido (~VX) puo' pescare. Lista FISSA: l'indice e' scritto nel codice, quindi non si tocca
+  // e non si riordina (cambierebbe i codici condivisi). Stili nuovi non sono donatori: servirebbe un'altra lettera.
+  const X_DONORS = [
+    "punk77", "oi", "dbeat", "skank", "breakdown", "skate",
+    "poppunk", "crust", "anarcho", "powerviolence", "postpunk", "morris",
+    "dubpunk", "fallbeat", "wire", "funkpunk", "afro", "motorik",
+    "newwave", "dancepunk", "suicide", "ebm", "cabaret", "avalanche",
+    "coldwave", "industrial", "grunge", "garage", "shoegaze", "noiserock",
+    "posthc", "math", "boombap", "funk", "trap", "house",
+    "latin", "euclid", "onedrop", "rockers", "steppers", "dub",
+    "rocksteady", "ska", "dembow", "dubtechno", "jungle", "dnb",
+    "garage2", "bigbeat", "triphop", "disco", "motown", "afrobeat",
+    "bossa", "cumbia", "rockclassic", "hardrock", "doom", "thrash",
+    "deathmetal", "blackmetal", "groovemetal", "electro", "techno", "gabber",
+    "footwork",
+  ];
+  const X_GROUPS = [
+    ["kick", "kick2"],
+    ["snare", "snare2", "snare3", "rim", "clap"],
+    ["chh", "chh2", "ohh", "ride", "crash", "china"],
+    ["tom", "tom2", "cow", "conga", "conga2", "clave", "tamb", "shaker", "perc"],
   ];
 
   // Fill in piu' rispetto a quelli del core: stessa forma ({kit, roles, hit(k, n)}).
@@ -40,7 +70,7 @@
   const BACKBEAT_ROLES = ["snare", "snare2", "snare3", "clap", "rim"];
 
   // Contesto di lavoro: griglie copiate dal genitore, `ok(i)` dice se lo step si puo' toccare.
-  function makeWork(parent, r) {
+  function makeWork(parent, r, seed) {
     const { len } = parent, bars = len / 16;
     const fillN = parent.fill ? (len >= 32 ? 8 : 4) : 0, safe = len - fillN;
     const roles = {};
@@ -53,7 +83,7 @@
     const slots = list => { const out = []; for (let b = 0; b < bars; b++) list.forEach(s => { if (ok(b * 16 + s)) out.push(b * 16 + s); }); return out; };
     const perBar = fn => { for (let b = 0; b < bars; b++) fn(b * 16, b); };
     const firstOf = list => list.find(has);
-    return { len, bars, safe, roles, has, arr, ok, put, clear, slots, perBar, firstOf, r, fill: parent.fill };
+    return { len, bars, safe, roles, has, arr, ok, put, clear, slots, perBar, firstOf, r, seed, parent, note: "", fill: parent.fill };
   }
 
   // Ogni operazione modifica w.roles e ritorna false se non ha nulla da fare su questo pattern.
@@ -122,6 +152,51 @@
         }
       });
     },
+    X(w) {
+      // Il donatore e il gruppo di voci escono dal seed (byte alto = stile, poi dal generatore).
+      const id = X_DONORS[(w.seed >> 8) % X_DONORS.length];
+      if (!E.styles[id]) return false;
+      const donor = E.generate({ style: id, len: w.len, section: w.parent.section, fill: false, seed: w.r.int(0, 0xFFFFFF) });
+      const group = X_GROUPS[w.r.int(0, X_GROUPS.length - 1)].filter(role => role in donor.roles);
+      if (!group.length) return false;
+      X_GROUPS.find(g => g.includes(group[0])).forEach(role => { for (let i = 0; i < w.safe; i++) if (w.roles[role]) w.roles[role][i] = 0; });
+      group.forEach(role => { for (let i = 0; i < w.safe; i++) if (donor.roles[role][i]) w.arr(role)[i] = donor.roles[role][i]; });
+      w.note = E.styles[id].label;
+    },
+    Y(w) {
+      const free = ["shaker", "tamb", "clave", "cow", "conga", "conga2", "perc"].filter(role => !w.has(role));
+      if (!free.length) return false;
+      const role = w.r.pick(free), k = w.r.pick([3, 5, 7, 9]), rot = w.r.int(0, 3);
+      E.h.euclid(k, w.len, rot).forEach((v, i) => { if (v) w.put(role, i, i % 4 === 0 ? 2 : 1); });
+      w.note = role;
+    },
+    T(w) {
+      const hat = w.has("chh") ? "chh" : (w.has("ride") ? "ride" : null);
+      if (!hat) return false;
+      const hi = w.r.pick(["tom", "tom2"]), lo = hi === "tom" ? "tom2" : "tom";
+      for (let i = 0; i < w.safe; i += 2) if (w.roles[hat][i]) { w.put(i % 8 < 4 ? hi : lo, i, w.roles[hat][i]); w.roles[hat][i] = 0; }
+      w.put("crash", 0, 2);
+    },
+    N(w) {
+      const voices = Object.keys(w.roles).filter(role => role !== "kick" && role !== "crash" && w.has(role));
+      if (!voices.length) return false;
+      const role = w.r.pick(voices), d = w.r.pick([-1, 1]), src = w.roles[role].slice();
+      for (let i = 0; i < w.safe; i++) w.roles[role][i] = 0;
+      for (let i = 0; i < w.safe; i++) {
+        if (!src[i]) continue;
+        const j = i + d;
+        w.roles[role][w.ok(j) && !w.roles[role][j] ? j : i] = src[i];
+      }
+      w.note = role;
+    },
+    B(w) {
+      const starts = [];
+      for (let b = 0; b < w.bars; b++) [4, 8, 12].forEach(s => { if (b * 16 + s + 4 <= w.safe) starts.push(b * 16 + s); });
+      if (!starts.length) return false;
+      const a = w.r.pick(starts);
+      KIT_ROLES.forEach(role => { if (role !== "crash" && w.roles[role]) for (let i = a; i < a + 4; i++) w.roles[role][i] = 0; });
+      if (w.r.rnd(0.6)) w.put("snare", a + 3, 1);          // un colpo che riporta dentro il groove
+    },
     L(w) {
       const n = w.len >= 32 ? (w.fill || w.r.rnd(0.5) ? 8 : 4) : 4, s = w.len - n;
       const f = FILLS[w.r.pick(FILL_IDS)];
@@ -139,7 +214,7 @@
     if (!OPS[type]) throw new Error("variazione sconosciuta: " + type);
     const v16 = vseed & 0xFFFF;
     const r = rng(Math.imul(v16 + 1, 2654435761) ^ (type.charCodeAt(0) * 40503));
-    const w = makeWork(parent, r);
+    const w = makeWork(parent, r, v16);
     const before = snapshot(parent.roles);
     const did = OPS[type](w);
     // Un pattern gia' pieno o senza le voci giuste puo' non cambiare: si ripiega su piccoli ritocchi.
@@ -159,7 +234,7 @@
     const suffix = "V" + type + hex(v16, 4);
     return Object.assign({}, parent, {
       code: parent.code + "~" + suffix, name: `${st.label} ${type}${hex(v16, 4)}`, roles: cleaned(w.roles),
-      fill: w.fill, tag: `${parent.tag} · ${meta.label}`,
+      fill: w.fill, tag: `${parent.tag} · ${meta.label}${w.note ? ` (${w.note})` : ""}`,
     });
   }
 

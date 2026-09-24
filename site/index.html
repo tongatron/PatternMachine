@@ -496,30 +496,6 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     </div>
   </div>
 
-  <div class="panel">
-    <div class="flexline">
-      <button id="playBtn"><span class="ico">&#9654;</span> Play <kbd>spazio</kbd></button>
-      <div class="modeswitch">
-        <button id="modePattern" class="on">Pattern</button>
-        <button id="modeSong">Canzone</button>
-      </div>
-      <button id="recBtn">&#9679; Rec</button>
-      <label class="fld">BPM
-        <input type="range" id="bpmRange" min="60" max="180" value="93">
-        <input type="number" id="bpmNum" min="40" max="240" value="93">
-      </label>
-      <button id="tapBtn" class="mini">Tap</button>
-      <label class="fld">Swing <input type="range" id="swingRange" min="0" max="60" value="0"></label>
-      <label class="fld">Vol <input type="range" id="masterVol" min="0" max="100" value="85"></label>
-      <select id="kitSelect" hidden aria-hidden="true"></select>
-      <div class="counter" id="counter">1 . 1</div>
-    </div>
-    <div class="machine-bar">
-      <span class="machine-label">Macchina</span>
-      <div class="machine-buttons" id="kitButtons" role="radiogroup" aria-label="Macchina"></div>
-    </div>
-  </div>
-
   <div class="tabs">
     <button id="viewGrid" class="on">Griglia</button>
     <button id="viewSeq">Sequencer</button>
@@ -549,6 +525,30 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       </label>
     </div>
     <div class="lib-locks" id="pVaryPanel" hidden></div>
+  </div>
+
+  <div class="panel">
+    <div class="flexline">
+      <button id="playBtn"><span class="ico">&#9654;</span> Play <kbd>spazio</kbd></button>
+      <div class="modeswitch">
+        <button id="modePattern" class="on">Pattern</button>
+        <button id="modeSong">Canzone</button>
+      </div>
+      <button id="recBtn">&#9679; Rec</button>
+      <label class="fld">BPM
+        <input type="range" id="bpmRange" min="60" max="180" value="93">
+        <input type="number" id="bpmNum" min="40" max="240" value="93">
+      </label>
+      <button id="tapBtn" class="mini">Tap</button>
+      <label class="fld">Swing <input type="range" id="swingRange" min="0" max="60" value="0"></label>
+      <label class="fld">Vol <input type="range" id="masterVol" min="0" max="100" value="85"></label>
+      <select id="kitSelect" hidden aria-hidden="true"></select>
+      <div class="counter" id="counter">1 . 1</div>
+    </div>
+    <div class="machine-bar">
+      <span class="machine-label">Macchina</span>
+      <div class="machine-buttons" id="kitButtons" role="radiogroup" aria-label="Macchina"></div>
+    </div>
   </div>
 
   <div class="panel" id="panelGrid">

@@ -2,6 +2,18 @@
 
 Idee e lavori rimandati per Drum Machine Lab. In ordine di utilità per il lavoro con Logic.
 
+## Integrazione con Logic (prossimi)
+In ordine consigliato.
+- [ ] **Export per Scripter**: pattern/canzone come script per il plug-in Scripter (MIDI FX, JavaScript) sulla
+  traccia di batteria. Suona agganciato al trasporto di Logic senza browser aperto; probabilita', flam e
+  umanizza decisi da Logic a ogni giro. Note sulla mappa General MIDI. La strada piu' solida.
+- [ ] **Web MIDI in uscita**: il sito manda le note a Logic tramite IAC Driver (da attivare in Configurazione
+  MIDI Audio) e suona con Drum Machine Designer / Drummer / Sampler; si puo' registrare come regione.
+  Solo Chrome/Edge (Safari non ha Web MIDI).
+- [ ] **Web MIDI in ingresso**: suonare i pad e registrare dall'MPK.
+- [ ] **Sincronizzazione al MIDI Clock di Logic** (Impostazioni progetto > Sincronizzazione > MIDI): il sito
+  segue Play/Stop/tempo. Qualche ms di imprecisione nel browser: buono per suonare, non per il definitivo.
+
 ## Export per Logic
 - [x] **Mappa MIDI a scelta** (fatto: pacchetto "Logic (zip)"): oltre a "Kit SP-1200" (nota 36 + slot, in ordine cromatico) aggiungere
   "General MIDI" (cassa 36, rullante 38, clap 39, hi-hat chiuso 42, aperto 46, tom e piatti ai loro posti),
@@ -13,7 +25,6 @@ Idee e lavori rimandati per Drum Machine Lab. In ordine di utilità per il lavor
 
 ## Per creare meglio
 - [x] Blocchi per step (flam, intonazione, decay, filtro), lunghezza per riga, swing MPC, umanizza.
-- [ ] **Web MIDI**: suonare i pad dall'MPK e sincronizzarsi al clock di Logic.
 - [ ] **Griglia a 12 step (terzine)** per shuffle, swing jazz e 6/8 veri. Lavoro grande: tocca motore,
   formato dei codici, interfaccia, sequencer ed export. Oggi lo swing sposta solo i sedicesimi dispari.
 - [ ] **Nuove lettere di variazione ibrida** quando si aggiungono stili: la lista dei donatori (`X_DONORS` in

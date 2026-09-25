@@ -181,6 +181,23 @@ h1{font-size:15px; letter-spacing:0.2em; text-transform:uppercase; margin:0;}
   padding-bottom:6px; border-bottom:1px solid var(--accent);
 }
 .flexline{display:flex; flex-wrap:wrap; gap:7px; align-items:center;}
+/* Menu Export: il summary ha l'aspetto di un tasto, l'elenco si apre sotto e si chiude al click fuori. */
+.export-menu{position:relative;}
+.export-menu summary{list-style:none; cursor:pointer; font-family:inherit; border:1px solid var(--edge);
+  background:var(--key,var(--panel-2)); color:var(--text); border-radius:var(--r-key,6px); box-shadow:var(--key-shadow,none);
+  padding:6px 10px; font-size:10.5px; letter-spacing:0.04em; text-transform:uppercase; white-space:nowrap; user-select:none;}
+.export-menu summary::-webkit-details-marker{display:none;}
+.export-menu summary::after{content:"\25BE"; margin-left:6px;}
+.export-menu summary:hover{border-color:var(--text-faint);}
+.export-menu summary:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+.export-menu[open] summary{border-color:var(--accent);}
+.export-list{position:absolute; z-index:30; top:calc(100% + 6px); left:0; min-width:240px; max-width:calc(100vw - 32px);
+  display:flex; flex-direction:column; gap:4px; padding:8px; background:var(--panel); border:1px solid var(--edge);
+  border-radius:8px; box-shadow:0 12px 30px rgba(0,0,0,.35);}
+.export-list button{text-align:left;}
+.export-head{font-size:9px; letter-spacing:0.14em; text-transform:uppercase; color:var(--text-faint); margin:6px 2px 0;}
+.export-head:first-child{margin-top:0;}
+.export-head span{display:block; margin-top:2px; letter-spacing:0.04em; text-transform:none;}
 
 button{
   font-family:inherit; cursor:pointer; border:1px solid var(--edge);
@@ -591,11 +608,23 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       <button id="saveBtn" class="primary">Salva</button>
       <button id="saveAsBtn">Salva come</button>
       <button id="newBtn">Nuovo</button>
-      <button id="expPatternBtn">MIDI pattern</button>
-      <button id="expSongBtn">MIDI canzone</button>
-      <button id="wavPatternBtn" title="Audio del pattern ripetuto 4 volte, con mixer ed effetti">WAV pattern</button>
-      <button id="wavSongBtn" title="Audio dell'intera canzone, con mixer ed effetti">WAV canzone</button>
-      <button id="logicBtn" title="Zip per Logic Pro: MIDI General MIDI, uno stem WAV per strumento, campioni del kit. Segue Pattern/Canzone">Logic (zip)</button>
+      <details class="export-menu" id="exportMenu">
+        <summary>Export</summary>
+        <div class="export-list">
+          <div class="export-head">MIDI</div>
+          <button id="expPatternBtn" title="Note del kit SP-1200 di Logic (36 + slot)">MIDI pattern</button>
+          <button id="expSongBtn" title="Note del kit SP-1200 di Logic (36 + slot)">MIDI canzone</button>
+          <button id="gmMidiBtn" title="Mappa General MIDI (36 cassa, 38 rullante, 42 hat chiuso…): va bene in qualsiasi DAW. Segue Pattern/Canzone">MIDI General MIDI</button>
+          <div class="export-head">Audio</div>
+          <button id="wavPatternBtn" title="Audio del pattern ripetuto 4 volte, con mixer ed effetti">WAV pattern</button>
+          <button id="wavSongBtn" title="Audio dell'intera canzone, con mixer ed effetti">WAV canzone</button>
+          <div class="export-head">Pacchetti per DAW <span>segue Pattern/Canzone</span></div>
+          <button id="logicBtn" class="daw-btn" data-daw="logic" title="Zip per Logic Pro: MIDI General MIDI, uno stem WAV per strumento, campioni del kit. Segue Pattern/Canzone">Logic (zip)</button>
+          <button class="daw-btn" data-daw="ableton" title="Zip per Ableton Live: MIDI General MIDI per un Drum Rack, uno stem WAV per strumento, campioni del kit. Segue Pattern/Canzone">Ableton Live (zip)</button>
+          <button class="daw-btn" data-daw="reaper" title="Zip per REAPER: progetto .rpp gia' pronto con tempo, stem su tracce separate e una traccia MIDI General MIDI. Segue Pattern/Canzone">REAPER (progetto .rpp)</button>
+          <button class="daw-btn" data-daw="altre" title="Zip per FL Studio, Cubase, Studio One, Bitwig, GarageBand e altre: MIDI General MIDI, stem WAV, campioni. Segue Pattern/Canzone">Altre DAW (zip)</button>
+        </div>
+      </details>
       <span class="status" id="status"></span>
     </div>
   </div>
@@ -2679,7 +2708,7 @@ const GM_NOTE={
 // i suoni "solo questa macchina" prendono la nota dello slot di riserva
 const gmNoteFor = i => { const s=SAMPLES[i]; return GM_NOTE[s.name] ?? GM_NOTE[s.fallback] ?? 76; };
 
-function buildLogicMidi(which){
+function gmEvents(which){
   const events=[];
   let tick=0;
   const add=(p,r=0)=>{ tick=patternEvents(p,tick,events,r); };
@@ -2688,6 +2717,11 @@ function buildLogicMidi(which){
   // patternEvents scrive le note del kit SP-1200 di Logic (36+indice): qui si passa alla mappa GM
   events.forEach(e=>{ e.note=gmNoteFor(e.note-36); });
   events.sort((a,b)=>(a.tick-b.tick)||(a.order-b.order));
+  return {events, tick};
+}
+
+function buildLogicMidi(which){
+  const {events, tick}=gmEvents(which);
   const text=(type,s)=>{ const b=[...new TextEncoder().encode(s)]; return [0xFF,type,...varLen(b.length),...b]; };
   const chunk=bytes=>[0x4D,0x54,0x72,0x6B,(bytes.length>>>24)&0xff,(bytes.length>>>16)&0xff,(bytes.length>>>8)&0xff,bytes.length&0xff,...bytes];
   const mpq=Math.round(60000000/bpm());
@@ -2772,7 +2806,91 @@ function makeZip(files){ // [{name, data:Uint8Array}]
   return new Blob([...parts,...central,end],{type:"application/zip"});
 }
 
-async function buildLogicZip(which){
+// Traccia MIDI GM dentro il progetto REAPER: eventi "E <delta> <stato> <nota> <velocity>" in esadecimale.
+function reaperMidiSource(which){
+  const {events, tick}=gmEvents(which);
+  const hx=v=>v.toString(16).padStart(2,"0");
+  const lines=[`        HASDATA 1 ${MIDI_PPQ} QN`];
+  let last=0;
+  events.forEach(e=>{
+    lines.push(`        E ${e.tick-last} ${e.order===1?"99":"89"} ${hx(e.note)} ${hx(e.order===1?e.vel:0x40)}`);
+    last=e.tick;
+  });
+  lines.push(`        E ${Math.max(0,tick-last)} b9 7b 00`);
+  return {lines, seconds:tick/MIDI_PPQ*60/bpm()};
+}
+
+// Progetto REAPER (testo): tempo e metrica, una traccia per stem a partire da zero, la traccia MIDI GM in fondo.
+function buildReaperProject(which, stemFiles, stemSeconds){
+  const q=s=>`"${String(s).replace(/"/g,"'")}"`;
+  const out=[`<REAPER_PROJECT 0.1 "6.0" 0`, `  TEMPO ${bpm()} 4 4`, `  SAMPLERATE ${WAV_RATE} 0 0`];
+  stemFiles.forEach(({label,path})=>{
+    out.push(`  <TRACK`, `    NAME ${q(label)}`, `    <ITEM`, `      POSITION 0`, `      LENGTH ${stemSeconds.toFixed(6)}`,
+      `      NAME ${q(label)}`, `      <SOURCE WAVE`, `        FILE ${q(path)}`, `      >`, `    >`, `  >`);
+  });
+  const midi=reaperMidiSource(which);
+  out.push(`  <TRACK`, `    NAME "Drums (MIDI GM)"`, `    <ITEM`, `      POSITION 0`, `      LENGTH ${midi.seconds.toFixed(6)}`,
+    `      NAME "Drums (MIDI GM)"`, `      <SOURCE MIDI`, ...midi.lines, `      >`, `    >`, `  >`, `>`, ``);
+  return out.join("\n");
+}
+
+// Pacchetti per DAW: stessi contenuti (MIDI GM, stem, campioni), cambiano nome e istruzioni;
+// REAPER riceve in piu' un progetto .rpp gia' montato.
+const DAWS={
+  logic:  {name:"Logic Pro",   file:"Logic",   what:"pacchetto Logic"},
+  ableton:{name:"Ableton Live", file:"Ableton", what:"pacchetto Ableton"},
+  reaper: {name:"REAPER",      file:"REAPER",  what:"progetto REAPER"},
+  altre:  {name:"altre DAW",   file:"DAW",     what:"pacchetto DAW"},
+};
+
+function dawSteps(daw, base, tempo, stemInfo){
+  const mid=`"${base} - GM.mid"`;
+  const stems=`   24 bit, 44,1 kHz, con mixer ed effetti del sito${stemInfo}.`;
+  if(daw==="logic") return [
+    `COME PORTARLO IN LOGIC PRO`,
+    `1. Imposta il tempo del progetto a ${tempo} BPM (File > Importa > MIDI sul file .mid importa anche il tempo).`,
+    `2. MIDI: trascina ${mid} su una traccia Drummer / Drum Kit Designer / Drum Machine Designer.`,
+    `   Le note seguono la mappa General MIDI (36 cassa, 38 rullante, 42 hat chiuso, 46 hat aperto...).`,
+    `3. Stem: seleziona tutti i file della cartella Stem e trascinali insieme nell'area tracce, alla battuta 1,`,
+    `   scegliendo "tracce separate": partono tutti da zero e restano allineati.`, stems,
+    `4. Campioni: i singoli colpi della macchina, col numero di nota GM davanti al nome.`,
+    `   Per rifare il kit: nuova traccia Drum Machine Designer, trascina ogni file sul pad con quella nota.`,
+    ``, `Swing e micro-timing sono gia' nelle posizioni delle note: in Logic lascia la quantizzazione spenta.`];
+  if(daw==="ableton") return [
+    `COME PORTARLO IN ABLETON LIVE`,
+    `1. Imposta il tempo del Live Set a ${tempo} BPM (il tempo del .mid non viene letto da Live).`,
+    `2. MIDI: trascina ${mid} su una traccia MIDI con un Drum Rack (per esempio uno dei "Kit" della libreria):`,
+    `   i pad del Drum Rack partono da C1 = nota 36, come la mappa General MIDI.`,
+    `3. Stem: seleziona tutti i file della cartella Stem e trascinali insieme nella vista Arrangement, alla battuta 1:`,
+    `   Live crea una traccia per file, tutte allineate. Nelle clip lascia il Warp spento o in modalita' Beats.`, stems,
+    `4. Campioni: per rifare il kit, trascina ogni file della cartella Campioni sul pad del Drum Rack`,
+    `   con la nota indicata davanti al nome (36 = C1, 38 = D1, 42 = F#1...).`,
+    ``, `Swing e micro-timing sono gia' nelle posizioni delle note: non quantizzare la clip MIDI.`];
+  if(daw==="reaper") return [
+    `COME APRIRLO IN REAPER`,
+    `1. Estrai lo zip e apri "${base}.rpp": tempo (${tempo} BPM), stem e traccia MIDI sono gia' al loro posto.`,
+    `   Il progetto cerca i file nella cartella Stem accanto a lui: non spostare il .rpp da solo.`,
+    `2. Le tracce audio sono gli stem, tutti da zero e allineati.`, stems,
+    `3. La traccia "Drums (MIDI GM)" e' muta finche' non le dai uno strumento: mettici un campionatore di batteria`,
+    `   in General MIDI (per esempio ReaSamplOmatic5000 con i file di Campioni, o un plugin di batteria).`,
+    `4. Campioni: i singoli colpi della macchina, col numero di nota GM davanti al nome.`,
+    ``, `Swing e micro-timing sono gia' nelle posizioni delle note: non quantizzare.`];
+  return [
+    `COME PORTARLO NELLA TUA DAW (FL Studio, Cubase, Studio One, Bitwig, GarageBand...)`,
+    `1. Imposta il tempo del progetto a ${tempo} BPM.`,
+    `2. MIDI: ${mid} e' in General MIDI (36 cassa, 38 rullante, 42 hat chiuso, 46 hat aperto...) sul canale 10.`,
+    `   - FL Studio: File > Import > MIDI file, poi assegna la traccia a FPC o a un altro strumento di batteria.`,
+    `   - Cubase / Nuendo: trascina il file su una traccia con Groove Agent SE (mappa GM).`,
+    `   - Studio One: trascina il file su una traccia con Impact XT.`,
+    `   - Bitwig: trascina il file su una traccia con un Drum Machine.`,
+    `   - GarageBand: trascina il file nell'area tracce e scegli un kit di batteria.`,
+    `3. Stem: trascina insieme tutti i file della cartella Stem alla battuta 1, su tracce separate: sono allineati.`, stems,
+    `4. Campioni: i singoli colpi della macchina, col numero di nota GM davanti al nome, per rifare il kit`,
+    `   in un campionatore di batteria.`,
+    ``, `Swing e micro-timing sono gia' nelle posizioni delle note: non quantizzare.`];
+}
+
+async function buildDawZip(which, daw="logic"){
   const base=exportBase(which), tempo=bpm();
   const dir=`${base} - ${tempo} BPM/`;
   const files=[{name:dir+`${base} - GM.mid`, data:buildLogicMidi(which)}];
@@ -2781,12 +2899,16 @@ async function buildLogicZip(which){
   let peak=0;
   stems.forEach(({buf})=>{ for(let c=0;c<buf.numberOfChannels;c++){ const d=buf.getChannelData(c); for(let i=0;i<d.length;i++){ const a=Math.abs(d[i]); if(a>peak) peak=a; } } });
   const gain=peak>0.989?0.989/peak:1;
-  const used=new Map();
+  const used=new Map(), stemFiles=[];
   stems.forEach(({track,buf},n)=>{
     let nm=safeName(sampleLabel(track.sampleIndex));
     const k=(used.get(nm)||0)+1; used.set(nm,k); if(k>1) nm+=" "+k;
-    files.push({name:dir+`Stem/${String(n+1).padStart(2,"0")} ${nm}.wav`, data:encodeWav24(buf,gain)});
+    const path=`Stem/${String(n+1).padStart(2,"0")} ${nm}.wav`;
+    stemFiles.push({label:nm, path});
+    files.push({name:dir+path, data:encodeWav24(buf,gain)});
   });
+  if(daw==="reaper" && stems.length)
+    files.push({name:dir+`${base}.rpp`, data:new TextEncoder().encode(buildReaperProject(which, stemFiles, stems[0].buf.length/WAV_RATE))});
 
   let samples=0;
   for(const i of new Set(project.tracks.map(t=>t.sampleIndex))){
@@ -2798,21 +2920,12 @@ async function buildLogicZip(which){
   }
 
   const mode=which==="song"?"canzone intera":`pattern "${curPattern().name}" (MIDI: 1 giro; stem: ${WAV_PATTERN_LOOPS} giri)`;
+  const stemInfo=gain<1?`; livello ridotto di ${(-20*Math.log10(gain)).toFixed(1)} dB (uguale per tutti) per non clippare`:"";
   const readme=[
     base,
     `Macchina: ${KITS[sampleSet].label} · ${tempo} BPM · 4/4 · swing ${swingPct()}% · ${mode}`,
     ``,
-    `COME PORTARLO IN LOGIC PRO`,
-    `1. Imposta il tempo del progetto a ${tempo} BPM (File > Importa > MIDI sul file .mid importa anche il tempo).`,
-    `2. MIDI: trascina "${base} - GM.mid" su una traccia Drummer / Drum Kit Designer / Drum Machine Designer.`,
-    `   Le note seguono la mappa General MIDI (36 cassa, 38 rullante, 42 hat chiuso, 46 hat aperto...).`,
-    `3. Stem: seleziona tutti i file della cartella Stem e trascinali insieme nell'area tracce, alla battuta 1,`,
-    `   scegliendo "tracce separate": partono tutti da zero e restano allineati.`,
-    `   24 bit, 44,1 kHz, con mixer ed effetti del sito${gain<1?`; livello ridotto di ${(-20*Math.log10(gain)).toFixed(1)} dB (uguale per tutti) per non clippare`:""}.`,
-    `4. Campioni: i singoli colpi della macchina, col numero di nota GM davanti al nome.`,
-    `   Per rifare il kit: nuova traccia Drum Machine Designer, trascina ogni file sul pad con quella nota.`,
-    ``,
-    `Swing e micro-timing sono gia' nelle posizioni delle note: in Logic lascia la quantizzazione spenta.`,
+    ...dawSteps(daw, base, tempo, stemInfo),
     ``,
   ].join("\n");
   files.push({name:dir+"Leggimi.txt", data:new TextEncoder().encode(readme)});
@@ -2820,24 +2933,46 @@ async function buildLogicZip(which){
 }
 
 let logicBusy=false;
-async function exportLogic(){
+async function exportDaw(daw="logic"){
   if(logicBusy) return;
-  const which=ui.mode==="song"?"song":"pattern";
+  const which=ui.mode==="song"?"song":"pattern", d=DAWS[daw];
   if(which==="song" && !project.song.length){ setStatus("la canzone e' vuota","err"); return; }
   logicBusy=true;
-  const btn=el("logicBtn"); btn.disabled=true;
-  setStatus("preparo il pacchetto per Logic…");
+  const btns=[...document.querySelectorAll(".daw-btn")]; btns.forEach(b=>b.disabled=true);
+  setStatus(`preparo il ${d.what}…`);
   try{
-    const r=await buildLogicZip(which);
-    await saveBlob(r.zip, `${r.base} - Logic.zip`, "pacchetto Logic");
-    setStatus(`pacchetto Logic esportato (${which==="song"?"canzone":"pattern"}): MIDI GM, ${r.stems} stem, ${r.samples} campioni`);
+    const r=await buildDawZip(which, daw);
+    await saveBlob(r.zip, `${r.base} - ${d.file}.zip`, d.what);
+    setStatus(`${d.what} esportato (${which==="song"?"canzone":"pattern"}): ${daw==="reaper"?"progetto .rpp, ":""}MIDI GM, ${r.stems} stem, ${r.samples} campioni`);
   }catch(e){
-    setStatus(e&&e.message==="vuoto"?"niente da esportare: il pattern e' vuoto o tutto in mute":"pacchetto Logic non riuscito","err");
+    setStatus(e&&e.message==="vuoto"?"niente da esportare: il pattern e' vuoto o tutto in mute":`${d.what} non riuscito`,"err");
   }finally{
-    logicBusy=false; btn.disabled=false;
+    logicBusy=false; btns.forEach(b=>b.disabled=false);
   }
 }
-el("logicBtn").onclick=exportLogic;
+document.querySelectorAll(".daw-btn").forEach(b=>{ b.onclick=()=>exportDaw(b.dataset.daw); });
+
+el("gmMidiBtn").onclick=()=>{
+  const which=ui.mode==="song"?"song":"pattern";
+  if(which==="song" && !project.song.length){ setStatus("la canzone e' vuota","err"); return; }
+  return saveBlob(new Blob([buildLogicMidi(which)],{type:"audio/midi"}), exportBase(which)+" - GM.mid", "MIDI General MIDI");
+};
+
+// Il menu Export si chiude dopo una scelta, al click fuori e con Esc.
+(()=>{
+  const menu=el("exportMenu");
+  menu.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{ menu.open=false; }));
+  document.addEventListener("click",e=>{ if(menu.open && !menu.contains(e.target)) menu.open=false; });
+  menu.addEventListener("keydown",e=>{ if(e.key==="Escape"){ menu.open=false; menu.querySelector("summary").focus(); } });
+  // su schermi stretti l'elenco rientra a sinistra invece di uscire dalla pagina
+  menu.addEventListener("toggle",()=>{
+    if(!menu.open) return;
+    const list=menu.querySelector(".export-list");
+    list.style.left="0";
+    const over=list.getBoundingClientRect().right-(document.documentElement.clientWidth-8);
+    if(over>0) list.style.left=`${-over}px`;
+  });
+})();
 
 el("expPatternBtn").onclick=()=>exportMidi("pattern");
 el("expSongBtn").onclick=()=>exportMidi("song");

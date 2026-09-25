@@ -88,7 +88,7 @@ th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-sp
     <li><b>Modifica</b>: click su uno step lo accende o lo spegne. Sopra la griglia, "Click sugli step" cambia cosa fa il click (Probabilit&agrave;, Ripetizioni, Flam, Intonazione, Decay, Filtro).</li>
     <li><b>Tutte le opzioni di una riga</b>: click sul nome della traccia. Sotto gli step si apre una corsia per ogni blocco (Livello, Probabilit&agrave;, Ripetizioni, Flam, Intonazione, Decay, Filtro); click su una cella = valore successivo, alt+click = torna al default. Si apre una riga alla volta.</li>
     <li><b>Canzone</b>: nella scheda Sequencer metti in fila i pattern, ognuno con le sue ripetizioni, e premi <b>Canzone</b> accanto a Play.</li>
-    <li><b>Salva</b> il progetto ed <b>esporta</b>: MIDI, WAV o il pacchetto <b>Logic (zip)</b>.</li>
+    <li><b>Salva</b> il progetto; dal menu <b>Export</b> scarichi MIDI, WAV o un pacchetto per <b>Logic</b>, <b>Ableton Live</b>, <b>REAPER</b> o altre DAW.</li>
   </ol>
 </section>
 
@@ -176,7 +176,7 @@ th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-sp
     <li>Ogni blocco della canzone &egrave; un pattern ripetuto da 1 a 64 volte (&minus; / + sul blocco). I blocchi si trascinano per riordinarli; Duplica, &larr; &rarr; ed Elimina agiscono sul blocco scelto.</li>
     <li>Doppio click su un blocco: apre quel pattern nella Griglia per modificarlo.</li>
     <li>Click sulla timeline: la canzone parte (o salta, se sta gi&agrave; suonando) dall'inizio della ripetizione cliccata.</li>
-    <li>Il selettore <b>Pattern / Canzone</b> accanto a Play decide cosa suona e cosa esportano MIDI, WAV e Logic (zip).</li>
+    <li>Il selettore <b>Pattern / Canzone</b> accanto a Play decide cosa suona e cosa esportano MIDI General MIDI, WAV e i pacchetti per DAW.</li>
   </ul>
   <h3>Tema</h3>
   <p>In alto a destra: <b>Auto</b> segue il sistema, <b>Chiaro</b> e <b>Scuro</b> lo forzano. La scelta resta memorizzata nel browser.</p>
@@ -217,12 +217,15 @@ th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-sp
     <li>Velocity: accento 100%, normale 78%, fantasma 40%, moltiplicate per il volume della riga.</li>
     <li>Swing, feel e ripetizioni diventano posizioni e note vere; la probabilit&agrave; si decide a ogni giro, quindi ogni ripetizione della canzone &egrave; un po' diversa.</li>
   </ul>
-  <h3>Logic (zip)</h3>
+  <h3>Pacchetti per DAW (Logic, Ableton Live, REAPER, altre DAW)</h3>
   <ul>
     <li>Un unico file zip con: MIDI sulla mappa <b>General MIDI</b> (36 cassa, 38 rullante, 42 hat chiuso, 46 hat aperto&hellip;), che Drummer, Drum Kit Designer e Drum Machine Designer capiscono senza rimappare.</li>
     <li>Uno <b>stem WAV</b> per strumento (24 bit, 44,1 kHz, con mixer ed effetti), tutti della stessa durata e da zero: trascinati insieme alla battuta 1 restano allineati.</li>
     <li>I <b>campioni</b> della macchina, col numero di nota GM davanti al nome, per rifare il kit in Drum Machine Designer.</li>
-    <li>Un <b>Leggimi.txt</b> con tempo, swing e i passi per importarlo. Swing e feel sono gi&agrave; nelle note: in Logic lascia la quantizzazione spenta.</li>
+    <li>Un <b>Leggimi.txt</b> con tempo, swing e i passi per importarlo nella DAW scelta. Swing e feel sono gi&agrave; nelle note: lascia la quantizzazione spenta.</li>
+    <li>Il contenuto &egrave; lo stesso per tutte le DAW; cambiano le istruzioni. <b>REAPER</b> riceve in pi&ugrave; un progetto <b>.rpp</b> gi&agrave; pronto: tempo, uno stem per traccia e una traccia MIDI General MIDI.</li>
+    <li><b>Altre DAW</b>: istruzioni per FL Studio, Cubase, Studio One, Bitwig e GarageBand.</li>
+    <li><b>MIDI General MIDI</b> scarica solo il file MIDI in mappa GM, senza audio.</li>
   </ul>
   <h3>WAV</h3>
   <ul>
@@ -250,7 +253,7 @@ th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-sp
     <li>Griglia a sedicesimi: niente terzine vere, quindi niente shuffle jazz o 6/8. Lo swing sposta solo i sedicesimi dispari.</li>
     <li>BPM da 40 a 240: il blast beat pi&ugrave; veloce resta sotto questo tetto.</li>
     <li>Le variazioni agiscono solo sulle righe con un suono di batteria riconosciuto (gli slot del generatore).</li>
-    <li>L'export "MIDI pattern/canzone" usa la mappa del kit SP-1200: con altri kit usa invece <b>Logic (zip)</b>, che &egrave; in General MIDI.</li>
+    <li>L'export "MIDI pattern/canzone" usa la mappa del kit SP-1200: con altri kit usa invece <b>MIDI General MIDI</b> o un pacchetto per DAW.</li>
     <li>I kit 808, 909, 707, CR-78 e LinnDrum vengono dalla libreria di Logic Pro (ricreazioni e campioni Apple), non dalle macchine originali.</li>
   </ul>
 </section>

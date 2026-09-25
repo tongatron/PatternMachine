@@ -168,6 +168,17 @@ def find_user(db, name=None, uid=None):
     return None
 
 
+def login_candidates(db, who):
+    """Gli account che corrispondono a un nome o a una mail (piu' account possono avere la stessa mail)."""
+    who = (who or "").strip()
+    if not who:
+        return []
+    by_name = find_user(db, name=who)
+    if by_name:
+        return [by_name]
+    return [u for u in db["users"] if u.get("email") and u["email"].casefold() == who.casefold()]
+
+
 def new_user(name, password, email="", role="user"):
     return {"id": uuid.uuid4().hex, "name": name, "email": email, "role": role, "pwv": 1,
             "created_at": now_iso(), "last_login": "", **hash_password(password)}
@@ -185,7 +196,27 @@ def make_session(secret, user, now=None):
     return payload + "." + hmac.new(secret, payload.encode(), hashlib.sha256).hexdigest()
 
 
+# Ospite ("Accedi senza registrarti"): cookie g2.<casuale>.<scadenza>.<firma>, niente account.
+# Puo' usare il sito ma non salvare (progetti, preferiti, archivio pattern).
+GUEST = {"id": "", "name": "Ospite", "role": "guest", "email": ""}
+
+
+def make_guest_session(secret, now=None):
+    expires = int((now or time.time()) + SESSION_DAYS * 86400)
+    payload = f"g2.{secrets.token_hex(8)}.{expires}"
+    return payload + "." + hmac.new(secret, payload.encode(), hashlib.sha256).hexdigest()
+
+
 def session_user(db, value, now=None):
+    if isinstance(value, str) and value.startswith("g2."):
+        try:
+            version, rnd, expires, sig = value.split(".")
+        except ValueError:
+            return None
+        if not db.get("secret") or not expires.isdigit() or int(expires) <= (now or time.time()):
+            return None
+        good = hmac.new(bytes.fromhex(db["secret"]), f"{version}.{rnd}.{expires}".encode(), hashlib.sha256).hexdigest()
+        return GUEST if hmac.compare_digest(sig, good) else None
     try:
         version, uid, pwv, expires, sig = value.split(".")
     except (AttributeError, ValueError):
@@ -338,7 +369,7 @@ PAGE_SHELL = """<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
-<meta name="theme-color" content="#15171a">
+<meta name="theme-color" content="#e4e2dc">
 <title>PatternMachine — {title}</title>
 <meta name="description" content="Drum machine a step con SP-1200, RX-5, 808, 909, 707, CR-78 e LinnDrum: generatore di pattern in decine di stili, variazioni, arrangiamento della canzone ed export MIDI.">
 <!-- Anteprima dei link: chi condivide un link arriva qui (il sito e' dietro accesso), quindi i tag stanno in questa pagina. -->
@@ -359,12 +390,10 @@ PAGE_SHELL = """<!doctype html>
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <style>
-:root{--bg:#15171a;--panel:#1e2126;--panel-2:#272b31;--edge:#3b424a;--text:#e9e6de;--dim:#9aa1aa;
-  --accent:#3b8fd6;--ok:#4f9e63;--on-ok:#0e1a11;--danger:#e0624f;color-scheme:dark;}
-@media (prefers-color-scheme: light){:root{--bg:#cdcbc4;--panel:#dcdad3;--panel-2:#cfcdc6;--edge:#a3a199;
-  --text:#1b1d20;--dim:#54575b;--accent:#1f6fb2;--ok:#3d7a48;--on-ok:#fff;--danger:#b83a30;color-scheme:light;}}
+:root{--bg:#e4e2dc;--panel:#f7f6f2;--panel-2:#ffffff;--edge:#b9b6ad;--text:#1b1d20;--dim:#55585c;
+  --accent:#1f6fb2;--ok:#3d7a48;--on-ok:#fff;--danger:#b83a30;color-scheme:light;}
 *{box-sizing:border-box}
-body{margin:0;min-height:100vh;display:grid;place-items:center;background:var(--bg);color:var(--text);
+body{margin:0;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:var(--bg);color:var(--text);
   font-family:"SF Mono","JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
   padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));}
 .card{width:min(360px,100%);background:var(--panel);border:1px solid var(--edge);border-radius:12px;padding:22px 20px;
@@ -598,6 +627,9 @@ class Handler(BaseHTTPRequestHandler):
         if self._cross_site():
             self._send_json(403, {"error": "richiesta da un altro sito"})
             return False
+        if (self._user() or {}).get("role") == "guest":
+            self._send_json(403, {"error": "gli ospiti non possono salvare: registrati"})
+            return False
         return True
 
     def _body_or_error(self):
@@ -630,15 +662,20 @@ class Handler(BaseHTTPRequestHandler):
         self._page(status, "Accesso", f"""<form class="card" method="post" action="/login">
   <h1>PatternMachine</h1>
   <div class="line"></div>
-  {f'<p class="ok">{e(note)}</p>' if note else '<p>Entra con il tuo nome e la tua password.</p>'}
-  <label for="nm">Nome</label>
-  <input id="nm" name="name" autocomplete="username" value="{e(name, quote=True)}" {'' if name else 'autofocus'} required>
+  {f'<p class="ok">{e(note)}</p>' if note else '<p>Entra con il tuo nome (o la tua email) e la tua password.</p>'}
+  <label for="nm">Nome o email</label>
+  <input id="nm" name="name" autocomplete="username" placeholder="Steve o steve@example.com" value="{e(name, quote=True)}" {'' if name else 'autofocus'} required>
   <label for="pw">Password</label>
   <input id="pw" name="password" type="password" autocomplete="current-password" {'autofocus' if name else ''} required>
   <input type="hidden" name="next" value="{nxt}">
   <button type="submit">Entra</button>
   <div class="err" role="alert">{e(error)}</div>
   <div class="links"><a href="/register{q}">Registrati</a><a href="/forgot">Password dimenticata?</a></div>
+</form>
+<form class="card" method="post" action="/guest" style="padding:14px 20px;">
+  <input type="hidden" name="next" value="{nxt}">
+  <button class="ghost" type="submit" style="margin-top:0;">Accedi senza registrarti</button>
+  <p style="margin:8px 0 0;font-size:11px;text-align:center;">Non potrai memorizzare i tuoi pattern.</p>
 </form>""")
 
     def _do_login(self):
@@ -653,8 +690,8 @@ class Handler(BaseHTTPRequestHandler):
             return
         with USERS_LOCK:
             db = load_users()
-            user = find_user(db, name=name) if name else None
-            ok = bool(user) and check_password(user, form.get("password", ""))
+            user = next((u for u in login_candidates(db, name) if check_password(u, form.get("password", ""))), None)
+            ok = user is not None
             if ok:
                 user["last_login"] = now_iso()
                 cookie = make_session(users_secret(db), user)
@@ -662,9 +699,21 @@ class Handler(BaseHTTPRequestHandler):
         if not ok:
             note(ip, "login")
             time.sleep(0.4)
-            self._login_page(401, "Nome o password errati.", next_path, name)
+            self._login_page(401, "Nome, email o password errati.", next_path, name)
             return
         self._redirect(next_path, [self._session_cookie(cookie, SESSION_DAYS * 86400)])
+
+    def _do_guest(self):
+        form = self._form()
+        if form is None:
+            return
+        with USERS_LOCK:
+            db = load_users()
+            fresh = not db.get("secret")
+            cookie = make_guest_session(users_secret(db))
+            if fresh:
+                save_users(db)
+        self._redirect(safe_next(form.get("next", "/")), [self._session_cookie(cookie, SESSION_DAYS * 86400)])
 
     def _register_page(self, status=200, error="", next_path="/", name="", email=""):
         e = html.escape
@@ -673,11 +722,11 @@ class Handler(BaseHTTPRequestHandler):
   <div class="line"></div>
   <p>Crea il tuo account. Con la mail ricevi le credenziali e puoi recuperare la password.</p>
   <label for="nm">Nome</label>
-  <input id="nm" name="name" autocomplete="username" maxlength="{MAX_USERNAME}" value="{e(name, quote=True)}" autofocus required>
+  <input id="nm" name="name" autocomplete="username" maxlength="{MAX_USERNAME}" placeholder="Steve" value="{e(name, quote=True)}" autofocus required>
   <label for="pw">Password</label>
   <input id="pw" name="password" type="password" autocomplete="new-password" required>
   <label for="em">Email <span class="opt">(facoltativa, per il recupero della password)</span></label>
-  <input id="em" name="email" type="email" autocomplete="email" value="{e(email, quote=True)}">
+  <input id="em" name="email" type="email" autocomplete="email" placeholder="steve@example.com" value="{e(email, quote=True)}">
   <input type="hidden" name="next" value="{e(safe_next(next_path), quote=True)}">
   <button type="submit">Registrati</button>
   <div class="err" role="alert">{e(error)}</div>
@@ -721,7 +770,7 @@ class Handler(BaseHTTPRequestHandler):
   Se non hai messo la mail alla registrazione, chiedi all'amministratore.</p>
   <a class="btn ghost" href="/login">Torna all'accesso</a>""" if done else f"""<p>Scrivi il tuo nome o la mail dell'account: ti mandiamo un link per scegliere una nuova password.</p>
   <label for="who">Nome o email</label>
-  <input id="who" name="who" autocomplete="username" autofocus required>
+  <input id="who" name="who" autocomplete="username" placeholder="Steve o steve@example.com" autofocus required>
   <button type="submit">Mandami il link</button>
   <div class="err" role="alert">{e(error)}</div>
   <div class="links"><a href="/login">Torna all'accesso</a></div>""")
@@ -907,7 +956,7 @@ class Handler(BaseHTTPRequestHandler):
         query = parse_qs(parsed.query)
         if path in ("/login", "/register"):
             next_path = (query.get("next") or ["/"])[0]
-            if self._authorized():
+            if self._authorized() and self._user().get("role") != "guest":
                 self._redirect(safe_next(next_path))
             elif path == "/login":
                 self._login_page(next_path=next_path)
@@ -951,7 +1000,7 @@ class Handler(BaseHTTPRequestHandler):
             return
         path = urlparse(self.path).path
         routes = {"/login": self._do_login, "/register": self._do_register,
-                  "/forgot": self._do_forgot, "/reset": self._do_reset}
+                  "/forgot": self._do_forgot, "/reset": self._do_reset, "/guest": self._do_guest}
         if path in routes:
             routes[path]()
             return

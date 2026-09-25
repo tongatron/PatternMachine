@@ -154,9 +154,9 @@ def main():
 
         # --- login ---
         s, h, body = anon.call("/login", "POST", form={"name": ADMIN, "password": "sbagliata", "next": "/"}, headers=same)
-        check("password errata", (s, "set-cookie" in h, b"Nome o password errati" in body), (401, False, True))
+        check("password errata", (s, "set-cookie" in h, b"Nome, email o password errati" in body), (401, False, True))
         s, h, body = anon.call("/login", "POST", form={"name": "nessuno", "password": TEST_PASSWORD}, headers=same)
-        check("utente inesistente: stesso messaggio", (s, b"Nome o password errati" in body), (401, True))
+        check("utente inesistente: stesso messaggio", (s, b"Nome, email o password errati" in body), (401, True))
         s, h, _ = user.call("/login", "POST", form={"name": "giovanni", "password": TEST_PASSWORD, "next": "/toolkit.html"}, headers=same)
         cookie = h.get("set-cookie", "")
         check("login (nome senza maiuscole) -> redirect a next", (s, h.get("location")), (303, "/toolkit.html"))
@@ -190,6 +190,26 @@ def main():
         check("utente normale: niente azioni admin", mario.call("/admin/delete", "POST", form={"id": "x"}, headers=same)[0], 403)
         check("registrazione da altro sito", anon.call("/register", "POST", form={"name": "Z", "password": "z"},
                                                        headers={"Sec-Fetch-Site": "cross-site"})[0], 403)
+
+        # --- accesso con la mail al posto del nome ---
+        s, h, _ = Client(port).call("/login", "POST", form={"name": "MARIO@example.com", "password": "x"}, headers=same)
+        check("login con la mail", (s, "set-cookie" in h), (303, True))
+        check("login con la mail e password sbagliata", Client(port).call("/login", "POST", form={"name": "mario@example.com", "password": "no"}, headers=same)[0], 401)
+
+        # --- ospite: entra senza account, non salva ---
+        guest = Client(port)
+        s, h, _ = guest.call("/guest", "POST", form={"next": "/toolkit.html"}, headers=same)
+        check("ospite -> dentro", (s, h.get("location"), "set-cookie" in h), (303, "/toolkit.html", True))
+        guest.cookie = h["set-cookie"].split(";")[0]
+        check("ospite vede il sito", guest.call("/")[0], 200)
+        check("/api/me ospite", json.loads(guest.call("/api/me")[2])["role"], "guest")
+        check("ospite non salva pattern", guest.call("/api/patterns", "POST", {"name": "n", "text": "t"}, same)[0], 403)
+        check("ospite non entra in /admin", guest.call("/admin")[0], 403)
+        check("ospite puo' aprire login e registrazione", (guest.call("/login")[0], guest.call("/register")[0]), (200, 200))
+        check("pagina di accesso con pulsante ospite", b"Accedi senza registrarti" in anon.call("/login")[2], True)
+        fake = Client(port)
+        fake.cookie = guest.cookie[:-1] + ("0" if guest.cookie[-1] != "0" else "1")
+        check("cookie ospite manomesso", fake.call("/")[0], 303)
 
         # --- password dimenticata e reset ---
         check("forgot: stessa risposta per chi non esiste", anon.call("/forgot", "POST", form={"who": "fantasma"}, headers={**same, "CF-Connecting-IP": "198.51.100.1"})[0], 200)

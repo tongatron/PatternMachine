@@ -6,7 +6,7 @@
 <meta name="color-scheme" content="light dark">
 <title>PatternMachine</title>
 <meta name="description" content="PatternMachine: drum machine a step con SP-1200, RX-5, 808 e 909, generatore di pattern in decine di stili, variazioni, arrangiamento della canzone ed export MIDI.">
-<meta name="theme-color" content="#0f1114" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#0a0a0b" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#a3a097" media="(prefers-color-scheme: light)">
 
 <script>
@@ -42,8 +42,9 @@
 })();
 </script>
 <script>
-// Tema scelto dall'utente, applicato prima del primo render per evitare il lampo del tema sbagliato.
-try{ const t=localStorage.getItem("sp1200.theme"); if(t==="light"||t==="dark") document.documentElement.dataset.theme=t; }catch(e){}
+// Tema scelto dall'utente (di default Chiaro), applicato prima del primo render per evitare il lampo del tema sbagliato.
+(function(){ let t="light"; try{ t=localStorage.getItem("sp1200.theme")||"light"; }catch(e){}
+  if(t==="light"||t==="dark") document.documentElement.dataset.theme=t; })();
 </script>
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
@@ -73,14 +74,15 @@ try{ const t=localStorage.getItem("sp1200.theme"); if(t==="light"||t==="dark") d
 </head>
 <body style="margin:0">
 <style>
-/* Pelle "Originale": ricalca il pannello della E-mu SP-1200 — scocca ardesia,
+/* Tema scuro: nero e grigi neutri; il colore resta a pulsanti, LED e pattern.
+   Pelle "Originale": ricalca il pannello della E-mu SP-1200 —
    filo blu sotto le etichette di sezione, blu sui colpi e rosso Record sugli accenti. */
 :root{
-  --bg:#0f1114; --panel:#1e2126; --panel-2:#2a2f36; --panel-3:#353b43;
-  --edge:#58626e; --edge-soft:#3e454e;
-  --text:#f2efe8; --text-dim:#b8bfc8; --text-faint:#8d959f;
+  --bg:#0a0a0b; --panel:#161617; --panel-2:#222224; --panel-3:#2d2d30;
+  --edge:#4b4b50; --edge-soft:#323235;
+  --text:#efefed; --text-dim:#bcbcbc; --text-faint:#8f8f8f;
   --accent:#3b8fd6; --accent-dim:#255d8c; --on-accent:#15171a;
-  --led-off:#2c3138; --led-on:#3b8fd6; --led-accent:#d4402f; --led-head:#eceadf;
+  --led-off:#2a2a2d; --led-on:#3b8fd6; --led-accent:#d4402f; --led-head:#eceadf;
   --danger:#d4402f; --ok:#4f9e63; --on-ok:#0e1a11; --song:#62a8e0;
   --shadow:0 1px 0 rgba(255,255,255,0.04) inset, 0 4px 14px rgba(0,0,0,0.32);
 }
@@ -146,6 +148,8 @@ button, .step, select, input{touch-action:manipulation;}
   body{overscroll-behavior-y:none;}
 }
 /* PWA: installazione, aggiornamento, stato offline */
+/* Ospite: niente salvataggi (progetti, progetti recenti, preferiti). */
+body.guest #saveBtn, body.guest #saveAsBtn, body.guest #viewRecent, body.guest #libTabFav, body.guest .lib-star{display:none;}
 .whoami{font-size:10px; letter-spacing:0.06em; color:var(--text); font-weight:700;}
 .logout{font-size:10px; letter-spacing:0.06em; text-transform:uppercase; color:var(--text-dim);}
 #installBtn{border-color:var(--accent-dim); color:var(--accent);}
@@ -571,9 +575,10 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       <button type="button" data-theme-choice="dark" title="Tema scuro">&#9790; Scuro</button>
     </div>
     <span class="net-badge" id="netBadge" hidden>offline</span>
-    <button id="installBtn" class="mini" hidden>&#8681; Installa app</button>
+    <button id="installBtn" class="mini" hidden title="Installa PatternMachine come web app">&#8681; Web app</button>
     <span class="whoami" id="whoami" hidden></span>
     <a class="logout" id="adminLink" href="/admin" title="Utenti registrati" hidden>Utenti</a>
+    <a class="logout" id="registerLink" href="/register" title="Crea un account per salvare progetti e preferiti" hidden>Registrati</a>
     <a class="logout" href="/logout" title="Esci dal tuo account">Esci</a>
   </div>
 
@@ -2072,10 +2077,17 @@ function recordHit(track){
 // ---------- account ----------
 // Nome dell'utente collegato accanto a "Esci"; il link "Utenti" solo per l'admin. Fuori dal server
 // (file locale, app per Mac, offline) /api/me non risponde e resta solo "Esci".
+// L'ospite ("Accedi senza registrarti") usa il sito ma non salva: niente Salva, progetti recenti e preferiti.
+let isGuest=false;
 fetch("/api/me",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(me=>{
   if(!me||!me.name) return;
+  isGuest=me.role==="guest";
+  document.body.classList.toggle("guest",isGuest);
   el("whoami").textContent=me.name; el("whoami").hidden=false;
   el("adminLink").hidden=me.role!=="admin";
+  el("registerLink").hidden=!isGuest;
+  if(isGuest && el("viewRecent").classList.contains("on")) setView("grid");
+  if(isGuest && libView==="fav") setLibView("all");
 }).catch(()=>{});
 
 // ---------- finestra di conferma ----------
@@ -2363,6 +2375,7 @@ function redo(){
 }
 
 async function saveProject(asNew){
+  if(isGuest){ setStatus("da ospite non puoi salvare: registrati","err"); return; }
   const data=serialize();
   project.name=data.name;
   try{
@@ -2976,6 +2989,7 @@ function favCodes(){
   catch(e){ return []; }
 }
 function toggleFav(item){
+  if(isGuest) return;
   const codes=favCodes(), i=codes.indexOf(item.code);
   if(i>=0) codes.splice(i,1); else codes.unshift(item.code);
   try{ localStorage.setItem(FAV_KEY,JSON.stringify(codes)); }
@@ -3429,7 +3443,7 @@ window.addEventListener("resize",()=>{
 })();
 
 // ---------- tema chiaro / scuro ----------
-// "Auto" segue il sistema (nessun data-theme); Chiaro e Scuro forzano i token e la barra del browser.
+// Di default Chiaro. "Auto" segue il sistema (nessun data-theme); Chiaro e Scuro forzano i token e la barra del browser.
 (function themeSwitch(){
   const KEY="sp1200.theme", root=document.documentElement;
   const buttons=[...document.querySelectorAll("[data-theme-choice]")];
@@ -3444,12 +3458,12 @@ window.addEventListener("resize",()=>{
     const bg=getComputedStyle(root).getPropertyValue("--bg").trim();
     metas.forEach((m,i)=>m.setAttribute("content", choice==="auto"?systemColors[i]:bg));
   }
-  let choice="auto";
-  try{ choice=localStorage.getItem(KEY)||"auto"; }catch(e){}
+  let choice="light";
+  try{ choice=localStorage.getItem(KEY)||"light"; }catch(e){}
   apply(choice);
   buttons.forEach(b=>b.onclick=()=>{
     choice=b.dataset.themeChoice;
-    try{ choice==="auto"?localStorage.removeItem(KEY):localStorage.setItem(KEY,choice); }catch(e){}
+    try{ localStorage.setItem(KEY,choice); }catch(e){}
     apply(choice);
   });
 })();

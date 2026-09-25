@@ -384,6 +384,16 @@ label.fld input[type=number]{width:54px;}
 .report-dlg textarea{width:100%; box-sizing:border-box; font:13px/1.45 inherit; font-family:inherit; padding:8px 10px; border-radius:8px;
   border:1px solid var(--edge); background:var(--panel-2); color:var(--text); resize:vertical; margin:0 0 8px;}
 .report-dlg .rep-note{font-size:11px; color:var(--text-dim); margin:0 0 8px;}
+/* conferma dopo l'invio */
+.rep-done{text-align:center; padding:6px 0 0;}
+.rep-done[hidden]{display:none;}
+.rep-check{width:56px; height:56px; margin:4px auto 10px; border-radius:50%; display:grid; place-items:center;
+  background:var(--ok); color:var(--on-ok); font-size:30px; font-weight:700; animation:rep-pop .35s ease-out;}
+@keyframes rep-pop{from{transform:scale(.4); opacity:0;} to{transform:scale(1); opacity:1;}}
+@media (prefers-reduced-motion:reduce){ .rep-check{animation:none;} }
+.rep-done .rep-done-title{font-size:16px; font-weight:700; margin:0 0 6px;}
+.rep-done .ask-btns{justify-content:center;}
+.report-btn.sent{border-color:var(--ok); color:var(--ok);}
 /* Import: zona di rilascio, testo da incollare, opzioni */
 .import-dlg{width:min(560px,calc(100% - 32px));}
 .import-drop{display:flex; flex-direction:column; align-items:center; gap:4px; text-align:center; cursor:pointer;
@@ -887,6 +897,13 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
   <dialog class="ask report-dlg" id="reportDialog" aria-labelledby="reportTitle">
     <form method="dialog" id="reportForm">
       <h3 id="reportTitle">Segnala un problema</h3>
+      <div class="rep-done" id="repDone" hidden>
+        <div class="rep-check" aria-hidden="true">&#10003;</div>
+        <p class="rep-done-title">Messaggio inviato</p>
+        <p id="repDoneMsg">Grazie!</p>
+        <div class="ask-btns"><button type="submit" value="cancel" class="primary" id="repDoneClose">Chiudi</button></div>
+      </div>
+      <div id="repFields">
       <p>Racconta cosa non va o cosa ti piacerebbe: arriva direttamente a chi fa PatternMachine.</p>
       <label for="repName">Nome</label>
       <input type="text" id="repName" maxlength="80" autocomplete="name">
@@ -899,6 +916,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       <div class="ask-btns">
         <button type="submit" value="cancel" formnovalidate>Annulla</button>
         <button type="button" id="repSend" class="primary">Invia</button>
+      </div>
       </div>
     </form>
   </dialog>
@@ -3031,6 +3049,7 @@ function openReport(){
     if(!el("repMail").value) el("repMail").value=me.email||"";
   }
   el("repStatus").textContent=""; el("repStatus").className="import-msg";
+  el("repDone").hidden=true; el("repFields").hidden=false;
   el("reportDialog").showModal();
   (el("repName").value?el("repMsg"):el("repName")).focus();
 }
@@ -3045,7 +3064,15 @@ async function sendReport(){
       body:JSON.stringify({name:el("repName").value, email:el("repMail").value, message:msg, page:location.pathname+location.search, info})});
     const j=await r.json().catch(()=>({}));
     if(!r.ok) throw new Error(j.error||"invio non riuscito");
-    el("repMsg").value=""; el("reportDialog").close(); setStatus("segnalazione inviata, grazie!");
+    // conferma ben visibile nella finestra (poi si chiude da sola) e sul pulsante in fondo alla pagina
+    const mail=el("repMail").value.trim();
+    el("repMsg").value=""; st.textContent="";
+    el("repDoneMsg").textContent=mail?`Grazie! Se serve, la risposta arriva a ${mail}.`:"Grazie per la segnalazione!";
+    el("repFields").hidden=true; el("repDone").hidden=false; el("repDoneClose").focus();
+    setStatus("messaggio inviato, grazie!");
+    const btn=el("reportBtn"); btn.textContent="✓ Messaggio inviato"; btn.classList.add("sent");
+    clearTimeout(sendReport.t); sendReport.t=setTimeout(()=>{ btn.textContent="Segnala un problema"; btn.classList.remove("sent"); },8000);
+    setTimeout(()=>{ if(el("reportDialog").open && !el("repDone").hidden) el("reportDialog").close(); },4000);
   }catch(e){
     st.textContent=(e.message||"invio non riuscito")+(navigator.onLine?"":" (sei offline)"); st.className="import-msg err";
   }finally{ el("repSend").disabled=false; }

@@ -17,12 +17,14 @@ from email.message import EmailMessage
 from email.utils import formataddr
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, quote, unquote, urlparse
+from urllib.request import Request, urlopen
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(ROOT, "data")
 DATA_FILE = os.path.join(DATA_DIR, "patterns.json")
 USERS_FILE = os.environ.get("PATTERNMACHINE_USERS") or os.path.join(DATA_DIR, "users.json")
 MAIL_FILE = os.environ.get("PATTERNMACHINE_MAIL") or os.path.join(ROOT, "mail.json")
+TELEGRAM_FILE = os.environ.get("PATTERNMACHINE_TELEGRAM") or os.path.join(ROOT, "telegram.json")
 
 # Dal 2026-09 il sito si chiama PatternMachine. Il vecchio indirizzo resta attivo solo per il trasloco:
 # le pagine portano progetti, preferiti e tema (salvati nel browser, quindi legati al dominio) al nuovo
@@ -249,7 +251,7 @@ def reset_user(db, token):
 
 
 # Limite di tentativi per IP, separato per azione (login sbagliati, registrazioni, richieste di reset).
-LIMITS = {"login": LOGIN_MAX_FAILS, "register": 10, "forgot": 5}
+LIMITS = {"login": LOGIN_MAX_FAILS, "register": 10, "forgot": 5, "report": 5}
 FAILS = {}
 FAILS_LOCK = threading.Lock()
 
@@ -322,6 +324,68 @@ def send_mail(to, subject, text, html_body):
             print(f"mail a {to} non spedita: {e}", file=sys.stderr, flush=True)
     threading.Thread(target=work, daemon=True).start()
     return True
+
+
+# ---------- segnalazioni ("Segnala un problema") ----------
+# Vanno al bot Telegram dell'admin: telegram.json accanto a server.py (mai servito, creato da
+# scripts/set-telegram.py): {"token", "chat_id"}. Se il bot non e' configurato o non risponde, la
+# segnalazione arriva per mail agli admin con un indirizzo. PATTERNMACHINE_TELEGRAM_OUTBOX=<cartella>
+# scrive i messaggi come file invece di spedirli: serve ai test.
+def telegram_config():
+    try:
+        with open(TELEGRAM_FILE, "r", encoding="utf-8") as f:
+            cfg = json.load(f)
+    except (OSError, ValueError):
+        cfg = {}
+    token = os.environ.get("PATTERNMACHINE_TELEGRAM_TOKEN") or cfg.get("token")
+    chat = os.environ.get("PATTERNMACHINE_TELEGRAM_CHAT") or cfg.get("chat_id")
+    if os.environ.get("PATTERNMACHINE_TELEGRAM_OUTBOX"):
+        return {"token": token or "", "chat_id": chat or ""}
+    return {"token": token, "chat_id": str(chat)} if token and chat else None
+
+
+def send_telegram(text):
+    """Spedisce subito (chi segnala deve sapere se e' arrivata). False se non configurato o in errore."""
+    cfg = telegram_config()
+    if not cfg:
+        return False
+    outbox = os.environ.get("PATTERNMACHINE_TELEGRAM_OUTBOX")
+    if outbox:
+        os.makedirs(outbox, exist_ok=True)
+        with open(os.path.join(outbox, f"{time.time():.6f}.txt"), "w", encoding="utf-8") as f:
+            f.write(text)
+        return True
+    body = json.dumps({"chat_id": cfg["chat_id"], "text": text[:4000], "disable_web_page_preview": True}).encode()
+    req = Request(f"https://api.telegram.org/bot{cfg['token']}/sendMessage", data=body,
+                  headers={"Content-Type": "application/json"})
+    try:
+        with urlopen(req, timeout=10) as r:
+            return json.loads(r.read().decode()).get("ok", False)
+    except Exception as e:     # noqa: BLE001 - il token non va nel log, solo il tipo di errore
+        print(f"segnalazione su Telegram non spedita: {type(e).__name__}", file=sys.stderr, flush=True)
+        return False
+
+
+def report_text(fields, account):
+    who = fields["name"] or "(senza nome)"
+    if fields["email"]:
+        who += f" <{fields['email']}>"
+    acct = "ospite" if account.get("role") == "guest" else f"account {account.get('name', '?')}"
+    lines = ["Segnalazione da PatternMachine", f"Da: {who} ({acct})"]
+    if fields["page"]:
+        lines.append(f"Pagina: {fields['page']}")
+    lines += ["", fields["message"]]
+    if fields["info"]:
+        lines += ["", "---", fields["info"]]
+    return "\n".join(lines)
+
+
+def send_report_mail(text):
+    admins = [u["email"] for u in load_users().get("users", []) if u.get("role") == "admin" and u.get("email")]
+    if not admins or not mail_config():
+        return False
+    body = "<pre style=\"font:14px/1.5 -apple-system,Helvetica,Arial,sans-serif;white-space:pre-wrap;\">" + html.escape(text) + "</pre>"
+    return all(send_mail(a, "PatternMachine: segnalazione", text, body) for a in admins)
 
 
 # Pulsante di tongatron.org (tongatron.org/pulsanti, variante E2) con stili in linea, per mail e pagine di accesso.
@@ -1008,6 +1072,36 @@ class Handler(BaseHTTPRequestHandler):
             return
         self._serve_static()
 
+    def _do_report(self):
+        if self._cross_site():
+            self._send_json(403, {"error": "richiesta da un altro sito"})
+            return
+        ip = self._client_ip()
+        if too_many(ip, "report"):
+            self._send_json(429, {"error": "troppe segnalazioni da questa rete: riprova tra qualche minuto"})
+            return
+        body, failed = self._body_or_error()
+        if failed:
+            return
+        body = body if isinstance(body, dict) else {}
+        clean = lambda k, n: str(body.get(k) or "").strip()[:n]   # noqa: E731
+        fields = {"name": clean("name", 80), "email": clean("email", 200), "message": clean("message", 3000),
+                  "page": clean("page", 300), "info": clean("info", 600)}
+        if not fields["message"]:
+            self._send_json(400, {"error": "scrivi il messaggio"})
+            return
+        if fields["email"] and not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", fields["email"]):
+            self._send_json(400, {"error": "la mail non sembra valida"})
+            return
+        note(ip, "report")
+        text = report_text(fields, self._user() or {})
+        if send_telegram(text):
+            self._send_json(200, {"ok": True, "via": "telegram"})
+        elif send_report_mail(text):
+            self._send_json(200, {"ok": True, "via": "mail"})
+        else:
+            self._send_json(503, {"error": "le segnalazioni non sono ancora configurate sul server"})
+
     def do_POST(self):
         if self._old_host():
             return
@@ -1022,6 +1116,9 @@ class Handler(BaseHTTPRequestHandler):
         if path in ("/admin/delete", "/admin/reset"):
             if self._admin_only():
                 self._do_admin(path.rsplit("/", 1)[1])
+            return
+        if path == "/api/report":
+            self._do_report()
             return
         if path == "/api/patterns":
             if not self._guard_write():

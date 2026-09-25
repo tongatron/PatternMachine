@@ -6,7 +6,8 @@
 #   --con-kit-logic            pubblica anche i kit estratti da Logic (808, 909, 707, CR-78, LinnDrum; contenuti Apple: di norma restano solo in locale)
 #
 # Sul server la cartella e' piatta: site/* nella radice, index.html del toolkit come toolkit.html,
-# server.py, add-user.py e set-mail.py accanto. data/users.json (utenti) e mail.json (Gmail) vivono solo sul server e non si toccano.
+# server.py, add-user.py, set-mail.py e set-telegram.py accanto. data/users.json (utenti), mail.json (Gmail) e
+# telegram.json (bot delle segnalazioni) vivono solo sul server e non si toccano.
 # Non cancella nulla sul server (data/, assets/*.zip restano dove sono).
 set -euo pipefail
 
@@ -59,6 +60,7 @@ cp index.html "$STAGE/toolkit.html"
 cp server.py "$STAGE/server.py"
 cp scripts/add-user.py "$STAGE/add-user.py"
 cp scripts/set-mail.py "$STAGE/set-mail.py"
+cp scripts/set-telegram.py "$STAGE/set-telegram.py"
 
 # --checksum confronta i contenuti: una data diversa da sola non conta come modifica.
 RSYNC=(rsync -rlt --checksum --exclude .DS_Store)

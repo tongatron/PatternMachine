@@ -285,6 +285,24 @@ def main():
         check("DELETE same-origin", user.call(f"/api/patterns/{pid}", "DELETE", None, same)[0], 204)
         check("dati integri", [p["id"] for p in json.loads(user.call("/api/patterns")[2])], ["abc"])
 
+        # --- segnalazioni ("Segnala un problema"): Telegram, altrimenti 503 se non c'e' niente di configurato ---
+        rep = {**same, "CF-Connecting-IP": "203.0.113.20"}
+        msg = {"name": "Steve", "email": "steve@example.com", "message": "il play non parte", "page": "/", "info": "Chrome"}
+        check("segnalazione senza bot ne' mail dell'admin", user.call("/api/report", "POST", msg, rep)[0], 503)
+        os.environ["PATTERNMACHINE_TELEGRAM_OUTBOX"] = str(stage / "telegram")
+        s, _, b = user.call("/api/report", "POST", msg, rep)
+        check("segnalazione su Telegram", (s, json.loads(b).get("via")), (200, "telegram"))
+        sent = [f.read_text() for f in sorted((stage / "telegram").glob("*.txt"))]
+        check("il messaggio ha testo, mittente e account", bool(sent) and all(x in sent[-1] for x in
+              ("il play non parte", "Steve <steve@example.com>", "account ", "Pagina: /")), True)
+        check("segnalazione vuota", user.call("/api/report", "POST", {"message": "  "}, rep)[0], 400)
+        check("segnalazione con mail sbagliata", user.call("/api/report", "POST", {**msg, "email": "no"}, rep)[0], 400)
+        check("segnalazione cross-site", user.call("/api/report", "POST", msg, {"Sec-Fetch-Site": "cross-site"})[0], 403)
+        for _ in range(4):
+            user.call("/api/report", "POST", msg, rep)
+        check("troppe segnalazioni dalla stessa rete", user.call("/api/report", "POST", msg, rep)[0], 429)
+        del os.environ["PATTERNMACHINE_TELEGRAM_OUTBOX"]
+
         # --- logout, limite tentativi, configurazione mancante ---
         s, h, _ = user.call("/logout")
         check("logout cancella il cookie", (s, "Max-Age=0" in h.get("set-cookie", "")), (303, True))

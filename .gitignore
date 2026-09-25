@@ -6,6 +6,9 @@ ServerHP-ubuntu.md
 
 # Hash della password del sito e segreto dei cookie: solo sul server.
 auth.json
+# Credenziali di Gmail (mail di benvenuto e reset) e del bot Telegram delle segnalazioni: solo sul server.
+mail.json
+telegram.json
 
 # Dati dell'API (vivono solo sul server) e build del plugin.
 data/

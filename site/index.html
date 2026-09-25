@@ -43,8 +43,8 @@
 </script>
 <script>
 // Tema scelto dall'utente (di default Chiaro), applicato prima del primo render per evitare il lampo del tema sbagliato.
-(function(){ let t="light"; try{ t=localStorage.getItem("sp1200.theme")||"light"; }catch(e){}
-  if(t==="light"||t==="dark") document.documentElement.dataset.theme=t; })();
+(function(){ let t="light"; try{ t=localStorage.getItem("sp1200.theme")==="dark"?"dark":"light"; }catch(e){}
+  document.documentElement.dataset.theme=t; })();
 </script>
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
@@ -167,8 +167,10 @@ body.guest #saveBtn, body.guest #viewRecent, body.guest #libTabFav, body.guest .
 .wrap{max-width:1100px; margin:0 auto;}
 
 .topbar{display:flex; flex-wrap:wrap; align-items:baseline; gap:10px 16px; margin-bottom:12px;}
-h1{font-size:15px; letter-spacing:0.2em; text-transform:uppercase; margin:0;}
-.tagline{font-size:10.5px; color:var(--text-faint); letter-spacing:0.04em;}
+h1{font-size:26px; letter-spacing:0.18em; text-transform:uppercase; margin:0; line-height:1.15;}
+.tagline{font-size:13px; color:var(--text-faint); letter-spacing:0.03em;}
+.topbar .linkbtn{font-size:12.5px; padding:8px 14px;}
+@media (max-width:560px){ h1{font-size:21px;} .tagline{font-size:12px;} }
 
 .panel{
   background:var(--plate,var(--panel)); border:1px solid var(--edge); border-radius:var(--r-panel,10px);
@@ -218,7 +220,7 @@ button.mini{padding:4px 8px; font-size:10px;}
   letter-spacing:0.02em; text-decoration:none; white-space:nowrap;}
 .linkbtn:hover{border-color:var(--accent);}
 
-input[type=text], input[type=number], select{
+input[type=text], input[type=email], input[type=number], select{
   font-family:inherit; background:var(--panel-2); color:var(--text);
   border:1px solid var(--edge); border-radius:6px; padding:6px 8px; font-size:11px;
 }
@@ -333,21 +335,7 @@ label.fld input[type=number]{width:54px;}
 .vparam .val{color:var(--text-dim); font-size:9.5px; min-width:38px; text-align:right;}
 .voice .rev{margin-left:auto; width:auto; padding:0 9px;}
 
-.mixer{display:flex; gap:8px; overflow-x:auto; padding-bottom:4px;}
-.strip{
-  flex:1 1 0; min-width:118px; padding:9px; border-radius:8px;
-  border:1px solid var(--edge); background:var(--panel-2);
-  display:flex; flex-direction:column; gap:7px;
-}
-.strip.used{border-color:var(--accent-dim);}
-.strip h4{margin:0; font-size:9.5px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-dim);}
-.strip .assigned{font-size:9px; color:var(--text-faint); line-height:1.4; min-height:26px;}
-.strip .assigned b{color:var(--text-dim); font-weight:700;}
-.mp{display:flex; flex-direction:column; gap:2px;}
-.mp .lab{display:flex; justify-content:space-between; gap:6px; font-size:8.5px;
-  color:var(--text-faint); text-transform:uppercase; letter-spacing:0.05em;}
-.mp .lab span:last-child{color:var(--text-dim);}
-.mp input[type=range]{width:100%;}
+
 
 .steps{display:grid; gap:3px;}
 .step{
@@ -387,6 +375,15 @@ label.fld input[type=number]{width:54px;}
 .ask input[hidden]{display:none;}
 .ask .ask-btns{display:flex; justify-content:flex-end; gap:8px;}
 .ask .ask-btns button{min-width:90px;}
+/* Segnala un problema */
+.report-btn{font-size:11px; padding:7px 12px;}
+.report-dlg{width:min(480px,calc(100% - 32px));}
+.report-dlg label{display:block; font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-dim); margin:0 0 5px;}
+.report-dlg label .opt{text-transform:none; letter-spacing:0;}
+.report-dlg input{margin:0 0 12px;}
+.report-dlg textarea{width:100%; box-sizing:border-box; font:13px/1.45 inherit; font-family:inherit; padding:8px 10px; border-radius:8px;
+  border:1px solid var(--edge); background:var(--panel-2); color:var(--text); resize:vertical; margin:0 0 8px;}
+.report-dlg .rep-note{font-size:11px; color:var(--text-dim); margin:0 0 8px;}
 /* Import: zona di rilascio, testo da incollare, opzioni */
 .import-dlg{width:min(560px,calc(100% - 32px));}
 .import-drop{display:flex; flex-direction:column; align-items:center; gap:4px; text-align:center; cursor:pointer;
@@ -602,11 +599,11 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 }
 /* Comandi principali piu' grandi. */
 #machinePanel .machine-bar{margin-top:0; padding-top:0; border-top:none;}
-#viewGrid, #viewSeq, #viewMix, #viewRecent{font-size:14px; padding:11px 22px; min-height:44px;}
+#viewGrid, #viewSeq, #viewRecent{font-size:14px; padding:11px 22px; min-height:44px;}
 #pChoose, #pVary, #pNew{font-size:13px; padding:9px 16px; min-height:40px;}
 #modePattern, #modeSong, #recBtn{font-size:13.5px; padding:11px 18px; min-height:44px;}
 @media (max-width:560px){
-  #viewGrid, #viewSeq, #viewMix, #viewRecent{padding:10px 14px;}
+  #viewGrid, #viewSeq, #viewRecent{padding:10px 14px;}
 }
 </style>
 
@@ -619,7 +616,6 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <button id="installBtn" class="linkbtn" hidden title="Installa PatternMachine come web app">&#8681; Web app</button>
     <span class="tagline"><a href="toolkit.html" target="_blank" rel="noopener" style="color:var(--text-dim)">Drum Machine Toolkit &rarr;</a></span>
     <div class="modeswitch theme-switch" role="group" aria-label="Tema dell'interfaccia">
-      <button type="button" data-theme-choice="auto" title="Segue il sistema">Auto</button>
       <button type="button" data-theme-choice="light" title="Tema chiaro">&#9728;&#xFE0E; Chiaro</button>
       <button type="button" data-theme-choice="dark" title="Tema scuro">&#9790; Scuro</button>
     </div>
@@ -644,15 +640,15 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
           <button id="expSongBtn" title="Note del kit SP-1200 di Logic (36 + slot)">MIDI canzone</button>
           <button id="gmMidiBtn" title="Mappa General MIDI (36 cassa, 38 rullante, 42 hat chiuso…): va bene in qualsiasi DAW. Segue Pattern/Canzone">MIDI General MIDI</button>
           <div class="export-head">Audio</div>
-          <button id="wavPatternBtn" title="Audio del pattern ripetuto 4 volte, con mixer ed effetti">WAV pattern</button>
-          <button id="wavSongBtn" title="Audio dell'intera canzone, con mixer ed effetti">WAV canzone</button>
+          <button id="wavPatternBtn" title="Audio del pattern ripetuto 4 volte, con volumi ed effetti delle righe">WAV pattern</button>
+          <button id="wavSongBtn" title="Audio dell'intera canzone, con volumi ed effetti delle righe">WAV canzone</button>
           <div class="export-head">Pacchetti per DAW <span>segue Pattern/Canzone</span></div>
           <button id="logicBtn" class="daw-btn" data-daw="logic" title="Zip per Logic Pro: MIDI General MIDI, uno stem WAV per strumento, campioni del kit. Segue Pattern/Canzone">Logic (zip)</button>
           <button class="daw-btn" data-daw="ableton" title="Zip per Ableton Live: MIDI General MIDI per un Drum Rack, uno stem WAV per strumento, campioni del kit. Segue Pattern/Canzone">Ableton Live (zip)</button>
           <button class="daw-btn" data-daw="reaper" title="Zip per REAPER: progetto .rpp gia' pronto con tempo, stem su tracce separate e una traccia MIDI General MIDI. Segue Pattern/Canzone">REAPER (progetto .rpp)</button>
           <button class="daw-btn" data-daw="altre" title="Zip per FL Studio, Cubase, Studio One, Bitwig, GarageBand e altre: MIDI General MIDI, stem WAV, campioni. Segue Pattern/Canzone">Altre DAW (zip)</button>
           <div class="export-head">Progetto</div>
-          <button id="projJsonBtn" title="Tutto il progetto (righe, pattern, canzone, mixer) in un file .json da reimportare con Import">Progetto PatternMachine (.json)</button>
+          <button id="projJsonBtn" title="Tutto il progetto (righe, pattern, canzone) in un file .json da reimportare con Import">Progetto PatternMachine (.json)</button>
         </div>
       </details>
       <span class="status" id="status"></span>
@@ -670,7 +666,6 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
   <div class="tabs">
     <button id="viewGrid" class="on">Griglia</button>
     <button id="viewSeq">Sequencer</button>
-    <button id="viewMix">Mixer</button>
     <button id="viewRecent"><span id="recentLabel">Progetti recenti</span> <span id="recentCount"></span></button>
   </div>
 
@@ -774,17 +769,6 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     </p>
   </div>
 
-  <div class="panel" id="panelMix" hidden>
-    <h2>Mixer &mdash; uscite individuali</h2>
-    <div class="mixer" id="mixer"></div>
-    <p class="hint" style="margin-top:10px;">
-      Sull&apos;SP-1200 ogni suono pu&ograve; uscire da una delle <b>8 uscite individuali</b> sul retro, per andare
-      al mixer con EQ, compressore e riverbero propri. Qui ogni uscita ha la sua striscia di canale; assegna
-      una riga a un&apos;uscita dal pannello <b>&#9881;</b> nella griglia. Le uscite vengono poi risommate nello
-      stereo del browser, che &egrave; l&apos;equivalente del banco di mixaggio.
-    </p>
-  </div>
-
   <div class="panel" id="panelRecent" hidden>
     <h2 id="recentTitle">Progetti recenti</h2>
     <div class="recent-wrap">
@@ -875,8 +859,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
           <li><b>Tune</b> = intonazione della riga, in semitoni.</li>
           <li><b>Lung.</b> fa girare la riga con meno step (poliritmi).</li>
           <li><b>⚙</b> apre i parametri della voce: <b>Decay</b> accorcia la coda, <b>Filtro</b>+<b>Reso</b> sono il lowpass a 4 poli
-            come i VCF sulle uscite della macchina, <b>Start</b> sposta l'attacco, <b>Rev</b> suona al contrario,
-            <b>Uscita</b> manda la riga a una delle 8 uscite (scheda <b>Mixer</b>).</li>
+            come i VCF sulle uscite della macchina, <b>Start</b> sposta l'attacco, <b>Rev</b> suona al contrario.</li>
           <li><b>Feel</b> (nel pannello ⚙) anticipa o ritarda i colpi della riga, da &minus;30 a +30 ms: rullante &ldquo;in ritardo&rdquo;, cassa &ldquo;in anticipo&rdquo;.</li>
         </ul>
       </section>
@@ -901,6 +884,25 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       </section>
     </div>
   </details>
+  <dialog class="ask report-dlg" id="reportDialog" aria-labelledby="reportTitle">
+    <form method="dialog" id="reportForm">
+      <h3 id="reportTitle">Segnala un problema</h3>
+      <p>Racconta cosa non va o cosa ti piacerebbe: arriva direttamente a chi fa PatternMachine.</p>
+      <label for="repName">Nome</label>
+      <input type="text" id="repName" maxlength="80" autocomplete="name">
+      <label for="repMail">Mail <span class="opt">(per risponderti, facoltativa)</span></label>
+      <input type="email" id="repMail" maxlength="200" autocomplete="email">
+      <label for="repMsg">Messaggio</label>
+      <textarea id="repMsg" rows="6" maxlength="3000" required placeholder="Cosa stavi facendo, cosa è successo, cosa ti aspettavi"></textarea>
+      <p class="rep-note">Insieme al messaggio arrivano la pagina, la macchina scelta, la versione del sito e il browser.</p>
+      <p class="import-msg" id="repStatus" role="status"></p>
+      <div class="ask-btns">
+        <button type="submit" value="cancel" formnovalidate>Annulla</button>
+        <button type="button" id="repSend" class="primary">Invia</button>
+      </div>
+    </form>
+  </dialog>
+
   <dialog class="ask import-dlg" id="importDialog" aria-labelledby="importTitle">
     <form method="dialog">
       <h3 id="importTitle">Importa</h3>
@@ -940,7 +942,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       </div>
     </form>
   </dialog>
-  <footer class="site-footer"><span class="site-version"><!--build-->versione locale<!--/build--></span><a class="site-badge" href="https://tongatron.org/"><span class="mark"></span><span>tongatron.org</span></a></footer>
+  <footer class="site-footer"><button type="button" class="report-btn" id="reportBtn">Segnala un problema</button><span class="site-version"><!--build-->versione locale<!--/build--></span><a class="site-badge" href="https://tongatron.org/"><span class="mark"></span><span>tongatron.org</span></a></footer>
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
@@ -1151,13 +1153,9 @@ function makeTrack(sampleIndex,opts={}){
 // identico a prima finche' non si tocca niente.
 function voiceDefaults(o={}){
   return {decay:o.decay??100, cutoff:o.cutoff??100, reso:o.reso??0,
-    start:o.start??0, reverse:!!o.reverse, out:o.out??0, nudge:o.nudge??0};
+    start:o.start??0, reverse:!!o.reverse, nudge:o.nudge??0};
 }
 
-// Le 8 uscite individuali del retro macchina: ognuna e' una striscia di canale.
-const OUTS=8;
-const busDefaults = o => ({level:o?.level??100, pan:o?.pan??0, low:o?.low??0, high:o?.high??0, comp:o?.comp??0});
-const makeMixer = src => Array.from({length:OUTS}, (_,i)=>busDefaults(src?.[i]));
 function makePattern(name,len=16){ return {id:uid(), name, len, grid:{}, mods:{}, lens:{}}; }
 // Blocchi per step, sparsi: mods[traccia][step] = {p:percentuale, r:colpi, f:flam, t:semitoni, d:decay, c:filtro}.
 // Si salva solo cio' che differisce dal default: i progetti vecchi restano identici.
@@ -1211,7 +1209,7 @@ function starterProject(){
   p.grid[tracks[2].id]=[2,0,1,0, 1,0,1,0, 2,0,1,0, 1,0,1,0];
   p.grid[tracks[3].id]=[0,0,0,0, 0,0,0,1, 0,0,0,0, 0,0,0,1];
   return {name:"Senza titolo", bpm:93, swing:0, tracks, patterns:[p],
-    song:[{id:uid(), patternId:p.id, repeats:4}], mixer:makeMixer()};
+    song:[{id:uid(), patternId:p.id, repeats:4}]};
 }
 
 function normalize(){
@@ -1266,59 +1264,6 @@ function voiceBuffer(track, buf){
   return revCache.get(k);
 }
 
-// ---------- uscite individuali ----------
-// Ogni uscita e' una striscia: EQ a due campane, compressore, pan, livello.
-// I bus vivono sul contesto audio, cosi' un OfflineAudioContext si costruisce i suoi.
-function busChain(ctx, n){
-  if(!ctx.__buses) ctx.__buses=new Map();
-  if(!ctx.__buses.has(n)){
-    const inp=ctx.createGain();
-    const low=ctx.createBiquadFilter(); low.type="lowshelf"; low.frequency.value=120;
-    const high=ctx.createBiquadFilter(); high.type="highshelf"; high.frequency.value=4000;
-    const comp=ctx.createDynamicsCompressor();
-    // Il compressore esce sempre a 2 canali: senza questo nodo porterebbe a stereo
-    // l'ingresso del panner, che smetterebbe di applicare la legge di pan mono e
-    // cambierebbe livello a seconda che il compressore sia acceso o spento.
-    const mono=ctx.createGain(); mono.channelCount=1; mono.channelCountMode="explicit";
-    // DynamicsCompressorNode toglie ~10 dB anche con impostazioni trasparenti:
-    // recupero fisso, misurato, per non far crollare il livello quando lo si accende.
-    const makeup=ctx.createGain(); makeup.gain.value=3.162;
-    const pan=ctx.createStereoPanner();
-    const lvl=ctx.createGain();
-    inp.connect(low); low.connect(high); high.connect(mono);
-    comp.connect(makeup); makeup.connect(mono);
-    mono.connect(pan); pan.connect(lvl); lvl.connect(ctx.destination);
-    ctx.__buses.set(n,{inp,low,high,comp,mono,pan,lvl,compOn:false});
-  }
-  return ctx.__buses.get(n);
-}
-const busSettings = n => (project?.mixer?.[n-1]) || busDefaults();
-function applyBus(b, s){
-  b.low.gain.value=s.low;
-  b.high.gain.value=s.high;
-  b.pan.pan.value=Math.max(-1,Math.min(1,s.pan/100));
-  // SQRT2 compensa i -3 dB della legge di pan al centro: assegnare una riga
-  // a un'uscita non ne cambia il volume rispetto al mix diretto.
-  b.lvl.gain.value=(s.level/100)*Math.SQRT2;
-  b.comp.knee.value=0;
-  b.comp.threshold.value=-(s.comp*0.4);
-  b.comp.ratio.value=1+(s.comp/100)*7;
-  // Da spento il compressore va tenuto proprio fuori dalla catena.
-  const on=s.comp>0;
-  if(b.compOn!==on){
-    b.high.disconnect();
-    b.high.connect(on ? b.comp : b.mono);
-    b.compOn=on;
-  }
-}
-// out 0 = mix principale, dritto all'uscita come prima.
-function busInput(ctx, n){
-  if(!n) return ctx.destination;
-  const b=busChain(ctx,n);
-  applyBus(b, busSettings(n));
-  return b.inp;
-}
-
 // ctx e chokes si passano per il render offline (export WAV); dal vivo sono il contesto e i choke globali.
 function trigger(track, time, velocity, ctx=actx(), chokes=chokeVoices){
   time=Math.max(0,time);          // un anticipo (feel negativo) sul primo colpo non puo' cadere prima dello zero
@@ -1333,8 +1278,7 @@ function trigger(track, time, velocity, ctx=actx(), chokes=chokeVoices){
   const master=+document.getElementById("masterVol").value/100;
   gain.gain.value=Math.min(1.4, track.vol*velocity*master);
 
-  // Lowpass a 4 poli (due biquad in cascata), nello spirito dei VCF SSM2044
-  // sulle uscite individuali della macchina.
+  // Lowpass a 4 poli (due biquad in cascata), nello spirito dei VCF SSM2044 della macchina.
   const hz=cutoffHz(track.cutoff);
   if(hz<19000){
     const f1=ctx.createBiquadFilter(), f2=ctx.createBiquadFilter();
@@ -1345,7 +1289,7 @@ function trigger(track, time, velocity, ctx=actx(), chokes=chokeVoices){
   } else {
     src.connect(gain);
   }
-  gain.connect(busInput(ctx, track.out||0));
+  gain.connect(ctx.destination);
 
   const offset=Math.min(0.95, (track.start||0)/100)*buf.duration;
   const avail=Math.max(0.01, (buf.duration-offset)/rate);
@@ -1544,69 +1488,12 @@ function voicePanel(t){
   nw.append("Feel ", nr, nval);
   box.appendChild(nw);
 
-  const outW=document.createElement("label"); outW.className="vparam";
-  const out=document.createElement("select"); out.className="tune"; out.title="Uscita individuale";
-  for(let i=0;i<=OUTS;i++){
-    const o=document.createElement("option");
-    o.value=i; o.textContent=i?("Out "+i):"Mix";
-    out.appendChild(o);
-  }
-  out.value=t.out||0;
-  out.onchange=()=>{ pushUndo(); t.out=+out.value; renderMixer(); };
-  outW.append("Uscita ", out);
-  box.appendChild(outW);
-
   const rev=document.createElement("button");
   rev.className="chip-btn rev"+(t.reverse?" on s":""); rev.textContent="REV";
   rev.title="Riproduci il campione al contrario";
   rev.onclick=()=>{ pushUndo(); t.reverse=!t.reverse; renderTracks(); };
   box.appendChild(rev);
   return box;
-}
-
-function renderMixer(){
-  const host=el("mixer");
-  if(!host) return;
-  host.innerHTML="";
-  for(let n=1;n<=OUTS;n++){
-    const s=busSettings(n);
-    const used=project.tracks.filter(t=>(t.out||0)===n);
-    const strip=document.createElement("div");
-    strip.className="strip"+(used.length?" used":"");
-
-    const h=document.createElement("h4"); h.textContent="Out "+n;
-    strip.appendChild(h);
-
-    const who=document.createElement("div"); who.className="assigned";
-    who.innerHTML = used.length
-      ? used.map(t=>`<b>${sampleLabel(t.sampleIndex)}</b>`).join("<br>")
-      : "nessuna riga";
-    strip.appendChild(who);
-
-    const knob=(label,key,min,max,fmt)=>{
-      const w=document.createElement("div"); w.className="mp";
-      const lab=document.createElement("div"); lab.className="lab";
-      const a=document.createElement("span"); a.textContent=label;
-      const b=document.createElement("span"); b.textContent=fmt(s[key]);
-      lab.append(a,b);
-      const r=document.createElement("input");
-      r.type="range"; r.min=min; r.max=max; r.value=s[key];
-      r.oninput=()=>{
-        s[key]=+r.value; b.textContent=fmt(s[key]);
-        applyBus(busChain(actx(),n), s);   // udibile subito, anche in play
-      };
-      r.onchange=()=>pushUndo();
-      w.append(lab,r);
-      strip.appendChild(w);
-    };
-    knob("Livello","level",0,120, v=> v+"%");
-    knob("Pan","pan",-100,100, v=> v===0?"C":(v<0?"L"+(-v):"R"+v));
-    knob("Low","low",-12,12, v=> (v>0?"+":"")+v+" dB");
-    knob("High","high",-12,12, v=> (v>0?"+":"")+v+" dB");
-    knob("Comp","comp",0,100, v=> v?v+"%":"off");
-
-    host.appendChild(strip);
-  }
 }
 
 function renderTracks(){
@@ -2107,12 +1994,10 @@ function renderSong(){
 function setView(v){
   el("viewGrid").classList.toggle("on",v==="grid");
   el("viewSeq").classList.toggle("on",v==="seq");
-  el("viewMix").classList.toggle("on",v==="mix");
   el("viewRecent").classList.toggle("on",v==="recent");
   el("panelPatterns").hidden = v!=="grid";
   el("panelGrid").hidden = v!=="grid";
   el("panelSeq").hidden = v!=="seq";
-  el("panelMix").hidden = v!=="mix";
   el("panelRecent").hidden = v!=="recent";
   el("helpKeys").hidden = v==="recent";
   // Rec registra nella griglia del pattern: fuori dalla Griglia sparisce e si spegne
@@ -2120,14 +2005,13 @@ function setView(v){
   if(v!=="grid" && recording){ recording=false; el("recBtn").classList.remove("on"); }
   if(v==="recent") refreshRecent();
   if(v==="seq") renderSong();
-  if(v==="mix") renderMixer();
 }
 
 function fmtDuration(sec){
   const s=Math.round(sec);
   return `${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`;
 }
-function renderAll(){ renderPatterns(); renderRuler(); renderTracks(); renderSong(); renderMixer(); }
+function renderAll(){ renderPatterns(); renderRuler(); renderTracks(); renderSong(); }
 
 // ---------- playing pads ----------
 // Modalita' del click sugli step -> campo del blocco che cambia (Colpi non ne ha)
@@ -2176,6 +2060,7 @@ function recordHit(track){
 let isGuest=false, isMember=false;   // isMember: utente registrato (user o admin)
 fetch("/api/me",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(me=>{
   if(!me||!me.name) return;
+  window.__me=me;
   isGuest=me.role==="guest"; isMember=!isGuest;
   if(isMember){ el("recentLabel").textContent="Progetti salvati"; el("recentTitle").textContent="Progetti salvati"; }
   document.body.classList.toggle("guest",isGuest);
@@ -2208,7 +2093,7 @@ el("askInput").addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDef
 el("askDialog").addEventListener("click",e=>{ if(e.target===el("askDialog")) el("askDialog").close("cancel"); });
 
 document.addEventListener("keydown",(e)=>{
-  if(el("askDialog").open) return;
+  if(document.querySelector("dialog[open]")) return;   // conferma, import, segnalazione: i tasti restano alla finestra
   const tag=(document.activeElement&&document.activeElement.tagName)||"";
   if((e.metaKey||e.ctrlKey) && e.key.toLowerCase()==="z" && tag!=="INPUT" && tag!=="TEXTAREA"){
     e.preventDefault(); e.shiftKey?redo():undo(); return;
@@ -2223,7 +2108,6 @@ document.addEventListener("keydown",(e)=>{
 
 // ---------- transport UI ----------
 el("playBtn").onclick=togglePlay;
-el("viewMix").onclick=()=>setView("mix");
 el("viewRecent").onclick=()=>setView("recent");
 el("viewGrid").onclick=()=>setView("grid");
 el("viewSeq").onclick=()=>setView("seq");
@@ -2423,8 +2307,7 @@ function serialize(){
     bpm: bpm(), swing: +el("swingRange").value||0, human: +el("humanRange").value||0,
     sampleSet,
     tracks: project.tracks.map(t=>({id:t.id, sampleIndex:t.sampleIndex, vol:t.vol, tune:t.tune||0, choke:t.choke||0,
-      decay:t.decay, cutoff:t.cutoff, reso:t.reso, start:t.start, reverse:t.reverse, out:t.out||0, nudge:t.nudge||0})),
-    mixer: makeMixer(project.mixer),
+      decay:t.decay, cutoff:t.cutoff, reso:t.reso, start:t.start, reverse:t.reverse, nudge:t.nudge||0})),
     patterns: project.patterns.map(p=>({id:p.id, name:p.name, len:p.len,
       grid:Object.fromEntries(Object.entries(p.grid).map(([k,v])=>[k,v.slice()])),
       ...(p.mods&&Object.keys(p.mods).length?{mods:cloneMods(p.mods)}:{}),
@@ -2442,7 +2325,6 @@ function deserialize(d,keepSel){
     patterns:(d.patterns||[]).map(p=>({id:p.id, name:p.name, len:p.len||16,
       grid:Object.fromEntries(Object.entries(p.grid||{}).map(([k,v])=>[k,v.slice()])), mods:cloneMods(p.mods), lens:{...(p.lens||{})}})),
     song:(d.song||[]).map(b=>({id:b.id, patternId:b.patternId, repeats:b.repeats||1})),
-    mixer: makeMixer(d.mixer),
   };
   const ids=[...project.tracks, ...project.patterns, ...project.song].map(x=>+x.id).filter(n=>!isNaN(n));
   idSeq=Math.max(idSeq, ...(ids.length?ids:[0]))+1;
@@ -2572,7 +2454,7 @@ function previewItem(p){
       const g=(pat.grid||{})[t.id]||[], L=(pat.lens||{})[t.id]||pat.len||16;
       for(let s=0;s<(pat.len||16);s++) arr.push(g[s%L]||0);
     });
-    return {arr, track:{sampleIndex:t.sampleIndex, vol:t.vol??0.8, tune:t.tune||0, choke:t.choke||0, nudge:t.nudge||0, out:0, ...voiceDefaults(t)}};
+    return {arr, track:{sampleIndex:t.sampleIndex, vol:t.vol??0.8, tune:t.tune||0, choke:t.choke||0, nudge:t.nudge||0, ...voiceDefaults(t)}};
   }).filter(v=>v.arr.some(Boolean));
   return voices.length ? {voices, len, bpm:p.bpm||93, swing:p.swing||0, projectId:p.id} : null;
 }
@@ -2765,7 +2647,7 @@ function exportMidi(which){
 }
 
 // ---------- export WAV ----------
-// Stesso percorso del Play (trigger, bus del mixer, choke, mute/solo) ma su un OfflineAudioContext:
+// Stesso percorso del Play (trigger, choke, mute/solo) ma su un OfflineAudioContext:
 // il render e' esatto e piu' veloce del tempo reale. Il pattern esce ripetuto 4 volte, la canzone intera;
 // in coda restano 2 secondi per le code dei piatti.
 const WAV_RATE=44100, WAV_TAIL=2, WAV_PATTERN_LOOPS=4;
@@ -2899,7 +2781,7 @@ function buildLogicMidi(which){
   return new Uint8Array([0x4D,0x54,0x68,0x64, 0,0,0,6, 0,1, 0,2, (MIDI_PPQ>>8)&0xff,MIDI_PPQ&0xff, ...chunk(tempo), ...chunk(drums)]);
 }
 
-// Uno stem per traccia udibile, con mixer ed effetti come nel WAV normale. Per non perdere il choke
+// Uno stem per traccia udibile, con gli effetti delle righe come nel WAV normale. Per non perdere il choke
 // (l'hat chiuso che taglia quello aperto) le altre tracce dello stesso gruppo suonano a volume zero.
 async function renderStems(which){
   const {events, length, live}=wavEvents(which);
@@ -3005,7 +2887,7 @@ const DAWS={
 
 function dawSteps(daw, base, tempo, stemInfo){
   const mid=`"${base} - GM.mid"`;
-  const stems=`   24 bit, 44,1 kHz, con mixer ed effetti del sito${stemInfo}.`;
+  const stems=`   24 bit, 44,1 kHz, con volumi ed effetti delle righe${stemInfo}.`;
   if(daw==="logic") return [
     `COME PORTARLO IN LOGIC PRO`,
     `1. Imposta il tempo del progetto a ${tempo} BPM (File > Importa > MIDI sul file .mid importa anche il tempo).`,
@@ -3139,6 +3021,40 @@ el("expSongBtn").onclick=()=>exportMidi("song");
 el("wavPatternBtn").onclick=()=>exportWav("pattern");
 el("wavSongBtn").onclick=()=>exportWav("song");
 
+// ---------- segnala un problema ----------
+// Il server inoltra al bot Telegram dell'admin (o per mail). Nome e mail si precompilano per chi ha un account;
+// #segnala nell'indirizzo apre la finestra (serve ai link dalle altre pagine).
+function openReport(){
+  const me=window.__me;
+  if(me && me.role!=="guest"){
+    if(!el("repName").value) el("repName").value=me.name||"";
+    if(!el("repMail").value) el("repMail").value=me.email||"";
+  }
+  el("repStatus").textContent=""; el("repStatus").className="import-msg";
+  el("reportDialog").showModal();
+  (el("repName").value?el("repMsg"):el("repName")).focus();
+}
+async function sendReport(){
+  const msg=el("repMsg").value.trim(), st=el("repStatus");
+  if(!msg){ st.textContent="scrivi il messaggio"; st.className="import-msg err"; el("repMsg").focus(); return; }
+  const info=[`versione ${SW_VERSION}`, `macchina ${KITS[sampleSet]?.label||sampleSet}`, `tema ${document.documentElement.dataset.theme||"?"}`,
+    `schermo ${innerWidth}x${innerHeight}`, navigator.userAgent].join(" · ");
+  el("repSend").disabled=true; st.textContent="invio…"; st.className="import-msg";
+  try{
+    const r=await fetch("/api/report",{method:"POST", headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({name:el("repName").value, email:el("repMail").value, message:msg, page:location.pathname+location.search, info})});
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok) throw new Error(j.error||"invio non riuscito");
+    el("repMsg").value=""; el("reportDialog").close(); setStatus("segnalazione inviata, grazie!");
+  }catch(e){
+    st.textContent=(e.message||"invio non riuscito")+(navigator.onLine?"":" (sei offline)"); st.className="import-msg err";
+  }finally{ el("repSend").disabled=false; }
+}
+el("reportBtn").onclick=openReport;
+el("repSend").onclick=sendReport;
+el("repMsg").addEventListener("keydown",e=>{ if(e.key==="Enter" && (e.metaKey||e.ctrlKey)){ e.preventDefault(); sendReport(); } });
+if(location.hash==="#segnala"){ history.replaceState(null,"",location.pathname+location.search); setTimeout(openReport,300); }
+
 // ---------- import ----------
 // I lettori dei formati stanno in engine/import.js e restituiscono colpi in note MIDI: qui le note diventano
 // righe (per suono), i colpi step, le battute pattern (quelle uguali una volta sola) e l'ordine la canzone.
@@ -3170,7 +3086,7 @@ function guessMap(res){
 
 function buildImport(res, {add, map}){
   const useMap=map==="auto"?(res.map||guessMap(res)):map;
-  const data=add?serialize():{name:res.name||"Import", bpm:bpm(), swing:0, human:0, sampleSet, tracks:[], patterns:[], song:[], mixer:makeMixer()};
+  const data=add?serialize():{name:res.name||"Import", bpm:bpm(), swing:0, human:0, sampleSet, tracks:[], patterns:[], song:[]};
   if(!add && res.bpm) data.bpm=Math.round(Math.min(240,Math.max(40,res.bpm)));
   const trackOf=new Map(data.tracks.map(t=>[t.sampleIndex,t]));
   const trackFor=idx=>{
@@ -3907,18 +3823,18 @@ window.addEventListener("resize",()=>{
   const KEY="sp1200.theme", root=document.documentElement;
   const buttons=[...document.querySelectorAll("[data-theme-choice]")];
   const metas=[...document.querySelectorAll('meta[name="theme-color"]')];
-  const systemColors=metas.map(m=>m.getAttribute("content"));
   function apply(choice){
-    if(choice==="light"||choice==="dark") root.dataset.theme=choice; else delete root.dataset.theme;
+    root.dataset.theme=choice;
     buttons.forEach(b=>{
       const on=b.dataset.themeChoice===choice;
       b.classList.toggle("on",on); b.setAttribute("aria-pressed",String(on));
     });
     const bg=getComputedStyle(root).getPropertyValue("--bg").trim();
-    metas.forEach((m,i)=>m.setAttribute("content", choice==="auto"?systemColors[i]:bg));
+    metas.forEach(m=>m.setAttribute("content", bg));
   }
+  // una vecchia scelta "auto" (tolta) torna al chiaro
   let choice="light";
-  try{ choice=localStorage.getItem(KEY)||"light"; }catch(e){}
+  try{ choice=localStorage.getItem(KEY)==="dark"?"dark":"light"; }catch(e){}
   apply(choice);
   buttons.forEach(b=>b.onclick=()=>{
     choice=b.dataset.themeChoice;

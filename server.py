@@ -445,10 +445,10 @@ code{word-break:break-all;font-size:12px;background:var(--panel-2);padding:8px;b
 if(location.hash.startsWith("#trasloco=")){ try{ sessionStorage.setItem("trasloco", location.hash.slice(10)); }catch(e){} }
 </script>
 {body}
-<footer class="site-footer">{badge}</footer>
+{footer}
 </body>
 </html>
-""".replace("{badge}", TONGATRON_BADGE)
+"""
 
 
 # Pagina servita sul vecchio indirizzo: legge i dati salvati nel browser per quel dominio, li comprime
@@ -652,8 +652,9 @@ class Handler(BaseHTTPRequestHandler):
             return None, True
 
     # ---------- accesso ----------
-    def _page(self, status, title, body):
-        self._send_html(status, PAGE_SHELL.replace("{title}", html.escape(title)).replace("{body}", body))
+    def _page(self, status, title, body, badge=True):
+        footer = f'<footer class="site-footer">{TONGATRON_BADGE}</footer>' if badge else ""
+        self._send_html(status, PAGE_SHELL.replace("{title}", html.escape(title)).replace("{body}", body).replace("{footer}", footer))
 
     def _form(self):
         """Il form inviato (dict di stringhe), o None se ha gia' risposto (altro sito, troppo grande)."""
@@ -896,7 +897,7 @@ class Handler(BaseHTTPRequestHandler):
     {''.join(rows)}
   </table></div>
   <div class="links"><a href="/">&larr; Torna a PatternMachine</a><a href="/logout">Esci</a></div>
-</div>""")
+</div>""", badge=False)
 
     def _admin_only(self):
         user = self._user()

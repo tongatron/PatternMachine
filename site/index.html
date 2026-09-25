@@ -149,10 +149,11 @@ button, .step, select, input{touch-action:manipulation;}
 }
 /* PWA: installazione, aggiornamento, stato offline */
 /* Ospite: niente salvataggi (progetti, progetti recenti, preferiti). */
-body.guest #saveBtn, body.guest #saveAsBtn, body.guest #viewRecent, body.guest #libTabFav, body.guest .lib-star{display:none;}
+body.guest #saveBtn, body.guest #viewRecent, body.guest #libTabFav, body.guest .lib-star{display:none;}
 .whoami{font-size:10px; letter-spacing:0.06em; color:var(--text); font-weight:700;}
 .logout{font-size:10px; letter-spacing:0.06em; text-transform:uppercase; color:var(--text-dim);}
-#installBtn{border-color:var(--accent-dim); color:var(--accent);}
+#installBtn{text-transform:none; cursor:pointer;}
+#installBtn[hidden]{display:none;}
 .net-badge{font-size:9.5px; letter-spacing:0.06em; text-transform:uppercase; color:var(--danger);
   border:1px solid currentColor; border-radius:4px; padding:1px 5px;}
 .pwa-toast{
@@ -525,12 +526,20 @@ button.danger-fill{background:var(--danger); border-color:var(--danger); color:#
 /* Selettore tema */
 .theme-switch button{padding:4px 8px; font-size:10px;}
 
-table.recent{width:100%; border-collapse:collapse; font-size:11px;}
-table.recent th{text-align:left; color:var(--text-faint); font-weight:700; font-size:9px;
-  letter-spacing:0.08em; text-transform:uppercase; padding:4px 7px; border-bottom:1px solid var(--edge);}
-table.recent td{padding:5px 7px; border-bottom:1px solid var(--edge-soft);}
+table.recent{width:100%; border-collapse:collapse; font-size:13px;}
+table.recent th{text-align:left; color:var(--text-faint); font-weight:700; font-size:10.5px;
+  letter-spacing:0.08em; text-transform:uppercase; padding:5px 8px; border-bottom:1px solid var(--edge);}
+table.recent td{padding:8px; border-bottom:1px solid var(--edge-soft);}
 table.recent tr:last-child td{border-bottom:none;}
-table.recent .nm{font-weight:700;}
+table.recent .nm{font-weight:700; font-size:14px;}
+table.recent td{vertical-align:middle;}
+table.recent tr.rec-row{cursor:pointer;}
+table.recent tr.rec-row:hover td{background:var(--panel-2);}
+/* anteprima: mini griglia del primo pattern + ascolto del pezzo */
+.rec-prev{display:flex; align-items:center; gap:8px;}
+.rec-thumb{display:block; width:96px; height:34px; border:1px solid var(--edge-soft); border-radius:3px; background:var(--panel-2);}
+.rec-play{min-width:30px;}
+tr.playing .rec-play{background:var(--danger); border-color:var(--danger); color:#fff;}
 table.recent tr.current td{background:var(--panel-3);}
 table.recent tr.current .nm::before{content:"\25B6  "; color:var(--accent);}
 table.recent .empty td{color:var(--text-faint); font-style:italic; text-align:center; padding:12px;}
@@ -538,11 +547,11 @@ table.recent .empty td{color:var(--text-faint); font-style:italic; text-align:ce
 .acts{display:flex; gap:5px;}
 
 .status{font-size:10px; color:var(--text-dim); letter-spacing:0.03em;}
-/* pulsante di tongatron.org (tongatron.org/pulsanti, variante D2: contorno sottile, pallino giallo);
-   nel tema scuro testo e contorno si schiariscono per restare leggibili. */
+/* pulsante di tongatron.org (tongatron.org/pulsanti): senza fondo proprio, quindi del colore del sito;
+   variante C2 (contorno giallo, testo chiaro) nel tema scuro, D2 (contorno e testo scuri) nel chiaro. */
 .site-footer{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; margin:22px 0 6px; font-size:11px; color:var(--text-dim);}
 .site-badge{display:inline-flex; align-items:center; gap:10px; text-decoration:none; font:14px system-ui,-apple-system,"Segoe UI",sans-serif;
-  color:#efefed; border:1px solid #8f8f8f; padding:6px 10px; border-radius:6px; transition:.2s;}
+  background:transparent; color:#eee; border:1px solid #ffcc00; padding:6px 10px; border-radius:6px; transition:.2s;}
 .site-badge .mark{width:11px; height:11px; border-radius:50%; background:#ffcc00; flex-shrink:0;}
 .site-badge:hover{transform:translateY(-1px);}
 @media (prefers-color-scheme: light){ :root:not([data-theme="dark"]) .site-badge{color:#111; border-color:#333;} }
@@ -585,17 +594,17 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 <div class="wrap">
   <div class="topbar">
     <h1>PatternMachine</h1>
-    <span class="tagline">Drum machine a step &middot; SP-1200, RX-5, 808, 909, 707, CR-78, LinnDrum &middot; generatore di pattern, canzone, export MIDI</span>
+    <span class="tagline">Drum machine a step, generatore di pattern e canzone, export MIDI</span>
     <a class="linkbtn" href="funzioni.html" style="margin-left:auto" title="come si usa e cosa fa ogni funzione">Istruzioni e funzioni</a>
     <a class="linkbtn" href="app.html" title="PatternMachine come app per macOS: MIDI verso Logic, sync al clock, trascinamento">App per Mac</a>
-    <span class="tagline"><a href="toolkit.html" style="color:var(--text-dim)">Drum Machine Toolkit &rarr;</a></span>
+    <button id="installBtn" class="linkbtn" hidden title="Installa PatternMachine come web app">&#8681; Web app</button>
+    <span class="tagline"><a href="toolkit.html" target="_blank" rel="noopener" style="color:var(--text-dim)">Drum Machine Toolkit &rarr;</a></span>
     <div class="modeswitch theme-switch" role="group" aria-label="Tema dell'interfaccia">
       <button type="button" data-theme-choice="auto" title="Segue il sistema">Auto</button>
       <button type="button" data-theme-choice="light" title="Tema chiaro">&#9728;&#xFE0E; Chiaro</button>
       <button type="button" data-theme-choice="dark" title="Tema scuro">&#9790; Scuro</button>
     </div>
     <span class="net-badge" id="netBadge" hidden>offline</span>
-    <button id="installBtn" class="mini" hidden title="Installa PatternMachine come web app">&#8681; Web app</button>
     <span class="whoami" id="whoami" hidden></span>
     <a class="logout" id="adminLink" href="/admin" title="Utenti registrati" hidden>Utenti</a>
     <a class="logout" id="registerLink" href="/register" title="Crea un account per salvare progetti e preferiti" hidden>Registrati</a>
@@ -606,7 +615,6 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <div class="flexline">
       <input type="text" id="projectName" value="Senza titolo" placeholder="Nome progetto" style="width:210px; flex:0 1 210px;">
       <button id="saveBtn" class="primary">Salva</button>
-      <button id="saveAsBtn">Salva come</button>
       <button id="newBtn">Nuovo</button>
       <details class="export-menu" id="exportMenu">
         <summary>Export</summary>
@@ -640,7 +648,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <button id="viewGrid" class="on">Griglia</button>
     <button id="viewSeq">Sequencer</button>
     <button id="viewMix">Mixer</button>
-    <button id="viewRecent">Progetti recenti <span id="recentCount"></span></button>
+    <button id="viewRecent"><span id="recentLabel">Progetti recenti</span> <span id="recentCount"></span></button>
   </div>
 
   <div class="panel" id="panelPatterns">
@@ -755,11 +763,11 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
   </div>
 
   <div class="panel" id="panelRecent" hidden>
-    <h2>Progetti recenti</h2>
+    <h2 id="recentTitle">Progetti recenti</h2>
     <div class="recent-wrap">
       <table class="recent">
-        <thead><tr><th>Nome</th><th>Macchina</th><th>Aggiornato</th><th>BPM</th><th>Pattern</th><th></th></tr></thead>
-        <tbody id="recentBody"><tr class="empty"><td colspan="6">nessun progetto salvato: usa Salva o Salva come</td></tr></tbody>
+        <thead><tr><th>Anteprima</th><th>Nome</th><th>Macchina</th><th>Aggiornato</th><th>BPM</th><th>Pattern</th><th></th></tr></thead>
+        <tbody id="recentBody"><tr class="empty"><td colspan="7">nessun progetto salvato: usa Salva</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -2109,11 +2117,13 @@ function recordHit(track){
 // ---------- account ----------
 // Nome dell'utente collegato accanto a "Esci"; il link "Utenti" solo per l'admin. Fuori dal server
 // (file locale, app per Mac, offline) /api/me non risponde e resta solo "Esci".
-// L'ospite ("Accedi senza registrarti") usa il sito ma non salva: niente Salva, progetti recenti e preferiti.
-let isGuest=false;
+// L'ospite ("Accedi senza registrarti") usa il sito ma non salva: niente Salva, progetti e preferiti.
+// Per gli utenti registrati la scheda si chiama "Progetti salvati".
+let isGuest=false, isMember=false;   // isMember: utente registrato (user o admin)
 fetch("/api/me",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(me=>{
   if(!me||!me.name) return;
-  isGuest=me.role==="guest";
+  isGuest=me.role==="guest"; isMember=!isGuest;
+  if(isMember){ el("recentLabel").textContent="Progetti salvati"; el("recentTitle").textContent="Progetti salvati"; }
   document.body.classList.toggle("guest",isGuest);
   el("whoami").textContent=me.name; el("whoami").hidden=false;
   el("adminLink").hidden=me.role!=="admin";
@@ -2419,7 +2429,7 @@ async function saveProject(asNew){
       const key=(currentProjectId && !asNew) ? currentProjectId : "p"+Date.now();
       all[key]=data; lsWrite(all); currentProjectId=key; refreshRecent();
     }
-    setStatus("salvato · "+(db?"cloud":"locale"));
+    setStatus(db?"salvato · cloud":isMember?"salvato":"salvato · locale");
   }catch(e){ setStatus("errore salvataggio","err"); }
 }
 async function loadProject(id){
@@ -2429,7 +2439,7 @@ async function loadProject(id){
     else d=lsAll()[id]||null;
     if(!d) return setStatus("progetto non trovato","err");
     if(playing) stop();
-    currentProjectId=id; deserialize(d); setStatus("caricato: "+(d.name||""));
+    currentProjectId=id; deserialize(d); markCurrentRecent(); setStatus("caricato: "+(d.name||""));
   }catch(e){ setStatus("errore caricamento","err"); }
 }
 async function removeProject(id,name){
@@ -2459,19 +2469,95 @@ function fmtDate(ts){
   return d.toLocaleDateString("it-IT",{day:"2-digit",month:"2-digit"})+" "+
          d.toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"});
 }
+// Rinomina un progetto salvato (e il campo del nome, se e' quello aperto).
+async function renameProject(id,name){
+  const nm=await ask({title:"Rinomina progetto", ok:"Rinomina", input:name});
+  if(nm===null) return;
+  const clean=nm.trim()||"Senza titolo";
+  if(clean===name) return;
+  try{
+    if(db){ const s=await db.doc("projects/"+id).get(); if(!s.exists) return; await db.doc("projects/"+id).set({...s.data(), name:clean}); }
+    else { const all=lsAll(); if(!all[id]) return; all[id].name=clean; lsWrite(all); refreshRecent(); }
+    if(id===currentProjectId){ el("projectName").value=clean; project.name=clean; }
+    setStatus("rinominato: "+clean);
+  }catch(e){ setStatus("errore rinomina","err"); }
+}
+
+// Anteprima di un progetto salvato: la canzone (o il primo pattern) messa in fila, colpo per colpo,
+// da ascoltare in loop senza aprirlo. Suona con la macchina scelta adesso; probabilita' e flam non contano.
+function previewItem(p){
+  const pats=new Map((p.patterns||[]).map(x=>[x.id,x]));
+  let seq=[];
+  (p.song||[]).forEach(b=>{ const pat=pats.get(b.patternId); if(pat) for(let r=0;r<Math.max(1,b.repeats||1);r++) seq.push(pat); });
+  if(!seq.length && p.patterns&&p.patterns.length) seq=[p.patterns[0]];
+  const len=seq.reduce((n,pat)=>n+(pat.len||16),0);
+  if(!len) return null;
+  const voices=(p.tracks||[]).map(t=>{
+    const arr=[];
+    seq.forEach(pat=>{
+      const g=(pat.grid||{})[t.id]||[], L=(pat.lens||{})[t.id]||pat.len||16;
+      for(let s=0;s<(pat.len||16);s++) arr.push(g[s%L]||0);
+    });
+    return {arr, track:{sampleIndex:t.sampleIndex, vol:t.vol??0.8, tune:t.tune||0, choke:t.choke||0, nudge:t.nudge||0, out:0, ...voiceDefaults(t)}};
+  }).filter(v=>v.arr.some(Boolean));
+  return voices.length ? {voices, len, bpm:p.bpm||93, swing:p.swing||0, projectId:p.id} : null;
+}
+
+// Mini griglia del primo pattern: una riga per traccia con colpi, accenti piu' pieni.
+function drawThumb(canvas,p){
+  const pat=(p.patterns||[])[0]; if(!pat) return;
+  const rows=(p.tracks||[]).filter(t=>((pat.grid||{})[t.id]||[]).some(Boolean));
+  const dpr=window.devicePixelRatio||1, W=96, H=34;
+  canvas.width=W*dpr; canvas.height=H*dpr;
+  const c=canvas.getContext("2d"); c.scale(dpr,dpr);
+  const css=getComputedStyle(document.documentElement);
+  const on=css.getPropertyValue("--accent").trim()||"#c8471f", off=css.getPropertyValue("--edge-soft").trim()||"#888";
+  const len=pat.len||16, n=Math.max(1,rows.length), cw=(W-4)/len, rh=(H-4)/n;
+  rows.forEach((t,r)=>{
+    const g=pat.grid[t.id], L=(pat.lens||{})[t.id]||len;
+    for(let s=0;s<len;s++){
+      const v=g[s%L];
+      c.fillStyle=v?on:off; c.globalAlpha=v?(v===2?1:0.7):0.35;
+      c.fillRect(2+s*cw+0.5, 2+r*rh+0.5, Math.max(1,cw-1), Math.max(1,rh-1));
+    }
+  });
+  c.globalAlpha=1;
+}
+
+function markCurrentRecent(){
+  document.querySelectorAll("#recentBody tr.rec-row").forEach(tr=>tr.classList.toggle("current",tr.dataset.id===currentProjectId));
+}
+
 function renderRecent(list){
   const body=el("recentBody");
+  if(audition.item&&audition.item.projectId) stopAudition();
   body.innerHTML="";
   if(!list.length){
-    body.innerHTML='<tr class="empty"><td colspan="6">nessun progetto salvato: usa Salva o Salva come</td></tr>';
+    body.innerHTML='<tr class="empty"><td colspan="7">nessun progetto salvato: usa Salva</td></tr>';
     el("recentCount").textContent="";
     return;
   }
   el("recentCount").textContent=`(${list.length})`;
   list.forEach(p=>{
     const tr=document.createElement("tr");
-    if(p.id===currentProjectId) tr.className="current";
+    tr.className="rec-row"+(p.id===currentProjectId?" current":"");
+    tr.dataset.id=p.id;
+    tr.title="clic per aprire il progetto";
     const td=(txt,cls)=>{ const c=document.createElement("td"); if(cls)c.className=cls; c.textContent=txt; return c; };
+    const btn=(txt,cls,title,fn)=>{ const b=document.createElement("button"); b.className=cls; b.textContent=txt; if(title) b.title=title;
+      b.onclick=e=>{ e.stopPropagation(); fn(); }; return b; };
+
+    const item=previewItem(p);
+    tr.__item=item;
+    const prev=document.createElement("td"), pw=document.createElement("div"); pw.className="rec-prev";
+    const play=btn("▶","mini rec-play","Ascolta il pezzo (in loop, con la macchina scelta adesso)",()=>{
+      if(item && audition.item===item) stopAudition(); else if(item) startAudition(item);
+    });
+    play.setAttribute("aria-label","Ascolta"); play.disabled=!item;
+    const cv=document.createElement("canvas"); cv.className="rec-thumb"; cv.setAttribute("aria-hidden","true");
+    pw.appendChild(play); pw.appendChild(cv); prev.appendChild(pw); tr.appendChild(prev);
+    drawThumb(cv,p);
+
     tr.appendChild(td(p.name||"Senza titolo","nm"));
     tr.appendChild(td((KITS[p.sampleSet]||KITS.std).label));
     tr.appendChild(td(fmtDate(p.updatedAt)));
@@ -2479,14 +2565,15 @@ function renderRecent(list){
     tr.appendChild(td((p.patterns||[]).length));
     const acts=document.createElement("td");
     const wrap=document.createElement("div"); wrap.className="acts";
-    const edit=document.createElement("button"); edit.className="mini primary"; edit.textContent="Accedi";
-    edit.title="apre il progetto nella griglia, pronto da modificare";
-    edit.onclick=async()=>{ await loadProject(p.id); setView("grid"); };
-    const del=document.createElement("button"); del.className="mini danger"; del.textContent="Rimuovi";
-    del.onclick=()=>removeProject(p.id,p.name||"Senza titolo");
-    wrap.appendChild(edit); wrap.appendChild(del); acts.appendChild(wrap); tr.appendChild(acts);
+    const open=async()=>{ stopAudition(); await loadProject(p.id); setView("grid"); };
+    wrap.appendChild(btn("Accedi","mini primary","apre il progetto nella griglia, pronto da modificare",open));
+    wrap.appendChild(btn("Rinomina","mini","",()=>renameProject(p.id,p.name||"Senza titolo")));
+    wrap.appendChild(btn("Rimuovi","mini danger","",()=>removeProject(p.id,p.name||"Senza titolo")));
+    acts.appendChild(wrap); tr.appendChild(acts);
+    tr.onclick=open;
     body.appendChild(tr);
   });
+  paintAudition();
 }
 
 let statusTimer=null;
@@ -2498,11 +2585,10 @@ function setStatus(msg,kind){
 }
 
 el("saveBtn").onclick=()=>saveProject(false);
-el("saveAsBtn").onclick=()=>saveProject(true);
 el("newBtn").onclick=async()=>{
   if(!await ask({title:"Nuovo progetto", message:"Le modifiche non salvate del progetto aperto vanno perse.", ok:"Nuovo progetto", danger:true})) return;
   if(playing) stop();
-  currentProjectId=null; project=starterProject(); ui.patternId=project.patterns[0].id;
+  currentProjectId=null; markCurrentRecent(); project=starterProject(); ui.patternId=project.patterns[0].id;
   ui.blockId=project.song[0].id;
   el("projectName").value=project.name; el("bpmNum").value=project.bpm;
   el("bpmRange").value=project.bpm; el("swingRange").value=0; el("humanRange").value=0; paintSwing(); el("pLen").value=16;
@@ -3055,6 +3141,7 @@ const genPattern=(choice,len,opts={})=>SPEngine.generate({
 // senza toccare il progetto. Il Play principale lo ferma, e viceversa.
 const audition={item:null, timer:null, next:0, step:0, voices:[]};
 function auditionVoices(item){
+  if(item.voices) return item.voices;   // anteprima di un progetto salvato
   if(item.byTrack) return project.tracks.filter(t=>item.byTrack[t.id]).map(t=>({track:t, arr:item.byTrack[t.id]}));
   return Object.entries(item.roles).map(([role,arr])=>{
     const d=ROLE_DEFAULTS[role]||{};
@@ -3087,10 +3174,10 @@ function stopAudition(){
   if(audition.item){ audition.item=null; paintAudition(); }
 }
 function paintAudition(){
-  document.querySelectorAll(".lib-item").forEach(row=>{
+  document.querySelectorAll(".lib-item, #recentBody tr.rec-row").forEach(row=>{
     const on=!!audition.item && row.__item===audition.item;
     row.classList.toggle("playing",on);
-    const b=row.querySelector(".lib-play");
+    const b=row.querySelector(".lib-play, .rec-play"); if(!b) return;
     b.textContent=on?"■":"▶";
     b.setAttribute("aria-label",on?"Ferma ascolto":"Ascolta");
   });

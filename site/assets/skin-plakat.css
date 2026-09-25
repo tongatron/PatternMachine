@@ -129,3 +129,5 @@
 
 /* Plakat e' sempre chiara: il selettore Auto/Chiaro/Scuro serve solo all'interfaccia classica. */
 :root[data-skin="plakat"] .theme-switch{display:none;}
+:root[data-skin="plakat"] .linkbtn{border:2px solid #0a0a0a; border-radius:0; background:#ffffff; color:#0a0a0a; font-weight:800;}
+:root[data-skin="plakat"] .linkbtn:hover{background:#0a0a0a; color:#efeee9;}

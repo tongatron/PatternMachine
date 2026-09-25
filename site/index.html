@@ -30,8 +30,8 @@ try{ const t=localStorage.getItem("sp1200.theme"); if(t==="light"||t==="dark") d
   if(ui!=="classic") document.documentElement.dataset.skin=ui;
 })();
 </script>
-<link rel="stylesheet" href="/assets/skin-plakat.css?v=2026-09-25.1">
-<link rel="stylesheet" href="/assets/skin-studio.css?v=2026-09-25.1">
+<link rel="stylesheet" href="/assets/skin-plakat.css?v=2026-09-25.3">
+<link rel="stylesheet" href="/assets/skin-studio.css?v=2026-09-25.3">
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
@@ -175,6 +175,11 @@ button:disabled{opacity:0.35; cursor:default; transform:none;}
 button.primary{background:var(--key-primary,var(--accent)); color:var(--on-accent); border-color:var(--accent-dim); font-weight:700;}
 button.danger{color:var(--danger);}
 button.mini{padding:4px 8px; font-size:10px;}
+/* link con l'aspetto di un pulsante (porta a un'altra pagina, quindi resta un <a>) */
+.linkbtn{display:inline-flex; align-items:center; border:1px solid var(--edge); background:var(--key,var(--panel-2)); color:var(--text);
+  border-radius:var(--r-key,6px); box-shadow:var(--key-shadow,none); padding:6px 12px; font-size:11px; font-weight:700;
+  letter-spacing:0.02em; text-decoration:none; white-space:nowrap;}
+.linkbtn:hover{border-color:var(--accent);}
 
 input[type=text], input[type=number], select{
   font-family:inherit; background:var(--panel-2); color:var(--text);
@@ -499,7 +504,8 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
   <div class="topbar">
     <h1>Drum Machine Lab</h1>
     <span class="tagline">Drum machine a step &middot; SP-1200, RX-5, 808, 909 &middot; generatore di pattern, canzone, export MIDI</span>
-    <span class="tagline" style="margin-left:auto"><a href="/funzioni.html" style="color:var(--text-dim)">Funzioni tecniche</a> &middot; <a href="/toolkit.html" style="color:var(--text-dim)">Drum Machine Toolkit &rarr;</a></span>
+    <a class="linkbtn" href="funzioni.html" style="margin-left:auto" title="come si usa e cosa fa ogni funzione">Istruzioni e funzioni</a>
+    <span class="tagline"><a href="toolkit.html" style="color:var(--text-dim)">Drum Machine Toolkit &rarr;</a></span>
     <label class="fld" title="cambia grafica">Interfaccia
       <select id="uiSwitch">
         <option value="studio">Studio</option>
@@ -731,18 +737,18 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-25.1"></script>
-<script src="engine/styles-punk.js?v=2026-09-25.1"></script>
-<script src="engine/styles-post.js?v=2026-09-25.1"></script>
-<script src="engine/styles-machines.js?v=2026-09-25.1"></script>
-<script src="engine/styles-alt.js?v=2026-09-25.1"></script>
-<script src="engine/styles-groove.js?v=2026-09-25.1"></script>
-<script src="engine/styles-dub.js?v=2026-09-25.1"></script>
-<script src="engine/styles-break.js?v=2026-09-25.1"></script>
-<script src="engine/styles-soul.js?v=2026-09-25.1"></script>
-<script src="engine/styles-metal.js?v=2026-09-25.1"></script>
-<script src="engine/styles-electro.js?v=2026-09-25.1"></script>
-<script src="engine/variations.js?v=2026-09-25.1"></script>
+<script src="engine/core.js?v=2026-09-25.3"></script>
+<script src="engine/styles-punk.js?v=2026-09-25.3"></script>
+<script src="engine/styles-post.js?v=2026-09-25.3"></script>
+<script src="engine/styles-machines.js?v=2026-09-25.3"></script>
+<script src="engine/styles-alt.js?v=2026-09-25.3"></script>
+<script src="engine/styles-groove.js?v=2026-09-25.3"></script>
+<script src="engine/styles-dub.js?v=2026-09-25.3"></script>
+<script src="engine/styles-break.js?v=2026-09-25.3"></script>
+<script src="engine/styles-soul.js?v=2026-09-25.3"></script>
+<script src="engine/styles-metal.js?v=2026-09-25.3"></script>
+<script src="engine/styles-electro.js?v=2026-09-25.3"></script>
+<script src="engine/variations.js?v=2026-09-25.3"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -3188,7 +3194,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-25.1";
+const SW_VERSION="2026-09-25.3";
 (function pwa(){
   const standalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
   const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);

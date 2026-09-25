@@ -32,7 +32,7 @@ for name in sorted(os.listdir(site())):
 # I social aprono il link, vengono rimandati alla pagina di accesso e leggono i tag og: da li':
 # quella pagina deve averli, con un'immagine pubblica (altrimenti l'anteprima resta vuota).
 open_paths = set(re.findall(r'"(/[^"]+)"', re.search(r"OPEN_PATHS = \{(.*?)\}", server, re.S).group(1)))
-login = re.search(r'LOGIN_PAGE = (?:r?"""|r?\'\'\')(.*?)(?:"""|\'\'\')', server, re.S)
+login = re.search(r'PAGE_SHELL = (?:r?"""|r?\'\'\')(.*?)(?:"""|\'\'\')', server, re.S)
 check(login is not None, "pagina di accesso non trovata in server.py")
 for name, text in (("pagina di accesso", login.group(1) if login else ""), ("index.html", read(site("index.html")))):
     for tag in ("og:title", "og:description", "og:image", "twitter:image"):

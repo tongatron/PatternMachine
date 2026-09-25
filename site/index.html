@@ -146,6 +146,7 @@ button, .step, select, input{touch-action:manipulation;}
   body{overscroll-behavior-y:none;}
 }
 /* PWA: installazione, aggiornamento, stato offline */
+.whoami{font-size:10px; letter-spacing:0.06em; color:var(--text); font-weight:700;}
 .logout{font-size:10px; letter-spacing:0.06em; text-transform:uppercase; color:var(--text-dim);}
 #installBtn{border-color:var(--accent-dim); color:var(--accent);}
 .net-badge{font-size:9.5px; letter-spacing:0.06em; text-transform:uppercase; color:var(--danger);
@@ -571,7 +572,9 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     </div>
     <span class="net-badge" id="netBadge" hidden>offline</span>
     <button id="installBtn" class="mini" hidden>&#8681; Installa app</button>
-    <a class="logout" href="/logout" title="Esci dal sito protetto">Esci</a>
+    <span class="whoami" id="whoami" hidden></span>
+    <a class="logout" id="adminLink" href="/admin" title="Utenti registrati" hidden>Utenti</a>
+    <a class="logout" href="/logout" title="Esci dal tuo account">Esci</a>
   </div>
 
   <div class="panel">
@@ -2065,6 +2068,15 @@ function recordHit(track){
     if(els&&els[i]) paintStep(els[i],arr[i],i,modOf(pat,track.id,i));
   }
 }
+
+// ---------- account ----------
+// Nome dell'utente collegato accanto a "Esci"; il link "Utenti" solo per l'admin. Fuori dal server
+// (file locale, app per Mac, offline) /api/me non risponde e resta solo "Esci".
+fetch("/api/me",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(me=>{
+  if(!me||!me.name) return;
+  el("whoami").textContent=me.name; el("whoami").hidden=false;
+  el("adminLink").hidden=me.role!=="admin";
+}).catch(()=>{});
 
 // ---------- finestra di conferma ----------
 // Sostituisce confirm() e prompt() del browser con una finestra del sito.

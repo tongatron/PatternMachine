@@ -5,19 +5,24 @@ import html
 import json
 import os
 import re
+import secrets
 import shutil
+import smtplib
+import sys
 import threading
 import time
 import uuid
 from datetime import datetime, timezone
+from email.message import EmailMessage
+from email.utils import formataddr
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, quote, unquote, urlparse
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(ROOT, "data")
 DATA_FILE = os.path.join(DATA_DIR, "patterns.json")
-AUTH_FILE = (os.environ.get("PATTERNMACHINE_AUTH") or os.environ.get("DRUMMACHINE_AUTH")
-             or os.path.join(ROOT, "auth.json"))
+USERS_FILE = os.environ.get("PATTERNMACHINE_USERS") or os.path.join(DATA_DIR, "users.json")
+MAIL_FILE = os.environ.get("PATTERNMACHINE_MAIL") or os.path.join(ROOT, "mail.json")
 
 # Dal 2026-09 il sito si chiama PatternMachine. Il vecchio indirizzo resta attivo solo per il trasloco:
 # le pagine portano progetti, preferiti e tema (salvati nel browser, quindi legati al dominio) al nuovo
@@ -28,14 +33,14 @@ LOCK = threading.Lock()
 
 PATTERN_ID_RE = re.compile(r"^/api/patterns/([A-Za-z0-9\-]+)$")
 
-# Si serve solo cio' che fa parte del sito: server.py, auth.json, data/ e qualunque altro
+# Si serve solo cio' che fa parte del sito: server.py, mail.json, data/ e qualunque altro
 # file lasciato nella cartella (backup, appunti) restano fuori.
 STATIC_FILES = {"index.html", "toolkit.html", "funzioni.html", "app.html", "manifest.json", "sw.js"}
 # download/: l'app per macOS (zip da ~100 MB) e app.json con versione e dimensione, scritti da desktop/scripts/release.sh.
 STATIC_DIRS = ("engine/", "icons/", "samples/", "samples12/", "machines/", "assets/", "download/")
 
 # Visibili senza password: servono al browser per installare la PWA e alle anteprime dei link.
-OPEN_PATHS = {"/login", "/logout", "/manifest.json", "/assets/og-sp1200.png", "/assets/og-drum-machine-lab.jpg"}
+OPEN_PATHS = {"/login", "/logout", "/register", "/forgot", "/reset", "/manifest.json", "/assets/og-sp1200.png", "/assets/og-drum-machine-lab.jpg"}
 OPEN_DIRS = ("/icons/",)
 
 # Dietro la password niente cache condivise (Cloudflare): "private" tiene la copia solo nel
@@ -96,55 +101,139 @@ def is_public(rel):
     return rel in STATIC_FILES or rel.startswith(STATIC_DIRS)
 
 
-# ---------- password e sessioni ----------
-# auth.json (creato da scripts/set-password.py): hash PBKDF2 della password e segreto che
-# firma i cookie. Senza file il sito resta chiuso: nessuna password funziona.
-def load_auth():
+# ---------- utenti e sessioni ----------
+# data/users.json (mai servito): segreto che firma i cookie, utenti con hash PBKDF2 della password e
+# token di reset (solo l'hash sha256, validi un'ora, usabili una volta). Il primo admin si crea sul
+# server con scripts/add-user.py; dal sito ci si registra solo come utente.
+ITERATIONS = int(os.environ.get("PATTERNMACHINE_PBKDF2_ITER", "600000"))
+MAX_USERNAME = 40
+RESET_TTL = 3600
+EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+USERS_LOCK = threading.Lock()
+
+
+def load_users():
     try:
-        with open(AUTH_FILE, "r", encoding="utf-8") as f:
-            a = json.load(f)
-        return {"salt": bytes.fromhex(a["salt"]), "hash": bytes.fromhex(a["hash"]),
-                "iterations": int(a["iterations"]), "secret": bytes.fromhex(a["secret"])}
-    except (OSError, ValueError, KeyError, TypeError):
+        with open(USERS_FILE, "r", encoding="utf-8") as f:
+            db = json.load(f)
+    except (OSError, ValueError):
+        db = {}
+    db.setdefault("users", [])
+    db.setdefault("resets", [])
+    return db
+
+
+def save_users(db):
+    os.makedirs(os.path.dirname(USERS_FILE), exist_ok=True)
+    tmp = USERS_FILE + ".tmp"
+    fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    with os.fdopen(fd, "w", encoding="utf-8") as f:
+        json.dump(db, f, ensure_ascii=False, indent=2)
+    os.replace(tmp, USERS_FILE)
+
+
+def users_secret(db):
+    """Il segreto dei cookie; se manca lo crea (chi lo chiama deve salvare db)."""
+    if not db.get("secret"):
+        db["secret"] = secrets.token_hex(32)
+    return bytes.fromhex(db["secret"])
+
+
+def hash_password(password, salt=None):
+    salt = salt or secrets.token_bytes(16)
+    digest = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, ITERATIONS)
+    return {"salt": salt.hex(), "hash": digest.hex(), "iterations": ITERATIONS}
+
+
+def check_password(user, password):
+    digest = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), bytes.fromhex(user["salt"]), int(user["iterations"]))
+    return hmac.compare_digest(digest.hex(), user["hash"])
+
+
+def name_key(name):
+    return " ".join(name.split()).casefold()
+
+
+def clean_name(name):
+    name = " ".join((name or "").split())
+    if not name or len(name) > MAX_USERNAME or any(ord(c) < 32 for c in name):
         return None
+    return name
 
 
-def check_password(auth, password):
-    digest = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), auth["salt"], auth["iterations"])
-    return hmac.compare_digest(digest, auth["hash"])
+def find_user(db, name=None, uid=None):
+    for u in db["users"]:
+        if (uid and u["id"] == uid) or (name and name_key(u["name"]) == name_key(name)):
+            return u
+    return None
 
 
-def make_session(auth, now=None):
+def new_user(name, password, email="", role="user"):
+    return {"id": uuid.uuid4().hex, "name": name, "email": email, "role": role, "pwv": 1,
+            "created_at": now_iso(), "last_login": "", **hash_password(password)}
+
+
+def set_user_password(user, password):
+    user.update(hash_password(password))
+    user["pwv"] = int(user.get("pwv", 1)) + 1        # le sessioni aperte con la vecchia password decadono
+
+
+# Cookie: v2.<id utente>.<versione password>.<scadenza>.<firma>
+def make_session(secret, user, now=None):
     expires = int((now or time.time()) + SESSION_DAYS * 86400)
-    payload = f"v1.{expires}"
-    sig = hmac.new(auth["secret"], payload.encode(), hashlib.sha256).hexdigest()
-    return f"{payload}.{sig}"
+    payload = f"v2.{user['id']}.{user.get('pwv', 1)}.{expires}"
+    return payload + "." + hmac.new(secret, payload.encode(), hashlib.sha256).hexdigest()
 
 
-def valid_session(auth, value, now=None):
+def session_user(db, value, now=None):
     try:
-        version, expires, sig = value.split(".")
+        version, uid, pwv, expires, sig = value.split(".")
     except (AttributeError, ValueError):
-        return False
-    good = hmac.new(auth["secret"], f"{version}.{expires}".encode(), hashlib.sha256).hexdigest()
-    return (version == "v1" and hmac.compare_digest(sig, good)
-            and expires.isdigit() and int(expires) > (now or time.time()))
+        return None
+    if version != "v2" or not db.get("secret") or not expires.isdigit() or int(expires) <= (now or time.time()):
+        return None
+    good = hmac.new(bytes.fromhex(db["secret"]), f"{version}.{uid}.{pwv}.{expires}".encode(), hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(sig, good):
+        return None
+    user = find_user(db, uid=uid)
+    return user if user and str(user.get("pwv", 1)) == pwv else None
 
 
+def make_reset(db, user):
+    token = secrets.token_urlsafe(32)
+    now = time.time()
+    db["resets"] = [r for r in db["resets"] if r["expires"] > now]
+    db["resets"].append({"hash": hashlib.sha256(token.encode()).hexdigest(), "uid": user["id"], "expires": int(now + RESET_TTL)})
+    return token
+
+
+def reset_user(db, token):
+    if not token:
+        return None
+    h = hashlib.sha256(token.encode()).hexdigest()
+    for r in db["resets"]:
+        if hmac.compare_digest(r["hash"], h) and r["expires"] > time.time():
+            return find_user(db, uid=r["uid"])
+    return None
+
+
+# Limite di tentativi per IP, separato per azione (login sbagliati, registrazioni, richieste di reset).
+LIMITS = {"login": LOGIN_MAX_FAILS, "register": 10, "forgot": 5}
 FAILS = {}
 FAILS_LOCK = threading.Lock()
 
 
-def too_many_fails(ip):
+def too_many(ip, kind="login"):
     cutoff = time.time() - LOGIN_WINDOW
     with FAILS_LOCK:
-        FAILS[ip] = [t for t in FAILS.get(ip, []) if t > cutoff]
-        return len(FAILS[ip]) >= LOGIN_MAX_FAILS
+        key = (kind, ip)
+        FAILS[key] = [t for t in FAILS.get(key, []) if t > cutoff]
+        return len(FAILS[key]) >= LIMITS[kind]
 
 
-def note_fail(ip):
+def note(ip, kind="login"):
     with FAILS_LOCK:
-        FAILS.setdefault(ip, []).append(time.time())
+        FAILS.setdefault((kind, ip), []).append(time.time())
 
 
 def safe_next(target):
@@ -154,20 +243,109 @@ def safe_next(target):
     return target
 
 
-LOGIN_PAGE = """<!doctype html>
+# ---------- mail (Gmail) ----------
+# mail.json accanto a server.py (mai servito, creato da scripts/set-mail.py): {"user", "app_password", "from_name"}.
+# In alternativa le variabili PATTERNMACHINE_SMTP_USER / PATTERNMACHINE_SMTP_PASS. Senza configurazione
+# le mail non partono (la registrazione funziona lo stesso). PATTERNMACHINE_MAIL_OUTBOX=<cartella>
+# scrive le mail come file .eml invece di spedirle: serve ai test e in locale.
+def mail_config():
+    cfg = {}
+    try:
+        with open(MAIL_FILE, "r", encoding="utf-8") as f:
+            cfg = json.load(f)
+    except (OSError, ValueError):
+        pass
+    user = os.environ.get("PATTERNMACHINE_SMTP_USER") or cfg.get("user")
+    pw = os.environ.get("PATTERNMACHINE_SMTP_PASS") or cfg.get("app_password")
+    if not (user and pw) and not os.environ.get("PATTERNMACHINE_MAIL_OUTBOX"):
+        return None
+    return {"user": user or "patternmachine@localhost", "password": pw or "",
+            "from_name": cfg.get("from_name") or "PatternMachine",
+            "host": cfg.get("host") or "smtp.gmail.com", "port": int(cfg.get("port") or 465)}
+
+
+def send_mail(to, subject, text, html_body):
+    """Spedisce in un thread: la pagina risponde subito. Gli errori finiscono nel log del servizio."""
+    cfg = mail_config()
+    if not cfg or not to:
+        return False
+    msg = EmailMessage()
+    msg["Subject"] = subject
+    msg["From"] = formataddr((cfg["from_name"], cfg["user"]))
+    msg["To"] = to
+    msg.set_content(text)
+    msg.add_alternative(html_body, subtype="html")
+
+    def work():
+        outbox = os.environ.get("PATTERNMACHINE_MAIL_OUTBOX")
+        try:
+            if outbox:
+                os.makedirs(outbox, exist_ok=True)
+                with open(os.path.join(outbox, f"{time.time():.6f}.eml"), "wb") as f:
+                    f.write(bytes(msg))
+                return
+            with smtplib.SMTP_SSL(cfg["host"], cfg["port"], timeout=20) as smtp:
+                smtp.login(cfg["user"], cfg["password"])
+                smtp.send_message(msg)
+        except Exception as e:     # noqa: BLE001 - una mail persa non deve fermare il server
+            print(f"mail a {to} non spedita: {e}", file=sys.stderr, flush=True)
+    threading.Thread(target=work, daemon=True).start()
+    return True
+
+
+def mail_html(title, intro, button_text, button_url, rows=(), outro=""):
+    e = html.escape
+    table = "".join(f'<tr><td style="padding:6px 14px 6px 0;color:#6b6f75;">{e(k)}</td>'
+                    f'<td style="padding:6px 0;font-weight:700;">{e(v)}</td></tr>' for k, v in rows)
+    return f"""<!doctype html><html lang="it"><head><meta charset="utf-8"></head><body style="margin:0;background:#eceae4;padding:24px 12px;
+font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;color:#1b1d20;">
+<div style="max-width:480px;margin:0 auto;background:#fff;border-radius:12px;padding:26px 24px;">
+<div style="font:700 15px ui-monospace,Menlo,monospace;letter-spacing:.2em;text-transform:uppercase;">PatternMachine</div>
+<div style="height:2px;background:#3b8fd6;margin:8px 0 20px;"></div>
+<h1 style="font-size:19px;margin:0 0 10px;">{e(title)}</h1>
+<p style="font-size:14px;line-height:1.55;margin:0 0 16px;">{e(intro)}</p>
+{f'<table style="font-size:14px;border-collapse:collapse;margin:0 0 20px;">{table}</table>' if rows else ''}
+<a href="{e(button_url)}" style="display:inline-block;background:#4f9e63;color:#fff;text-decoration:none;font-weight:700;
+letter-spacing:.08em;text-transform:uppercase;font-size:13px;padding:13px 22px;border-radius:9px;">{e(button_text)}</a>
+{f'<p style="font-size:12px;line-height:1.5;color:#6b6f75;margin:20px 0 0;">{e(outro)}</p>' if outro else ''}
+</div></body></html>"""
+
+
+def send_welcome(user, password):
+    rows = [("Nome", user["name"]), ("Password", password), ("Email", user["email"])]
+    text = (f"Ciao {user['name']}, benvenuto su PatternMachine!\n\n"
+            f"Nome: {user['name']}\nPassword: {password}\nEmail: {user['email']}\n\nEntra: {SITE_URL}/login\n")
+    return send_mail(user["email"], "Benvenuto su PatternMachine",
+                     text, mail_html(f"Benvenuto, {user['name']}!", "Il tuo account è pronto. Queste sono le tue credenziali:",
+                                     "Apri PatternMachine", SITE_URL + "/login", rows,
+                                     "Conserva questa mail: se dimentichi la password puoi reimpostarla dalla pagina di accesso."))
+
+
+def send_reset(user, token):
+    url = f"{SITE_URL}/reset?token={token}"
+    text = (f"Ciao {user['name']},\n\nper scegliere una nuova password apri questo link (vale un'ora):\n{url}\n\n"
+            "Se non l'hai chiesto tu, ignora questa mail: la password resta quella di prima.\n")
+    return send_mail(user["email"], "PatternMachine: nuova password", text,
+                     mail_html("Nuova password", f"Ciao {user['name']}, per scegliere una nuova password usa il pulsante qui sotto. Il link vale un'ora e si usa una volta sola.",
+                               "Scegli la nuova password", url, (),
+                               "Se non l'hai chiesto tu, ignora questa mail: la password resta quella di prima."))
+
+
+# Pagine di accesso (login, registrazione, recupero, admin): un solo guscio, {title} e {body} cambiano.
+PAGE_SHELL = """<!doctype html>
 <html lang="it">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#15171a">
-<title>PatternMachine — Accesso</title>
-<meta name="description" content="Drum machine a step con SP-1200, RX-5, 808 e 909: generatore di pattern in decine di stili, variazioni, arrangiamento della canzone ed export MIDI.">
-<!-- Anteprima dei link: chi condivide un link arriva qui (il sito e' dietro password), quindi i tag stanno in questa pagina. -->
+<title>PatternMachine — {title}</title>
+<meta name="description" content="Drum machine a step con SP-1200, RX-5, 808, 909, 707, CR-78 e LinnDrum: generatore di pattern in decine di stili, variazioni, arrangiamento della canzone ed export MIDI.">
+<!-- Anteprima dei link: chi condivide un link arriva qui (il sito e' dietro accesso), quindi i tag stanno in questa pagina. -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="PatternMachine">
 <meta property="og:title" content="PatternMachine — drum machine a step con generatore di pattern">
-<meta property="og:description" content="Drum machine a step con SP-1200, RX-5, 808 e 909: generatore di pattern in decine di stili, variazioni, arrangiamento della canzone ed export MIDI.">
+<meta property="og:description" content="Drum machine a step con SP-1200, RX-5, 808, 909, 707, CR-78 e LinnDrum: generatore di pattern in decine di stili, variazioni, arrangiamento della canzone ed export MIDI.">
 <meta property="og:image" content="https://patternmachine.tongatron.org/assets/og-drum-machine-lab.jpg">
 <meta property="og:image:type" content="image/jpeg">
 <meta property="og:image:width" content="1200">
@@ -177,7 +355,6 @@ LOGIN_PAGE = """<!doctype html>
 <meta property="og:locale" content="it_IT">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="PatternMachine — drum machine a step con generatore di pattern">
-<meta name="twitter:description" content="Drum machine a step con SP-1200, RX-5, 808 e 909: generatore di pattern in decine di stili, variazioni, arrangiamento della canzone ed export MIDI.">
 <meta name="twitter:image" content="https://patternmachine.tongatron.org/assets/og-drum-machine-lab.jpg">
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
@@ -190,18 +367,35 @@ LOGIN_PAGE = """<!doctype html>
 body{margin:0;min-height:100vh;display:grid;place-items:center;background:var(--bg);color:var(--text);
   font-family:"SF Mono","JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
   padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));}
-form{width:min(340px,100%);background:var(--panel);border:1px solid var(--edge);border-radius:12px;padding:22px 20px;
+.card{width:min(360px,100%);background:var(--panel);border:1px solid var(--edge);border-radius:12px;padding:22px 20px;
   box-shadow:0 18px 50px rgba(0,0,0,.35);}
+.card.wide{width:min(760px,100%);}
 h1{margin:0 0 4px;font-size:16px;letter-spacing:.2em;text-transform:uppercase;}
 .line{height:2px;background:var(--accent);margin:0 0 18px;}
-p{margin:0 0 14px;font-size:11px;color:var(--dim);line-height:1.5;}
-label{display:block;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin-bottom:6px;}
+p{margin:0 0 14px;font-size:12px;color:var(--dim);line-height:1.55;}
+label{display:block;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin:12px 0 6px;}
+label .opt{text-transform:none;letter-spacing:0;}
 input{width:100%;font:inherit;font-size:16px;padding:11px 12px;border-radius:8px;border:1px solid var(--edge);
   background:var(--panel-2);color:var(--text);}
 input:focus{outline:2px solid var(--accent);outline-offset:1px;}
-button{width:100%;margin-top:14px;font:inherit;font-size:14px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
-  padding:12px;border-radius:9px;border:0;background:var(--ok);color:var(--on-ok);cursor:pointer;}
-.err{color:var(--danger);font-size:11px;margin:10px 0 0;min-height:1em;}
+button,.btn{display:inline-block;width:100%;margin-top:16px;font:inherit;font-size:14px;font-weight:800;letter-spacing:.12em;
+  text-transform:uppercase;padding:12px;border-radius:9px;border:0;background:var(--ok);color:var(--on-ok);cursor:pointer;
+  text-align:center;text-decoration:none;}
+button.small,.btn.small{width:auto;margin:0;padding:6px 10px;font-size:10px;letter-spacing:.08em;}
+button.ghost,.btn.ghost{background:transparent;color:var(--text);border:1px solid var(--edge);}
+button.danger{background:var(--danger);color:#fff;}
+.err{color:var(--danger);font-size:12px;margin:10px 0 0;min-height:1em;}
+.ok{color:var(--ok);font-size:12px;margin:0 0 12px;line-height:1.5;}
+.links{display:flex;justify-content:space-between;gap:10px;margin-top:16px;font-size:11px;}
+a{color:var(--accent);}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{text-align:left;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);padding:6px 8px 6px 0;border-bottom:1px solid var(--edge);}
+td{padding:8px 8px 8px 0;border-bottom:1px solid var(--edge);vertical-align:middle;}
+td form{display:inline;}
+.row-acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;}
+.tag{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);}
+.table-wrap{overflow-x:auto;}
+code{word-break:break-all;font-size:12px;background:var(--panel-2);padding:8px;border-radius:6px;display:block;margin:0 0 12px;}
 </style>
 <script defer src="https://analytics.tongatron.org/script.js" data-website-id="9daa93b6-2afb-494a-89fb-288437a030d1" data-domains="patternmachine.tongatron.org"></script>
 </head>
@@ -210,16 +404,7 @@ button{width:100%;margin-top:14px;font:inherit;font-size:14px;font-weight:800;le
 // Trasloco dal vecchio indirizzo: i dati arrivano nel frammento #trasloco=..., che il login perderebbe.
 if(location.hash.startsWith("#trasloco=")){ try{ sessionStorage.setItem("trasloco", location.hash.slice(10)); }catch(e){} }
 </script>
-<form method="post" action="/login">
-  <h1>PatternMachine</h1>
-  <div class="line"></div>
-  <p>Il sito è protetto. Inserisci la password per entrare.</p>
-  <label for="pw">Password</label>
-  <input id="pw" name="password" type="password" autocomplete="current-password" autofocus required>
-  <input type="hidden" name="next" value="{next}">
-  <button type="submit">Entra</button>
-  <div class="err" role="alert">{error}</div>
-</form>
+{body}
 </body>
 </html>
 """
@@ -271,7 +456,7 @@ class BodyTooLarge(Exception):
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "PatternMachine/1.3"
+    server_version = "PatternMachine/1.4"
 
     # ---------- risposte ----------
     def _send_json(self, status, payload, extra_headers=()):
@@ -371,9 +556,15 @@ class Handler(BaseHTTPRequestHandler):
             self.end_headers()
         return True
 
+    def _user(self):
+        """L'utente della sessione (una lettura di users.json per richiesta), o None."""
+        if not hasattr(self, "_cached_user"):
+            with USERS_LOCK:
+                self._cached_user = session_user(load_users(), self._cookie(SESSION_COOKIE))
+        return self._cached_user
+
     def _authorized(self):
-        auth = load_auth()
-        return bool(auth) and valid_session(auth, self._cookie(SESSION_COOKIE))
+        return self._user() is not None
 
     def _gate(self, path):
         """True se la richiesta puo' proseguire; altrimenti ha gia' risposto."""
@@ -416,37 +607,268 @@ class Handler(BaseHTTPRequestHandler):
             self._send_json(413, {"error": "richiesta troppo grande"})
             return None, True
 
-    # ---------- login ----------
-    def _login_page(self, status=200, error="", next_path="/"):
-        page = (LOGIN_PAGE.replace("{next}", html.escape(safe_next(next_path), quote=True))
-                .replace("{error}", html.escape(error)))
-        self._send_html(status, page)
+    # ---------- accesso ----------
+    def _page(self, status, title, body):
+        self._send_html(status, PAGE_SHELL.replace("{title}", html.escape(title)).replace("{body}", body))
 
-    def _do_login(self):
+    def _form(self):
+        """Il form inviato (dict di stringhe), o None se ha gia' risposto (altro sito, troppo grande)."""
         if self._cross_site():
             self._send_json(403, {"error": "richiesta da un altro sito"})
-            return
+            return None
         try:
             raw = self._read_body() or b""
         except BodyTooLarge:
             self._send_json(413, {"error": "richiesta troppo grande"})
+            return None
+        return {k: v[0] for k, v in parse_qs(raw.decode("utf-8", "replace"), keep_blank_values=True).items()}
+
+    def _login_page(self, status=200, error="", next_path="/", name="", note=""):
+        e = html.escape
+        nxt = e(safe_next(next_path), quote=True)
+        q = "" if safe_next(next_path) == "/" else "?next=" + quote(safe_next(next_path), safe="")
+        self._page(status, "Accesso", f"""<form class="card" method="post" action="/login">
+  <h1>PatternMachine</h1>
+  <div class="line"></div>
+  {f'<p class="ok">{e(note)}</p>' if note else '<p>Entra con il tuo nome e la tua password.</p>'}
+  <label for="nm">Nome</label>
+  <input id="nm" name="name" autocomplete="username" value="{e(name, quote=True)}" {'' if name else 'autofocus'} required>
+  <label for="pw">Password</label>
+  <input id="pw" name="password" type="password" autocomplete="current-password" {'autofocus' if name else ''} required>
+  <input type="hidden" name="next" value="{nxt}">
+  <button type="submit">Entra</button>
+  <div class="err" role="alert">{e(error)}</div>
+  <div class="links"><a href="/register{q}">Registrati</a><a href="/forgot">Password dimenticata?</a></div>
+</form>""")
+
+    def _do_login(self):
+        form = self._form()
+        if form is None:
             return
-        form = parse_qs(raw.decode("utf-8", "replace"))
-        next_path = safe_next((form.get("next") or ["/"])[0])
+        next_path = safe_next(form.get("next", "/"))
+        name = form.get("name", "").strip()
         ip = self._client_ip()
-        if too_many_fails(ip):
-            self._login_page(429, "Troppi tentativi. Riprova tra qualche minuto.", next_path)
+        if too_many(ip, "login"):
+            self._login_page(429, "Troppi tentativi. Riprova tra qualche minuto.", next_path, name)
             return
-        auth = load_auth()
-        if not auth:
-            self._login_page(503, "Accesso non configurato sul server.", next_path)
-            return
-        if not check_password(auth, (form.get("password") or [""])[0]):
-            note_fail(ip)
+        with USERS_LOCK:
+            db = load_users()
+            user = find_user(db, name=name) if name else None
+            ok = bool(user) and check_password(user, form.get("password", ""))
+            if ok:
+                user["last_login"] = now_iso()
+                cookie = make_session(users_secret(db), user)
+                save_users(db)
+        if not ok:
+            note(ip, "login")
             time.sleep(0.4)
-            self._login_page(401, "Password errata.", next_path)
+            self._login_page(401, "Nome o password errati.", next_path, name)
             return
-        self._redirect(next_path, [self._session_cookie(make_session(auth), SESSION_DAYS * 86400)])
+        self._redirect(next_path, [self._session_cookie(cookie, SESSION_DAYS * 86400)])
+
+    def _register_page(self, status=200, error="", next_path="/", name="", email=""):
+        e = html.escape
+        self._page(status, "Registrazione", f"""<form class="card" method="post" action="/register">
+  <h1>PatternMachine</h1>
+  <div class="line"></div>
+  <p>Crea il tuo account. Con la mail ricevi le credenziali e puoi recuperare la password.</p>
+  <label for="nm">Nome</label>
+  <input id="nm" name="name" autocomplete="username" maxlength="{MAX_USERNAME}" value="{e(name, quote=True)}" autofocus required>
+  <label for="pw">Password</label>
+  <input id="pw" name="password" type="password" autocomplete="new-password" required>
+  <label for="em">Email <span class="opt">(facoltativa, per il recupero della password)</span></label>
+  <input id="em" name="email" type="email" autocomplete="email" value="{e(email, quote=True)}">
+  <input type="hidden" name="next" value="{e(safe_next(next_path), quote=True)}">
+  <button type="submit">Registrati</button>
+  <div class="err" role="alert">{e(error)}</div>
+  <div class="links"><a href="/login">Hai già un account? Entra</a></div>
+</form>""")
+
+    def _do_register(self):
+        form = self._form()
+        if form is None:
+            return
+        next_path = safe_next(form.get("next", "/"))
+        raw_name, email, password = form.get("name", ""), form.get("email", "").strip(), form.get("password", "")
+        ip = self._client_ip()
+        name = clean_name(raw_name)
+        err = ("Troppe registrazioni da questa rete. Riprova tra qualche minuto." if too_many(ip, "register")
+               else f"Il nome deve avere da 1 a {MAX_USERNAME} caratteri." if not name
+               else "Scegli una password." if not password
+               else "Email non valida." if email and not EMAIL_RE.match(email) else "")
+        if not err:
+            with USERS_LOCK:
+                db = load_users()
+                if find_user(db, name=name):
+                    err = "Questo nome è già usato: scegline un altro."
+                else:
+                    user = new_user(name, password, email)
+                    user["last_login"] = now_iso()
+                    db["users"].append(user)
+                    cookie = make_session(users_secret(db), user)
+                    save_users(db)
+        if err:
+            self._register_page(400, err, next_path, raw_name.strip(), email)
+            return
+        note(ip, "register")
+        if email:
+            send_welcome(user, password)
+        self._redirect(next_path, [self._session_cookie(cookie, SESSION_DAYS * 86400)])
+
+    def _forgot_page(self, status=200, error="", done=False):
+        e = html.escape
+        body = ("""<p class="ok">Se l'account ha una mail, ti abbiamo scritto: apri il link che trovi nel messaggio (vale un'ora).
+  Se non hai messo la mail alla registrazione, chiedi all'amministratore.</p>
+  <a class="btn ghost" href="/login">Torna all'accesso</a>""" if done else f"""<p>Scrivi il tuo nome o la mail dell'account: ti mandiamo un link per scegliere una nuova password.</p>
+  <label for="who">Nome o email</label>
+  <input id="who" name="who" autocomplete="username" autofocus required>
+  <button type="submit">Mandami il link</button>
+  <div class="err" role="alert">{e(error)}</div>
+  <div class="links"><a href="/login">Torna all'accesso</a></div>""")
+        self._page(status, "Password dimenticata", f"""<form class="card" method="post" action="/forgot">
+  <h1>PatternMachine</h1>
+  <div class="line"></div>
+  {body}
+</form>""")
+
+    def _do_forgot(self):
+        form = self._form()
+        if form is None:
+            return
+        who = form.get("who", "").strip()
+        ip = self._client_ip()
+        if too_many(ip, "forgot"):
+            self._forgot_page(429, "Troppe richieste. Riprova tra qualche minuto.")
+            return
+        note(ip, "forgot")
+        if not mail_config():
+            self._forgot_page(503, "Il recupero via mail non è attivo: chiedi all'amministratore.")
+            return
+        with USERS_LOCK:
+            db = load_users()
+            targets = [u for u in db["users"] if u.get("email") and
+                       (name_key(u["name"]) == name_key(who) or u["email"].casefold() == who.casefold())]
+            tokens = [(u, make_reset(db, u)) for u in targets]
+            if tokens:
+                save_users(db)
+        for u, token in tokens:
+            send_reset(u, token)
+        # stessa risposta che l'account esista o no: nessuno scopre chi e' registrato
+        self._forgot_page(done=True)
+
+    def _reset_page(self, status=200, token="", error="", name=""):
+        e = html.escape
+        if not name:
+            self._page(status, "Nuova password", """<div class="card">
+  <h1>PatternMachine</h1>
+  <div class="line"></div>
+  <p>Il link non è valido o è scaduto (vale un'ora e si usa una volta sola).</p>
+  <a class="btn" href="/forgot">Chiedi un nuovo link</a>
+</div>""")
+            return
+        self._page(status, "Nuova password", f"""<form class="card" method="post" action="/reset">
+  <h1>PatternMachine</h1>
+  <div class="line"></div>
+  <p>Ciao <b>{e(name)}</b>, scegli la nuova password.</p>
+  <label for="pw">Nuova password</label>
+  <input id="pw" name="password" type="password" autocomplete="new-password" autofocus required>
+  <input type="hidden" name="token" value="{e(token, quote=True)}">
+  <button type="submit">Salva ed entra</button>
+  <div class="err" role="alert">{e(error)}</div>
+</form>""")
+
+    def _do_reset(self):
+        form = self._form()
+        if form is None:
+            return
+        token, password = form.get("token", ""), form.get("password", "")
+        with USERS_LOCK:
+            db = load_users()
+            user = reset_user(db, token)
+            if user and password:
+                set_user_password(user, password)
+                user["last_login"] = now_iso()
+                db["resets"] = [r for r in db["resets"] if r["uid"] != user["id"]]
+                cookie = make_session(users_secret(db), user)
+                save_users(db)
+        if not user:
+            self._reset_page(400)
+        elif not password:
+            self._reset_page(400, token, "Scegli una password.", user["name"])
+        else:
+            self._redirect("/", [self._session_cookie(cookie, SESSION_DAYS * 86400)])
+
+    # ---------- amministrazione ----------
+    def _admin_page(self, status=200, message="", confirm=None, link=""):
+        e = html.escape
+        me = self._user()
+        with USERS_LOCK:
+            users = sorted(load_users()["users"], key=lambda u: u["created_at"])
+        top = ""
+        if confirm:
+            top = f"""<div class="card" style="width:100%;margin:0 0 16px;box-shadow:none;">
+  <p>Eliminare l'utente <b>{e(confirm['name'])}</b>? I suoi progetti restano nel suo browser, ma non potrà più entrare. Non si può annullare.</p>
+  <form method="post" action="/admin/delete" style="display:flex;gap:8px;">
+    <input type="hidden" name="id" value="{e(confirm['id'], quote=True)}">
+    <a class="btn ghost small" href="/admin">Annulla</a>
+    <button class="danger small" type="submit">Elimina</button>
+  </form></div>"""
+        rows = []
+        for u in users:
+            acts = []
+            if u["id"] != me["id"]:
+                acts.append(f'<form method="post" action="/admin/reset"><input type="hidden" name="id" value="{e(u["id"], quote=True)}">'
+                            f'<button class="ghost small" type="submit">{"Manda reset" if u.get("email") else "Link reset"}</button></form>')
+                acts.append(f'<a class="btn ghost small" href="/admin?elimina={e(u["id"], quote=True)}">Elimina</a>')
+            rows.append(f"""<tr><td><b>{e(u['name'])}</b> {'<span class="tag">admin</span>' if u.get('role') == 'admin' else ''}</td>
+<td>{e(u.get('email') or '—')}</td><td>{e(u['created_at'][:10])}</td><td>{e((u.get('last_login') or '—')[:10])}</td>
+<td><div class="row-acts">{''.join(acts)}</div></td></tr>""")
+        msg_html = f'<p class="ok">{e(message)}</p>' if message else ""
+        link_html = ("<p>Link per la nuova password (vale un&apos;ora, mandalo tu all&apos;utente):</p>"
+                     f"<code>{e(link)}</code>") if link else ""
+        self._page(status, "Utenti", f"""<div class="card wide">
+  <h1>Utenti</h1>
+  <div class="line"></div>
+  {msg_html}{link_html}{top}
+  <div class="table-wrap"><table>
+    <tr><th>Nome</th><th>Email</th><th>Registrato</th><th>Ultimo accesso</th><th></th></tr>
+    {''.join(rows)}
+  </table></div>
+  <div class="links"><a href="/">&larr; Torna a PatternMachine</a><a href="/logout">Esci</a></div>
+</div>""")
+
+    def _admin_only(self):
+        user = self._user()
+        if user and user.get("role") == "admin":
+            return True
+        self.send_error(403, "Solo per l'amministratore")
+        return False
+
+    def _do_admin(self, action):
+        form = self._form()
+        if form is None:
+            return
+        me = self._user()
+        with USERS_LOCK:
+            db = load_users()
+            target = find_user(db, uid=form.get("id", ""))
+            if not target or target["id"] == me["id"]:
+                self._redirect("/admin")
+                return
+            if action == "delete":
+                db["users"] = [u for u in db["users"] if u["id"] != target["id"]]
+                db["resets"] = [r for r in db["resets"] if r["uid"] != target["id"]]
+                token = None
+            else:
+                token = make_reset(db, target)
+            save_users(db)
+        if action == "delete":
+            self._admin_page(message=f"Utente {target['name']} eliminato.")
+        elif target.get("email") and mail_config():
+            send_reset(target, token)
+            self._admin_page(message=f"Mail con il link per la nuova password mandata a {target['name']}.")
+        else:
+            self._admin_page(link=f"{SITE_URL}/reset?token={token}")
 
     # ---------- file statici ----------
     def _serve_static(self):
@@ -482,17 +904,40 @@ class Handler(BaseHTTPRequestHandler):
             return
         parsed = urlparse(self.path)
         path = parsed.path
-        if path == "/login":
-            next_path = (parse_qs(parsed.query).get("next") or ["/"])[0]
+        query = parse_qs(parsed.query)
+        if path in ("/login", "/register"):
+            next_path = (query.get("next") or ["/"])[0]
             if self._authorized():
                 self._redirect(safe_next(next_path))
-            else:
+            elif path == "/login":
                 self._login_page(next_path=next_path)
+            else:
+                self._register_page(next_path=next_path)
+            return
+        if path == "/forgot":
+            self._forgot_page()
+            return
+        if path == "/reset":
+            token = (query.get("token") or [""])[0]
+            with USERS_LOCK:
+                user = reset_user(load_users(), token)
+            self._reset_page(200 if user else 400, token, name=user["name"] if user else "")
             return
         if path == "/logout":
             self._redirect("/login", [self._session_cookie("", 0)])
             return
         if not self._gate(path):
+            return
+        if path == "/api/me":
+            u = self._user()
+            self._send_json(200, {"name": u["name"], "role": u.get("role", "user"), "email": u.get("email", "")})
+            return
+        if path == "/admin":
+            if not self._admin_only():
+                return
+            with USERS_LOCK:
+                target = find_user(load_users(), uid=(query.get("elimina") or [""])[0])
+            self._admin_page(confirm=target if target and target["id"] != self._user()["id"] else None)
             return
         if path == "/api/patterns":
             with LOCK:
@@ -505,10 +950,16 @@ class Handler(BaseHTTPRequestHandler):
         if self._old_host():
             return
         path = urlparse(self.path).path
-        if path == "/login":
-            self._do_login()
+        routes = {"/login": self._do_login, "/register": self._do_register,
+                  "/forgot": self._do_forgot, "/reset": self._do_reset}
+        if path in routes:
+            routes[path]()
             return
         if not self._gate(path):
+            return
+        if path in ("/admin/delete", "/admin/reset"):
+            if self._admin_only():
+                self._do_admin(path.rsplit("/", 1)[1])
             return
         if path == "/api/patterns":
             if not self._guard_write():

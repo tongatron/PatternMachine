@@ -34,3 +34,10 @@ scripts/deploy.sh --yes    # pubblica (backup in /srv/apps/patternmachine-backup
 Quando cambiano `site/sw.js` o `site/engine/*.js` va aumentata la versione in tre punti che lo script
 controlla: `VERSION` in `sw.js`, `SW_VERSION` e i `?v=` degli script del motore in `site/index.html`.
 Se cambia `server.py` serve `sudo systemctl restart patternmachine` sul server.
+
+## Account
+
+Ognuno entra con il proprio nome e la propria password (niente piu' password unica del sito).
+- Dal sito ci si registra come **utente**: nome, password (qualsiasi) ed email facoltativa. Con l'email arriva una mail di benvenuto con le credenziali e si puo' chiedere un link per una nuova password (vale un'ora, si usa una volta).
+- L'**admin** si crea sul server: `python3 add-user.py Giovanni --admin` (lo stesso script cambia password e ruolo). La pagina `/admin` elenca gli utenti, manda link di reset ed elimina account.
+- Utenti in `data/users.json`, mail via Gmail con `mail.json` (`python3 set-mail.py`, poi `python3 set-mail.py --test tu@example.com`): stanno solo sul server, non vengono mai serviti.

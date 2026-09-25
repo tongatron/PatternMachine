@@ -1,4 +1,4 @@
-// Service worker della PWA Drum Machine Lab.
+// Service worker della PWA PatternMachine.
 // - pagine: rete prima (cosi' online arriva sempre l'ultima versione), cache se offline
 // - script del motore (engine/*.js): rete prima, cache se offline, cosi' pagina e motore restano allineati
 // - campioni, icone, immagini: cache prima (non cambiano)
@@ -7,7 +7,7 @@
 // Cloudflare tiene in cache i .js, l'URL nuovo lo scavalca.
 // Il worker nuovo si attiva subito (skipWaiting): la pagina aperta e' gia' quella
 // presa dalla rete, quindi non serve ricaricarla e non si perde lavoro non salvato.
-const VERSION = "2026-09-25.3";
+const VERSION = "2026-09-25.4";
 const SHELL_CACHE = `sp1200-shell-${VERSION}`;
 const SAMPLE_CACHE = "sp1200-samples-v1"; // non versionata: i campioni non si riscaricano ad ogni rilascio
 
@@ -20,8 +20,6 @@ const SHELL = [
   "/icons/icon-maskable-512.png",
   "/icons/apple-touch-icon.png",
   "/icons/favicon-32.png",
-  "/assets/skin-plakat.css",
-  "/assets/skin-studio.css",
   "/engine/core.js",
   "/engine/styles-punk.js",
   "/engine/styles-post.js",

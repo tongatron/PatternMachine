@@ -37,7 +37,7 @@ check(login is not None, "pagina di accesso non trovata in server.py")
 for name, text in (("pagina di accesso", login.group(1) if login else ""), ("index.html", read(site("index.html")))):
     for tag in ("og:title", "og:description", "og:image", "twitter:image"):
         check(f'"{tag}"' in text, f"{name}: manca il tag {tag}")
-    for url in set(re.findall(r'content="https://drummachine\.tongatron\.org(/assets/[^"]+)"', text)):
+    for url in set(re.findall(r'content="https://patternmachine\.tongatron\.org(/assets/[^"]+)"', text)):
         check(url in open_paths, f"{name}: {url} non e' tra i percorsi pubblici di server.py (l'anteprima resterebbe vuota)")
         path = site(url.lstrip("/"))
         check(os.path.isfile(path), f"{name}: {url} non esiste in site/")

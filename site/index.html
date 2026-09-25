@@ -4,58 +4,71 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<title>Drum Machine Lab</title>
-<meta name="description" content="Drum Machine Lab: drum machine a step con SP-1200, RX-5, 808 e 909, generatore di pattern in decine di stili, variazioni, arrangiamento della canzone ed export MIDI.">
+<title>PatternMachine</title>
+<meta name="description" content="PatternMachine: drum machine a step con SP-1200, RX-5, 808 e 909, generatore di pattern in decine di stili, variazioni, arrangiamento della canzone ed export MIDI.">
 <meta name="theme-color" content="#0f1114" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#a3a097" media="(prefers-color-scheme: light)">
 
 <script>
+// Trasloco da drummachine.tongatron.org: la pagina del vecchio indirizzo manda progetti, preferiti e tema
+// compressi nel frammento #trasloco=... (o, se nel mezzo c'e' stato il login, in sessionStorage). Si uniscono
+// a quelli gia' presenti senza sovrascriverli, poi si ricarica la pagina pulita.
+(function(){
+  let code="";
+  try{ code=location.hash.startsWith("#trasloco=") ? location.hash.slice(10) : (sessionStorage.getItem("trasloco")||""); }catch(e){}
+  if(!code) return;
+  try{ sessionStorage.removeItem("trasloco"); }catch(e){}
+  history.replaceState(null,"",location.pathname+location.search);
+  (async()=>{
+    try{
+      const bin=atob(code.replace(/-/g,"+").replace(/_/g,"/"));
+      const bytes=Uint8Array.from(bin,c=>c.charCodeAt(0));
+      const text=await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"))).text();
+      const data=JSON.parse(text), get=k=>{ try{ return JSON.parse(localStorage.getItem(k)||"null"); }catch(e){ return null; } };
+      if(data["sp1200.projects"]){
+        const old=JSON.parse(data["sp1200.projects"])||{}, cur=get("sp1200.projects")||{};
+        for(const [id,p] of Object.entries(old)) if(!cur[id] || (cur[id].updatedAt||0)<(p.updatedAt||0)) cur[id]=p;
+        localStorage.setItem("sp1200.projects",JSON.stringify(cur));
+      }
+      if(data["sp1200.favorites"]){
+        const fav=[...new Set([...(get("sp1200.favorites")||[]), ...(JSON.parse(data["sp1200.favorites"])||[])])];
+        localStorage.setItem("sp1200.favorites",JSON.stringify(fav));
+      }
+      if(data["sp1200.theme"] && !localStorage.getItem("sp1200.theme")) localStorage.setItem("sp1200.theme",data["sp1200.theme"]);
+      sessionStorage.setItem("traslocoFatto","1");
+    }catch(e){}
+    location.reload();
+  })();
+})();
+</script>
+<script>
 // Tema scelto dall'utente, applicato prima del primo render per evitare il lampo del tema sbagliato.
 try{ const t=localStorage.getItem("sp1200.theme"); if(t==="light"||t==="dark") document.documentElement.dataset.theme=t; }catch(e){}
 </script>
-<script>
-// Interfaccia: "studio" (predefinita: scura, accento ambra), "plakat" (chiara, da manifesto) oppure "classic" (la grafica
-// precedente, con i temi chiaro/scuro). La scelta si ricorda nel browser; ?ui=plakat|studio|classic la
-// forzano da link (?ui=off = classic).
-(function(){
-  const KEY="dml.skin", SKINS=["plakat","studio","classic"];
-  let ui="studio";
-  try{
-    let q=new URLSearchParams(location.search).get("ui");
-    if(q==="off") q="classic";
-    if(SKINS.includes(q)) localStorage.setItem(KEY,q);
-    const saved=localStorage.getItem(KEY);
-    if(SKINS.includes(saved)) ui=saved;
-  }catch(e){}
-  if(ui!=="classic") document.documentElement.dataset.skin=ui;
-})();
-</script>
-<link rel="stylesheet" href="/assets/skin-plakat.css?v=2026-09-25.3">
-<link rel="stylesheet" href="/assets/skin-studio.css?v=2026-09-25.3">
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Drum Lab">
+<meta name="apple-mobile-web-app-title" content="PatternMachine">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="Drum Machine Lab">
-<meta property="og:title" content="Drum Machine Lab — drum machine a step con generatore di pattern">
+<meta property="og:site_name" content="PatternMachine">
+<meta property="og:title" content="PatternMachine — drum machine a step con generatore di pattern">
 <meta property="og:description" content="Drum machine a step con SP-1200, RX-5, 808 e 909: generatore di pattern in decine di stili (punk, dub, metal, breakbeat, elettronica, soul e altri), variazioni, arrangiamento della canzone ed export MIDI, direttamente nel browser.">
-<meta property="og:image" content="https://drummachine.tongatron.org/assets/og-drum-machine-lab.jpg">
+<meta property="og:image" content="https://patternmachine.tongatron.org/assets/og-drum-machine-lab.jpg">
 <meta property="og:image:type" content="image/jpeg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="800">
-<meta property="og:image:alt" content="SP-1200, TR-808, TR-909 e Yamaha RX5 con l'interfaccia di Drum Machine Lab in primo piano">
-<meta property="og:url" content="https://drummachine.tongatron.org/">
+<meta property="og:image:alt" content="SP-1200, TR-808, TR-909 e Yamaha RX5 con l'interfaccia di PatternMachine in primo piano">
+<meta property="og:url" content="https://patternmachine.tongatron.org/">
 <meta property="og:locale" content="it_IT">
 
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Drum Machine Lab — drum machine a step con generatore di pattern">
+<meta name="twitter:title" content="PatternMachine — drum machine a step con generatore di pattern">
 <meta name="twitter:description" content="Drum machine a step con SP-1200, RX-5, 808 e 909: generatore di pattern in decine di stili (punk, dub, metal, breakbeat, elettronica, soul e altri), variazioni, arrangiamento della canzone ed export MIDI, direttamente nel browser.">
-<meta name="twitter:image" content="https://drummachine.tongatron.org/assets/og-drum-machine-lab.jpg">
+<meta name="twitter:image" content="https://patternmachine.tongatron.org/assets/og-drum-machine-lab.jpg">
 </head>
 <body style="margin:0">
 <style>
@@ -261,7 +274,7 @@ label.fld input[type=number]{width:54px;}
 .lcell:disabled{opacity:.25;}
 .lcell.set{background:var(--panel-3); color:var(--accent); border-color:var(--accent); font-weight:700;}
 .lane-hint{margin-top:6px;}
-/* piu' specifico delle regole dei pulsanti delle skin: celle tutte alte uguali */
+/* celle delle corsie tutte alte uguali */
 .trk .lanes .lcell{height:26px; min-height:0; padding:0; font-size:10.5px; letter-spacing:0; text-transform:none; line-height:1;}
 .trk-name{cursor:pointer;}
 .trk-top{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-bottom:7px;}
@@ -490,7 +503,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
   .trk-name{min-width:70px;}
   .counter{margin-left:0;}
 }
-/* Comandi principali piu' grandi, uguali in tutte le interfacce (gli id battono le regole delle skin). */
+/* Comandi principali piu' grandi. */
 #machinePanel .machine-bar{margin-top:0; padding-top:0; border-top:none;}
 #viewGrid, #viewSeq, #viewMix, #viewRecent{font-size:14px; padding:11px 22px; min-height:44px;}
 #pChoose, #pVary, #pNew{font-size:13px; padding:9px 16px; min-height:40px;}
@@ -502,17 +515,10 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 
 <div class="wrap">
   <div class="topbar">
-    <h1>Drum Machine Lab</h1>
+    <h1>PatternMachine</h1>
     <span class="tagline">Drum machine a step &middot; SP-1200, RX-5, 808, 909 &middot; generatore di pattern, canzone, export MIDI</span>
     <a class="linkbtn" href="funzioni.html" style="margin-left:auto" title="come si usa e cosa fa ogni funzione">Istruzioni e funzioni</a>
     <span class="tagline"><a href="toolkit.html" style="color:var(--text-dim)">Drum Machine Toolkit &rarr;</a></span>
-    <label class="fld" title="cambia grafica">Interfaccia
-      <select id="uiSwitch">
-        <option value="studio">Studio</option>
-        <option value="plakat">Plakat</option>
-        <option value="classic">Classica</option>
-      </select>
-    </label>
     <div class="modeswitch theme-switch" role="group" aria-label="Tema dell'interfaccia">
       <button type="button" data-theme-choice="auto" title="Segue il sistema">Auto</button>
       <button type="button" data-theme-choice="light" title="Tema chiaro">&#9728;&#xFE0E; Chiaro</button>
@@ -737,18 +743,18 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-25.3"></script>
-<script src="engine/styles-punk.js?v=2026-09-25.3"></script>
-<script src="engine/styles-post.js?v=2026-09-25.3"></script>
-<script src="engine/styles-machines.js?v=2026-09-25.3"></script>
-<script src="engine/styles-alt.js?v=2026-09-25.3"></script>
-<script src="engine/styles-groove.js?v=2026-09-25.3"></script>
-<script src="engine/styles-dub.js?v=2026-09-25.3"></script>
-<script src="engine/styles-break.js?v=2026-09-25.3"></script>
-<script src="engine/styles-soul.js?v=2026-09-25.3"></script>
-<script src="engine/styles-metal.js?v=2026-09-25.3"></script>
-<script src="engine/styles-electro.js?v=2026-09-25.3"></script>
-<script src="engine/variations.js?v=2026-09-25.3"></script>
+<script src="engine/core.js?v=2026-09-25.4"></script>
+<script src="engine/styles-punk.js?v=2026-09-25.4"></script>
+<script src="engine/styles-post.js?v=2026-09-25.4"></script>
+<script src="engine/styles-machines.js?v=2026-09-25.4"></script>
+<script src="engine/styles-alt.js?v=2026-09-25.4"></script>
+<script src="engine/styles-groove.js?v=2026-09-25.4"></script>
+<script src="engine/styles-dub.js?v=2026-09-25.4"></script>
+<script src="engine/styles-break.js?v=2026-09-25.4"></script>
+<script src="engine/styles-soul.js?v=2026-09-25.4"></script>
+<script src="engine/styles-metal.js?v=2026-09-25.4"></script>
+<script src="engine/styles-electro.js?v=2026-09-25.4"></script>
+<script src="engine/variations.js?v=2026-09-25.4"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -3125,6 +3131,7 @@ ui.patternId=project.patterns[0].id;
 ui.blockId=project.song[0].id;
 project.tracks.forEach(t=>loadBuffer(t.sampleIndex));
 renderAll();
+try{ if(sessionStorage.getItem("traslocoFatto")){ sessionStorage.removeItem("traslocoFatto"); setStatus("progetti e preferiti trasferiti dal vecchio indirizzo"); } }catch(e){}
 refreshRecent();
 
 // Link condiviso (?p=<codice>): apre la libreria con quel pattern in cima, pronto da ascoltare.
@@ -3147,23 +3154,6 @@ window.addEventListener("resize",()=>{
     unsubRecent=db.collection("projects").orderBy("updatedAt","desc").limit(50)
       .onSnapshot(s=>renderRecent(s.docs.map(d=>({id:d.id,...d.data()}))),()=>{});
   }
-})();
-
-// ---------- interfaccia Plakat / Studio / classica ----------
-(function uiSwitch(){
-  const sel=el("uiSwitch"), root=document.documentElement;
-  sel.value=root.dataset.skin||"classic";
-  sel.onchange=()=>{
-    const ui=sel.value;
-    try{ localStorage.setItem("dml.skin", ui); }catch(e){}
-    if(ui==="classic"){
-      delete root.dataset.skin;
-      // la grafica precedente torna nella sua versione chiara
-      document.querySelector('[data-theme-choice="light"]')?.click();
-    } else root.dataset.skin=ui;
-    // toglie ?ui= dall'indirizzo, cosi' un ricaricamento non annulla la scelta
-    if(new URLSearchParams(location.search).has("ui")) history.replaceState(null,"",location.pathname);
-  };
 })();
 
 // ---------- tema chiaro / scuro ----------
@@ -3194,7 +3184,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-25.3";
+const SW_VERSION="2026-09-25.4";
 (function pwa(){
   const standalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
   const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);

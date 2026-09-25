@@ -26,7 +26,7 @@ failures = 0
 
 
 def build_stage():
-    stage = Path(tempfile.mkdtemp(prefix="drummachine-stage-"))
+    stage = Path(tempfile.mkdtemp(prefix="patternmachine-stage-"))
     shutil.copytree(HERE / "site", stage, dirs_exist_ok=True)
     shutil.copy(HERE / "index.html", stage / "toolkit.html")
     shutil.copy(HERE / "server.py", stage / "server.py")
@@ -38,12 +38,12 @@ def build_stage():
     (stage / "backup-index-x.html").write_text("backup")
     (stage / ".env").write_text("x")
     subprocess.run([sys.executable, str(stage / "set-password.py"), "--stdin"], input=TEST_PASSWORD,
-                   text=True, check=True, capture_output=True, env={**os.environ, "DRUMMACHINE_AUTH": ""})
+                   text=True, check=True, capture_output=True, env={**os.environ, "PATTERNMACHINE_AUTH": "", "DRUMMACHINE_AUTH": ""})
     return stage
 
 
 def start(stage):
-    os.environ["DRUMMACHINE_AUTH"] = str(stage / "auth.json")
+    os.environ["PATTERNMACHINE_AUTH"] = str(stage / "auth.json")
     spec = importlib.util.spec_from_file_location("server_under_test", stage / "server.py")
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
@@ -109,12 +109,22 @@ def main():
         check("immagine di anteprima jpeg", hd.get("content-type"), "image/jpeg")
         check("immagine di anteprima leggera", len(body) < 600_000, True)
         login_html = anon.call("/login")[2].decode()
-        check("pagina di accesso con og:image", 'property="og:image" content="https://drummachine.tongatron.org/assets/og-drum-machine-lab.jpg"' in login_html, True)
+        check("pagina di accesso con og:image", 'property="og:image" content="https://patternmachine.tongatron.org/assets/og-drum-machine-lab.jpg"' in login_html, True)
         check("pagina di accesso con og:title", 'property="og:title"' in login_html, True)
         check("anonimo POST api", anon.call("/api/patterns", "POST", {"text": "t"}, same)[0], 401)
         check("anonimo DELETE api", anon.call("/api/patterns/abc", "DELETE", None, same)[0], 401)
         for path in ["/login", "/manifest.json", "/icons/icon-192.png", "/assets/og-sp1200.png"]:
             check("aperto " + path, anon.call(path)[0], 200)
+
+        # --- vecchio indirizzo (drummachine.tongatron.org): solo trasloco verso il nuovo, senza password ---
+        old = {"Host": "drummachine.tongatron.org"}
+        st, hd, body = anon.call("/?p=abc", headers={**old, "Accept": "text/html"})
+        check("vecchio indirizzo: pagina di trasloco", (st, b"#trasloco=" in body, b"https://patternmachine.tongatron.org" in body), (200, True, True))
+        st, hd, body = anon.call("/sw.js", headers=old)
+        check("vecchio indirizzo: service worker che si disinstalla", (st, b"unregister" in body), (200, True))
+        st, hd, _ = anon.call("/api/patterns", headers=old)
+        check("vecchio indirizzo: il resto rimanda al nuovo", (st, hd.get("location")), (308, "https://patternmachine.tongatron.org/api/patterns"))
+        check("vecchio indirizzo: niente scritture", anon.call("/api/patterns", "POST", {"text": "t"}, {**old, **same})[0], 308)
 
         # --- login ---
         s, h, body = anon.call("/login", "POST", form={"password": "sbagliata", "next": "/"}, headers=same)

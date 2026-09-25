@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Pubblica drummachine.tongatron.org sul Server HP.
+# Pubblica patternmachine.tongatron.org sul Server HP.
 #
 #   scripts/deploy.sh          prova a secco: test, controllo versioni, elenco dei file che cambierebbero
 #   scripts/deploy.sh --yes    pubblica davvero (backup sul server, upload, verifica)
@@ -11,9 +11,11 @@
 set -euo pipefail
 
 HOST=hp-ubuntu
-REMOTE=/srv/apps/drummachine
-BACKUPS=/srv/apps/drummachine-backups
-SITE=https://drummachine.tongatron.org
+# Sovrascrivibili dall'ambiente (es. REMOTE=... per un'installazione diversa).
+REMOTE=${REMOTE:-/srv/apps/patternmachine}
+BACKUPS=${BACKUPS:-/srv/apps/patternmachine-backups}
+SITE=${SITE:-https://patternmachine.tongatron.org}
+SERVICE=${SERVICE:-patternmachine}
 
 cd "$(dirname "$0")/.."
 
@@ -87,5 +89,5 @@ case "$code" in 200|303) ;; *) exit 1 ;; esac
 echo
 echo "pubblicato. Ripristino: ssh $HOST \"cp -a $BACKUPS/$ts/* $REMOTE/\""
 if [ "$server_changed" != 0 ]; then
-  echo "server.py e' cambiato: diventa attivo solo dopo  ssh -t $HOST sudo systemctl restart drummachine"
+  echo "server.py e' cambiato: diventa attivo solo dopo  ssh -t $HOST sudo systemctl restart $SERVICE"
 fi

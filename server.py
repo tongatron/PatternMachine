@@ -15,7 +15,14 @@ from urllib.parse import parse_qs, quote, unquote, urlparse
 ROOT = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(ROOT, "data")
 DATA_FILE = os.path.join(DATA_DIR, "patterns.json")
-AUTH_FILE = os.environ.get("DRUMMACHINE_AUTH", os.path.join(ROOT, "auth.json"))
+AUTH_FILE = (os.environ.get("PATTERNMACHINE_AUTH") or os.environ.get("DRUMMACHINE_AUTH")
+             or os.path.join(ROOT, "auth.json"))
+
+# Dal 2026-09 il sito si chiama PatternMachine. Il vecchio indirizzo resta attivo solo per il trasloco:
+# le pagine portano progetti, preferiti e tema (salvati nel browser, quindi legati al dominio) al nuovo
+# indirizzo, il vecchio service worker si disinstalla, tutto il resto viene rediretto.
+SITE_URL = os.environ.get("SITE_URL", "https://patternmachine.tongatron.org")
+OLD_HOSTS = {"drummachine.tongatron.org"}
 LOCK = threading.Lock()
 
 PATTERN_ID_RE = re.compile(r"^/api/patterns/([A-Za-z0-9\-]+)$")
@@ -152,24 +159,24 @@ LOGIN_PAGE = """<!doctype html>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#15171a">
-<title>Drum Machine Lab — Accesso</title>
+<title>PatternMachine — Accesso</title>
 <meta name="description" content="Drum machine a step con SP-1200, RX-5, 808 e 909: generatore di pattern in decine di stili, variazioni, arrangiamento della canzone ed export MIDI.">
 <!-- Anteprima dei link: chi condivide un link arriva qui (il sito e' dietro password), quindi i tag stanno in questa pagina. -->
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="Drum Machine Lab">
-<meta property="og:title" content="Drum Machine Lab — drum machine a step con generatore di pattern">
+<meta property="og:site_name" content="PatternMachine">
+<meta property="og:title" content="PatternMachine — drum machine a step con generatore di pattern">
 <meta property="og:description" content="Drum machine a step con SP-1200, RX-5, 808 e 909: generatore di pattern in decine di stili, variazioni, arrangiamento della canzone ed export MIDI.">
-<meta property="og:image" content="https://drummachine.tongatron.org/assets/og-drum-machine-lab.jpg">
+<meta property="og:image" content="https://patternmachine.tongatron.org/assets/og-drum-machine-lab.jpg">
 <meta property="og:image:type" content="image/jpeg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="800">
-<meta property="og:image:alt" content="SP-1200, TR-808, TR-909 e Yamaha RX5 con l'interfaccia di Drum Machine Lab in primo piano">
-<meta property="og:url" content="https://drummachine.tongatron.org/">
+<meta property="og:image:alt" content="SP-1200, TR-808, TR-909 e Yamaha RX5 con l'interfaccia di PatternMachine in primo piano">
+<meta property="og:url" content="https://patternmachine.tongatron.org/">
 <meta property="og:locale" content="it_IT">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Drum Machine Lab — drum machine a step con generatore di pattern">
+<meta name="twitter:title" content="PatternMachine — drum machine a step con generatore di pattern">
 <meta name="twitter:description" content="Drum machine a step con SP-1200, RX-5, 808 e 909: generatore di pattern in decine di stili, variazioni, arrangiamento della canzone ed export MIDI.">
-<meta name="twitter:image" content="https://drummachine.tongatron.org/assets/og-drum-machine-lab.jpg">
+<meta name="twitter:image" content="https://patternmachine.tongatron.org/assets/og-drum-machine-lab.jpg">
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <style>
@@ -196,8 +203,12 @@ button{width:100%;margin-top:14px;font:inherit;font-size:14px;font-weight:800;le
 </style>
 </head>
 <body>
+<script>
+// Trasloco dal vecchio indirizzo: i dati arrivano nel frammento #trasloco=..., che il login perderebbe.
+if(location.hash.startsWith("#trasloco=")){ try{ sessionStorage.setItem("trasloco", location.hash.slice(10)); }catch(e){} }
+</script>
 <form method="post" action="/login">
-  <h1>Drum Machine Lab</h1>
+  <h1>PatternMachine</h1>
   <div class="line"></div>
   <p>Il sito è protetto. Inserisci la password per entrare.</p>
   <label for="pw">Password</label>
@@ -211,12 +222,53 @@ button{width:100%;margin-top:14px;font:inherit;font-size:14px;font-weight:800;le
 """
 
 
+# Pagina servita sul vecchio indirizzo: legge i dati salvati nel browser per quel dominio, li comprime
+# e li passa al nuovo indirizzo nel frammento (#), che non arriva a nessun server.
+TRASLOCO_PAGE = r"""<!doctype html>
+<html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex"><title>PatternMachine — nuovo indirizzo</title>
+<style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#15171a;color:#e9e6de;
+font:14px/1.6 ui-monospace,Menlo,monospace;padding:16px;text-align:center}a{color:#3b8fd6}</style></head>
+<body><p>Drum Machine Lab ora si chiama <b>PatternMachine</b>.<br>Trasferisco progetti e preferiti al nuovo indirizzo&hellip;<br>
+<a id="go" href="{site}">{site}</a></p>
+<script>
+(async function(){
+  const dest="{site}"+location.pathname+location.search;
+  const data={};
+  try{ for(const k of ["sp1200.projects","sp1200.favorites","sp1200.theme"]){ const v=localStorage.getItem(k); if(v) data[k]=v; } }catch(e){}
+  let hash="";
+  if(Object.keys(data).length){
+    try{
+      const bytes=new TextEncoder().encode(JSON.stringify(data));
+      const gz=await new Response(new Blob([bytes]).stream().pipeThrough(new CompressionStream("gzip"))).arrayBuffer();
+      let bin=""; new Uint8Array(gz).forEach(b=>bin+=String.fromCharCode(b));
+      hash="#trasloco="+btoa(bin).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+    }catch(e){}
+  }
+  try{ const regs=await navigator.serviceWorker?.getRegistrations(); for(const r of regs||[]) await r.unregister(); }catch(e){}
+  document.getElementById("go").href=dest+hash;
+  location.replace(dest+hash);
+})();
+</script></body></html>
+"""
+
+# Service worker del vecchio indirizzo: sostituisce quello installato, svuota le cache e si disinstalla,
+# cosi' l'app installata non resta ferma alla copia vecchia e al prossimo avvio passa dal trasloco.
+RETIRED_SW = """self.addEventListener("install",()=>self.skipWaiting());
+self.addEventListener("activate",e=>e.waitUntil((async()=>{
+  for(const k of await caches.keys()) await caches.delete(k);
+  await self.registration.unregister();
+  for(const c of await self.clients.matchAll({type:"window"})) c.navigate(c.url);
+})()));
+"""
+
+
 class BodyTooLarge(Exception):
     pass
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "DrumMachine/1.2"
+    server_version = "PatternMachine/1.3"
 
     # ---------- risposte ----------
     def _send_json(self, status, payload, extra_headers=()):
@@ -291,6 +343,30 @@ class Handler(BaseHTTPRequestHandler):
         if self._https():
             attrs.append("Secure")
         return ("Set-Cookie", "; ".join(attrs))
+
+    def _old_host(self):
+        """True se la richiesta arriva al vecchio indirizzo: in quel caso ha gia' risposto."""
+        host = (self.headers.get("X-Forwarded-Host") or self.headers.get("Host") or "").split(":")[0].lower()
+        if host not in OLD_HOSTS:
+            return False
+        path = urlparse(self.path).path
+        if self.command == "GET" and path == "/sw.js":
+            body = RETIRED_SW.encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/javascript; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(body)
+        elif self.command == "GET" and (path == "/" or path.endswith(".html")
+                                        or "text/html" in (self.headers.get("Accept") or "")):
+            self._send_html(200, TRASLOCO_PAGE.replace("{site}", SITE_URL))
+        else:
+            self.send_response(308)
+            self.send_header("Location", SITE_URL + self.path)
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+        return True
 
     def _authorized(self):
         auth = load_auth()
@@ -395,6 +471,8 @@ class Handler(BaseHTTPRequestHandler):
 
     # ---------- metodi ----------
     def do_GET(self):
+        if self._old_host():
+            return
         parsed = urlparse(self.path)
         path = parsed.path
         if path == "/login":
@@ -417,6 +495,8 @@ class Handler(BaseHTTPRequestHandler):
         self._serve_static()
 
     def do_POST(self):
+        if self._old_host():
+            return
         path = urlparse(self.path).path
         if path == "/login":
             self._do_login()
@@ -455,6 +535,8 @@ class Handler(BaseHTTPRequestHandler):
         self.send_error(404, "Not found")
 
     def do_PUT(self):
+        if self._old_host():
+            return
         path = urlparse(self.path).path
         if not self._gate(path):
             return
@@ -489,6 +571,8 @@ class Handler(BaseHTTPRequestHandler):
         self._send_json(404, {"error": "pattern non trovato"})
 
     def do_DELETE(self):
+        if self._old_host():
+            return
         path = urlparse(self.path).path
         if not self._gate(path):
             return

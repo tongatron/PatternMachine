@@ -1,6 +1,6 @@
 # Da fare
 
-Idee e lavori rimandati per Drum Machine Lab. In ordine di utilità per il lavoro con Logic.
+Idee e lavori rimandati per PatternMachine. In ordine di utilità per il lavoro con Logic.
 
 ## Integrazione con Logic (prossimi)
 In ordine consigliato.
@@ -30,10 +30,18 @@ In ordine consigliato.
 - [ ] **Nuove lettere di variazione ibrida** quando si aggiungono stili: la lista dei donatori (`X_DONORS` in
   `site/engine/variations.js`) è fissa per non cambiare i codici già condivisi.
 
-## Interfaccia Plakat
+## Interfaccia
 - [ ] Menù **File ▾** ed **Esporta ▾** al posto dei sette pulsanti in cima.
 - [ ] Riga della traccia essenziale (nome, M, S, step) con gli altri controlli sotto **⋯**.
 - [ ] Valutare il bordo doppio sul primo step di ogni battuta (segna il tempo, ma può sembrare pesante).
+
+## Nome
+- [ ] Nome del sito: da settembre 2026 **PatternMachine**. Alternative tenute da parte: **PatternLab**,
+  **PatternBox**, **BeatBoxer**, **DrumWorks**.
+- [ ] Spegnere il vecchio indirizzo `drummachine.tongatron.org` (oggi fa solo il trasloco dei dati salvati nel
+  browser verso quello nuovo) quando nessuno lo usa piu': togliere l'hostname dal tunnel Cloudflare e `OLD_HOSTS`
+  da `server.py`.
+- [ ] Immagine di anteprima dei link (`assets/og-drum-machine-lab.jpg`): rifarla col nuovo nome.
 
 ## Manutenzione
 - [ ] **Remote git** per avere una copia del codice fuori dal Mac (i kit 808/909 restano fuori da git).

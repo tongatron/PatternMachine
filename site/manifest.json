@@ -1,7 +1,7 @@
 {
   "id": "/",
-  "name": "Drum Machine Lab",
-  "short_name": "Drum Lab",
+  "name": "PatternMachine",
+  "short_name": "PatternMachine",
   "description": "Drum machine a step con SP-1200, RX-5, 808 e 909: generatore di pattern in decine di stili, variazioni, canzone ed export MIDI. Funziona anche offline.",
   "lang": "it",
   "dir": "ltr",
@@ -18,6 +18,6 @@
     { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
   "screenshots": [
-    { "src": "/assets/og-drum-machine-lab.jpg", "sizes": "1200x800", "type": "image/jpeg", "form_factor": "wide", "label": "Drum Machine Lab nel browser" }
+    { "src": "/assets/og-drum-machine-lab.jpg", "sizes": "1200x800", "type": "image/jpeg", "form_factor": "wide", "label": "PatternMachine nel browser" }
   ]
 }

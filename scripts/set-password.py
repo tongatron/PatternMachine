@@ -21,7 +21,7 @@ ITERATIONS = 600_000
 
 def main():
     here = os.path.dirname(os.path.abspath(__file__))
-    target = os.environ.get("DRUMMACHINE_AUTH") or os.path.join(here, "auth.json")
+    target = (os.environ.get("PATTERNMACHINE_AUTH") or os.environ.get("DRUMMACHINE_AUTH")) or os.path.join(here, "auth.json")
     if "--stdin" in sys.argv:
         password = sys.stdin.read().rstrip("\r\n")
     else:

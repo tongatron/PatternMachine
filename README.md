@@ -1,6 +1,7 @@
-# Drum Machine Lab
+# PatternMachine
 
-Drum machine a step (SP-1200, Yamaha RX-5, 808, 909) con generatore di pattern, online su https://drummachine.tongatron.org.
+Drum machine a step (SP-1200, Yamaha RX-5, 808, 909) con generatore di pattern, online su https://patternmachine.tongatron.org
+(prima si chiamava Drum Machine Lab, su drummachine.tongatron.org: quell'indirizzo ora trasferisce i dati salvati nel browser e rimanda al nuovo).
 
 - `site/` — il sito: `index.html`, motore ritmico in `site/engine/` (core, variazioni e arrangiamento, schede degli stili in gruppi: punk, post-punk, macchine, alternative, hip hop/dance/latin, reggae/dub, breakbeat/DnB, soul/disco/afro, rock pesante/metal, elettronica/club), PWA (`sw.js`, `manifest.json`, `icons/`), campioni (`samples`, `samples12`) e macchine selezionabili in `machines/` (Yamaha RX-5; kit 808 e 909 estratti da Logic).
 - `index.html` — Drum Machine Toolkit (sul server diventa `toolkit.html`).
@@ -26,9 +27,9 @@ python3 tests/server_test.py
 
 ```bash
 scripts/deploy.sh          # prova a secco
-scripts/deploy.sh --yes    # pubblica (backup in /srv/apps/drummachine-backups)
+scripts/deploy.sh --yes    # pubblica (backup in /srv/apps/patternmachine-backups)
 ```
 
 Quando cambiano `site/sw.js` o `site/engine/*.js` va aumentata la versione in tre punti che lo script
 controlla: `VERSION` in `sw.js`, `SW_VERSION` e i `?v=` degli script del motore in `site/index.html`.
-Se cambia `server.py` serve `sudo systemctl restart drummachine` sul server.
+Se cambia `server.py` serve `sudo systemctl restart patternmachine` sul server.

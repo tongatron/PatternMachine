@@ -38,7 +38,8 @@ function registerAppProtocol() {
     const file = resolveAppPath(pathname);
     if (!file || !fs.existsSync(file) || fs.statSync(file).isDirectory()) return new Response("non trovato", { status: 404 });
     if (file === path.join(SITE_DIR, "index.html")) {
-      const html = fs.readFileSync(file, "utf8").replace("</body>",
+      // niente statistiche Umami nell'app (lo script conta solo sul dominio del sito, ma non serve caricarlo)
+      const html = fs.readFileSync(file, "utf8").replace(/<script[^>]*analytics\.tongatron\.org[^>]*><\/script>\n?/g, "").replace("</body>",
         '<link rel="stylesheet" href="/__desktop/bridge.css">\n<script src="/__desktop/bridge.js"></script>\n</body>');
       return new Response(html, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
     }

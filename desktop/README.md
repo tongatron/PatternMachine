@@ -29,7 +29,20 @@ npm run dist            # crea dist/mac-arm64/PatternMachine.app (non firmata)
 ```
 
 L'app non è firmata: la prima volta si apre con tasto destro › Apri.
-I kit 808 e 909 finiscono nell'app solo se sono stati estratti in `site/machines` (`scripts/extract-logic-kits.sh`).
+I kit 808 e 909 (contenuti Apple) entrano nell'app solo con `PM_KIT_LOGIC=1 npm run dist` e se sono stati estratti in `site/machines` (`scripts/extract-logic-kits.sh`).
+
+## Pubblicarla sul sito (pagina "App per Mac")
+
+```bash
+desktop/scripts/release.sh     # build senza kit Apple, firma ad-hoc, zip + app.json in site/download/
+scripts/deploy.sh --yes        # pubblica sito e download (come sempre)
+```
+
+La pagina `site/app.html` legge `download/app.json` (versione, dimensione, SHA-256) e punta allo zip con `?v=<impronta>`,
+così una versione nuova non arriva mai dalla cache. `site/download/` non va in git.
+Il download sta dietro la password del sito come tutto il resto e passa dal tunnel Cloudflare senza essere messo in cache
+(`Cache-Control: private`): Cloudflare non ha limiti di dimensione sulle risposte (il limite di 100 MB vale solo per gli upload).
+Per aggiornare l'app: alza `version` in `package.json`, rilancia i due comandi.
 
 ## Collegarla a Logic
 

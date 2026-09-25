@@ -7,44 +7,62 @@
 <title>Istruzioni e funzioni · PatternMachine</title>
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
 <style>
-/* Pagina di consultazione: grafica chiara da manifesto, bordi neri, rosso segnale. */
-:root{--bg:#d6d5ce; --paper:#f6f5f1; --ink:#000; --dim:#2b2a26; --red:#ff3b00; --line:#0a0a0a; color-scheme:light;}
+/* Pagina di consultazione: stessi colori e materiali del tema chiaro della home
+   (scocca grigia, pannelli chiari, tasti in rilievo, arancio), testo in un sans leggibile. */
+:root{--bg:#a3a097; --body-bg:linear-gradient(180deg,#adaaa1,#9a978e); --plate:linear-gradient(180deg,#e2dfd6,#cfccc2);
+  --paper:#ebe8df; --panel-2:#c4c1b7; --edge:#55534b; --edge-soft:#8f8c83; --ink:#1c1b19; --dim:#3a3833;
+  --accent:#c8471f; --on-accent:#fff6ee;
+  --key:linear-gradient(180deg,#dcd9cf,#b5b2a8); --key-shadow:inset 0 1px 0 rgba(255,255,255,.8), 0 1px 0 rgba(0,0,0,.35);
+  --key-primary:linear-gradient(180deg,#e0743f,#b8471f);
+  --shadow:inset 0 1px 0 rgba(255,255,255,.65), inset 0 -1px 0 rgba(0,0,0,.18), 0 2px 0 rgba(0,0,0,.25);
+  --mono:"SF Mono","JetBrains Mono",ui-monospace,Menlo,Consolas,monospace; color-scheme:light;}
 *{box-sizing:border-box}
-body{margin:0; background:var(--bg); color:var(--ink); font:15px/1.6 "Helvetica Neue",Helvetica,Arial,sans-serif;
+html{background:#9a978e;}
+body{margin:0; background:var(--body-bg); color:var(--ink); min-height:100vh;
+  font:15px/1.6 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif; -webkit-font-smoothing:antialiased;
   padding:max(18px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) 40px max(16px,env(safe-area-inset-left));}
 .wrap{max-width:960px; margin:0 auto;}
-header{display:flex; flex-wrap:wrap; align-items:baseline; gap:8px 18px; margin-bottom:14px;}
-h1{font-size:20px; letter-spacing:.08em; text-transform:uppercase; margin:0; font-weight:800;}
-header a{color:var(--ink); font-weight:700;}
-.back{margin-left:auto; border:2px solid var(--line); padding:6px 12px; text-decoration:none; background:#fff;}
-.back:hover{background:var(--ink); color:var(--paper);}
-nav{display:flex; flex-wrap:wrap; gap:0; margin-bottom:16px;}
-nav a{border:2px solid var(--line); margin:0 -2px -2px 0; padding:6px 12px; background:#fff; color:var(--ink);
-  text-decoration:none; font-size:13px; font-weight:700;}
-nav a:hover{background:var(--ink); color:var(--paper);}
-section{background:var(--paper); border:2px solid var(--line); padding:14px 18px 16px; margin-bottom:14px;}
-h2{font-size:13px; letter-spacing:.14em; text-transform:uppercase; margin:0 0 10px; padding-bottom:6px; border-bottom:2px solid var(--line); font-weight:800;}
-h3{font-size:15px; margin:14px 0 4px; font-weight:800;}
+header{display:flex; flex-wrap:wrap; align-items:baseline; gap:8px 16px; margin-bottom:14px;}
+h1{font:700 15px/1.3 var(--mono); letter-spacing:.2em; text-transform:uppercase; margin:0;}
+.back, nav a{display:inline-flex; align-items:center; border:1px solid var(--edge); background:var(--key); color:var(--ink);
+  border-radius:3px; box-shadow:var(--key-shadow); padding:6px 12px; font:700 11px/1.3 var(--mono); letter-spacing:.02em;
+  text-decoration:none; white-space:nowrap;}
+.back{margin-left:auto;}
+.back:hover, nav a:hover{border-color:var(--accent); color:var(--accent);}
+nav{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px;}
+section{background:var(--plate); border:1px solid var(--edge); border-radius:3px; box-shadow:var(--shadow);
+  padding:13px 18px 16px; margin-bottom:12px;}
+h2{font:700 10px/1.3 var(--mono); letter-spacing:.16em; text-transform:uppercase; color:var(--dim);
+  margin:0 0 10px; padding-bottom:7px; border-bottom:1px solid var(--accent);}
+h3{font-size:15px; margin:14px 0 4px; font-weight:700;}
 p{margin:6px 0;}
 ul,ol{margin:6px 0; padding-left:20px;}
 li{margin:3px 0;}
-code{font:13px ui-monospace,Menlo,monospace; background:#fff; border:1px solid var(--line); padding:0 4px;}
+a{color:var(--accent);}
+code, kbd{font:12.5px var(--mono); background:var(--paper); border:1px solid var(--edge-soft); border-radius:2px; padding:0 4px; word-break:break-word;}
 table{width:100%; border-collapse:collapse; font-size:14px; margin:6px 0;}
-th,td{text-align:left; padding:6px 8px; border-bottom:1px solid var(--line); vertical-align:top;}
-th{border-bottom:2px solid var(--line); font-size:12px; letter-spacing:.08em; text-transform:uppercase;}
-.num{font:800 30px/1 "Helvetica Neue",Helvetica,Arial,sans-serif; letter-spacing:-.02em;}
-.stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:0;}
-.stat{border:2px solid var(--line); margin:0 -2px -2px 0; padding:10px 12px; background:#fff;}
-.stat span{display:block; font-size:12px; letter-spacing:.08em; text-transform:uppercase; font-weight:700;}
-.tag{display:inline-block; border:2px solid var(--line); padding:0 6px; font-size:12px; font-weight:800; margin-right:4px;}
-.tag.red{background:var(--red);}
+th,td{text-align:left; padding:6px 8px; border-bottom:1px solid var(--edge-soft); vertical-align:top;}
+th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-spacing:.1em; text-transform:uppercase; color:var(--dim);}
+.table-wrap{overflow-x:auto;}
+.num{font:700 26px/1 var(--mono); letter-spacing:-.02em;}
+.stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:6px;}
+.stat{border:1px solid var(--edge-soft); border-radius:3px; padding:10px 12px; background:var(--paper);}
+.stat span{display:block; font:700 10px/1.4 var(--mono); letter-spacing:.08em; text-transform:uppercase; color:var(--dim);}
+.tag{display:inline-block; border:1px solid var(--edge); border-radius:3px; padding:0 6px; font:700 11px/1.6 var(--mono); margin-right:4px; background:var(--key);}
+.tag.red{background:var(--key-primary); color:var(--on-accent); border-color:#8a3418;}
 .groups{columns:2 320px; column-gap:24px;}
 .group{break-inside:avoid; margin-bottom:12px;}
 .group h3{margin-top:0;}
 .group li{font-size:14px;}
 .muted{color:var(--dim); font-size:13px;}
-.table-wrap{overflow-x:auto;}
+/* pulsante di tongatron.org (tongatron.org/pulsanti, variante 9: pillola gialla) */
+.site-footer{display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:10px; margin:22px 0 6px; font:11px var(--mono); color:var(--dim);}
+.site-badge{display:inline-flex; align-items:center; gap:10px; text-decoration:none; font:700 14px/1.2 var(--mono);
+  background:#ffcc00; color:#000; padding:5px 12px; border-radius:999px; transition:.2s;}
+.site-badge .mark{width:11px; height:11px; border-radius:50%; background:#000; flex-shrink:0;}
+.site-badge:hover{box-shadow:0 0 0 2px #000;}
 </style>
+<script defer src="https://analytics.tongatron.org/script.js" data-website-id="9daa93b6-2afb-494a-89fb-288437a030d1" data-domains="patternmachine.tongatron.org"></script>
 </head>
 <body>
 <div class="wrap">
@@ -233,20 +251,21 @@ th{border-bottom:2px solid var(--line); font-size:12px; letter-spacing:.08em; te
     <li>I kit 808 e 909 sono ricreazioni di Apple incluse in Logic Pro, non i campioni Roland originali.</li>
   </ul>
 </section>
+<footer class="site-footer">PatternMachine è un progetto di <a class="site-badge" href="https://tongatron.org/"><span class="mark"></span><span>tongatron.org</span></a></footer>
 </div>
 
-<script src="engine/core.js?v=2026-09-25.4"></script>
-<script src="engine/styles-punk.js?v=2026-09-25.4"></script>
-<script src="engine/styles-post.js?v=2026-09-25.4"></script>
-<script src="engine/styles-machines.js?v=2026-09-25.4"></script>
-<script src="engine/styles-alt.js?v=2026-09-25.4"></script>
-<script src="engine/styles-groove.js?v=2026-09-25.4"></script>
-<script src="engine/styles-dub.js?v=2026-09-25.4"></script>
-<script src="engine/styles-break.js?v=2026-09-25.4"></script>
-<script src="engine/styles-soul.js?v=2026-09-25.4"></script>
-<script src="engine/styles-metal.js?v=2026-09-25.4"></script>
-<script src="engine/styles-electro.js?v=2026-09-25.4"></script>
-<script src="engine/variations.js?v=2026-09-25.4"></script>
+<script src="engine/core.js?v=2026-09-25.5"></script>
+<script src="engine/styles-punk.js?v=2026-09-25.5"></script>
+<script src="engine/styles-post.js?v=2026-09-25.5"></script>
+<script src="engine/styles-machines.js?v=2026-09-25.5"></script>
+<script src="engine/styles-alt.js?v=2026-09-25.5"></script>
+<script src="engine/styles-groove.js?v=2026-09-25.5"></script>
+<script src="engine/styles-dub.js?v=2026-09-25.5"></script>
+<script src="engine/styles-break.js?v=2026-09-25.5"></script>
+<script src="engine/styles-soul.js?v=2026-09-25.5"></script>
+<script src="engine/styles-metal.js?v=2026-09-25.5"></script>
+<script src="engine/styles-electro.js?v=2026-09-25.5"></script>
+<script src="engine/variations.js?v=2026-09-25.5"></script>
 <script>
 // Stili, gruppi e variazioni vengono dal motore: questa pagina non va aggiornata a mano quando se ne aggiungono.
 (function(){

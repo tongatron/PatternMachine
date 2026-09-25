@@ -22,12 +22,17 @@ from urllib.parse import urlencode
 
 HERE = Path(__file__).resolve().parent.parent
 TEST_PASSWORD = "prova-di-test"
+FAKE_ZIP = bytes(range(256)) * (3 * 4096 + 7)
 failures = 0
 
 
 def build_stage():
     stage = Path(tempfile.mkdtemp(prefix="patternmachine-stage-"))
-    shutil.copytree(HERE / "site", stage, dirs_exist_ok=True)
+    # download/ vero (l'app da ~130 MB) resta fuori: al suo posto uno zip finto piu' grande di un pezzo (1 MB)
+    shutil.copytree(HERE / "site", stage, dirs_exist_ok=True, ignore=shutil.ignore_patterns("download"))
+    (stage / "download").mkdir()
+    (stage / "download" / "PatternMachine-macOS.zip").write_bytes(FAKE_ZIP)
+    (stage / "download" / "app.json").write_text(json.dumps({"file": "PatternMachine-macOS.zip", "bytes": len(FAKE_ZIP)}))
     shutil.copy(HERE / "index.html", stage / "toolkit.html")
     shutil.copy(HERE / "server.py", stage / "server.py")
     shutil.copy(HERE / "scripts" / "set-password.py", stage / "set-password.py")
@@ -97,6 +102,8 @@ def main():
         s, h, _ = anon.call("/")
         check("anonimo / -> login", (s, h.get("location")), (303, "/login?next=/"))
         check("anonimo toolkit -> login", anon.call("/toolkit.html")[1].get("location"), "/login?next=/toolkit.html")
+        check("anonimo pagina app -> login", anon.call("/app.html")[1].get("location"), "/login?next=/app.html")
+        check("anonimo zip app: negato", anon.call("/download/PatternMachine-macOS.zip")[0], 401)
         loc = anon.call("/?p=dbeat-16S-111111~R000005BEEF&x=1")[1].get("location")
         check("link condiviso conserva la query", loc, "/login?next=/?p=dbeat-16S-111111~R000005BEEF%26x=1")
         page = anon.call(loc)[2].decode()
@@ -149,6 +156,11 @@ def main():
         for path in ["/server.py", "/auth.json", "/set-password.py", "/data/patterns.json", "/backup-index-x.html",
                      "/.env", "/engine/../server.py", "/samples/../data/patterns.json", "/nope.html"]:
             check("nascosto anche da loggato " + path, user.call(path)[0], 404)
+        s, h, body = user.call("/download/PatternMachine-macOS.zip?v=abc")
+        check("zip app: intero, a pezzi", (s, h.get("content-length"), body == FAKE_ZIP), (200, str(len(FAKE_ZIP)), True))
+        check("zip app: tipo", h.get("content-type"), "application/zip")
+        check("pagina app", user.call("/app.html")[0], 200)
+        check("scheda app non in cache", user.call("/download/app.json")[1].get("cache-control"), "private, no-cache")
         check("cache html privata", user.call("/")[1].get("cache-control"), "private, no-cache")
         check("cache campioni privata", user.call("/samples/Kick%201%20SP-1200.wav")[1].get("cache-control"),
               "private, max-age=604800")

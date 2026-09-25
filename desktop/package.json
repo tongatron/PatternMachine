@@ -8,7 +8,8 @@
   "author": "Giovanni Bindi",
   "scripts": {
     "start": "electron .",
-    "dist": "electron-builder --mac dir"
+    "dist": "electron-builder --mac dir --config electron-builder.config.cjs",
+    "release": "scripts/release.sh"
   },
   "dependencies": {
     "@julusian/midi": "^3.8.1"
@@ -16,19 +17,5 @@
   "devDependencies": {
     "electron": "^44.4.5",
     "electron-builder": "^26.0.0"
-  },
-  "build": {
-    "appId": "org.tongatron.patternmachine",
-    "productName": "PatternMachine",
-    "directories": { "output": "dist" },
-    "files": ["main.js", "preload.js", "bridge/**", "package.json"],
-    "extraResources": [
-      { "from": "../site", "to": "site", "filter": ["**/*", "!sw.js", "!**/.DS_Store"] }
-    ],
-    "mac": {
-      "category": "public.app-category.music",
-      "icon": "../site/icons/icon-512.png",
-      "identity": null
-    }
   }
 }

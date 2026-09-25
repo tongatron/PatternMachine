@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>App per Mac · PatternMachine</title>
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+<style>
+/* Pagina di consultazione: stessi colori e materiali del tema chiaro della home
+   (scocca grigia, pannelli chiari, tasti in rilievo, arancio), testo in un sans leggibile. */
+:root{--bg:#a3a097; --body-bg:linear-gradient(180deg,#adaaa1,#9a978e); --plate:linear-gradient(180deg,#e2dfd6,#cfccc2);
+  --paper:#ebe8df; --panel-2:#c4c1b7; --edge:#55534b; --edge-soft:#8f8c83; --ink:#1c1b19; --dim:#3a3833;
+  --accent:#c8471f; --on-accent:#fff6ee;
+  --key:linear-gradient(180deg,#dcd9cf,#b5b2a8); --key-shadow:inset 0 1px 0 rgba(255,255,255,.8), 0 1px 0 rgba(0,0,0,.35);
+  --key-primary:linear-gradient(180deg,#e0743f,#b8471f);
+  --shadow:inset 0 1px 0 rgba(255,255,255,.65), inset 0 -1px 0 rgba(0,0,0,.18), 0 2px 0 rgba(0,0,0,.25);
+  --mono:"SF Mono","JetBrains Mono",ui-monospace,Menlo,Consolas,monospace; color-scheme:light;}
+*{box-sizing:border-box}
+html{background:#9a978e;}
+body{margin:0; background:var(--body-bg); color:var(--ink); min-height:100vh;
+  font:15px/1.6 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif; -webkit-font-smoothing:antialiased;
+  padding:max(18px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) 40px max(16px,env(safe-area-inset-left));}
+.wrap{max-width:960px; margin:0 auto;}
+header{display:flex; flex-wrap:wrap; align-items:baseline; gap:8px 16px; margin-bottom:14px;}
+h1{font:700 15px/1.3 var(--mono); letter-spacing:.2em; text-transform:uppercase; margin:0;}
+.back, nav a{display:inline-flex; align-items:center; border:1px solid var(--edge); background:var(--key); color:var(--ink);
+  border-radius:3px; box-shadow:var(--key-shadow); padding:6px 12px; font:700 11px/1.3 var(--mono); letter-spacing:.02em;
+  text-decoration:none; white-space:nowrap;}
+.back{margin-left:auto;}
+.back:hover, nav a:hover{border-color:var(--accent); color:var(--accent);}
+nav{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px;}
+section{background:var(--plate); border:1px solid var(--edge); border-radius:3px; box-shadow:var(--shadow);
+  padding:13px 18px 16px; margin-bottom:12px;}
+h2{font:700 10px/1.3 var(--mono); letter-spacing:.16em; text-transform:uppercase; color:var(--dim);
+  margin:0 0 10px; padding-bottom:7px; border-bottom:1px solid var(--accent);}
+h3{font-size:15px; margin:14px 0 4px; font-weight:700;}
+p{margin:6px 0;}
+ul,ol{margin:6px 0; padding-left:20px;}
+li{margin:3px 0;}
+a{color:var(--accent);}
+code, kbd{font:12.5px var(--mono); background:var(--paper); border:1px solid var(--edge-soft); border-radius:2px; padding:0 4px; word-break:break-word;}
+table{width:100%; border-collapse:collapse; font-size:14px; margin:6px 0;}
+th,td{text-align:left; padding:6px 8px; border-bottom:1px solid var(--edge-soft); vertical-align:top;}
+th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-spacing:.1em; text-transform:uppercase; color:var(--dim);}
+.table-wrap{overflow-x:auto;}
+.num{font:700 26px/1 var(--mono); letter-spacing:-.02em;}
+.stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:6px;}
+.stat{border:1px solid var(--edge-soft); border-radius:3px; padding:10px 12px; background:var(--paper);}
+.stat span{display:block; font:700 10px/1.4 var(--mono); letter-spacing:.08em; text-transform:uppercase; color:var(--dim);}
+.tag{display:inline-block; border:1px solid var(--edge); border-radius:3px; padding:0 6px; font:700 11px/1.6 var(--mono); margin-right:4px; background:var(--key);}
+.tag.red{background:var(--key-primary); color:var(--on-accent); border-color:#8a3418;}
+.groups{columns:2 320px; column-gap:24px;}
+.group{break-inside:avoid; margin-bottom:12px;}
+.group h3{margin-top:0;}
+.group li{font-size:14px;}
+.muted{color:var(--dim); font-size:13px;}
+/* pulsante di tongatron.org (tongatron.org/pulsanti, variante 9: pillola gialla) */
+.site-footer{display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:10px; margin:22px 0 6px; font:11px var(--mono); color:var(--dim);}
+.site-badge{display:inline-flex; align-items:center; gap:10px; text-decoration:none; font:700 14px/1.2 var(--mono);
+  background:#ffcc00; color:#000; padding:5px 12px; border-radius:999px; transition:.2s;}
+.site-badge .mark{width:11px; height:11px; border-radius:50%; background:#000; flex-shrink:0;}
+.site-badge:hover{box-shadow:0 0 0 2px #000;}
+.get{display:flex; flex-wrap:wrap; align-items:center; gap:12px 18px;}
+.dl{display:inline-block; background:var(--key-primary); color:var(--on-accent); border:1px solid #8a3418; border-radius:3px;
+  box-shadow:var(--key-shadow); padding:12px 22px; font:700 14px/1.2 var(--mono); letter-spacing:.06em; text-decoration:none; text-transform:uppercase;}
+.dl:hover{filter:brightness(1.08);}
+.dl[aria-disabled="true"]{background:var(--key); color:var(--dim); border-color:var(--edge); pointer-events:none;}
+.facts{display:flex; flex-wrap:wrap; gap:6px;}
+.facts span{border:1px solid var(--edge-soft); border-radius:3px; padding:3px 9px; background:var(--paper); font:700 11px/1.5 var(--mono);}
+.sha{margin-top:10px; word-break:break-all;}
+</style>
+<script defer src="https://analytics.tongatron.org/script.js" data-website-id="9daa93b6-2afb-494a-89fb-288437a030d1" data-domains="patternmachine.tongatron.org"></script>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>PatternMachine per Mac</h1>
+  <span class="muted">app per macOS · prototipo</span>
+  <a class="back" href="./">&larr; Torna alla drum machine</a>
+</header>
+
+<section>
+  <h2>Scarica</h2>
+  <div class="get">
+    <a class="dl" id="dl" href="download/PatternMachine-macOS.zip" download aria-disabled="true">Scarica per Mac</a>
+    <div class="facts" id="facts"><span>in preparazione…</span></div>
+  </div>
+  <p class="muted sha" id="sha"></p>
+  <p class="muted">Serve un Mac con chip Apple (M1 o successivi) e macOS 12 o più recente. L'app non contiene i kit 808 e 909 (sono campioni di Logic Pro): ci sono SP-1200 e RX-5.</p>
+</section>
+
+<section>
+  <h2>Cosa fa in più del sito</h2>
+  <div class="table-wrap"><table>
+    <tr><th>Nel browser</th><th>Nell'app</th></tr>
+    <tr><td>Esporti uno zip, lo scompatti, lo importi in Logic</td><td><b>Trascini</b> il pattern (MIDI o WAV) dall'app direttamente nella timeline di Logic</td></tr>
+    <tr><td>Nessuna uscita MIDI dal vivo</td><td><b>Porta MIDI "PatternMachine"</b>: i pattern suonano Drum Kit Designer, Drum Machine Designer o qualsiasi strumento di Logic, e si registrano</td></tr>
+    <tr><td>Play e BPM impostati a mano</td><td><b>Segue il MIDI Clock di Logic</b>: parte, si ferma, salta e cambia tempo insieme a Logic</td></tr>
+    <tr><td>Progetti salvati nel browser</td><td>Progetti come <b>file</b> in Musica › PatternMachine › Progetti, esportazioni in Musica › PatternMachine › Export</td></tr>
+    <tr><td>Serve la rete e la password</td><td>Funziona in locale, anche offline</td></tr>
+  </table></div>
+</section>
+
+<section>
+  <h2>Installare</h2>
+  <ol>
+    <li>Apri lo zip scaricato e trascina <b>PatternMachine</b> nella cartella <b>Applicazioni</b>.</li>
+    <li>Al primo avvio macOS la blocca perché non viene dall'App Store e non è firmata con un certificato Apple: premi <b>Fine</b>.</li>
+    <li>Apri <b>Impostazioni di Sistema › Privacy e sicurezza</b>, scorri fino a "PatternMachine è stata bloccata" e premi <b>Apri comunque</b>. Conferma con la password del Mac. Serve solo la prima volta.</li>
+  </ol>
+  <p class="muted">In alternativa, da Terminale: <code>xattr -dr com.apple.quarantine /Applications/PatternMachine.app</code></p>
+</section>
+
+<section>
+  <h2>Collegarla a Logic Pro</h2>
+  <ul>
+    <li><b>Note verso Logic</b>: nel pannello Logic dell'app lascia attiva "Uscita MIDI" con note General MIDI. In Logic crea una traccia Drum Machine Designer o Drum Kit Designer e armala: le note arrivano dalla porta "PatternMachine".</li>
+    <li><b>Logic comanda il tempo</b>: in Logic, <i>File › Impostazioni progetto › Sincronizzazione › MIDI</i>, manda il Clock MIDI a "PatternMachine". Nell'app attiva "Segui il clock di Logic" e premi Play in Logic.</li>
+    <li><b>Trascinare</b>: afferra <b>⠿ MIDI</b> o <b>⠿ WAV</b> nel pannello Logic e rilascia sulla timeline. Segue il selettore Pattern/Canzone.</li>
+    <li>Suono solo da Logic: spegni "Suono interno".</li>
+  </ul>
+</section>
+<footer class="site-footer">PatternMachine è un progetto di <a class="site-badge" href="https://tongatron.org/"><span class="mark"></span><span>tongatron.org</span></a></footer>
+</div>
+
+<script>
+// La scheda download/app.json la scrive desktop/scripts/release.sh insieme allo zip.
+(async function(){
+  const dl=document.getElementById("dl"), facts=document.getElementById("facts"), sha=document.getElementById("sha");
+  const span=t=>{ const s=document.createElement("span"); s.textContent=t; return s; };
+  try{
+    const r=await fetch("download/app.json",{cache:"no-store"});
+    if(!r.ok) throw new Error(r.status);
+    const a=await r.json();
+    // ?v= con l'impronta: una versione nuova non arriva mai dalla cache del browser
+    dl.href="download/"+encodeURIComponent(a.file)+"?v="+a.sha256.slice(0,12);
+    dl.removeAttribute("aria-disabled");
+    const d=new Date(a.date+"T12:00:00");
+    facts.replaceChildren(span("versione "+a.version), span(Math.round(a.bytes/1048576)+" MB"),
+      span(d.toLocaleDateString("it-IT",{day:"numeric",month:"long",year:"numeric"})), span("Apple Silicon"), span("macOS "+a.minMacOS+"+"));
+    sha.textContent="SHA-256: "+a.sha256;
+  }catch(e){
+    facts.replaceChildren(span("app non ancora pubblicata"));
+  }
+})();
+</script>
+</body>
+</html>

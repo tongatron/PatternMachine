@@ -2,7 +2,8 @@
 .pm-desktop .logout,
 .pm-desktop #installBtn,
 .pm-desktop #netBadge,
-.pm-desktop .topbar a[href="toolkit.html"]{display:none !important;}
+.pm-desktop .topbar a[href="toolkit.html"],
+.pm-desktop .topbar a[href="app.html"]{display:none !important;}
 
 .pm-desk .flexline{gap:10px; align-items:center;}
 .pm-desk-title{font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-dim);}

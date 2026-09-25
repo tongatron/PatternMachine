@@ -7,7 +7,7 @@
 // Cloudflare tiene in cache i .js, l'URL nuovo lo scavalca.
 // Il worker nuovo si attiva subito (skipWaiting): la pagina aperta e' gia' quella
 // presa dalla rete, quindi non serve ricaricarla e non si perde lavoro non salvato.
-const VERSION = "2026-09-25.4";
+const VERSION = "2026-09-25.5";
 const SHELL_CACHE = `sp1200-shell-${VERSION}`;
 const SAMPLE_CACHE = "sp1200-samples-v1"; // non versionata: i campioni non si riscaricano ad ogni rilascio
 
@@ -83,6 +83,8 @@ self.addEventListener("fetch", event => {
   if (url.origin !== self.location.origin) return;
   // API e accesso vanno sempre in rete: la pagina di login non deve mai finire in cache.
   if (url.pathname.startsWith("/api/") || url.pathname === "/login" || url.pathname === "/logout") return;
+  // L'app per macOS (~100 MB) e la sua scheda vanno scaricate dalla rete, mai copiate nella cache.
+  if (url.pathname.startsWith("/download/")) return;
 
   if (req.mode === "navigate") {
     event.respondWith(networkFirst(req));

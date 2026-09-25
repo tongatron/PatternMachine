@@ -69,6 +69,7 @@ try{ const t=localStorage.getItem("sp1200.theme"); if(t==="light"||t==="dark") d
 <meta name="twitter:title" content="PatternMachine — drum machine a step con generatore di pattern">
 <meta name="twitter:description" content="Drum machine a step con SP-1200, RX-5, 808 e 909: generatore di pattern in decine di stili (punk, dub, metal, breakbeat, elettronica, soul e altri), variazioni, arrangiamento della canzone ed export MIDI, direttamente nel browser.">
 <meta name="twitter:image" content="https://patternmachine.tongatron.org/assets/og-drum-machine-lab.jpg">
+<script defer src="https://analytics.tongatron.org/script.js" data-website-id="9daa93b6-2afb-494a-89fb-288437a030d1" data-domains="patternmachine.tongatron.org"></script>
 </head>
 <body style="margin:0">
 <style>
@@ -494,6 +495,12 @@ table.recent .empty td{color:var(--text-faint); font-style:italic; text-align:ce
 .acts{display:flex; gap:5px;}
 
 .status{font-size:10px; color:var(--text-dim); letter-spacing:0.03em;}
+/* pulsante di tongatron.org (tongatron.org/pulsanti, variante 9: pillola gialla) */
+.site-footer{display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:10px; margin:22px 0 6px; font-size:11px; color:var(--text-dim);}
+.site-badge{display:inline-flex; align-items:center; gap:10px; text-decoration:none; font-size:14px; font-weight:700; line-height:1.2;
+  background:#ffcc00; color:#000; padding:5px 12px; border-radius:999px; transition:.2s;}
+.site-badge .mark{width:11px; height:11px; border-radius:50%; background:#000; flex-shrink:0;}
+.site-badge:hover{box-shadow:0 0 0 2px #000;}
 .status.err{color:var(--danger);}
 .hint{color:var(--text-faint); font-size:10px; line-height:1.7; margin:12px 0 0;}
 .hint b{color:var(--text-dim);}
@@ -518,6 +525,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <h1>PatternMachine</h1>
     <span class="tagline">Drum machine a step &middot; SP-1200, RX-5, 808, 909 &middot; generatore di pattern, canzone, export MIDI</span>
     <a class="linkbtn" href="funzioni.html" style="margin-left:auto" title="come si usa e cosa fa ogni funzione">Istruzioni e funzioni</a>
+    <a class="linkbtn" href="app.html" title="PatternMachine come app per macOS: MIDI verso Logic, sync al clock, trascinamento">App per Mac</a>
     <span class="tagline"><a href="toolkit.html" style="color:var(--text-dim)">Drum Machine Toolkit &rarr;</a></span>
     <div class="modeswitch theme-switch" role="group" aria-label="Tema dell'interfaccia">
       <button type="button" data-theme-choice="auto" title="Segue il sistema">Auto</button>
@@ -740,21 +748,22 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <b>Arrangia</b> ricava intro, ritornello, break e outro, <b>Blocca</b> tiene alcune voci e rigenera le altre.
     Ogni pattern ha un codice: lo stesso codice rigenera lo stesso pattern.
   </p>
+  <footer class="site-footer">PatternMachine è un progetto di <a class="site-badge" href="https://tongatron.org/"><span class="mark"></span><span>tongatron.org</span></a></footer>
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-25.4"></script>
-<script src="engine/styles-punk.js?v=2026-09-25.4"></script>
-<script src="engine/styles-post.js?v=2026-09-25.4"></script>
-<script src="engine/styles-machines.js?v=2026-09-25.4"></script>
-<script src="engine/styles-alt.js?v=2026-09-25.4"></script>
-<script src="engine/styles-groove.js?v=2026-09-25.4"></script>
-<script src="engine/styles-dub.js?v=2026-09-25.4"></script>
-<script src="engine/styles-break.js?v=2026-09-25.4"></script>
-<script src="engine/styles-soul.js?v=2026-09-25.4"></script>
-<script src="engine/styles-metal.js?v=2026-09-25.4"></script>
-<script src="engine/styles-electro.js?v=2026-09-25.4"></script>
-<script src="engine/variations.js?v=2026-09-25.4"></script>
+<script src="engine/core.js?v=2026-09-25.5"></script>
+<script src="engine/styles-punk.js?v=2026-09-25.5"></script>
+<script src="engine/styles-post.js?v=2026-09-25.5"></script>
+<script src="engine/styles-machines.js?v=2026-09-25.5"></script>
+<script src="engine/styles-alt.js?v=2026-09-25.5"></script>
+<script src="engine/styles-groove.js?v=2026-09-25.5"></script>
+<script src="engine/styles-dub.js?v=2026-09-25.5"></script>
+<script src="engine/styles-break.js?v=2026-09-25.5"></script>
+<script src="engine/styles-soul.js?v=2026-09-25.5"></script>
+<script src="engine/styles-metal.js?v=2026-09-25.5"></script>
+<script src="engine/styles-electro.js?v=2026-09-25.5"></script>
+<script src="engine/variations.js?v=2026-09-25.5"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -3184,7 +3193,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-25.4";
+const SW_VERSION="2026-09-25.5";
 (function pwa(){
   const standalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
   const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);

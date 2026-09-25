@@ -17,3 +17,6 @@ SP 1200/Plugin/vendor/AudioUnitSDK/
 # Kit estratti da Logic Pro (contenuti Apple, si rigenerano con scripts/extract-logic-kits.sh).
 site/machines/tr808/
 site/machines/tr909/
+
+# App per macOS da scaricare: la crea desktop/scripts/release.sh.
+site/download/

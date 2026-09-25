@@ -5,6 +5,7 @@ import html
 import json
 import os
 import re
+import shutil
 import threading
 import time
 import uuid
@@ -29,8 +30,9 @@ PATTERN_ID_RE = re.compile(r"^/api/patterns/([A-Za-z0-9\-]+)$")
 
 # Si serve solo cio' che fa parte del sito: server.py, auth.json, data/ e qualunque altro
 # file lasciato nella cartella (backup, appunti) restano fuori.
-STATIC_FILES = {"index.html", "toolkit.html", "funzioni.html", "manifest.json", "sw.js"}
-STATIC_DIRS = ("engine/", "icons/", "samples/", "samples12/", "machines/", "assets/")
+STATIC_FILES = {"index.html", "toolkit.html", "funzioni.html", "app.html", "manifest.json", "sw.js"}
+# download/: l'app per macOS (zip da ~100 MB) e app.json con versione e dimensione, scritti da desktop/scripts/release.sh.
+STATIC_DIRS = ("engine/", "icons/", "samples/", "samples12/", "machines/", "assets/", "download/")
 
 # Visibili senza password: servono al browser per installare la PWA e alle anteprime dei link.
 OPEN_PATHS = {"/login", "/logout", "/manifest.json", "/assets/og-sp1200.png", "/assets/og-drum-machine-lab.jpg"}
@@ -201,6 +203,7 @@ button{width:100%;margin-top:14px;font:inherit;font-size:14px;font-weight:800;le
   padding:12px;border-radius:9px;border:0;background:var(--ok);color:var(--on-ok);cursor:pointer;}
 .err{color:var(--danger);font-size:11px;margin:10px 0 0;min-height:1em;}
 </style>
+<script defer src="https://analytics.tongatron.org/script.js" data-website-id="9daa93b6-2afb-494a-89fb-288437a030d1" data-domains="patternmachine.tongatron.org"></script>
 </head>
 <body>
 <script>
@@ -457,17 +460,21 @@ class Handler(BaseHTTPRequestHandler):
             self.send_error(404, "Not found")
             return
         ext = os.path.splitext(full_path)[1].lower()
-        with open(full_path, "rb") as f:
-            data = f.read()
+        size = os.path.getsize(full_path)
         self.send_response(200)
         self.send_header("Content-Type", CONTENT_TYPES.get(ext, "application/octet-stream"))
-        self.send_header("Content-Length", str(len(data)))
+        self.send_header("Content-Length", str(size))
         self.send_header("Cache-Control", "private, no-cache" if ext in NO_CACHE_EXT else LONG_CACHE)
         self.send_header("X-Content-Type-Options", "nosniff")
         if ext == ".html":
             self.send_header("X-Frame-Options", "DENY")
         self.end_headers()
-        self.wfile.write(data)
+        # a pezzi: lo zip dell'app non passa tutto dalla memoria
+        try:
+            with open(full_path, "rb") as f:
+                shutil.copyfileobj(f, self.wfile, 1024 * 1024)
+        except (BrokenPipeError, ConnectionResetError):
+            pass   # download interrotto dal browser
 
     # ---------- metodi ----------
     def do_GET(self):

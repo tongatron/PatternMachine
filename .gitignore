@@ -23,6 +23,16 @@ site/machines/tr909/
 site/machines/tr707/
 site/machines/cr78/
 site/machines/linn/
+site/machines/tr606/
+site/machines/tr727/
+site/machines/cr8000/
+site/machines/dmx/
+site/machines/drumulator/
+site/machines/drumtraks/
+site/machines/sdsv/
+site/machines/sp12b/
+site/machines/tr808u/
+site/machines/tr909u/
 
 # App per macOS da scaricare: la crea desktop/scripts/release.sh.
 site/download/

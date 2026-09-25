@@ -83,7 +83,7 @@ th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-sp
 <section id="inizio">
   <h2>Primi passi</h2>
   <ol>
-    <li><b>Scegli la macchina</b> dal menu <b>Macchina</b> sotto la barra Salva (SP-1200, RX-5, TR-808, TR-909, TR-707, CR-78, LinnDrum): cambia il suono di tutte le righe. Di partenza &egrave; la TR-808; la macchina che scegli resta anche la volta dopo. <b>Approfondisci</b> porta alla storia delle macchine.</li>
+    <li><b>Scegli la macchina</b> dal menu <b>Macchina</b> sotto la barra Salva (SP-1200, RX-5, TR-808, TR-909, TR-707, TR-727, TR-606, CR-78, CR-8000, LinnDrum, DMX, Drumulator, DrumTraks, SDS-V): cambia il suono di tutte le righe. Di partenza &egrave; la TR-808; la macchina che scegli resta anche la volta dopo. <b>Approfondisci</b> porta alla storia delle macchine.</li>
     <li><b>Carica un ritmo</b>: nel pannello Pattern premi <b>Scegli…</b>, filtra per stile e premi Carica. Oppure parti da una griglia vuota con <b>+ Nuovo</b>.</li>
     <li><b>Play</b> (o barra spaziatrice). Mentre suona puoi accendere e spegnere gli step: il cambio si sente dal giro successivo.</li>
     <li><b>Modifica</b>: click su uno step lo accende o lo spegne. Sopra la griglia, "Click sugli step" cambia cosa fa il click (Probabilit&agrave;, Ripetizioni, Flam, Intonazione, Decay, Filtro).</li>
@@ -133,6 +133,16 @@ th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-sp
     <tr><td>Roland TR-707</td><td>16</td><td>kit "TR-707 Processed" del Sampler di Logic Pro</td></tr>
     <tr><td>Roland CR-78</td><td>24</td><td>kit "Boutique 78" di Logic Pro (ricreazione Apple); niente tom n&eacute; clap: li sostituiscono conga e rim</td></tr>
     <tr><td>Linn LinnDrum</td><td>20</td><td>kit "Cory's LinnDrum" del Sampler di Logic Pro</td></tr>
+    <tr><td>E-mu SP-1200 · Boutique</td><td>24</td><td>kit "Boutique SP12" di Logic Pro (ricreazione Apple)</td></tr>
+    <tr><td>Roland TR-808 · campioni</td><td>16</td><td>kit "TR-808 Unprocessed" del Sampler di Logic Pro</td></tr>
+    <tr><td>Roland TR-909 · campioni</td><td>16</td><td>kit "TR-909 Unprocessed" del Sampler di Logic Pro</td></tr>
+    <tr><td>Roland TR-727</td><td>16</td><td>kit "TR-727 Processed" del Sampler di Logic Pro; solo percussioni latine: cassa, rullante e hat sono conga, timbales e maracas</td></tr>
+    <tr><td>Roland TR-606</td><td>20</td><td>kit "TR-606 Processed" del Sampler di Logic Pro</td></tr>
+    <tr><td>Roland CR-8000</td><td>16</td><td>kit "CR-8000 Processed" del Sampler di Logic Pro</td></tr>
+    <tr><td>Oberheim DMX</td><td>13</td><td>kit Ultrabeat "Vintage Machines" di Logic Pro (ricreazione Apple); niente clap n&eacute; rim: li sostituisce il rullante</td></tr>
+    <tr><td>E-mu Drumulator</td><td>10</td><td>kit Ultrabeat "Vintage Machines" di Logic Pro (ricreazione Apple); niente hi-hat: li sostituisce il ride</td></tr>
+    <tr><td>Sequential DrumTraks</td><td>16</td><td>kit "DrumTraks Processed" del Sampler di Logic Pro</td></tr>
+    <tr><td>Simmons SDS-V</td><td>18</td><td>kit "SDS-V Processed" del Sampler di Logic Pro</td></tr>
   </table></div>
   <ul>
     <li>Il generatore ragiona per <b>slot</b> (i 42 pad dell'SP-1200): ogni macchina assegna a ogni slot il suo suono pi&ugrave; vicino.</li>
@@ -282,24 +292,24 @@ th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-sp
     <li>BPM da 40 a 240: il blast beat pi&ugrave; veloce resta sotto questo tetto.</li>
     <li>Le variazioni agiscono solo sulle righe con un suono di batteria riconosciuto (gli slot del generatore).</li>
     <li>L'export "MIDI pattern/canzone" usa la mappa del kit SP-1200: con altri kit usa invece <b>MIDI General MIDI</b> o un pacchetto per DAW.</li>
-    <li>I kit 808, 909, 707, CR-78 e LinnDrum vengono dalla libreria di Logic Pro (ricreazioni e campioni Apple), non dalle macchine originali.</li>
+    <li>Tutti i kit tranne SP-1200 (16 e 12 bit) e RX-5 vengono dalla libreria di Logic Pro (ricreazioni e campioni Apple), non dalle macchine originali.</li>
   </ul>
 </section>
 <footer class="site-footer"><a class="report-link" href="./#segnala">Segnala un problema</a><span class="site-version"><!--build-->versione locale<!--/build--></span><a class="site-badge" href="https://tongatron.org/"><span class="mark"></span><span>tongatron.org</span></a></footer>
 </div>
 
-<script src="engine/core.js?v=2026-09-25.9"></script>
-<script src="engine/styles-punk.js?v=2026-09-25.9"></script>
-<script src="engine/styles-post.js?v=2026-09-25.9"></script>
-<script src="engine/styles-machines.js?v=2026-09-25.9"></script>
-<script src="engine/styles-alt.js?v=2026-09-25.9"></script>
-<script src="engine/styles-groove.js?v=2026-09-25.9"></script>
-<script src="engine/styles-dub.js?v=2026-09-25.9"></script>
-<script src="engine/styles-break.js?v=2026-09-25.9"></script>
-<script src="engine/styles-soul.js?v=2026-09-25.9"></script>
-<script src="engine/styles-metal.js?v=2026-09-25.9"></script>
-<script src="engine/styles-electro.js?v=2026-09-25.9"></script>
-<script src="engine/variations.js?v=2026-09-25.9"></script>
+<script src="engine/core.js?v=2026-09-25.10"></script>
+<script src="engine/styles-punk.js?v=2026-09-25.10"></script>
+<script src="engine/styles-post.js?v=2026-09-25.10"></script>
+<script src="engine/styles-machines.js?v=2026-09-25.10"></script>
+<script src="engine/styles-alt.js?v=2026-09-25.10"></script>
+<script src="engine/styles-groove.js?v=2026-09-25.10"></script>
+<script src="engine/styles-dub.js?v=2026-09-25.10"></script>
+<script src="engine/styles-break.js?v=2026-09-25.10"></script>
+<script src="engine/styles-soul.js?v=2026-09-25.10"></script>
+<script src="engine/styles-metal.js?v=2026-09-25.10"></script>
+<script src="engine/styles-electro.js?v=2026-09-25.10"></script>
+<script src="engine/variations.js?v=2026-09-25.10"></script>
 <script>
 // Stili, gruppi e variazioni vengono dal motore: questa pagina non va aggiornata a mano quando se ne aggiungono.
 (function(){

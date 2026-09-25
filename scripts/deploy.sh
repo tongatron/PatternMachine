@@ -3,7 +3,7 @@
 #
 #   scripts/deploy.sh          prova a secco: test, controllo versioni, elenco dei file che cambierebbero
 #   scripts/deploy.sh --yes    pubblica davvero (backup sul server, upload, verifica)
-#   --con-kit-logic            pubblica anche i kit estratti da Logic (808, 909, 707, CR-78, LinnDrum; contenuti Apple: di norma restano solo in locale)
+#   --con-kit-logic            pubblica anche i kit estratti da Logic (808, 909, 707, CR-78, LinnDrum, 606, 727, CR-8000, DMX, Drumulator, DrumTraks, SDS-V, SP12; contenuti Apple: di norma restano solo in locale)
 #
 # Sul server la cartella e' piatta: site/* nella radice, index.html del toolkit come toolkit.html,
 # server.py, add-user.py, set-mail.py e set-telegram.py accanto. data/users.json (utenti), mail.json (Gmail) e
@@ -38,8 +38,9 @@ echo "ok $sw"
 
 STAGE=$(mktemp -d)
 trap 'rm -rf "$STAGE"' EXIT
-# I kit estratti da Logic (site/machines/tr808, tr909, tr707, cr78, linn) sono contenuti Apple: non vanno online se non richiesto.
-EXCLUDE_LOGIC=(--exclude machines/tr808 --exclude machines/tr909 --exclude machines/tr707 --exclude machines/cr78 --exclude machines/linn)
+# I kit estratti da Logic (site/machines/tr808, tr909, tr707, cr78, linn e gli altri in LOGIC_KITS) sono contenuti Apple: non vanno online se non richiesto.
+LOGIC_KITS=(tr808 tr909 tr707 cr78 linn tr606 tr727 cr8000 dmx drumulator drumtraks sdsv sp12b tr808u tr909u)
+EXCLUDE_LOGIC=(); for k in "${LOGIC_KITS[@]}"; do EXCLUDE_LOGIC+=(--exclude "machines/$k"); done
 for arg in "$@"; do [ "$arg" = "--con-kit-logic" ] && EXCLUDE_LOGIC=(); done
 rsync -a --exclude .DS_Store ${EXCLUDE_LOGIC[@]+"${EXCLUDE_LOGIC[@]}"} site/ "$STAGE/"
 # Data della versione nel footer: l'ultima modifica dei file del sito (non l'ora del deploy, cosi' se

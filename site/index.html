@@ -57,7 +57,7 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="PatternMachine">
 <meta property="og:title" content="PatternMachine — drum machine a step con generatore di pattern">
-<meta property="og:description" content="Drum machine a step con SP-1200, RX-5, 808, 909, 707, CR-78 e LinnDrum: generatore di pattern in decine di stili (punk, dub, metal, breakbeat, elettronica, soul e altri), variazioni, arrangiamento della canzone ed export MIDI, direttamente nel browser.">
+<meta property="og:description" content="Drum machine a step con SP-1200, RX-5, 808, 909, 707, 606, CR-78, LinnDrum, DMX e altre: generatore di pattern in decine di stili (punk, dub, metal, breakbeat, elettronica, soul e altri), variazioni, arrangiamento della canzone ed export MIDI, direttamente nel browser.">
 <meta property="og:image" content="https://patternmachine.tongatron.org/assets/og-drum-machine-lab.jpg">
 <meta property="og:image:type" content="image/jpeg">
 <meta property="og:image:width" content="1200">
@@ -68,7 +68,7 @@
 
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="PatternMachine — drum machine a step con generatore di pattern">
-<meta name="twitter:description" content="Drum machine a step con SP-1200, RX-5, 808, 909, 707, CR-78 e LinnDrum: generatore di pattern in decine di stili (punk, dub, metal, breakbeat, elettronica, soul e altri), variazioni, arrangiamento della canzone ed export MIDI, direttamente nel browser.">
+<meta name="twitter:description" content="Drum machine a step con SP-1200, RX-5, 808, 909, 707, 606, CR-78, LinnDrum, DMX e altre: generatore di pattern in decine di stili (punk, dub, metal, breakbeat, elettronica, soul e altri), variazioni, arrangiamento della canzone ed export MIDI, direttamente nel browser.">
 <meta name="twitter:image" content="https://patternmachine.tongatron.org/assets/og-drum-machine-lab.jpg">
 <script defer src="https://analytics.tongatron.org/script.js" data-website-id="9daa93b6-2afb-494a-89fb-288437a030d1" data-domains="patternmachine.tongatron.org"></script>
 </head>
@@ -669,7 +669,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <div class="machine-bar">
       <label class="machine-label" for="kitSelect">Macchina</label>
       <select id="kitSelect" class="machine-select"></select>
-      <a class="linkbtn machine-more" href="macchine.html" title="Storia delle sette macchine, con confronti da ascoltare">Approfondisci &rarr;</a>
+      <a class="linkbtn machine-more" href="macchine.html" title="Storia delle macchine, con confronti da ascoltare">Approfondisci &rarr;</a>
     </div>
   </div>
 
@@ -877,7 +877,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
         <h3>Groove e macchina</h3>
         <ul>
           <li><b>Swing</b> alla MPC (50&ndash;75%) e <b>Umano</b> accanto al BPM.</li>
-          <li><b>Macchina</b> cambia i suoni: E-mu SP-1200 a 16 o 12 bit, Yamaha RX-5, Roland TR-808, TR-909, TR-707, CR-78, Linn LinnDrum.
+          <li><b>Macchina</b> cambia i suoni: E-mu SP-1200 a 16 o 12 bit, Yamaha RX-5, Roland TR-808, TR-909, TR-707, TR-727, TR-606, CR-78, CR-8000, Linn LinnDrum, Oberheim DMX, E-mu Drumulator, Sequential DrumTraks, Simmons SDS-V.
             Le righe che usano un suono assente sull'altra macchina passano al suono equivalente.</li>
         </ul>
       </section>
@@ -964,19 +964,19 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-25.9"></script>
-<script src="engine/styles-punk.js?v=2026-09-25.9"></script>
-<script src="engine/styles-post.js?v=2026-09-25.9"></script>
-<script src="engine/styles-machines.js?v=2026-09-25.9"></script>
-<script src="engine/styles-alt.js?v=2026-09-25.9"></script>
-<script src="engine/styles-groove.js?v=2026-09-25.9"></script>
-<script src="engine/styles-dub.js?v=2026-09-25.9"></script>
-<script src="engine/styles-break.js?v=2026-09-25.9"></script>
-<script src="engine/styles-soul.js?v=2026-09-25.9"></script>
-<script src="engine/styles-metal.js?v=2026-09-25.9"></script>
-<script src="engine/styles-electro.js?v=2026-09-25.9"></script>
-<script src="engine/variations.js?v=2026-09-25.9"></script>
-<script src="engine/import.js?v=2026-09-25.9"></script>
+<script src="engine/core.js?v=2026-09-25.10"></script>
+<script src="engine/styles-punk.js?v=2026-09-25.10"></script>
+<script src="engine/styles-post.js?v=2026-09-25.10"></script>
+<script src="engine/styles-machines.js?v=2026-09-25.10"></script>
+<script src="engine/styles-alt.js?v=2026-09-25.10"></script>
+<script src="engine/styles-groove.js?v=2026-09-25.10"></script>
+<script src="engine/styles-dub.js?v=2026-09-25.10"></script>
+<script src="engine/styles-break.js?v=2026-09-25.10"></script>
+<script src="engine/styles-soul.js?v=2026-09-25.10"></script>
+<script src="engine/styles-metal.js?v=2026-09-25.10"></script>
+<script src="engine/styles-electro.js?v=2026-09-25.10"></script>
+<script src="engine/variations.js?v=2026-09-25.10"></script>
+<script src="engine/import.js?v=2026-09-25.10"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -1094,18 +1094,166 @@ const CR78_SLOTS=[
 ];
 const CR78_EXTRA=[["78 BD 3","BD3","BD 3","Kick 2"],["78 Tamb 2","Tamb2","Tamb 2","Tambourine"],["78 Tamb 3","Tamb3","Tamb 3","Tambourine"],["78 Guiro 4","Guiro4","Guiro 4","Guiro 1"]];
 
+// Altri kit dalla libreria di Logic (stesso script). Kit del Sampler: TR-606, TR-727, CR-8000, DrumTraks,
+// Simmons SDS-V e le versioni "Unprocessed" di 808 e 909; kit Ultrabeat: DMX e Drumulator ("Vintage Machines")
+// e Boutique SP12. Come per il CR-78, i suoni che la macchina non ha prendono in prestito il piu' vicino.
+const TR606_SLOTS=[
+  ["Kick 1","Kick1","Kick 1"],["Kick 2","Kick2","Kick 2"],
+  ["Snare 1","Snare1","Snare 1"],["Snare 2","Snare2","Snare 2"],["Snare 3","Snare3","Snare 3"],
+  ["Rimshot","Rim","Rim"],["Finger Snap","Clap1","Clap"],
+  ["Closed Hat 1","HiHat1","Hi-Hat 1"],["Closed Hat 2","HiHat2","Hi-Hat 2"],["Open Hat 1","HiHatOpen1","Hi-Hat Open 1"],
+  ["Tom 1","TomHigh1","Tom High 1"],["Tom 2","TomLow1","Tom Low 1"],
+  ["Crash 1","Crash","Crash"],["Ride 1","Ride","Ride"],["China","HiHatOpen2","Hi-Hat Open 2"],["Cymbal","Crash","Crash"],
+  ["Cowbell 1","Rim","Rim"],
+  ["Conga 1","TomHigh2","Tom High 2"],["Conga 3","TomLow2","Tom Low 2"],
+  ["Tambourine","HiHatPedal","Hi-Hat Pedal"],["Cabasa 1","HiHat2","Hi-Hat 2"],
+  ["Clave 1","Rim","Rim"],["Perc 1","TomLow3","Tom Low 3"],
+];
+const TR606_EXTRA=[["606 Clap 2","Clap2","Clap 2","Finger Snap"]];
+// La TR-727 e' la "707 latina": solo percussioni, quindi cassa, rullante e hat sono conga, timbales e maracas.
+const TR727_SLOTS=[
+  ["Kick 1","CongaLow","Conga Low"],["Kick 2","BongoLow","Bongo Low"],
+  ["Snare 1","TimbaleHigh","Timbale High"],["Snare 2","TimbaleLow","Timbale Low"],["Snare 3","TimbaleHighFlam","Timbale High Flam"],
+  ["Rimshot","TimbaleLowFlam","Timbale Low Flam"],["Finger Snap","Quijada","Quijada"],
+  ["Closed Hat 1","Maracas","Maracas"],["Closed Hat 2","Cabasa","Cabasa"],["Open Hat 1","Quijada","Quijada"],
+  ["Tom 1","BongoHigh","Bongo High"],["Tom 2","BongoLow","Bongo Low"],
+  ["Crash 1","Chimes","Chimes"],["Ride 1","AgogoHigh","Agogo High"],["China","Chimes","Chimes"],["Cymbal","Chimes","Chimes"],
+  ["Cowbell 1","AgogoHigh","Agogo High"],["Cowbell 2","AgogoLow","Agogo Low"],
+  ["Conga 1","CongaHigh","Conga High"],["Conga 2","CongaLow","Conga Low"],["Conga 3","CongaMuted","Conga Muted"],["Conga 4","BongoHigh","Bongo High"],
+  ["Timbale 1","TimbaleHigh","Timbale High"],["Timbale 2","TimbaleLow","Timbale Low"],["Agogo 1","AgogoLow","Agogo Low"],
+  ["Tambourine","Maracas","Maracas"],["Cabasa 1","Cabasa","Cabasa"],["Vibraslap","Quijada","Quijada"],
+  ["Clave 1","AgogoHigh","Agogo High"],["Perc 1","CongaMuted","Conga Muted"],["Perc 2","Whistle","Whistle"],["Perc 3","Chimes","Chimes"],
+];
+const TR727_EXTRA=[];
+const CR8000_SLOTS=[
+  ["Kick 1","Kick1","Kick 1"],["Kick 2","Kick2","Kick 2"],
+  ["Snare 1","Snare1","Snare 1"],["Snare 2","Snare2","Snare 2"],["Snare 3","Snare2","Snare 2"],
+  ["Rimshot","Rim","Rim"],["Finger Snap","Clap1","Clap"],
+  ["Closed Hat 1","HiHat","Hi-Hat"],["Closed Hat 2","HiHat","Hi-Hat"],["Open Hat 1","HiHatOpen","Hi-Hat Open"],
+  ["Tom 1","TomHigh","Tom High"],["Tom 2","TomLow","Tom Low"],
+  ["Crash 1","Cymbal","Cymbal"],["Ride 1","Cymbal","Cymbal"],["China","HiHatOpen","Hi-Hat Open"],["Cymbal","Cymbal","Cymbal"],
+  ["Cowbell 1","Cowbell","Cowbell"],
+  ["Conga 1","CongaHigh","Conga High"],["Conga 2","CongaLow","Conga Low"],["Conga 3","CongaLow","Conga Low"],
+  ["Tambourine","HiHat","Hi-Hat"],["Cabasa 1","HiHat","Hi-Hat"],
+  ["Clave 1","Clave","Clave"],["Perc 1","CongaHigh","Conga High"],
+];
+const CR8000_EXTRA=[["8000 Clap 2","Clap2","Clap 2","Finger Snap"]];
+const DRUMTRAKS_SLOTS=[
+  ["Kick 1","Kick1","Kick"],["Kick 2","Kick1","Kick"],
+  ["Snare 1","Snare1","Snare 1"],["Snare 2","Snare2","Snare 2"],["Snare 3","Snare2","Snare 2"],
+  ["Rimshot","Rim","Rim"],["Finger Snap","Clap1","Clap"],
+  ["Closed Hat 1","HiHat","Hi-Hat"],["Closed Hat 2","HiHat","Hi-Hat"],["Open Hat 1","HiHatOpen","Hi-Hat Open"],
+  ["Tom 1","TomHigh","Tom High"],["Tom 2","TomLow","Tom Low"],
+  ["Crash 1","Crash","Crash"],["Ride 1","Ride","Ride"],["China","Crash","Crash"],["Cymbal","Crash","Crash"],
+  ["Cowbell 1","Cowbell","Cowbell"],
+  ["Conga 1","TomMidHigh","Tom Mid-High"],["Conga 3","TomMid","Tom Mid"],
+  ["Tambourine","Cabasa","Cabasa"],["Cabasa 1","Cabasa","Cabasa"],
+  ["Clave 1","Rim","Rim"],["Perc 1","TomMid","Tom Mid"],
+];
+const DRUMTRAKS_EXTRA=[["DrumTraks Clap 2","Clap2","Clap 2","Finger Snap"]];
+const SDSV_SLOTS=[
+  ["Kick 1","Kick","Kick"],["Kick 2","Kick","Kick"],
+  ["Snare 1","Snare1","Snare 1"],["Snare 2","Snare2","Snare 2"],["Snare 3","ClapNoise","Clap Noise"],
+  ["Rimshot","Rim","Rim"],["Finger Snap","Clap1","Clap"],
+  ["Closed Hat 1","HiHat1","Hi-Hat 1"],["Closed Hat 2","HiHat2","Hi-Hat 2"],["Open Hat 1","HiHatOpen","Hi-Hat Open"],
+  ["Tom 1","TomHigh1","Tom High 1"],["Tom 2","TomLow","Tom Low"],
+  ["Crash 1","Crash","Crash"],["Ride 1","Crash","Crash"],["China","Crash","Crash"],["Cymbal","Crash","Crash"],
+  ["Cowbell 1","Snap","Snap"],
+  ["Conga 1","TomHigh2","Tom High 2"],["Conga 3","TomLaser","Tom Laser"],
+  ["Tambourine","Shaker","Shaker"],["Cabasa 1","Shaker","Shaker"],
+  ["Clave 1","Rim","Rim"],["Perc 1","TomNoise","Tom Noise"],
+];
+const SDSV_EXTRA=[["SDS Clap 2","Clap2","Clap 2","Finger Snap"]];
+const TR808U_SLOTS=[
+  ["Kick 1","Kick1","Kick 1"],["Kick 2","Kick2","Kick 2"],
+  ["Snare 1","Snare1","Snare 1"],["Snare 2","Snare2","Snare 2"],["Snare 3","Snare2","Snare 2"],
+  ["Rimshot","Rim","Rim"],["Finger Snap","Clap","Clap"],
+  ["Closed Hat 1","HiHat","Hi-Hat"],["Closed Hat 2","HiHat","Hi-Hat"],["Open Hat 1","HiHatOpen","Hi-Hat Open"],
+  ["Tom 1","TomHigh","Tom High"],["Tom 2","TomLow","Tom Low"],
+  ["Crash 1","Cymbal","Cymbal"],["Ride 1","Cymbal","Cymbal"],["China","HiHatOpen","Hi-Hat Open"],["Cymbal","Cymbal","Cymbal"],
+  ["Cowbell 1","Cowbell","Cowbell"],
+  ["Conga 1","CongaMid","Conga Mid"],["Conga 3","CongaMid","Conga Mid"],
+  ["Tambourine","Maracas","Maracas"],["Cabasa 1","Maracas","Maracas"],
+  ["Clave 1","Clave","Clave"],["Perc 1","TomMid","Tom Mid"],
+];
+const TR808U_EXTRA=[];
+const TR909U_SLOTS=[
+  ["Kick 1","Kick1","Kick 1"],["Kick 2","Kick2","Kick 2"],
+  ["Snare 1","Snare1","Snare 1"],["Snare 2","Snare2","Snare 2"],["Snare 3","Snare2","Snare 2"],
+  ["Rimshot","Rim","Rim"],["Finger Snap","Clap1","Clap"],
+  ["Closed Hat 1","HiHat1","Hi-Hat 1"],["Closed Hat 2","HiHat2","Hi-Hat 2"],["Open Hat 1","HiHatOpen","Hi-Hat Open"],
+  ["Tom 1","TomHigh","Tom High"],["Tom 2","TomLow","Tom Low"],
+  ["Crash 1","Crash","Crash"],["Ride 1","Ride","Ride"],["China","Ride","Ride"],["Cymbal","Crash","Crash"],
+  ["Cowbell 1","Rim","Rim"],
+  ["Conga 1","TomMid","Tom Mid"],["Conga 3","TomShort","Tom Short"],
+  ["Tambourine","HiHat2","Hi-Hat 2"],["Cabasa 1","HiHat2","Hi-Hat 2"],
+  ["Clave 1","Rim","Rim"],["Perc 1","TomMid","Tom Mid"],
+];
+const TR909U_EXTRA=[["909 Clap 2","Clap2","Clap 2","Finger Snap"]];
+// La DMX di Logic non ha clap ne' rim: li copre il rullante.
+const DMX_SLOTS=[
+  ["Kick 1","BD1","BD"],["Kick 2","BD1","BD"],
+  ["Snare 1","SD2","SD"],["Snare 2","SD2","SD"],["Snare 3","SD2","SD"],
+  ["Rimshot","SD2","SD"],["Finger Snap","SD2","SD"],
+  ["Closed Hat 1","HH1","HH 1"],["Closed Hat 2","HH2","HH 2"],["Open Hat 1","HHo1","Open Hat"],
+  ["Tom 1","Tom1","Tom 1"],["Tom 2","Tom4","Tom 4"],
+  ["Crash 1","Cym","Cymbal"],["Ride 1","Ride1","Ride"],["China","Cym","Cymbal"],["Cymbal","Cym","Cymbal"],
+  ["Cowbell 1","Ride1","Ride"],
+  ["Conga 1","Tom2","Tom 2"],["Conga 3","Tom6","Tom 6"],
+  ["Tambourine","Tamb1","Tambourine"],["Cabasa 1","Shaker1","Shaker"],
+  ["Clave 1","Tom6","Tom 6"],["Perc 1","Tom6","Tom 6"],
+];
+const DMX_EXTRA=[];
+// La Drumulator di Logic non ha hi-hat: li copre il ride.
+const DRUMULATOR_SLOTS=[
+  ["Kick 1","BD1","BD"],["Kick 2","BD1","BD"],
+  ["Snare 1","SD","SD"],["Snare 2","SD","SD"],["Snare 3","SD","SD"],
+  ["Rimshot","Rim","Rim"],["Finger Snap","Clap","Clap"],
+  ["Closed Hat 1","Ride","Ride"],["Closed Hat 2","Ride","Ride"],["Open Hat 1","Ride","Ride"],
+  ["Tom 1","Tom1","Tom 1"],["Tom 2","Tom3","Tom 3"],
+  ["Crash 1","Ride","Ride"],["Ride 1","Ride","Ride"],["China","Ride","Ride"],["Cymbal","Ride","Ride"],
+  ["Cowbell 1","Cow","Cowbell"],
+  ["Conga 1","Tom2","Tom 2"],["Conga 3","Tom3","Tom 3"],
+  ["Tambourine","Clave","Clave"],["Cabasa 1","Rim","Rim"],
+  ["Clave 1","Clave","Clave"],["Perc 1","Tom2","Tom 2"],
+];
+const DRUMULATOR_EXTRA=[];
+const SP12B_SLOTS=[
+  ["Kick 1","User_BD1","BD 1"],["Kick 2","User_BD4","BD 4"],
+  ["Snare 1","User_SD1","SD 1"],["Snare 2","User_SD3","SD 3"],["Snare 3","User_SD4","SD 4"],
+  ["Rimshot","User_Rim","Rim"],["Finger Snap","User_Clap","Clap"],
+  ["Closed Hat 1","User_HH1","HH 1"],["Closed Hat 2","User_HH2","HH 2"],["Open Hat 1","User_HHo1","Open Hat 1"],
+  ["Tom 1","User_Tom1","Tom 1"],["Tom 2","User_Tom2","Tom 2"],
+  ["Crash 1","Preset_Crash","Crash"],["Ride 1","Preset_Ride","Ride"],["China","User_HHo2","Open Hat 2"],["Cymbal","Preset_Crash","Crash"],
+  ["Cowbell 1","Preset_Cow","Cowbell"],
+  ["Conga 1","User_Perc2","Perc 2"],["Conga 3","User_Perc3","Perc 3"],
+  ["Tambourine","User_HH1a","HH 1a"],["Cabasa 1","User_HH2","HH 2"],
+  ["Clave 1","User_Stick","Stick"],["Perc 1","User_Perc1","Perc 1"],
+];
+const SP12B_EXTRA=[["SP12 BD 6","User_BD6","BD 6","Kick 2"],["SP12 Clap 2","Preset_Clap1","Clap (preset)","Finger Snap"],["SP12 Rim 2","Preset_Rim","Rim (preset)","Rimshot"]];
+
 const KITS={
   std:{label:"SP-1200 · 16 bit", url:x=>`samples/${x.name} SP-1200.wav`, name:x=>x.name, has:x=>!x.extra},
   "12bit":{label:"SP-1200 · 12 bit", url:x=>`samples12/${x.name} SP-1200.wav`, name:x=>x.name, has:x=>!x.extra},
 };
 // Le altre macchine si costruiscono tutte allo stesso modo dalla loro tabella.
 const MACHINES={
+  sp12b:{label:"E-mu SP-1200 · Boutique", source:"kit Boutique SP12 di Logic", slots:SP12B_SLOTS, extra:SP12B_EXTRA},
   rx5:{label:"Yamaha RX-5", slots:RX5_SLOTS, extra:RX5_EXTRA},
   tr808:{label:"Roland TR-808", source:"kit Boutique 808 di Logic", slots:TR808_SLOTS, extra:TR808_EXTRA},
+  tr808u:{label:"Roland TR-808 · campioni", source:"kit TR-808 Unprocessed di Logic", slots:TR808U_SLOTS, extra:TR808U_EXTRA},
   tr909:{label:"Roland TR-909", source:"kit Boutique 909 di Logic", slots:TR909_SLOTS, extra:TR909_EXTRA},
+  tr909u:{label:"Roland TR-909 · campioni", source:"kit TR-909 Unprocessed di Logic", slots:TR909U_SLOTS, extra:TR909U_EXTRA},
   tr707:{label:"Roland TR-707", source:"kit TR-707 di Logic", slots:TR707_SLOTS, extra:TR707_EXTRA},
+  tr727:{label:"Roland TR-727", source:"kit TR-727 di Logic", slots:TR727_SLOTS, extra:TR727_EXTRA},
+  tr606:{label:"Roland TR-606", source:"kit TR-606 di Logic", slots:TR606_SLOTS, extra:TR606_EXTRA},
   cr78:{label:"Roland CR-78", source:"kit Boutique 78 di Logic", slots:CR78_SLOTS, extra:CR78_EXTRA},
+  cr8000:{label:"Roland CR-8000", source:"kit CR-8000 di Logic", slots:CR8000_SLOTS, extra:CR8000_EXTRA},
   linn:{label:"Linn LinnDrum", source:"kit LinnDrum di Logic", slots:LINN_SLOTS, extra:LINN_EXTRA},
+  dmx:{label:"Oberheim DMX", source:"kit DMX di Logic (Vintage Machines)", slots:DMX_SLOTS, extra:DMX_EXTRA},
+  drumulator:{label:"E-mu Drumulator", source:"kit Drumulator di Logic (Vintage Machines)", slots:DRUMULATOR_SLOTS, extra:DRUMULATOR_EXTRA},
+  drumtraks:{label:"Sequential DrumTraks", source:"kit DrumTraks di Logic", slots:DRUMTRAKS_SLOTS, extra:DRUMTRAKS_EXTRA},
+  sdsv:{label:"Simmons SDS-V", source:"kit SDS-V di Logic", slots:SDSV_SLOTS, extra:SDSV_EXTRA},
 };
 Object.entries(MACHINES).forEach(([id,m])=>{
   m.extra.forEach(([name,,,fallback])=>SAMPLES.push({name,bank:"D",extra:true,fallback}));
@@ -3872,7 +4020,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-25.9";
+const SW_VERSION="2026-09-25.10";
 (function pwa(){
   const standalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
   const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);

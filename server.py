@@ -443,12 +443,12 @@ PAGE_SHELL = """<!doctype html>
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#e4e2dc">
 <title>PatternMachine — {title}</title>
-<meta name="description" content="Drum machine a step con SP-1200, RX-5, 808, 909, 707, CR-78 e LinnDrum: generatore di pattern in decine di stili, variazioni, arrangiamento della canzone ed export MIDI.">
+<meta name="description" content="Drum machine a step con SP-1200, RX-5, 808, 909, 707, 606, CR-78, LinnDrum, DMX e altre: generatore di pattern in decine di stili, variazioni, arrangiamento della canzone ed export MIDI.">
 <!-- Anteprima dei link: chi condivide un link arriva qui (il sito e' dietro accesso), quindi i tag stanno in questa pagina. -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="PatternMachine">
 <meta property="og:title" content="PatternMachine — drum machine a step con generatore di pattern">
-<meta property="og:description" content="Drum machine a step con SP-1200, RX-5, 808, 909, 707, CR-78 e LinnDrum: generatore di pattern in decine di stili, variazioni, arrangiamento della canzone ed export MIDI.">
+<meta property="og:description" content="Drum machine a step con SP-1200, RX-5, 808, 909, 707, 606, CR-78, LinnDrum, DMX e altre: generatore di pattern in decine di stili, variazioni, arrangiamento della canzone ed export MIDI.">
 <meta property="og:image" content="https://patternmachine.tongatron.org/assets/og-drum-machine-lab.jpg">
 <meta property="og:image:type" content="image/jpeg">
 <meta property="og:image:width" content="1200">

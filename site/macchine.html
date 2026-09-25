@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
 <title>Le macchine · PatternMachine</title>
-<meta name="description" content="Storia delle drum machine di PatternMachine (CR-78, TR-808, LinnDrum, TR-909, TR-707, RX5, SP-1200) con confronti da ascoltare.">
+<meta name="description" content="Storia delle drum machine di PatternMachine (CR-78, TR-808, TR-606, CR-8000, DMX, Simmons SDS-V, LinnDrum, TR-909, Drumulator, DrumTraks, TR-707, TR-727, RX5, SP-1200) con confronti da ascoltare.">
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
 <style>
 /* Stessi colori e materiali di "Istruzioni e funzioni" (tema chiaro della home). */
@@ -111,12 +111,12 @@ table.cmp button.playing{background:var(--key-primary); color:var(--on-accent);}
   <a href="#ritmo">Stesso ritmo</a>
   <a href="#suoni">Suono per suono</a>
   <a href="#bit">Bit e frequenza</a>
-  <a href="#schede">Le sette macchine</a>
+  <a href="#schede">Le macchine</a>
   <a href="#tabella">Tabella</a>
 </nav>
 
 <section id="ritmo">
-  <h2>Stesso ritmo, sette macchine</h2>
+  <h2>Stesso ritmo, quattordici macchine</h2>
   <p>Un solo pattern, suonato da una macchina alla volta. Cambia macchina mentre suona per sentire solo la differenza di timbro;
     accendi <b>Giro</b> per passare alla macchina successiva ogni due battute. I quadrati si accendono e spengono con un clic.</p>
   <div class="sim-top">
@@ -166,10 +166,10 @@ table.cmp button.playing{background:var(--key-primary); color:var(--on-accent);}
 </section>
 
 <section id="schede">
-  <h2>Le sette macchine</h2>
+  <h2>Le quattordici macchine</h2>
   <div id="cards"></div>
   <p class="note">Le illustrazioni sono disegni stilizzati. I suoni di SP-1200 e RX5 sono campioni delle macchine; quelli di
-    TR-808, TR-909, TR-707, CR-78 e LinnDrum vengono dai kit di Logic Pro che le riproducono (Boutique 808, 909 e 78, TR-707, LinnDrum).</p>
+    tutte le altre vengono dai kit di Logic Pro che le riproducono (Boutique 808, 909 e 78, Vintage Machines per DMX e Drumulator, kit del Sampler per le altre).</p>
 </section>
 
 <section id="tabella">
@@ -200,6 +200,34 @@ const MACHINES=[
      `Il suo marchio è la cassa: un'onda che scende e può durare secondi, quasi un basso. Poi il clap, il cowbell e il charleston metallico. Il sequencer a 16 passi con i tasti colorati è diventato il modo standard di programmare un ritmo, lo stesso di questa pagina.`],
    heard:["Afrika Bambaataa, “Planet Rock” (1982)","Marvin Gaye, “Sexual Healing” (1982)"],
    look:{body:"#2a2927", panel:"#3a3835", wood:null, keys:["#d6402a","#e8672a","#f0a23a","#f1ead6"], knobs:10, lcd:null, faders:0, steps:16, text:"#e8672a"}},
+  {id:"tr606", name:"Roland TR-606 Drumatix", short:"TR-606", maker:"Roland", year:1981, gen:"Analogica",
+   dir:"machines/tr606/", files:{kick:"Kick1",snare:"Snare1",hat:"HiHat1",open:"HiHatOpen1",clap:"Clap1",tom:"TomHigh1",cow:"Rim"},
+   specs:["suoni analogici","sequencer a 16 passi","a pile, portatile","sincro con la TB-303"],
+   story:[`La sorella piccola dell'808: stessa idea, meno suoni (cassa, rullante, due tom, charleston e piatto) e una scatola argentata grande come un libro, pensata per fare coppia con il basso TB-303 uscito lo stesso anno.`,
+     `Suona secca e sottile, con un charleston metallico e tagliente. Quando pochi anni dopo 303 e 606 finiscono usate a poco prezzo, diventano la base dell'acid e di tanta musica industriale. L'originale non ha clap né rim: nel kit di Logic ci sono comunque.`],
+   heard:["acid house (in coppia con la TB-303)","electro e musica industriale degli anni '80"],
+   look:{body:"#b9bbbe", panel:"#2a2a2d", wood:null, keys:["#e8e6e0","#e8e6e0","#d6402a"], knobs:8, lcd:null, faders:0, steps:16, text:"#e8e6e0"}},
+  {id:"cr8000", name:"Roland CR-8000", short:"CR-8000", maker:"Roland", year:1981, gen:"Analogica",
+   dir:"machines/cr8000/", files:{kick:"Kick1",snare:"Snare1",hat:"HiHat",open:"HiHatOpen",clap:"Clap1",tom:"TomHigh",cow:"Cowbell"},
+   specs:["suoni analogici","ritmi preimpostati + propri","accento","clap"],
+   story:[`L'erede della CR-78: sempre una CompuRhythm con i ritmi pronti, ma con più memoria per quelli propri, i fill e un suono più moderno. Arriva nello stesso momento dell'808 e ne resta un po' in ombra.`,
+     `Il timbro sta a metà strada tra le due: più morbido dell'808, più pieno della CR-78, con un clap tutto suo e conga ben definite.`],
+   heard:["synth pop dei primi anni '80"],
+   look:{body:"#2c2b29", panel:"#3a3936", wood:null, keys:["#e8a33a","#e8e2d0","#e8e2d0"], knobs:8, lcd:null, faders:0, steps:12, text:"#e8a33a"}},
+  {id:"dmx", name:"Oberheim DMX", short:"DMX", maker:"Oberheim", year:1981, gen:"Campioni digitali",
+   dir:"machines/dmx/", files:{kick:"BD1",snare:"SD2",hat:"HH1",open:"HHo1",clap:"SD2",tom:"Tom1",cow:"Tamb1"},
+   specs:["campioni a 8 bit","tamburi veri registrati","un cursore per suono","swing"],
+   story:[`Esce quasi insieme alla LinnDrum e le fa concorrenza con la stessa idea: suoni di batteria veri, registrati in memoria. Costa meno, ha cursori per ogni suono e uno swing che la rende subito amata da chi fa ballare.`,
+     `Cassa e rullante duri e asciutti sono il suono dei primi dischi rap: il nome di un rapper, DMX, viene proprio da qui. Nel kit di Logic mancano clap e rim, che qui sostituisce il rullante.`],
+   heard:["New Order, “Blue Monday” (1983)","Run-DMC, “It's Like That” (1983)"],
+   look:{body:"#1e1e20", panel:"#2a2a2d", wood:null, keys:["#d9d6cc"], knobs:0, lcd:null, faders:12, steps:10, text:"#d9d6cc"}},
+  {id:"sdsv", name:"Simmons SDS-V", short:"SDS-V", maker:"Simmons", year:1981, gen:"Batteria elettronica",
+   dir:"machines/sdsv/", files:{kick:"Kick",snare:"Snare1",hat:"HiHat1",open:"HiHatOpen",clap:"Clap1",tom:"TomHigh1",cow:"Snap"},
+   specs:["sintesi analogica","pad esagonali da suonare","un modulo per tamburo","niente sequencer"],
+   story:[`Non è una drum machine: è una batteria elettronica da suonare con le bacchette, su pad esagonali collegati a un rack di moduli analogici. Ogni modulo genera un tamburo con un oscillatore e un generatore di rumore.`,
+     `Il suo marchio sono i tom: un &ldquo;piuu&rdquo; che scende, impossibile da confondere, sentito in mezzo al pop degli anni '80. Qui i suoni vengono da un kit di Logic che la riproduce.`],
+   heard:["il pop inglese dei primi anni '80","Bill Bruford con i King Crimson (1981–84)"],
+   look:{body:"#1b1b1d", panel:"#262629", wood:null, keys:["#c8302a"], knobs:10, lcd:null, faders:0, steps:5, text:"#c8302a"}},
   {id:"linn", name:"Linn LinnDrum", short:"LinnDrum", maker:"Linn Electronics", year:1982, gen:"Campioni digitali",
    dir:"machines/linn/", files:{kick:"Kick1",snare:"Snare1",hat:"HiHat1",open:"HiHatOpen",clap:"Clap",tom:"TomHigh",cow:"Cowbell"},
    specs:["campioni a 8 bit","tamburi veri registrati","un cursore per suono","swing"],
@@ -214,6 +242,20 @@ const MACHINES=[
      `A Chicago e Detroit diventa il cuore della house e della techno: la cassa corta e piena, il charleston aperto in levare, il clap. Ancora oggi quasi ogni drum machine ha un suono &ldquo;909&rdquo;.`],
    heard:["la house di Chicago e la techno di Detroit, dalla metà degli anni '80"],
    look:{body:"#c9c7c0", panel:"#d8d6cf", wood:null, keys:["#d6402a","#f1ead6","#f1ead6","#3a3833"], knobs:14, lcd:null, faders:0, steps:16, text:"#2a2927"}},
+  {id:"drumulator", name:"E-mu Drumulator", short:"Drumulator", maker:"E-mu Systems", year:1983, gen:"Campioni digitali",
+   dir:"machines/drumulator/", files:{kick:"BD1",snare:"SD",hat:"Ride",open:"Ride",clap:"Clap",tom:"Tom1",cow:"Cow"},
+   specs:["campioni a 8 bit","prezzo accessibile","chip dei suoni sostituibili","uscite separate"],
+   story:[`E-mu la progetta per portare i suoni campionati a chi non può permettersi una LinnDrum: costa una frazione. Ha successo, e l'esperienza porterà E-mu alla SP-12 e poi alla SP-1200.`,
+     `Il suono è grezzo e vivo, con un rullante corposo e un clap robusto. Nel kit di Logic mancano gli hi-hat, che qui sostituisce il ride.`],
+   heard:["pop e rock della metà degli anni '80"],
+   look:{body:"#2d2f33", panel:"#3a3d42", wood:null, keys:["#3a6ea5","#d8d6cf"], knobs:0, lcd:"#e0432a", faders:0, steps:16, text:"#d8d6cf"}},
+  {id:"drumtraks", name:"Sequential DrumTraks", short:"DrumTraks", maker:"Sequential Circuits", year:1984, gen:"Campioni digitali",
+   dir:"machines/drumtraks/", files:{kick:"Kick1",snare:"Snare1",hat:"HiHat",open:"HiHatOpen",clap:"Clap1",tom:"TomHigh",cow:"Cowbell"},
+   specs:["campioni","intonazione e volume per suono","MIDI tra i primi","uscite separate"],
+   story:[`Dai costruttori del sintetizzatore Prophet-5, che avevano appena contribuito a inventare il MIDI: la DrumTraks è tra le prime drum machine ad averlo. Ogni suono si può accordare e regolare nel volume passo per passo.`,
+     `Suoni puliti, un po' più morbidi di Linn e DMX, facili da far suonare insieme ai sintetizzatori.`],
+   heard:["synth pop e new wave della metà degli anni '80"],
+   look:{body:"#1f1f22", panel:"#2c2c30", wood:"#6b4226", keys:["#d8d6cf"], knobs:0, lcd:"#e0432a", faders:0, steps:13, text:"#d8d6cf"}},
   {id:"tr707", name:"Roland TR-707", short:"TR-707", maker:"Roland", year:1985, gen:"Campioni digitali",
    dir:"machines/tr707/", files:{kick:"Kick1",snare:"Snare1",hat:"HiHat",open:"HiHatOpen",clap:"Clap1",tom:"TomHigh",cow:"Cowbell"},
    specs:["tutti i suoni campionati","pattern a griglia sul display","cartucce di memoria","MIDI"],
@@ -221,6 +263,13 @@ const MACHINES=[
      `Pensata per i gruppi pop, finisce anche nella house di Chicago e nell'italo disco: suoni puliti e un po' plasticosi, facili da mettere in un mix.`],
    heard:["house di Chicago, italo disco, pop della metà degli anni '80"],
    look:{body:"#3b3c40", panel:"#4a4b50", wood:null, keys:["#e46a2a","#e46a2a","#d8d6cf","#d8d6cf"], knobs:3, lcd:"#9fb89a", faders:0, steps:16, text:"#e46a2a"}},
+  {id:"tr727", name:"Roland TR-727", short:"TR-727", maker:"Roland", year:1985, gen:"Campioni digitali",
+   dir:"machines/tr727/", files:{kick:"CongaLow",snare:"TimbaleHigh",hat:"Maracas",open:"Quijada",clap:"Cabasa",tom:"BongoHigh",cow:"AgogoHigh"},
+   specs:["solo percussioni latine","campioni","stessa scatola della 707","MIDI"],
+   story:[`La gemella latina della 707: stessa scatola e stesso sequencer, ma solo percussioni: bongo, conga, timbales, agogo, cabasa, maracas, quijada, fischietto. Si usava accanto a un'altra drum machine.`,
+     `Da sola non ha cassa, rullante né hi-hat: qui li sostituiscono conga, timbales e maracas, così i confronti restano possibili. Le sue conga sono finite in tanta house.`],
+   heard:["house di Chicago e di New York della fine degli anni '80"],
+   look:{body:"#3b3c40", panel:"#4a4b50", wood:null, keys:["#3aa0a0","#3aa0a0","#d8d6cf","#d8d6cf"], knobs:3, lcd:"#9fb89a", faders:0, steps:16, text:"#3aa0a0"}},
   {id:"rx5", name:"Yamaha RX5", short:"RX5", maker:"Yamaha", year:1986, gen:"Campioni digitali",
    dir:"machines/rx5/", files:{kick:"BDrum1-RX5",snare:"SDrum1-RX5",hat:"CHat-RX5",open:"OHat-RX5",clap:"Clap-RX5",tom:"Tom1-RX5",cow:"Cowbell-RX5"},
    specs:["campioni a 12 bit","intonazione e inviluppo per suono","cartucce di suoni","uscite separate"],
@@ -341,10 +390,10 @@ $("cards").addEventListener("click",async e=>{
 
 const TABLE=[
   ["Anno",m=>m.year],["Tipo",m=>m.gen],
-  ["Suoni",m=>({cr78:"circuiti analogici",tr808:"circuiti analogici",linn:"campioni a 8 bit",tr909:"analogici + piatti a 6 bit",tr707:"campioni",rx5:"campioni a 12 bit",sp1200:"campioni a 12 bit, 26 kHz"})[m.id]],
-  ["Si programma",m=>({cr78:"ritmi preimpostati + propri",tr808:"sequencer a 16 passi",linn:"dal vivo o a passi",tr909:"sequencer a 16 passi",tr707:"griglia sul display",rx5:"dal vivo o a passi",sp1200:"dal vivo o a passi"})[m.id]],
-  ["MIDI",m=>({cr78:"no",tr808:"no",linn:"con modifica",tr909:"sì",tr707:"sì",rx5:"sì",sp1200:"sì"})[m.id]],
-  ["Generi",m=>({cr78:"pop, new wave",tr808:"electro, hip hop, trap",linn:"pop anni '80",tr909:"house, techno",tr707:"house, italo, pop",rx5:"pop, colonne sonore",sp1200:"hip hop, boom bap"})[m.id]],
+  ["Suoni",m=>({tr606:"circuiti analogici",cr8000:"circuiti analogici",dmx:"campioni a 8 bit",sdsv:"sintesi analogica",drumulator:"campioni a 8 bit",drumtraks:"campioni",tr727:"campioni (solo percussioni)",cr78:"circuiti analogici",tr808:"circuiti analogici",linn:"campioni a 8 bit",tr909:"analogici + piatti a 6 bit",tr707:"campioni",rx5:"campioni a 12 bit",sp1200:"campioni a 12 bit, 26 kHz"})[m.id]],
+  ["Si programma",m=>({tr606:"sequencer a 16 passi",cr8000:"ritmi preimpostati + propri",dmx:"dal vivo o a passi",sdsv:"si suona con i pad",drumulator:"dal vivo o a passi",drumtraks:"dal vivo o a passi",tr727:"griglia sul display",cr78:"ritmi preimpostati + propri",tr808:"sequencer a 16 passi",linn:"dal vivo o a passi",tr909:"sequencer a 16 passi",tr707:"griglia sul display",rx5:"dal vivo o a passi",sp1200:"dal vivo o a passi"})[m.id]],
+  ["MIDI",m=>({tr606:"no",cr8000:"no",dmx:"no",sdsv:"no",drumulator:"no",drumtraks:"sì",tr727:"sì",cr78:"no",tr808:"no",linn:"con modifica",tr909:"sì",tr707:"sì",rx5:"sì",sp1200:"sì"})[m.id]],
+  ["Generi",m=>({tr606:"acid, industrial",cr8000:"synth pop",dmx:"rap, electro, new wave",sdsv:"pop anni '80",drumulator:"pop, rock",drumtraks:"synth pop",tr727:"house, latin",cr78:"pop, new wave",tr808:"electro, hip hop, trap",linn:"pop anni '80",tr909:"house, techno",tr707:"house, italo, pop",rx5:"pop, colonne sonore",sp1200:"hip hop, boom bap"})[m.id]],
 ];
 $("specTable").innerHTML=`<tr><th></th>${MACHINES.map(m=>`<th>${m.short}</th>`).join("")}</tr>`+
   TABLE.map(([k,f])=>`<tr><th>${k}</th>${MACHINES.map(m=>`<td>${f(m)}</td>`).join("")}</tr>`).join("");

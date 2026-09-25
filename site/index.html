@@ -56,7 +56,7 @@ try{ const t=localStorage.getItem("sp1200.theme"); if(t==="light"||t==="dark") d
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="PatternMachine">
 <meta property="og:title" content="PatternMachine — drum machine a step con generatore di pattern">
-<meta property="og:description" content="Drum machine a step con SP-1200, RX-5, 808 e 909: generatore di pattern in decine di stili (punk, dub, metal, breakbeat, elettronica, soul e altri), variazioni, arrangiamento della canzone ed export MIDI, direttamente nel browser.">
+<meta property="og:description" content="Drum machine a step con SP-1200, RX-5, 808, 909, 707, CR-78 e LinnDrum: generatore di pattern in decine di stili (punk, dub, metal, breakbeat, elettronica, soul e altri), variazioni, arrangiamento della canzone ed export MIDI, direttamente nel browser.">
 <meta property="og:image" content="https://patternmachine.tongatron.org/assets/og-drum-machine-lab.jpg">
 <meta property="og:image:type" content="image/jpeg">
 <meta property="og:image:width" content="1200">
@@ -67,7 +67,7 @@ try{ const t=localStorage.getItem("sp1200.theme"); if(t==="light"||t==="dark") d
 
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="PatternMachine — drum machine a step con generatore di pattern">
-<meta name="twitter:description" content="Drum machine a step con SP-1200, RX-5, 808 e 909: generatore di pattern in decine di stili (punk, dub, metal, breakbeat, elettronica, soul e altri), variazioni, arrangiamento della canzone ed export MIDI, direttamente nel browser.">
+<meta name="twitter:description" content="Drum machine a step con SP-1200, RX-5, 808, 909, 707, CR-78 e LinnDrum: generatore di pattern in decine di stili (punk, dub, metal, breakbeat, elettronica, soul e altri), variazioni, arrangiamento della canzone ed export MIDI, direttamente nel browser.">
 <meta name="twitter:image" content="https://patternmachine.tongatron.org/assets/og-drum-machine-lab.jpg">
 <script defer src="https://analytics.tongatron.org/script.js" data-website-id="9daa93b6-2afb-494a-89fb-288437a030d1" data-domains="patternmachine.tongatron.org"></script>
 </head>
@@ -504,6 +504,22 @@ table.recent .empty td{color:var(--text-faint); font-style:italic; text-align:ce
 .status.err{color:var(--danger);}
 .hint{color:var(--text-faint); font-size:10px; line-height:1.7; margin:12px 0 0;}
 .hint b{color:var(--text-dim);}
+/* Guida ai tasti: una tendina aperta di default, a gruppi, con testo a dimensione di lettura. */
+.help{margin:12px 0 0; background:var(--panel); border:1px solid var(--edge-soft); border-radius:6px;}
+.help summary{cursor:pointer; padding:10px 14px; font-size:11px; letter-spacing:0.14em; text-transform:uppercase;
+  font-weight:700; color:var(--text-dim); list-style:none; display:flex; align-items:center; gap:8px;}
+.help summary::-webkit-details-marker{display:none;}
+.help summary::before{content:"\25B8"; font-size:12px; transition:transform .15s;}
+.help[open] summary::before{transform:rotate(90deg);}
+.help summary:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+.help-body{columns:280px 3; column-gap:28px; padding:2px 14px 14px; border-top:1px solid var(--edge-soft);}
+.help section{break-inside:avoid; padding-top:1px;}
+.help h3{font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:var(--text-dim); margin:12px 0 4px;
+  padding-bottom:4px; border-bottom:1px solid var(--accent);}
+.help ul{margin:0; padding:0 0 0 16px;}
+.help li{color:var(--text); font-size:12.5px; line-height:1.6; margin:3px 0;}
+.help li b{color:var(--text);}
+.help kbd{font-size:11px;}
 kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; padding:1px 4px; font-size:9.5px; color:var(--text-dim);}
 
 @media (max-width:700px){
@@ -523,7 +539,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 <div class="wrap">
   <div class="topbar">
     <h1>PatternMachine</h1>
-    <span class="tagline">Drum machine a step &middot; SP-1200, RX-5, 808, 909 &middot; generatore di pattern, canzone, export MIDI</span>
+    <span class="tagline">Drum machine a step &middot; SP-1200, RX-5, 808, 909, 707, CR-78, LinnDrum &middot; generatore di pattern, canzone, export MIDI</span>
     <a class="linkbtn" href="funzioni.html" style="margin-left:auto" title="come si usa e cosa fa ogni funzione">Istruzioni e funzioni</a>
     <a class="linkbtn" href="app.html" title="PatternMachine come app per macOS: MIDI verso Logic, sync al clock, trascinamento">App per Mac</a>
     <span class="tagline"><a href="toolkit.html" style="color:var(--text-dim)">Drum Machine Toolkit &rarr;</a></span>
@@ -727,43 +743,76 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     </div>
   </div>
 
-  <p class="hint">
-    <b>Suonare:</b> i tasti <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><kbd>4</kbd> <kbd>Q</kbd><kbd>W</kbd><kbd>E</kbd><kbd>R</kbd>
-    <kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><kbd>F</kbd> <kbd>Z</kbd><kbd>X</kbd><kbd>C</kbd><kbd>V</kbd> suonano le prime 16 righe.
-    <kbd>spazio</kbd> play/stop &middot; con <b>Rec</b> attivo quello che suoni entra nel pattern quantizzato allo step.
-    <b>Step:</b> click = on/off, click destro (o <kbd>alt</kbd>+click) = accento, <kbd>shift</kbd>+click = nota fantasma (morbida).
-    <b>Grp</b> = gruppo esclusivo (gli hi&#8209;hat si troncano tra loro). <b>Tune</b> = intonazione per riga, in semitoni.
-    <b>⚙</b> apre i parametri della voce: <b>Decay</b> accorcia la coda, <b>Filtro</b>+<b>Reso</b> sono il lowpass a 4 poli
-    come i VCF sulle uscite della macchina, <b>Start</b> sposta il punto d'attacco, <b>Rev</b> suona al contrario,
-    <b>Uscita</b> manda la riga a una delle 8 uscite individuali (scheda <b>Mixer</b>).
-    <kbd>cmd</kbd>+<kbd>Z</kbd> annulla, <kbd>cmd</kbd>+<kbd>shift</kbd>+<kbd>Z</kbd> ripristina.
-    <b>Note fantasma:</b> <kbd>shift</kbd>+click su uno step.
-    <b>Probabilit&agrave;</b>, <b>Ripetizioni</b>, <b>Flam</b>, <b>Intonazione</b>, <b>Decay</b> e <b>Filtro</b> (sopra la griglia): con la modalit&agrave; scelta, il click su uno step acceso cambia solo quel colpo. <b>Lung.</b> su una riga la fa girare con meno step (poliritmi). <b>Swing</b> alla MPC (50&ndash;75%) e <b>Umano</b> accanto al BPM. <b>Feel</b> (nel pannello ⚙) anticipa o ritarda i colpi di una riga, da &minus;30 a +30 ms,
-    per dare al rullante un tocco &ldquo;in ritardo&rdquo; o alla cassa uno &ldquo;in anticipo&rdquo;.
-    <b>Macchina</b> cambia i suoni: SP-1200 a 16 bit (originali), a 12 bit (passati dal convertitore) oppure Yamaha RX-5 con tutti i suoi 51 campioni;
-    le righe che usavano un suono assente sull'altra macchina passano al suono equivalente.
-    <b>&#10022; Varia</b> (nel pannello Pattern) trasforma il pattern che stai modificando, anche scritto a mano; cmd+Z annulla.
-    <b>Scegli…</b> apre la libreria di pattern e il generatore: <b>Genera 4</b> crea 4 pattern nuovi dello stile scelto (nient'altro ne crea da solo).
-    Su ogni pattern: <b>Simili</b> ne crea 4 vicini, <b>Varia</b> lo trasforma in 20 modi (scarno, mezzo tempo, hat aperto, nuovo fill, strato percussivo, stacco&hellip; e cinque <b>ibridi</b> che innestano voci di un altro stile: ibrido, ritmo d'altro stile, met&agrave; e met&agrave;, mix di voci, doppio ibrido),
-    <b>Arrangia</b> ricava intro, ritornello, break e outro, <b>Blocca</b> tiene alcune voci e rigenera le altre.
-    Ogni pattern ha un codice: lo stesso codice rigenera lo stesso pattern.
-  </p>
+  <details class="help" id="helpKeys" open>
+    <summary>Suonare: i tasti e i comandi</summary>
+    <div class="help-body">
+      <section>
+        <h3>Suonare</h3>
+        <ul>
+          <li><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><kbd>4</kbd> <kbd>Q</kbd><kbd>W</kbd><kbd>E</kbd><kbd>R</kbd>
+            <kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><kbd>F</kbd> <kbd>Z</kbd><kbd>X</kbd><kbd>C</kbd><kbd>V</kbd> suonano le prime 16 righe.</li>
+          <li><kbd>spazio</kbd> play/stop.</li>
+          <li>Con <b>Rec</b> attivo quello che suoni entra nel pattern, quantizzato allo step.</li>
+          <li><kbd>cmd</kbd>+<kbd>Z</kbd> annulla, <kbd>cmd</kbd>+<kbd>shift</kbd>+<kbd>Z</kbd> ripristina.</li>
+        </ul>
+      </section>
+      <section>
+        <h3>Step</h3>
+        <ul>
+          <li>Click = on/off.</li>
+          <li>Click destro (o <kbd>alt</kbd>+click) = accento.</li>
+          <li><kbd>shift</kbd>+click = nota fantasma (morbida).</li>
+          <li><b>Probabilit&agrave;</b>, <b>Ripetizioni</b>, <b>Flam</b>, <b>Intonazione</b>, <b>Decay</b> e <b>Filtro</b> (sopra la griglia): con la modalit&agrave; scelta, il click su uno step acceso cambia solo quel colpo.</li>
+        </ul>
+      </section>
+      <section>
+        <h3>Righe</h3>
+        <ul>
+          <li><b>Grp</b> = gruppo esclusivo (gli hi&#8209;hat si troncano tra loro).</li>
+          <li><b>Tune</b> = intonazione della riga, in semitoni.</li>
+          <li><b>Lung.</b> fa girare la riga con meno step (poliritmi).</li>
+          <li><b>⚙</b> apre i parametri della voce: <b>Decay</b> accorcia la coda, <b>Filtro</b>+<b>Reso</b> sono il lowpass a 4 poli
+            come i VCF sulle uscite della macchina, <b>Start</b> sposta l'attacco, <b>Rev</b> suona al contrario,
+            <b>Uscita</b> manda la riga a una delle 8 uscite (scheda <b>Mixer</b>).</li>
+          <li><b>Feel</b> (nel pannello ⚙) anticipa o ritarda i colpi della riga, da &minus;30 a +30 ms: rullante &ldquo;in ritardo&rdquo;, cassa &ldquo;in anticipo&rdquo;.</li>
+        </ul>
+      </section>
+      <section>
+        <h3>Groove e macchina</h3>
+        <ul>
+          <li><b>Swing</b> alla MPC (50&ndash;75%) e <b>Umano</b> accanto al BPM.</li>
+          <li><b>Macchina</b> cambia i suoni: E-mu SP-1200 a 16 o 12 bit, Yamaha RX-5, Roland TR-808, TR-909, TR-707, CR-78, Linn LinnDrum.
+            Le righe che usano un suono assente sull'altra macchina passano al suono equivalente.</li>
+        </ul>
+      </section>
+      <section>
+        <h3>Pattern e generatore</h3>
+        <ul>
+          <li><b>&#10022; Varia</b> (pannello Pattern) trasforma il pattern che stai modificando, anche scritto a mano; <kbd>cmd</kbd>+<kbd>Z</kbd> annulla.</li>
+          <li><b>Scegli&hellip;</b> apre libreria e generatore: <b>Genera 4</b> crea 4 pattern nuovi dello stile scelto (nient'altro ne crea da solo).</li>
+          <li>Su ogni pattern: <b>Simili</b> ne crea 4 vicini; <b>Varia</b> lo trasforma in 20 modi (scarno, mezzo tempo, hat aperto, nuovo fill, strato percussivo, stacco&hellip; e cinque <b>ibridi</b> con voci di un altro stile).</li>
+          <li><b>Arrangia</b> ricava intro, ritornello, break e outro; <b>Blocca</b> tiene alcune voci e rigenera le altre.</li>
+          <li>Ogni pattern ha un codice: lo stesso codice rigenera lo stesso pattern.</li>
+        </ul>
+      </section>
+    </div>
+  </details>
   <footer class="site-footer">PatternMachine è un progetto di <a class="site-badge" href="https://tongatron.org/"><span class="mark"></span><span>tongatron.org</span></a></footer>
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-25.5"></script>
-<script src="engine/styles-punk.js?v=2026-09-25.5"></script>
-<script src="engine/styles-post.js?v=2026-09-25.5"></script>
-<script src="engine/styles-machines.js?v=2026-09-25.5"></script>
-<script src="engine/styles-alt.js?v=2026-09-25.5"></script>
-<script src="engine/styles-groove.js?v=2026-09-25.5"></script>
-<script src="engine/styles-dub.js?v=2026-09-25.5"></script>
-<script src="engine/styles-break.js?v=2026-09-25.5"></script>
-<script src="engine/styles-soul.js?v=2026-09-25.5"></script>
-<script src="engine/styles-metal.js?v=2026-09-25.5"></script>
-<script src="engine/styles-electro.js?v=2026-09-25.5"></script>
-<script src="engine/variations.js?v=2026-09-25.5"></script>
+<script src="engine/core.js?v=2026-09-25.6"></script>
+<script src="engine/styles-punk.js?v=2026-09-25.6"></script>
+<script src="engine/styles-post.js?v=2026-09-25.6"></script>
+<script src="engine/styles-machines.js?v=2026-09-25.6"></script>
+<script src="engine/styles-alt.js?v=2026-09-25.6"></script>
+<script src="engine/styles-groove.js?v=2026-09-25.6"></script>
+<script src="engine/styles-dub.js?v=2026-09-25.6"></script>
+<script src="engine/styles-break.js?v=2026-09-25.6"></script>
+<script src="engine/styles-soul.js?v=2026-09-25.6"></script>
+<script src="engine/styles-metal.js?v=2026-09-25.6"></script>
+<script src="engine/styles-electro.js?v=2026-09-25.6"></script>
+<script src="engine/variations.js?v=2026-09-25.6"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -838,6 +887,49 @@ const TR909_SLOTS=[
 ];
 const TR909_EXTRA=[["909 Open Hat 2","HHo2","Open Hat 2","Open Hat 1"],["909 Tom 3","Tom3","Tom 3","Tom 2"],["909 Ride ST","RideST","Ride (st)","Ride 1"]];
 
+// LinnDrum, TR-707 e CR-78 vengono dalla libreria di Logic come 808 e 909 (stesso script): il LinnDrum e
+// il TR-707 dai kit del Sampler "Cory's LinnDrum Kit" e "TR-707 Processed Kit", il CR-78 dal kit "Boutique 78".
+const LINN_SLOTS=[
+  ["Kick 1","Kick1","Kick 1"],["Kick 2","Kick2","Kick 2"],
+  ["Snare 1","Snare1","Snare 1"],["Snare 2","Snare2","Snare 2"],["Snare 3","Snare3","Snare 3"],
+  ["Rimshot","Rim","Rim"],["Finger Snap","Clap","Clap"],
+  ["Closed Hat 1","HiHat1","Hi-Hat 1"],["Closed Hat 2","HiHat2","Hi-Hat 2"],["Open Hat 1","HiHatOpen","Hi-Hat Open"],
+  ["Tom 1","TomHigh","Tom High"],["Tom 2","TomLow","Tom Low"],
+  ["Crash 1","Crash","Crash"],["Ride 1","Ride","Ride"],["China","Crash","Crash"],["Cymbal","Crash","Crash"],
+  ["Cowbell 1","Cowbell","Cowbell"],
+  ["Conga 1","Conga1","Conga 1"],["Conga 2","Conga2","Conga 2"],["Conga 3","Conga2","Conga 2"],
+  ["Tambourine","Tambourine","Tambourine"],["Cabasa 1","Cabasa","Cabasa"],
+  ["Clave 1","Rim","Rim"],["Perc 1","TomMid","Tom Mid"],
+];
+const LINN_EXTRA=[];
+const TR707_SLOTS=[
+  ["Kick 1","Kick1","Kick 1"],["Kick 2","Kick2","Kick 2"],
+  ["Snare 1","Snare1","Snare 1"],["Snare 2","Snare2","Snare 2"],["Snare 3","Snare2","Snare 2"],
+  ["Rimshot","Rim","Rim"],["Finger Snap","Clap1","Clap"],
+  ["Closed Hat 1","HiHat","Hi-Hat"],["Closed Hat 2","HiHat","Hi-Hat"],["Open Hat 1","HiHatOpen","Hi-Hat Open"],
+  ["Tom 1","TomHigh","Tom High"],["Tom 2","TomLow","Tom Low"],
+  ["Crash 1","Crash","Crash"],["Ride 1","Ride","Ride"],["China","Crash","Crash"],["Cymbal","Crash","Crash"],
+  ["Cowbell 1","Cowbell","Cowbell"],
+  ["Conga 1","TomHigh","Tom High"],["Conga 3","TomMid","Tom Mid"],
+  ["Tambourine","Tambourine","Tambourine"],["Cabasa 1","Tambourine","Tambourine"],
+  ["Clave 1","Rim","Rim"],["Perc 1","TomMid","Tom Mid"],
+];
+const TR707_EXTRA=[["707 Clap 2","Clap2","Clap 2","Finger Snap"]];
+// Il CR-78 non ha tom, clap ne' piatti veri: tom = conga, piatti = hat aperti e "metal beat".
+const CR78_SLOTS=[
+  ["Kick 1","BD1","BD 1"],["Kick 2","BD2","BD 2"],
+  ["Snare 1","SD1","SD 1"],["Snare 2","SD2","SD 2"],["Snare 3","SD2","SD 2"],
+  ["Rimshot","Rim","Rim"],["Finger Snap","Rim","Rim"],
+  ["Closed Hat 1","HH_Hard1","HH hard"],["Closed Hat 2","HH_Soft1","HH soft"],["Open Hat 1","HHo_Hard","Open Hat hard"],
+  ["Tom 1","Conga1","Conga 1"],["Tom 2","Conga2","Conga 2"],
+  ["Crash 1","HHo_Hard","Open Hat hard"],["Ride 1","Metal1","Metal beat"],["China","HHo_Soft","Open Hat soft"],["Cymbal","HHo_Soft","Open Hat soft"],
+  ["Cowbell 1","Cow1","Cowbell"],
+  ["Conga 1","Conga1","Conga 1"],["Conga 2","Conga2","Conga 2"],["Conga 3","Bongo_Low","Bongo Low"],["Conga 4","Bongo_High","Bongo High"],
+  ["Tambourine","Tamb1","Tamb 1"],["Cabasa 1","Maraca1","Maracas"],
+  ["Clave 1","Clave","Clave"],["Guiro 1","Guiro1","Guiro 1"],["Guiro 2","Guiro3","Guiro 3"],["Perc 1","Metal1","Metal beat"],
+];
+const CR78_EXTRA=[["78 BD 3","BD3","BD 3","Kick 2"],["78 Tamb 2","Tamb2","Tamb 2","Tambourine"],["78 Tamb 3","Tamb3","Tamb 3","Tambourine"],["78 Guiro 4","Guiro4","Guiro 4","Guiro 1"]];
+
 const KITS={
   std:{label:"SP-1200 · 16 bit", url:x=>`samples/${x.name} SP-1200.wav`, name:x=>x.name, has:x=>!x.extra},
   "12bit":{label:"SP-1200 · 12 bit", url:x=>`samples12/${x.name} SP-1200.wav`, name:x=>x.name, has:x=>!x.extra},
@@ -845,13 +937,16 @@ const KITS={
 // Le altre macchine si costruiscono tutte allo stesso modo dalla loro tabella.
 const MACHINES={
   rx5:{label:"Yamaha RX-5", slots:RX5_SLOTS, extra:RX5_EXTRA},
-  tr808:{label:"808 · kit Boutique (Logic)", slots:TR808_SLOTS, extra:TR808_EXTRA},
-  tr909:{label:"909 · kit Boutique (Logic)", slots:TR909_SLOTS, extra:TR909_EXTRA},
+  tr808:{label:"Roland TR-808", source:"kit Boutique 808 di Logic", slots:TR808_SLOTS, extra:TR808_EXTRA},
+  tr909:{label:"Roland TR-909", source:"kit Boutique 909 di Logic", slots:TR909_SLOTS, extra:TR909_EXTRA},
+  tr707:{label:"Roland TR-707", source:"kit TR-707 di Logic", slots:TR707_SLOTS, extra:TR707_EXTRA},
+  cr78:{label:"Roland CR-78", source:"kit Boutique 78 di Logic", slots:CR78_SLOTS, extra:CR78_EXTRA},
+  linn:{label:"Linn LinnDrum", source:"kit LinnDrum di Logic", slots:LINN_SLOTS, extra:LINN_EXTRA},
 };
 Object.entries(MACHINES).forEach(([id,m])=>{
   m.extra.forEach(([name,,,fallback])=>SAMPLES.push({name,bank:"D",extra:true,fallback}));
   const sounds=Object.fromEntries([...m.slots,...m.extra].map(([slot,file,label])=>[slot,{file,label}]));
-  KITS[id]={label:m.label, remote:true, url:x=>`machines/${id}/${sounds[x.name].file}.wav`,
+  KITS[id]={label:m.label, source:m.source, remote:true, url:x=>`machines/${id}/${sounds[x.name].file}.wav`,
     name:x=>sounds[x.name].label, has:x=>x.name in sounds};
 });
 const BANK_LABEL={A:"Core kit",B:"Percussioni",C:"Altro",D:"Solo questa macchina"};
@@ -1953,7 +2048,6 @@ el("seqClear").onclick=()=>{
 };
 // I pulsanti della macchina seguono le opzioni del select (che resta lo stato: le macchine non raggiungibili
 // ne vengono tolte), quindi si ridisegnano da li'.
-const KIT_SHORT=k=>KITS[k].label.replace(" · kit Boutique (Logic)","").replace("Yamaha ","");
 function paintKitButtons(){
   const host=el("kitButtons"), sel=el("kitSelect");
   host.innerHTML="";
@@ -1961,7 +2055,7 @@ function paintKitButtons(){
     const b=document.createElement("button"); b.type="button";
     const on=o.value===sampleSet;
     b.className="machine-btn"+(on?" on":""); b.setAttribute("role","radio"); b.setAttribute("aria-checked",String(on));
-    b.textContent=KIT_SHORT(o.value); b.title=KITS[o.value].label;
+    b.textContent=KITS[o.value].label; b.title=KITS[o.value].label+(KITS[o.value].source?" · "+KITS[o.value].source+" (ricreazione Apple)":"");
     b.onclick=()=>{ setSampleSet(o.value); paintKitButtons(); };
     host.appendChild(b);
   });
@@ -3193,7 +3287,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-25.5";
+const SW_VERSION="2026-09-25.6";
 (function pwa(){
   const standalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
   const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);

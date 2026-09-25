@@ -679,7 +679,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 
   <div class="panel">
     <div class="flexline">
-      <button id="playBtn"><span class="ico">&#9654;</span> Play <kbd>spazio</kbd></button>
+      <button id="playBtn" title="Play / Stop (barra spaziatrice)"><span class="ico">&#9654;</span> Play</button>
       <div class="modeswitch">
         <button id="modePattern" class="on">Pattern</button>
         <button id="modeSong">Canzone</button>
@@ -719,6 +719,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       <span class="tiny">Aggiungi strumento</span>
       <select id="sampleSelect"></select>
       <button id="addRowBtn" class="mini">+ Riga</button>
+      <button id="pruneRowsBtn" class="mini" title="Toglie le righe senza colpi in nessun pattern del progetto (le righe sono in comune a tutti i pattern)">Togli righe vuote</button>
     </div>
   </div>
 
@@ -1154,8 +1155,6 @@ function starterProject(){
     makeTrack(sampleIdx("Snare 1"),{vol:0.9}),
     makeTrack(sampleIdx("Closed Hat 1"),{vol:0.55,choke:1}),
     makeTrack(sampleIdx("Open Hat 1"),{vol:0.55,choke:1}),
-    makeTrack(sampleIdx("Rimshot"),{vol:0.7}),
-    makeTrack(sampleIdx("Finger Snap"),{vol:0.7}),
   ];
   const p=makePattern("Beat 1",16);
   p.grid[tracks[0].id]=[1,0,0,0, 0,0,1,0, 0,0,0,0, 0,0,1,0];
@@ -1421,14 +1420,14 @@ function play(){
   nextTime=ctx.currentTime+0.06;
   timer=setInterval(scheduler,25);
   const b=document.getElementById("playBtn");
-  b.classList.add("on"); b.innerHTML='<span class="ico">&#9632;</span> Stop <kbd>spazio</kbd>';
+  b.classList.add("on"); b.innerHTML='<span class="ico">&#9632;</span> Stop';
 }
 function stop(){
   playing=false;
   clearInterval(timer); timer=null; queue=[];
   visible={step:-1, patternId:null, blockIndex:-1, bar:1};
   const b=document.getElementById("playBtn");
-  b.classList.remove("on"); b.innerHTML='<span class="ico">&#9654;</span> Play <kbd>spazio</kbd>';
+  b.classList.remove("on"); b.innerHTML='<span class="ico">&#9654;</span> Play';
   paintPlayhead();
 }
 const togglePlay = ()=> playing?stop():play();
@@ -2066,6 +2065,10 @@ function setView(v){
   el("panelSeq").hidden = v!=="seq";
   el("panelMix").hidden = v!=="mix";
   el("panelRecent").hidden = v!=="recent";
+  el("helpKeys").hidden = v==="recent";
+  // Rec registra nella griglia del pattern: fuori dalla Griglia sparisce e si spegne
+  el("recBtn").hidden = v!=="grid";
+  if(v!=="grid" && recording){ recording=false; el("recBtn").classList.remove("on"); }
   if(v==="recent") refreshRecent();
   if(v==="seq") renderSong();
   if(v==="mix") renderMixer();
@@ -2312,6 +2315,19 @@ el("pLen").onchange=()=>{
   normalize(); renderRuler(); renderTracks(); renderPatterns(); renderSong();
 };
 
+// Le righe sono in comune a tutti i pattern: si tolgono solo quelle senza colpi in nessuno.
+el("pruneRowsBtn").onclick=()=>{
+  const used=t=>project.patterns.some(p=>(p.grid[t.id]||[]).some(Boolean));
+  const empty=project.tracks.filter(t=>!used(t));
+  if(!empty.length) return setStatus("nessuna riga vuota in tutti i pattern");
+  if(empty.length===project.tracks.length) return setStatus("il progetto non ha colpi: le righe restano");
+  pushUndo();
+  project.tracks=project.tracks.filter(used);
+  project.patterns.forEach(p=>empty.forEach(t=>{ delete p.grid[t.id]; if(p.mods) delete p.mods[t.id]; if(p.lens) delete p.lens[t.id]; }));
+  normalize(); renderTracks();
+  setStatus(`${empty.length} ${empty.length===1?"riga tolta":"righe tolte"} (cmd+Z per annullare)`);
+};
+
 el("addRowBtn").onclick=()=>{
   pushUndo();
   const t=makeTrack(+el("sampleSelect").value);
@@ -2418,6 +2434,11 @@ function redo(){
   setStatus("ripristinato");
 }
 
+// Istantanea del progetto com'era all'ultimo salvataggio (o apertura): serve a Nuovo per sapere se c'e' qualcosa da perdere.
+const projectSnap=()=>{ const d=serialize(); delete d.updatedAt; return JSON.stringify(d); };
+let savedSnap="";
+const markSaved=()=>{ savedSnap=projectSnap(); };
+
 async function saveProject(asNew){
   if(isGuest){ setStatus("da ospite non puoi salvare: registrati","err"); return; }
   const data=serialize();
@@ -2431,6 +2452,7 @@ async function saveProject(asNew){
       const key=(currentProjectId && !asNew) ? currentProjectId : "p"+Date.now();
       all[key]=data; lsWrite(all); currentProjectId=key; refreshRecent();
     }
+    markSaved();
     setStatus(db?"salvato · cloud":isMember?"salvato":"salvato · locale");
   }catch(e){ setStatus("errore salvataggio","err"); }
 }
@@ -2441,7 +2463,7 @@ async function loadProject(id){
     else d=lsAll()[id]||null;
     if(!d) return setStatus("progetto non trovato","err");
     if(playing) stop();
-    currentProjectId=id; deserialize(d); markCurrentRecent(); setStatus("caricato: "+(d.name||""));
+    currentProjectId=id; deserialize(d); markSaved(); markCurrentRecent(); setStatus("caricato: "+(d.name||""));
   }catch(e){ setStatus("errore caricamento","err"); }
 }
 async function removeProject(id,name){
@@ -2588,14 +2610,16 @@ function setStatus(msg,kind){
 
 el("saveBtn").onclick=()=>saveProject(false);
 el("newBtn").onclick=async()=>{
-  if(!await ask({title:"Nuovo progetto", message:"Le modifiche non salvate del progetto aperto vanno perse.", ok:"Nuovo progetto", danger:true})) return;
+  // l'ospite non puo' salvare: niente avviso. Per gli altri solo se ci sono modifiche non salvate.
+  if(!isGuest && projectSnap()!==savedSnap &&
+     !await ask({title:"Nuovo progetto", message:"L'attuale progetto non verrà salvato.", ok:"Nuovo progetto", danger:true})) return;
   if(playing) stop();
   currentProjectId=null; markCurrentRecent(); project=starterProject(); ui.patternId=project.patterns[0].id;
   ui.blockId=project.song[0].id;
   el("projectName").value=project.name; el("bpmNum").value=project.bpm;
   el("bpmRange").value=project.bpm; el("swingRange").value=0; el("humanRange").value=0; paintSwing(); el("pLen").value=16;
   project.tracks.forEach(t=>loadBuffer(t.sampleIndex));
-  renderAll(); setStatus("nuovo progetto");
+  renderAll(); markSaved(); setStatus("nuovo progetto");
 };
 
 // ---------- MIDI ----------
@@ -3644,6 +3668,7 @@ ui.patternId=project.patterns[0].id;
 ui.blockId=project.song[0].id;
 project.tracks.forEach(t=>loadBuffer(t.sampleIndex));
 renderAll();
+markSaved();
 try{ if(sessionStorage.getItem("traslocoFatto")){ sessionStorage.removeItem("traslocoFatto"); setStatus("progetti e preferiti trasferiti dal vecchio indirizzo"); } }catch(e){}
 refreshRecent();
 

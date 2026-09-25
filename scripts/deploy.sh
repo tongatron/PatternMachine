@@ -51,7 +51,7 @@ mesi = "gennaio febbraio marzo aprile maggio giugno luglio agosto settembre otto
 print(f"versione del {t.tm_mday} {mesi[t.tm_mon - 1]} {t.tm_year} delle {t.tm_hour:02d}:{t.tm_min:02d}")
 PY
 )
-for f in "$STAGE/index.html" "$STAGE/funzioni.html"; do
+for f in "$STAGE/index.html" "$STAGE/funzioni.html" "$STAGE/macchine.html"; do
   sed -i '' "s|<!--build-->[^<]*<!--/build-->|<!--build-->$build<!--/build-->|" "$f"
 done
 echo "footer: $build"

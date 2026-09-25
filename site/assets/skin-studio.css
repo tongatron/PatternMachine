@@ -47,7 +47,7 @@
   border-color:var(--edge); padding:7px 12px;
 }
 :root[data-skin="studio"] button.mini{font-size:11.5px; padding:5px 10px;}
-:root[data-skin="studio"] button:hover{border-color:var(--accent-dim); background:var(--panel-3);}
+:root[data-skin="studio"] button:not(.step):not(.pad):not(.lcell):hover{border-color:var(--accent-dim); background:var(--panel-3);}
 :root[data-skin="studio"] button.primary{color:var(--on-accent); border-color:var(--accent); font-weight:700;}
 :root[data-skin="studio"] button.primary:hover{background:#ffc24d;}
 :root[data-skin="studio"] input[type=text],

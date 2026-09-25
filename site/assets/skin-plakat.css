@@ -49,7 +49,7 @@
   min-height:32px;
 }
 :root[data-skin="plakat"] button.mini{min-height:30px; font-size:11.5px;}
-:root[data-skin="plakat"] button:hover{background:#0a0a0a; color:#efeee9;}
+:root[data-skin="plakat"] button:not(.step):not(.pad):not(.lcell):hover{background:#0a0a0a; color:#efeee9;}
 :root[data-skin="plakat"] button.danger{color:#ff3b00;}
 :root[data-skin="plakat"] button.danger:hover{background:#ff3b00; color:#0a0a0a;}
 :root[data-skin="plakat"] .modeswitch{border:2px solid #0a0a0a; border-radius:0;}

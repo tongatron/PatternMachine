@@ -30,8 +30,8 @@ try{ const t=localStorage.getItem("sp1200.theme"); if(t==="light"||t==="dark") d
   if(ui!=="classic") document.documentElement.dataset.skin=ui;
 })();
 </script>
-<link rel="stylesheet" href="/assets/skin-plakat.css?v=2026-09-24.24">
-<link rel="stylesheet" href="/assets/skin-studio.css?v=2026-09-24.24">
+<link rel="stylesheet" href="/assets/skin-plakat.css?v=2026-09-25.1">
+<link rel="stylesheet" href="/assets/skin-studio.css?v=2026-09-25.1">
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
@@ -170,7 +170,7 @@ button{
   white-space:nowrap;
 }
 button:hover{border-color:var(--text-faint);}
-button:active{transform:translateY(1px);}
+button:not(.step):active{transform:translateY(1px);}   /* gli step restano fermi: un click sul bordo non va perso */
 button:disabled{opacity:0.35; cursor:default; transform:none;}
 button.primary{background:var(--key-primary,var(--accent)); color:var(--on-accent); border-color:var(--accent-dim); font-weight:700;}
 button.danger{color:var(--danger);}
@@ -731,18 +731,18 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-24.24"></script>
-<script src="engine/styles-punk.js?v=2026-09-24.24"></script>
-<script src="engine/styles-post.js?v=2026-09-24.24"></script>
-<script src="engine/styles-machines.js?v=2026-09-24.24"></script>
-<script src="engine/styles-alt.js?v=2026-09-24.24"></script>
-<script src="engine/styles-groove.js?v=2026-09-24.24"></script>
-<script src="engine/styles-dub.js?v=2026-09-24.24"></script>
-<script src="engine/styles-break.js?v=2026-09-24.24"></script>
-<script src="engine/styles-soul.js?v=2026-09-24.24"></script>
-<script src="engine/styles-metal.js?v=2026-09-24.24"></script>
-<script src="engine/styles-electro.js?v=2026-09-24.24"></script>
-<script src="engine/variations.js?v=2026-09-24.24"></script>
+<script src="engine/core.js?v=2026-09-25.1"></script>
+<script src="engine/styles-punk.js?v=2026-09-25.1"></script>
+<script src="engine/styles-post.js?v=2026-09-25.1"></script>
+<script src="engine/styles-machines.js?v=2026-09-25.1"></script>
+<script src="engine/styles-alt.js?v=2026-09-25.1"></script>
+<script src="engine/styles-groove.js?v=2026-09-25.1"></script>
+<script src="engine/styles-dub.js?v=2026-09-25.1"></script>
+<script src="engine/styles-break.js?v=2026-09-25.1"></script>
+<script src="engine/styles-soul.js?v=2026-09-25.1"></script>
+<script src="engine/styles-metal.js?v=2026-09-25.1"></script>
+<script src="engine/styles-electro.js?v=2026-09-25.1"></script>
+<script src="engine/variations.js?v=2026-09-25.1"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -3188,7 +3188,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-24.24";
+const SW_VERSION="2026-09-25.1";
 (function pwa(){
   const standalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
   const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);

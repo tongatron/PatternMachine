@@ -352,6 +352,18 @@ label.fld input[type=number]{width:54px;}
   display:flex; align-items:flex-start; justify-content:center; padding:26px 16px; overflow:auto;
 }
 .overlay[hidden]{display:none;}
+/* Finestra di conferma del sito (al posto di confirm/prompt del browser). */
+.ask{border:1px solid var(--edge); border-radius:12px; background:var(--panel); color:var(--text);
+  width:min(420px,calc(100% - 32px)); padding:18px 18px 16px; box-shadow:0 18px 50px rgba(0,0,0,0.45);}
+.ask::backdrop{background:rgba(0,0,0,0.55);}
+.ask h3{margin:0 0 8px; font-size:12px; letter-spacing:0.16em; text-transform:uppercase; color:var(--text-dim);}
+.ask p{margin:0 0 14px; font-size:13px; line-height:1.5;}
+.ask p:empty{display:none;}
+.ask input{width:100%; box-sizing:border-box; margin:0 0 14px; font-size:13px;}
+.ask input[hidden]{display:none;}
+.ask .ask-btns{display:flex; justify-content:flex-end; gap:8px;}
+.ask .ask-btns button{min-width:90px;}
+button.danger-fill{background:var(--danger); border-color:var(--danger); color:#fff; font-weight:700;}
 .modal{
   background:var(--panel); border:1px solid var(--edge); border-radius:12px;
   width:min(760px,100%); box-shadow:0 18px 50px rgba(0,0,0,0.45); padding:15px 17px;
@@ -818,6 +830,17 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       </section>
     </div>
   </details>
+  <dialog class="ask" id="askDialog" aria-labelledby="askTitle">
+    <form method="dialog">
+      <h3 id="askTitle"></h3>
+      <p id="askMsg"></p>
+      <input type="text" id="askInput" hidden spellcheck="false" autocomplete="off">
+      <div class="ask-btns">
+        <button type="submit" value="cancel" id="askCancel">Annulla</button>
+        <button type="submit" value="ok" id="askOk" class="primary">Ok</button>
+      </div>
+    </form>
+  </dialog>
   <footer class="site-footer"><span class="site-version"><!--build-->versione locale<!--/build--></span><a class="site-badge" href="https://tongatron.org/"><span class="mark"></span><span>tongatron.org</span></a></footer>
 </div>
 
@@ -2043,7 +2066,29 @@ function recordHit(track){
   }
 }
 
+// ---------- finestra di conferma ----------
+// Sostituisce confirm() e prompt() del browser con una finestra del sito.
+// ask({title, message, ok, danger, input}) -> Promise: true/false, oppure il testo (null se annullato) con `input`.
+function ask({title, message="", ok="Ok", cancel="Annulla", danger=false, input=null}){
+  const d=el("askDialog"), f=el("askInput"), okB=el("askOk");
+  el("askTitle").textContent=title; el("askMsg").textContent=message;
+  okB.textContent=ok; el("askCancel").textContent=cancel;
+  okB.className=danger?"danger-fill":"primary";
+  f.hidden=input===null; f.value=input??"";
+  d.returnValue="cancel";
+  return new Promise(resolve=>{
+    d.onclose=()=>{ const yes=d.returnValue==="ok"; resolve(input===null?yes:(yes?f.value:null)); };
+    d.showModal();
+    if(input!==null){ f.focus(); f.select(); } else (danger?el("askCancel"):okB).focus();
+  });
+}
+// Invio nel campo di testo conferma (l'invio implicito del form userebbe il primo pulsante, Annulla).
+el("askInput").addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); el("askDialog").close("ok"); } });
+// Click fuori dalla finestra = Annulla.
+el("askDialog").addEventListener("click",e=>{ if(e.target===el("askDialog")) el("askDialog").close("cancel"); });
+
 document.addEventListener("keydown",(e)=>{
+  if(el("askDialog").open) return;
   const tag=(document.activeElement&&document.activeElement.tagName)||"";
   if((e.metaKey||e.ctrlKey) && e.key.toLowerCase()==="z" && tag!=="INPUT" && tag!=="TEXTAREA"){
     e.preventDefault(); e.shiftKey?redo():undo(); return;
@@ -2062,9 +2107,9 @@ el("viewMix").onclick=()=>setView("mix");
 el("viewRecent").onclick=()=>setView("recent");
 el("viewGrid").onclick=()=>setView("grid");
 el("viewSeq").onclick=()=>setView("seq");
-el("seqClear").onclick=()=>{
+el("seqClear").onclick=async()=>{
   if(!project.song.length) return;
-  if(!confirm("Svuotare l'arrangiamento? I pattern restano.")) return;
+  if(!await ask({title:"Svuota arrangiamento", message:"Togliere tutti i blocchi della canzone? I pattern restano.", ok:"Svuota", danger:true})) return;
   pushUndo(); project.song=[]; ui.blockId=null; renderSong(); setStatus("canzone svuotata");
 };
 // I pulsanti della macchina seguono le opzioni del select (che resta lo stato: le macchine non raggiungibili
@@ -2160,9 +2205,9 @@ el("pPaste").onclick=()=>{
   p.mods=cloneMods(ui.clip.mods); p.lens={...(ui.clip.lens||{})};
   normalize(); renderRuler(); renderTracks(); renderPatterns(); setStatus("incollato");
 };
-el("pRename").onclick=()=>{
+el("pRename").onclick=async()=>{
   const p=curPattern();
-  const n=prompt("Nome del pattern",p.name);
+  const n=await ask({title:"Rinomina pattern", ok:"Rinomina", input:p.name});
   if(n){ p.name=n.trim()||p.name; renderPatterns(); renderSong(); el("gridTitle").textContent="Griglia — "+p.name; }
 };
 el("pClear").onclick=()=>{
@@ -2172,10 +2217,10 @@ el("pClear").onclick=()=>{
   p.mods={}; p.lens={};
   renderTracks();
 };
-el("pDel").onclick=()=>{
+el("pDel").onclick=async()=>{
   if(project.patterns.length<=1){ setStatus("serve almeno un pattern","err"); return; }
   const p=curPattern();
-  if(!confirm(`Eliminare il pattern "${p.name}"? I blocchi che lo usano vengono rimossi.`)) return;
+  if(!await ask({title:"Elimina pattern", message:`Eliminare "${p.name}"? Anche i blocchi della canzone che lo usano vengono tolti. Si può annullare con cmd+Z.`, ok:"Elimina", danger:true})) return;
   pushUndo();
   project.patterns=project.patterns.filter(x=>x.id!==p.id);
   project.song=project.song.filter(b=>b.patternId!==p.id);
@@ -2331,7 +2376,7 @@ async function loadProject(id){
   }catch(e){ setStatus("errore caricamento","err"); }
 }
 async function removeProject(id,name){
-  if(!confirm(`Rimuovere il progetto "${name}"?`)) return;
+  if(!await ask({title:"Rimuovi progetto", message:`Rimuovere "${name}" dai progetti salvati? Non si può annullare.`, ok:"Rimuovi", danger:true})) return;
   try{
     if(db) await db.doc("projects/"+id).delete();
     else { const all=lsAll(); delete all[id]; lsWrite(all); refreshRecent(); }
@@ -2397,8 +2442,8 @@ function setStatus(msg,kind){
 
 el("saveBtn").onclick=()=>saveProject(false);
 el("saveAsBtn").onclick=()=>saveProject(true);
-el("newBtn").onclick=()=>{
-  if(!confirm("Nuovo progetto? Le modifiche non salvate vanno perse.")) return;
+el("newBtn").onclick=async()=>{
+  if(!await ask({title:"Nuovo progetto", message:"Le modifiche non salvate del progetto aperto vanno perse.", ok:"Nuovo progetto", danger:true})) return;
   if(playing) stop();
   currentProjectId=null; project=starterProject(); ui.patternId=project.patterns[0].id;
   ui.blockId=project.song[0].id;
@@ -2893,7 +2938,7 @@ const shareUrl=code=>`${location.origin}${location.pathname}?p=${encodeURICompon
 async function copyLink(item){
   const url=shareUrl(item.code);
   try{ await navigator.clipboard.writeText(url); libNote("link copiato"); }
-  catch(e){ window.prompt("Copia il link del pattern", url); }
+  catch(e){ await ask({title:"Link del pattern", message:"Copia il link (cmd+C):", ok:"Fatto", cancel:"Chiudi", input:url}); }
 }
 let libNoteTimer=null;
 function libNote(msg){
@@ -3188,11 +3233,11 @@ function addBasePatterns(){
   pushToLibrary(missing);
   libNote(`${missing.length} ${missing.length===1?"pattern base aggiunto":"pattern base aggiunti"}`);
 }
-function clearLibraryView(){
+async function clearLibraryView(){
   if(libView==="fav"){
     const n=favCodes().length;
     if(!n) return;
-    if(!confirm(`Togliere tutti i ${n} preferiti? Non si puo' annullare.`)) return;
+    if(!await ask({title:"Svuota preferiti", message:`Togliere tutti i ${n} preferiti? Non si può annullare.`, ok:"Svuota", danger:true})) return;
     try{ localStorage.setItem(FAV_KEY,"[]"); }catch(e){ libNote("questo browser non permette di modificare i preferiti"); return; }
     stopAudition(); renderLibrary(); libNote("preferiti svuotati");
     return;

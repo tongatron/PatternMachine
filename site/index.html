@@ -386,6 +386,15 @@ label.fld input[type=number]{width:54px;}
 .lib-locks .tiny{flex-basis:100%;}
 .lock-chip{padding:3px 7px; font-size:9.5px; text-transform:none; letter-spacing:0.02em;}
 .lock-chip.on{background:var(--panel-3); border-color:var(--song); color:var(--text); box-shadow:0 0 0 1px var(--song) inset;}
+.lib-manage{display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin:0 0 9px; padding-top:9px; border-top:1px solid var(--edge-soft);}
+.lib-manage .tiny{margin-right:auto;}
+.lib-del{flex:0 0 auto; align-self:flex-start; margin-left:-4px; padding:0 6px; border:none; background:transparent;
+  font-size:15px; line-height:1.4; color:var(--text-faint);}
+.lib-del:hover{color:var(--danger);}
+.gen-count{display:flex; align-items:center; gap:4px;}
+.gen-count .fld{font-size:10.5px; color:var(--text-dim); margin-right:2px; text-transform:uppercase; letter-spacing:0.08em;}
+.gen-count button{min-width:34px;}
+.lib-interest{color:var(--accent); letter-spacing:0.12em; margin-left:6px; font-size:9px;}
 .lib-empty{padding:18px 6px; font-size:11px; color:var(--text-faint); font-style:italic; text-align:center;}
 .lib-code{font-size:9px; color:var(--text-dim); margin-top:3px; letter-spacing:0.02em; -webkit-user-select:all; user-select:all;}
 .lib-play{
@@ -729,7 +738,13 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
           <select id="genLen"><option>16</option><option>32</option></select>
         </label>
         <label class="fld"><input type="checkbox" id="genFill"> Fill</label>
-        <button id="genBtn" class="mini primary">Genera 4</button>
+        <div class="gen-count" id="genCount" role="group" aria-label="Quanti pattern generare">
+          <span class="fld">Genera</span>
+          <button type="button" class="mini primary" data-n="4">4</button>
+          <button type="button" class="mini primary" data-n="6">6</button>
+          <button type="button" class="mini primary" data-n="8">8</button>
+          <button type="button" class="mini primary" data-n="12">12</button>
+        </div>
         <button id="genVar" class="mini">Variazione del pattern corrente</button>
       </div>
       <form class="flexline" id="codeForm" style="margin:-3px 0 11px;">
@@ -739,6 +754,11 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
         <button class="mini" type="submit">Apri</button>
         <span class="tiny">ogni pattern ha un codice: lo stesso codice rigenera lo stesso pattern</span>
       </form>
+      <div class="lib-manage">
+        <span class="tiny" id="libManageNote">si azzera ricaricando la pagina: tieni i pattern nei &#9733; preferiti</span>
+        <button type="button" id="libBase" class="mini" title="rimette in lista i pattern di partenza (Boom bap, Funk 16, Trap, House, Son clave, Half time)">+ Pattern base</button>
+        <button type="button" id="libClear" class="mini danger">Svuota lista</button>
+      </div>
       <div class="lib-list" id="libList"></div>
     </div>
   </div>
@@ -789,10 +809,11 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
         <h3>Pattern e generatore</h3>
         <ul>
           <li><b>&#10022; Varia</b> (pannello Pattern) trasforma il pattern che stai modificando, anche scritto a mano; <kbd>cmd</kbd>+<kbd>Z</kbd> annulla.</li>
-          <li><b>Scegli&hellip;</b> apre libreria e generatore: <b>Genera 4</b> crea 4 pattern nuovi dello stile scelto (nient'altro ne crea da solo).</li>
+          <li><b>Scegli&hellip;</b> apre libreria e generatore: <b>Genera 4 · 6 · 8 · 12</b> crea quel numero di pattern dello stile scelto, dal pi&ugrave; semplice al pi&ugrave; ricco (i pallini &#9679; indicano l'interesse), e toglie dalla lista quelli degli altri stili.</li>
           <li>Su ogni pattern: <b>Simili</b> ne crea 4 vicini; <b>Varia</b> lo trasforma in 20 modi (scarno, mezzo tempo, hat aperto, nuovo fill, strato percussivo, stacco&hellip; e cinque <b>ibridi</b> con voci di un altro stile).</li>
           <li><b>Arrangia</b> ricava intro, ritornello, break e outro; <b>Blocca</b> tiene alcune voci e rigenera le altre.</li>
           <li>Ogni pattern ha un codice: lo stesso codice rigenera lo stesso pattern.</li>
+          <li>Nella libreria: <b>&times;</b> toglie un pattern dalla lista, <b>Svuota lista</b> la azzera, <b>+ Pattern base</b> rimette i pattern di partenza. Nella scheda Preferiti, <b>Svuota preferiti</b> li toglie tutti.</li>
         </ul>
       </section>
     </div>
@@ -801,18 +822,18 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-25.6"></script>
-<script src="engine/styles-punk.js?v=2026-09-25.6"></script>
-<script src="engine/styles-post.js?v=2026-09-25.6"></script>
-<script src="engine/styles-machines.js?v=2026-09-25.6"></script>
-<script src="engine/styles-alt.js?v=2026-09-25.6"></script>
-<script src="engine/styles-groove.js?v=2026-09-25.6"></script>
-<script src="engine/styles-dub.js?v=2026-09-25.6"></script>
-<script src="engine/styles-break.js?v=2026-09-25.6"></script>
-<script src="engine/styles-soul.js?v=2026-09-25.6"></script>
-<script src="engine/styles-metal.js?v=2026-09-25.6"></script>
-<script src="engine/styles-electro.js?v=2026-09-25.6"></script>
-<script src="engine/variations.js?v=2026-09-25.6"></script>
+<script src="engine/core.js?v=2026-09-25.8"></script>
+<script src="engine/styles-punk.js?v=2026-09-25.8"></script>
+<script src="engine/styles-post.js?v=2026-09-25.8"></script>
+<script src="engine/styles-machines.js?v=2026-09-25.8"></script>
+<script src="engine/styles-alt.js?v=2026-09-25.8"></script>
+<script src="engine/styles-groove.js?v=2026-09-25.8"></script>
+<script src="engine/styles-dub.js?v=2026-09-25.8"></script>
+<script src="engine/styles-break.js?v=2026-09-25.8"></script>
+<script src="engine/styles-soul.js?v=2026-09-25.8"></script>
+<script src="engine/styles-metal.js?v=2026-09-25.8"></script>
+<script src="engine/styles-electro.js?v=2026-09-25.8"></script>
+<script src="engine/variations.js?v=2026-09-25.8"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -3059,13 +3080,14 @@ function renderLibrary(){
   const host=el("libList");
   host.innerHTML="";
   paintLibCount();
+  paintLibManage();
   const list=libView==="fav"?favItems():library;
   const favs=new Set(favCodes());
   if(!list.length){
     const e=document.createElement("div"); e.className="lib-empty";
     e.textContent=libView==="fav"
       ? "nessun preferito: tocca ☆ accanto al nome di un pattern per salvarlo qui"
-      : "nessun pattern";
+      : "lista vuota: usa Genera (4, 6, 8 o 12) oppure + Pattern base";
     host.appendChild(e);
   }
   list.forEach(item=>{
@@ -3086,6 +3108,7 @@ function renderLibrary(){
     }
     nm.appendChild(document.createTextNode(item.name));
     const tg=document.createElement("div"); tg.className="lib-tag"; tg.textContent=`${item.tag} · ${item.len} step`+(item.code?"":" · preset");
+    if(item.dots){ const d=document.createElement("span"); d.className="lib-interest"; d.textContent="●".repeat(item.dots)+"○".repeat(5-item.dots); d.title=`interesse ${item.dots}/5 (sincopi, dinamica, voci, varieta')`; tg.appendChild(d); }
     meta.appendChild(nm); meta.appendChild(tg);
     if(item.ref){ const rf=document.createElement("div"); rf.className="lib-ref"; rf.textContent=item.ref; meta.appendChild(rf); }
     if(item.code){ const cd=document.createElement("div"); cd.className="lib-code"; cd.textContent=item.code; cd.title="codice del pattern"; meta.appendChild(cd); }
@@ -3136,12 +3159,60 @@ function renderLibrary(){
       acts.appendChild(sim); acts.appendChild(vary); acts.appendChild(arr); acts.appendChild(link); acts.appendChild(lock);
     }
     row.appendChild(acts);
+    if(libView==="all"){
+      const del=document.createElement("button"); del.type="button"; del.className="lib-del";
+      del.textContent="×"; del.title="togli dalla lista"; del.setAttribute("aria-label","Togli "+item.name+" dalla lista");
+      del.onclick=()=>removeFromLibrary(item);
+      row.appendChild(del);
+    }
     if(item.code && varyOpen.has(item)) row.appendChild(varyPanel(item));
     if(item.code && lockOpen.has(item)) row.appendChild(lockPanel(item));
     host.appendChild(row);
   });
   paintAudition();
 }
+
+// ---------- gestione della lista ----------
+// Proposte: la lista in memoria (si puo' svuotare e ripopolare con i pattern base).
+// Preferiti: i codici salvati nel browser (svuotarli chiede conferma, non si torna indietro).
+function removeFromLibrary(item){
+  if(audition.item===item) stopAudition();
+  const host=el("libList"), top=host.scrollTop;
+  library=library.filter(i=>i!==item);
+  renderLibrary(); host.scrollTop=top;
+  libNote("tolto dalla lista: "+item.name);
+}
+function addBasePatterns(){
+  const missing=PRESETS.filter(p=>!library.some(i=>!i.code && i.name===p.name)).map(p=>({...p}));
+  if(!missing.length){ libNote("i pattern base sono gia' tutti in lista"); return; }
+  pushToLibrary(missing);
+  libNote(`${missing.length} ${missing.length===1?"pattern base aggiunto":"pattern base aggiunti"}`);
+}
+function clearLibraryView(){
+  if(libView==="fav"){
+    const n=favCodes().length;
+    if(!n) return;
+    if(!confirm(`Togliere tutti i ${n} preferiti? Non si puo' annullare.`)) return;
+    try{ localStorage.setItem(FAV_KEY,"[]"); }catch(e){ libNote("questo browser non permette di modificare i preferiti"); return; }
+    stopAudition(); renderLibrary(); libNote("preferiti svuotati");
+    return;
+  }
+  if(!library.length) return;
+  const n=library.length;
+  stopAudition(); library=[]; renderLibrary();
+  libNote(`lista svuotata (${n} pattern): i preferiti restano`);
+}
+function paintLibManage(){
+  const fav=libView==="fav";
+  el("libBase").hidden=fav;
+  el("libClear").textContent=fav?"Svuota preferiti":"Svuota lista";
+  el("libClear").disabled=fav?!favCodes().length:!library.length;
+  el("libManageNote").innerHTML=fav
+    ? "i preferiti restano salvati in questo browser"
+    : "si azzera ricaricando la pagina: tieni i pattern nei &#9733; preferiti";
+}
+el("libBase").onclick=addBasePatterns;
+el("libClear").onclick=clearLibraryView;
 
 function openLib(){ el("libOverlay").hidden=false; renderLibrary(); }
 function closeLib(){ stopAudition(); el("libOverlay").hidden=true; }
@@ -3201,20 +3272,61 @@ function varyCurrent(type){
   btn.onclick=()=>{ box.hidden=!box.hidden; btn.classList.toggle("on",!box.hidden); btn.setAttribute("aria-expanded",String(!box.hidden)); };
 })();
 
-el("genBtn").onclick=()=>{
+// Quanto e' "interessante" un pattern: sincopi (colpi fuori dai quarti, pesati di piu' su cassa e rullante),
+// dinamica (accenti e note fantasma), numero di voci, differenze tra i quarti della battuta (o tra le due
+// battute a 32 step) e una densita' ne' troppo vuota ne' troppo piena. Serve solo a ordinare la lista.
+function interestScore(item){
+  const roles=Object.entries(item.roles||{}), len=item.len||16;
+  let sync=0, dyn=0, hits=0, cells=0, varied=0, voices=0;
+  roles.forEach(([role,a])=>{
+    const on=a.map(v=>v?1:0);
+    if(!on.some(Boolean)) return;
+    voices++;
+    const w=role.startsWith("kick")||role.startsWith("snare")||role==="clap"?2:1;
+    a.forEach((v,i)=>{
+      cells++;
+      if(!v) return;
+      hits++;
+      if(i%2===1) sync+=1.0*w; else if(i%4===2) sync+=0.4*w;
+      if(v===2||v===3) dyn++;
+    });
+    const seg=len===32?16:4, parts=[];
+    for(let k=0;k<len;k+=seg) parts.push(on.slice(k,k+seg).join(""));
+    varied+=new Set(parts).size-1;
+  });
+  if(!hits) return 0;
+  const density=hits/cells, balance=1-Math.min(1,Math.abs(density-0.3)*2.5);
+  return sync/hits*4 + Math.min(dyn,6)*0.35 + Math.min(voices,7)*0.45 + varied*0.3 + balance*1.5;
+}
+// Pallini su scala fissa: soglie ai quintili del punteggio misurati su tutti gli stili (16 e 32 step),
+// cosi' un pattern da 5 pallini e' tra i piu' ricchi in assoluto, non solo della sua generazione.
+const INTEREST_STEPS=[6.15,6.85,7.65,8.7];
+const interestDots=score=>1+INTEREST_STEPS.filter(t=>score>=t).length;
+// Genera N pattern dello stile scelto: prima toglie dalla lista quelli degli altri stili (anche i base),
+// poi li mette in cima in ordine crescente di interesse, ognuno con i pallini del suo livello.
+function generateBatch(n){
   const style=el("genStyle").value, len=+el("genLen").value;
   const section=el("genSection").value, fill=el("genFill").checked;
   const made=[];
   const sig=p=>JSON.stringify(p.roles);
-  for(let i=0;i<4;i++){
+  for(let i=0;i<n;i++){
     const sec=section==="both"?(i%2?"chorus":"verse"):section;
     let p=genPattern(style,len,{section:sec, fill});
     // negli stili rigidi due seed possono dare lo stesso ritmo: si riprova qualche volta
     for(let t=0;t<8 && made.some(q=>sig(q)===sig(p));t++) p=genPattern(style,len,{section:sec, fill});
     made.push(p);
   }
+  made.forEach(p=>{ p.interest=interestScore(p); p.dots=interestDots(p.interest); });
+  made.sort((a,b)=>a.interest-b.interest);
+  const styles=new Set(made.map(p=>p.style));
+  const before=library.length;
+  if(audition.item && !styles.has(audition.item.style)) stopAudition();
+  library=library.filter(i=>i.style && styles.has(i.style));
+  const removed=before-library.length;
   pushToLibrary(made);
-};
+  libNote(`${n} nuovi`+(removed?` · tolti ${removed} di altri stili`:""));
+}
+document.querySelectorAll("#genCount button").forEach(b=>b.onclick=()=>generateBatch(+b.dataset.n));
 el("codeForm").onsubmit=e=>{
   e.preventDefault();
   if(openCode(el("genCode").value)) el("genCode").value="";
@@ -3287,7 +3399,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-25.6";
+const SW_VERSION="2026-09-25.8";
 (function pwa(){
   const standalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
   const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);

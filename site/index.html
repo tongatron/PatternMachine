@@ -268,8 +268,8 @@ label.fld input[type=number]{width:54px;}
 .machine-label{font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--text-dim); font-weight:700;}
 .machine-buttons{display:flex; flex-wrap:wrap; gap:6px;}
 .machine-more{margin-left:auto;}
-.machine-btn{font-size:13px; font-weight:700; padding:9px 16px; letter-spacing:.06em;}
-.machine-btn.on{background:var(--key-on,var(--accent)); color:var(--on-accent); border-color:var(--accent-dim);}
+.machine-select{font-size:14px; font-weight:700; padding:8px 12px; min-width:220px; max-width:100%;}
+#machinePanel{padding-top:9px; padding-bottom:9px;}
 .chip{
   display:flex; align-items:center; gap:6px; padding:5px 10px; border-radius:6px;
   border:1px solid var(--edge); background:var(--panel-2); cursor:pointer;
@@ -387,6 +387,24 @@ label.fld input[type=number]{width:54px;}
 .ask input[hidden]{display:none;}
 .ask .ask-btns{display:flex; justify-content:flex-end; gap:8px;}
 .ask .ask-btns button{min-width:90px;}
+/* Import: zona di rilascio, testo da incollare, opzioni */
+.import-dlg{width:min(560px,calc(100% - 32px));}
+.import-drop{display:flex; flex-direction:column; align-items:center; gap:4px; text-align:center; cursor:pointer;
+  border:2px dashed var(--edge); border-radius:10px; padding:18px 12px; margin:0 0 10px; font-size:13px; background:var(--panel-2);}
+.import-drop:hover, .import-drop.over{border-color:var(--accent); color:var(--accent);}
+.import-drop input{position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;}
+.import-drop:focus-within{outline:2px solid var(--accent); outline-offset:2px;}
+.import-drop small{font-size:10.5px; color:var(--text-dim); line-height:1.5;}
+.import-dlg textarea{width:100%; box-sizing:border-box; font:12px/1.45 inherit; font-family:inherit; padding:8px 10px; border-radius:8px;
+  border:1px solid var(--edge); background:var(--panel-2); color:var(--text); resize:vertical; margin:0 0 10px;}
+.import-opts{display:flex; flex-direction:column; gap:7px; font-size:12px; margin:0 0 10px;}
+.import-opts label{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.import-opts .chk{flex-wrap:nowrap; align-items:flex-start;}
+.import-opts input[type=checkbox]{width:auto; margin:2px 0 0; flex-shrink:0;}
+.import-msg{font-size:12px; min-height:1.2em; margin:0 0 10px !important;}
+.import-msg.err{color:var(--danger);}
+body.dropping::after{content:"Rilascia per importare"; position:fixed; inset:12px; z-index:60; display:grid; place-items:center;
+  border:3px dashed var(--accent); border-radius:16px; background:rgba(0,0,0,.45); color:#fff; font-size:18px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; pointer-events:none;}
 button.danger-fill{background:var(--danger); border-color:var(--danger); color:#fff; font-weight:700;}
 .modal{
   background:var(--panel); border:1px solid var(--edge); border-radius:12px;
@@ -617,6 +635,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       <input type="text" id="projectName" value="Senza titolo" placeholder="Nome progetto" style="width:210px; flex:0 1 210px;">
       <button id="saveBtn" class="primary">Salva</button>
       <button id="newBtn">Nuovo</button>
+      <button id="importBtn" title="Importa MIDI, audio, PatternTXT, drum tab, Hydrogen, REAPER, Ableton, MusicXML o un progetto JSON (anche trascinando un file sulla pagina)">Import</button>
       <details class="export-menu" id="exportMenu">
         <summary>Export</summary>
         <div class="export-list">
@@ -632,6 +651,8 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
           <button class="daw-btn" data-daw="ableton" title="Zip per Ableton Live: MIDI General MIDI per un Drum Rack, uno stem WAV per strumento, campioni del kit. Segue Pattern/Canzone">Ableton Live (zip)</button>
           <button class="daw-btn" data-daw="reaper" title="Zip per REAPER: progetto .rpp gia' pronto con tempo, stem su tracce separate e una traccia MIDI General MIDI. Segue Pattern/Canzone">REAPER (progetto .rpp)</button>
           <button class="daw-btn" data-daw="altre" title="Zip per FL Studio, Cubase, Studio One, Bitwig, GarageBand e altre: MIDI General MIDI, stem WAV, campioni. Segue Pattern/Canzone">Altre DAW (zip)</button>
+          <div class="export-head">Progetto</div>
+          <button id="projJsonBtn" title="Tutto il progetto (righe, pattern, canzone, mixer) in un file .json da reimportare con Import">Progetto PatternMachine (.json)</button>
         </div>
       </details>
       <span class="status" id="status"></span>
@@ -640,8 +661,8 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 
   <div class="panel" id="machinePanel">
     <div class="machine-bar">
-      <span class="machine-label">Macchina</span>
-      <div class="machine-buttons" id="kitButtons" role="radiogroup" aria-label="Macchina"></div>
+      <label class="machine-label" for="kitSelect">Macchina</label>
+      <select id="kitSelect" class="machine-select"></select>
       <a class="linkbtn machine-more" href="macchine.html" title="Storia delle sette macchine, con confronti da ascoltare">Approfondisci &rarr;</a>
     </div>
   </div>
@@ -693,7 +714,6 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       <label class="fld" title="swing alla MPC: 50% dritto, 66% terzinato, 75% massimo">Swing <input type="range" id="swingRange" min="0" max="100" value="0"> <span id="swingPct" class="tiny">50%</span></label>
       <label class="fld" title="umanizza: piccole differenze a caso di tempo (fino a 10 ms) e forza (fino al 15%)">Umano <input type="range" id="humanRange" min="0" max="100" value="0"></label>
       <label class="fld">Vol <input type="range" id="masterVol" min="0" max="100" value="85"></label>
-      <select id="kitSelect" hidden aria-hidden="true"></select>
       <div class="counter" id="counter">1 . 1</div>
     </div>
   </div>
@@ -881,6 +901,34 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       </section>
     </div>
   </details>
+  <dialog class="ask import-dlg" id="importDialog" aria-labelledby="importTitle">
+    <form method="dialog">
+      <h3 id="importTitle">Importa</h3>
+      <label class="import-drop" id="importDrop">
+        <input type="file" id="importFile">
+        <b>Trascina qui un file</b> <span>o tocca per sceglierlo</span>
+        <small>MIDI · audio (WAV, AIFF, MP3, M4A, OGG, FLAC) · PatternTXT · drum tab · Hydrogen · REAPER · Ableton Live · MusicXML · progetto JSON</small>
+      </label>
+      <textarea id="importText" rows="5" spellcheck="false" placeholder="…oppure incolla qui un PatternTXT, un drum tab (HH|x-x-x-x-|), un progetto JSON, un MusicXML o il codice / link di un pattern"></textarea>
+      <div class="import-opts">
+        <label>Note MIDI
+          <select id="importMap">
+            <option value="auto">riconosci da solo</option>
+            <option value="gm">General MIDI (36 cassa, 38 rullante…)</option>
+            <option value="pm">kit PatternMachine (36 + numero dello slot)</option>
+          </select>
+        </label>
+        <label class="chk"><input type="checkbox" id="importAdd"> aggiungi al progetto aperto invece di aprirne uno nuovo</label>
+        <label class="chk"><input type="checkbox" id="importTempo" checked> audio: stima il tempo (altrimenti usa i BPM attuali)</label>
+      </div>
+      <p class="import-msg" id="importMsg" role="status"></p>
+      <div class="ask-btns">
+        <button type="submit" value="cancel">Chiudi</button>
+        <button type="button" id="importGo" class="primary">Importa il testo</button>
+      </div>
+    </form>
+  </dialog>
+
   <dialog class="ask" id="askDialog" aria-labelledby="askTitle">
     <form method="dialog">
       <h3 id="askTitle"></h3>
@@ -896,18 +944,19 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-25.8"></script>
-<script src="engine/styles-punk.js?v=2026-09-25.8"></script>
-<script src="engine/styles-post.js?v=2026-09-25.8"></script>
-<script src="engine/styles-machines.js?v=2026-09-25.8"></script>
-<script src="engine/styles-alt.js?v=2026-09-25.8"></script>
-<script src="engine/styles-groove.js?v=2026-09-25.8"></script>
-<script src="engine/styles-dub.js?v=2026-09-25.8"></script>
-<script src="engine/styles-break.js?v=2026-09-25.8"></script>
-<script src="engine/styles-soul.js?v=2026-09-25.8"></script>
-<script src="engine/styles-metal.js?v=2026-09-25.8"></script>
-<script src="engine/styles-electro.js?v=2026-09-25.8"></script>
-<script src="engine/variations.js?v=2026-09-25.8"></script>
+<script src="engine/core.js?v=2026-09-25.9"></script>
+<script src="engine/styles-punk.js?v=2026-09-25.9"></script>
+<script src="engine/styles-post.js?v=2026-09-25.9"></script>
+<script src="engine/styles-machines.js?v=2026-09-25.9"></script>
+<script src="engine/styles-alt.js?v=2026-09-25.9"></script>
+<script src="engine/styles-groove.js?v=2026-09-25.9"></script>
+<script src="engine/styles-dub.js?v=2026-09-25.9"></script>
+<script src="engine/styles-break.js?v=2026-09-25.9"></script>
+<script src="engine/styles-soul.js?v=2026-09-25.9"></script>
+<script src="engine/styles-metal.js?v=2026-09-25.9"></script>
+<script src="engine/styles-electro.js?v=2026-09-25.9"></script>
+<script src="engine/variations.js?v=2026-09-25.9"></script>
+<script src="engine/import.js?v=2026-09-25.9"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -1075,19 +1124,19 @@ function loadBuffer(i){
   return p;
 }
 // Cambia macchina. Le righe che usavano un suono che l'altra macchina non ha passano allo slot di riserva.
-function setSampleSet(k){
+function setSampleSet(k,quiet=false){
   if(!KITS[k]) return;
   if(KITS[k].ok===false){ setStatus(KITS[k].label+": non disponibile su questo server"); const sel=document.getElementById("kitSelect"); if(sel) sel.value=sampleSet; return; }
   sampleSet=k;
   const sel=document.getElementById("kitSelect"); if(sel) sel.value=k;
-  if(typeof paintKitButtons==="function" && document.getElementById("kitButtons")) paintKitButtons();
+  if(typeof paintKitButtons==="function" && document.getElementById("kitSelect")) paintKitButtons();
   let moved=0;
   project.tracks.forEach(t=>{
     if(!sampleAvailable(t.sampleIndex)){ t.sampleIndex=sampleIdx(SAMPLES[t.sampleIndex].fallback||"Perc 1"); moved++; }
     loadBuffer(t.sampleIndex);
   });
   if(typeof renderAll==="function" && project.patterns) renderAll();
-  setStatus(KITS[k].label+(moved?` · ${moved} ${moved===1?"riga passata":"righe passate"} a un suono equivalente`:""));
+  if(!quiet) setStatus(KITS[k].label+(moved?` · ${moved} ${moved===1?"riga passata":"righe passate"} a un suono equivalente`:""));
 }
 
 let idSeq=1;
@@ -2183,25 +2232,20 @@ el("seqClear").onclick=async()=>{
   if(!await ask({title:"Svuota arrangiamento", message:"Togliere tutti i blocchi della canzone? I pattern restano.", ok:"Svuota", danger:true})) return;
   pushUndo(); project.song=[]; ui.blockId=null; renderSong(); setStatus("canzone svuotata");
 };
-// I pulsanti della macchina seguono le opzioni del select (che resta lo stato: le macchine non raggiungibili
-// ne vengono tolte), quindi si ridisegnano da li'.
+// La macchina si sceglie dal menu (che resta lo stato: le macchine non raggiungibili ne vengono tolte);
+// qui si aggiorna solo il suggerimento con l'origine dei suoni.
 function paintKitButtons(){
-  const host=el("kitButtons"), sel=el("kitSelect");
-  host.innerHTML="";
-  [...sel.options].forEach(o=>{
-    const b=document.createElement("button"); b.type="button";
-    const on=o.value===sampleSet;
-    b.className="machine-btn"+(on?" on":""); b.setAttribute("role","radio"); b.setAttribute("aria-checked",String(on));
-    b.textContent=KITS[o.value].label; b.title=KITS[o.value].label+(KITS[o.value].source?" · "+KITS[o.value].source+" (ricreazione Apple)":"");
-    b.onclick=()=>{ setSampleSet(o.value); paintKitButtons(); };
-    host.appendChild(b);
-  });
+  const sel=el("kitSelect"), k=KITS[sel.value];
+  if(k) sel.title=k.label+(k.source?" · "+k.source+" (ricreazione Apple)":"");
 }
+const KIT_KEY="pm.kit";
+const preferredKit=()=>{ let k=null; try{ k=localStorage.getItem(KIT_KEY); }catch(e){} return KITS[k]?k:"tr808"; };
 (function initKitSelect(){
   const sel=el("kitSelect");
   Object.entries(KITS).forEach(([k,x])=>{ const o=document.createElement("option"); o.value=k; o.textContent=x.label; sel.appendChild(o); });
   sel.value=sampleSet;
-  sel.onchange=()=>setSampleSet(sel.value);
+  // la macchina scelta dal menu resta per la prossima visita (di default la TR-808)
+  sel.onchange=()=>{ setSampleSet(sel.value); try{ localStorage.setItem(KIT_KEY,sel.value); }catch(e){} };
   paintKitButtons();
   // Un kit i cui file il server non serve (cartella mancante, non pubblicata) non deve restare in lista muto:
   // si prova il primo suono di ogni macchina e, se non risponde, la macchina sparisce dal selettore.
@@ -2438,6 +2482,12 @@ function redo(){
 const projectSnap=()=>{ const d=serialize(); delete d.updatedAt; return JSON.stringify(d); };
 let savedSnap="";
 const markSaved=()=>{ savedSnap=projectSnap(); };
+// Prima di sostituire il progetto aperto: l'ospite non puo' salvare, quindi niente avviso;
+// per gli altri solo se ci sono modifiche non salvate.
+async function okToDiscard(title){
+  if(isGuest || projectSnap()===savedSnap) return true;
+  return ask({title, message:"L'attuale progetto non verrà salvato.", ok:title, danger:true});
+}
 
 async function saveProject(asNew){
   if(isGuest){ setStatus("da ospite non puoi salvare: registrati","err"); return; }
@@ -2610,9 +2660,7 @@ function setStatus(msg,kind){
 
 el("saveBtn").onclick=()=>saveProject(false);
 el("newBtn").onclick=async()=>{
-  // l'ospite non puo' salvare: niente avviso. Per gli altri solo se ci sono modifiche non salvate.
-  if(!isGuest && projectSnap()!==savedSnap &&
-     !await ask({title:"Nuovo progetto", message:"L'attuale progetto non verrà salvato.", ok:"Nuovo progetto", danger:true})) return;
+  if(!await okToDiscard("Nuovo progetto")) return;
   if(playing) stop();
   currentProjectId=null; markCurrentRecent(); project=starterProject(); ui.patternId=project.patterns[0].id;
   ui.blockId=project.song[0].id;
@@ -3090,6 +3138,164 @@ el("expPatternBtn").onclick=()=>exportMidi("pattern");
 el("expSongBtn").onclick=()=>exportMidi("song");
 el("wavPatternBtn").onclick=()=>exportWav("pattern");
 el("wavSongBtn").onclick=()=>exportWav("song");
+
+// ---------- import ----------
+// I lettori dei formati stanno in engine/import.js e restituiscono colpi in note MIDI: qui le note diventano
+// righe (per suono), i colpi step, le battute pattern (quelle uguali una volta sola) e l'ordine la canzone.
+const GM_TO_SAMPLE={35:"Kick 2",36:"Kick 1",37:"Rimshot",38:"Snare 1",39:"Finger Snap",40:"Snare 2",41:"Tom 2",42:"Closed Hat 1",
+  43:"Tom 2",44:"Closed Hat 2",45:"Tom 2",46:"Open Hat 1",47:"Tom 1",48:"Tom 1",49:"Crash 1",50:"Tom 1",51:"Ride 1",52:"China",
+  53:"Ride 1",54:"Tambourine",55:"Crash 1",56:"Cowbell 1",57:"Cymbal",58:"Vibraslap",59:"Ride 1",60:"Conga 4",61:"Conga 3",
+  62:"Conga 3",63:"Conga 1",64:"Conga 2",65:"Timbale 1",66:"Timbale 2",67:"Agogo 1",68:"Agogo 1",69:"Cabasa 1",70:"Cabasa 2",
+  71:"Perc 1",72:"Perc 2",73:"Guiro 1",74:"Guiro 2",75:"Clave 1",76:"Perc 1",77:"Perc 2",78:"Perc 3",79:"Perc 4",80:"Perc 5",81:"Triangle"};
+const IMPORT_TRACK={"Kick 1":{vol:0.95},"Kick 2":{vol:0.95},"Snare 1":{vol:0.9},"Snare 2":{vol:0.9},
+  "Closed Hat 1":{vol:0.55,choke:1},"Closed Hat 2":{vol:0.55,choke:1},"Open Hat 1":{vol:0.55,choke:1}};
+const IMPORT_LENS=[8,16,32];
+// velocity -> livello dello step: accento, normale, fantasma (come l'export: 100%, 78%, 40%)
+const levelOfVel=v=>v>=105?2:(v<60?3:1);
+const LEVEL_RANK={2:3,1:2,3:1};
+
+function sampleForNote(note,map){
+  if(map==="pm"){ const i=note-36; if(i>=0 && i<SAMPLES.length && !SAMPLES[i].extra) return i; }
+  const i=sampleIdx(GM_TO_SAMPLE[note]||"Perc 1");
+  return i>=0?i:sampleIdx("Perc 1");
+}
+// "MIDI pattern" di PatternMachine scrive 36 + slot: cassa e rullante coincidono col General MIDI (36, 38),
+// gli hi-hat no (43 e 45 invece di 42 e 46). Hi-hat del kit senza quelli GM = file fatto qui.
+function guessMap(res){
+  const notes=new Set(res.sections.flatMap(s=>s.hits.map(h=>h.note)));
+  const pmHats=["Closed Hat 1","Open Hat 1"].map(n=>36+sampleIdx(n));
+  if(pmHats.some(n=>notes.has(n)) && !notes.has(42) && !notes.has(46)) return "pm";
+  return "gm";
+}
+
+function buildImport(res, {add, map}){
+  const useMap=map==="auto"?(res.map||guessMap(res)):map;
+  const data=add?serialize():{name:res.name||"Import", bpm:bpm(), swing:0, human:0, sampleSet, tracks:[], patterns:[], song:[], mixer:makeMixer()};
+  if(!add && res.bpm) data.bpm=Math.round(Math.min(240,Math.max(40,res.bpm)));
+  const trackOf=new Map(data.tracks.map(t=>[t.sampleIndex,t]));
+  const trackFor=idx=>{
+    let t=trackOf.get(idx);
+    if(!t){ t={id:uid(), sampleIndex:idx, vol:0.75, tune:0, choke:0, ...(IMPORT_TRACK[SAMPLES[idx].name]||{})}; data.tracks.push(t); trackOf.set(idx,t); }
+    return t;
+  };
+  const seen=new Map();   // battute uguali -> stesso pattern
+  let made=0, hitsIn=0;
+  const addPattern=(name,len,grid)=>{
+    const key=len+"|"+JSON.stringify(Object.keys(grid).sort().map(k=>[k,grid[k]]));
+    if(seen.has(key)) return seen.get(key);
+    const p={id:uid(), name, len, grid}; data.patterns.push(p); seen.set(key,p.id); made++;
+    return p.id;
+  };
+  const sectionBlocks=res.sections.map(sec=>{
+    const total=Math.max(1,Math.round(sec.len||16)), nm=(sec.name||res.name||"Import").slice(0,40);
+    const gridAt=(from,len)=>{
+      const grid={};
+      sec.hits.forEach(h=>{
+        const st=Math.round(h.pos)-from; if(st<0||st>=len) return;
+        const t=trackFor(sampleForNote(h.note,useMap)), a=grid[t.id]||(grid[t.id]=new Array(len).fill(0)), lv=levelOfVel(h.vel);
+        if(!a[st]||LEVEL_RANK[lv]>LEVEL_RANK[a[st]]) a[st]=lv;
+        hitsIn++;
+      });
+      return grid;
+    };
+    if(IMPORT_LENS.includes(total)) return [{patternId:addPattern(nm,total,gridAt(0,total)), repeats:1}];
+    const blocks=[], bars=Math.min(128,Math.ceil(total/16));
+    for(let b=0;b<bars;b++){
+      const before=made, id=addPattern(nm,16,gridAt(b*16,16));
+      if(made>before) data.patterns[data.patterns.length-1].name=`${nm} ${made}`;
+      const last=blocks[blocks.length-1];
+      if(last && last.patternId===id) last.repeats++; else blocks.push({patternId:id, repeats:1});
+    }
+    return blocks;
+  });
+  const song=[];
+  (res.order||res.sections.map((_,i)=>i)).forEach(i=>(sectionBlocks[i]||[]).forEach(b=>{
+    const last=song[song.length-1];
+    if(last && last.patternId===b.patternId) last.repeats+=b.repeats; else song.push({...b});
+  }));
+  song.forEach(b=>{ b.id=uid(); });
+  data.song.push(...song);
+  if(!made || !hitsIn) throw new Error("nessun colpo da importare");
+  return {data, made, map:useMap};
+}
+
+function remapUnavailable(){
+  project.tracks.forEach(t=>{ if(!sampleAvailable(t.sampleIndex)) t.sampleIndex=sampleIdx(SAMPLES[t.sampleIndex].fallback||"Perc 1"); });
+}
+
+function importMsg(msg,err){ const m=el("importMsg"); m.textContent=msg; m.className="import-msg"+(err?" err":""); }
+
+async function applyImport(res){
+  const add=el("importAdd").checked, map=el("importMap").value;
+  if(res.project){
+    if(!await okToDiscard("Importa progetto")) return false;
+    if(playing) stop();
+    currentProjectId=null; deserialize(res.project); remapUnavailable(); renderAll(); markCurrentRecent();
+    setStatus(`progetto importato: ${project.patterns.length} pattern`);
+    return true;
+  }
+  const out=buildImport(res,{add, map});
+  if(!add && !await okToDiscard("Importa")) return false;
+  if(playing) stop();
+  if(add) pushUndo(); else currentProjectId=null;
+  deserialize(out.data, add);
+  remapUnavailable(); renderAll(); markCurrentRecent();
+  const n=project.song.length, what=`${out.made} pattern${out.made===1?"":" diversi"}, ${n} ${n===1?"blocco":"blocchi"} in Canzone`;
+  setStatus(res.audio ? `importato dall'audio a ${project.bpm} BPM: ${what} — è una stima, controlla la griglia`
+                      : `importato: ${what}${out.map==="pm"?" · note del kit PatternMachine":""}`);
+  return true;
+}
+
+const decodeAudio=buf=>new Promise((ok,ko)=>{ const p=actx().decodeAudioData(buf,ok,ko); if(p&&p.then) p.then(ok,ko); });
+async function importFile(file){
+  importMsg(`leggo ${file.name}…`);
+  try{
+    const res=await PMImport.fromFile(file,{decodeAudio, audioBpm:el("importTempo").checked?null:bpm()});
+    if(await applyImport(res)){ if(el("importDialog").open) el("importDialog").close(); }
+    importMsg("");
+  }catch(e){
+    const msg=`${file.name}: ${e.message||"formato non riconosciuto"}`;
+    importMsg(msg,true);
+    if(!el("importDialog").open) setStatus(msg,"err");
+  }
+}
+async function importText(){
+  const t=el("importText").value.trim();
+  if(!t) return importMsg("incolla prima qualcosa, o scegli un file",true);
+  // codice o link di un pattern condiviso: apre la libreria, come il link
+  const link=t.match(/[?&]p=([^&\s#]+)/), code=link?decodeURIComponent(link[1]):(!/\s/.test(t)?t:null);
+  if(code && SPEngine.fromCode(code)){ el("importDialog").close(); openLib(); openCode(code); return; }
+  try{
+    const res=await PMImport.fromText(t,"Import");
+    if(await applyImport(res)){ el("importDialog").close(); el("importText").value=""; importMsg(""); }
+  }catch(e){ importMsg(e.message||"testo non riconosciuto",true); }
+}
+
+el("importFile").accept=PMImport.ACCEPT;
+el("importBtn").onclick=()=>{ importMsg(""); el("importDialog").showModal(); };
+el("importFile").onchange=()=>{ const f=el("importFile").files[0]; el("importFile").value=""; if(f) importFile(f); };
+el("importGo").onclick=importText;
+(()=>{
+  const drop=el("importDrop");
+  drop.addEventListener("dragover",e=>{ e.preventDefault(); drop.classList.add("over"); });
+  drop.addEventListener("dragleave",()=>drop.classList.remove("over"));
+  drop.addEventListener("drop",e=>{ e.preventDefault(); e.stopPropagation(); drop.classList.remove("over"); const f=e.dataTransfer.files[0]; if(f) importFile(f); });
+  // un file trascinato in qualsiasi punto della pagina si importa con le opzioni correnti
+  const hasFiles=e=>[...(e.dataTransfer?.types||[])].includes("Files");
+  let depth=0;
+  document.addEventListener("dragenter",e=>{ if(hasFiles(e) && !el("importDialog").open){ depth++; document.body.classList.add("dropping"); } });
+  document.addEventListener("dragleave",e=>{ if(hasFiles(e) && --depth<=0){ depth=0; document.body.classList.remove("dropping"); } });
+  document.addEventListener("dragover",e=>{ if(hasFiles(e)) e.preventDefault(); });
+  document.addEventListener("drop",e=>{
+    if(!hasFiles(e)) return;
+    e.preventDefault(); depth=0; document.body.classList.remove("dropping");
+    const f=e.dataTransfer.files[0]; if(f) importFile(f);
+  });
+})();
+
+el("projJsonBtn").onclick=()=>saveBlob(new Blob([JSON.stringify(serialize(),null,1)],{type:"application/json"}),
+  safeName(el("projectName").value)+".json", "progetto");
+
 
 // ---------- libreria pattern + motore ritmico ----------
 // Voci, campioni e default vengono dal motore (engine/core.js).
@@ -3666,6 +3872,7 @@ fillStyleSelect();
 project=starterProject();
 ui.patternId=project.patterns[0].id;
 ui.blockId=project.song[0].id;
+if(preferredKit()!==sampleSet) setSampleSet(preferredKit(),true);
 project.tracks.forEach(t=>loadBuffer(t.sampleIndex));
 renderAll();
 markSaved();
@@ -3722,7 +3929,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-25.8";
+const SW_VERSION="2026-09-25.9";
 (function pwa(){
   const standalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
   const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);

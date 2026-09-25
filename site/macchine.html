@@ -56,22 +56,6 @@ button:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
 label.fld{display:inline-flex; align-items:center; gap:8px; font:700 10px/1.3 var(--mono); letter-spacing:.08em; text-transform:uppercase; color:var(--dim);}
 input[type=range]{accent-color:var(--accent);}
 
-.lead{font-size:16px;}
-
-/* Linea del tempo */
-.timeline{position:relative; display:grid; grid-template-columns:repeat(7,1fr); gap:6px; padding-top:18px;}
-.timeline::before{content:""; position:absolute; left:4%; right:4%; top:26px; height:2px; background:var(--edge);}
-.tl{position:relative; text-align:center; background:none; border:0; box-shadow:none; padding:0; text-transform:none; letter-spacing:0;}
-.tl .dot{display:block; width:18px; height:18px; margin:0 auto 6px; border-radius:50%; border:2px solid var(--edge); background:var(--paper);}
-.tl:hover .dot, .tl:focus-visible .dot{background:var(--accent); border-color:#8a3418;}
-.tl b{display:block; font:700 14px/1.2 var(--mono);}
-.tl span{display:block; font:12px/1.3 -apple-system,Helvetica,Arial,sans-serif; color:var(--dim);}
-@media (max-width:640px){
-  .timeline{grid-template-columns:1fr; padding-top:0;}
-  .timeline::before{left:8px; right:auto; top:4px; bottom:4px; width:2px; height:auto;}
-  .tl{display:flex; align-items:center; gap:10px; text-align:left;}
-  .tl .dot{margin:0; flex-shrink:0;}
-}
 
 /* Simulazioni */
 .sim-top{display:flex; flex-wrap:wrap; gap:10px 16px; align-items:center; margin:4px 0 10px;}
@@ -123,22 +107,12 @@ table.cmp button.playing{background:var(--key-primary); color:var(--on-accent);}
 </header>
 
 <nav>
-  <a href="#storia">Linea del tempo</a>
   <a href="#ritmo">Stesso ritmo</a>
   <a href="#suoni">Suono per suono</a>
   <a href="#bit">Bit e frequenza</a>
   <a href="#schede">Le sette macchine</a>
   <a href="#tabella">Tabella</a>
 </nav>
-
-<section id="storia">
-  <h2>Dieci anni che hanno cambiato il ritmo (1978–1987)</h2>
-  <p class="lead">Le sette macchine di PatternMachine coprono un decennio in cui la batteria elettronica passa dai
-    circuiti analogici che <i>imitano</i> i tamburi ai campioni digitali di tamburi veri, fino al campionatore che
-    registra qualsiasi disco. Ogni passaggio ha lasciato un suono che la musica usa ancora oggi.</p>
-  <div class="timeline" id="timeline"></div>
-  <p class="note">Tocca un anno per andare alla scheda della macchina.</p>
-</section>
 
 <section id="ritmo">
   <h2>Stesso ritmo, sette macchine</h2>
@@ -346,9 +320,6 @@ function machineSvg(m){
 
 // ---------- linea del tempo, schede, tabella ----------
 const $=id=>document.getElementById(id);
-$("timeline").innerHTML=MACHINES.map(m=>`<button class="tl" data-go="${m.id}"><i class="dot"></i><b>${m.year}</b><span>${m.short}</span></button>`).join("");
-$("timeline").addEventListener("click",e=>{ const b=e.target.closest("[data-go]"); if(b) $("m-"+b.dataset.go).scrollIntoView({behavior:"smooth",block:"start"}); });
-
 $("cards").innerHTML=MACHINES.map(m=>`
   <article class="card" id="m-${m.id}">
     <div>${machineSvg(m)}</div>

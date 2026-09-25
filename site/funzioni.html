@@ -76,13 +76,13 @@ th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-sp
   <a href="#inizio">Primi passi</a><a href="#tasti">Tastiera e mouse</a>
   <a href="#numeri">In breve</a><a href="#macchine">Macchine</a><a href="#griglia">Griglia e step</a><a href="#canzone">Canzone</a>
   <a href="#motore">Motore dei pattern</a><a href="#variazioni">Variazioni</a><a href="#stili">Stili</a>
-  <a href="#export">Export per Logic</a><a href="#progetti">Progetti e link</a><a href="#limiti">Limiti</a>
+  <a href="#export">Export per Logic</a><a href="#import">Import</a><a href="#progetti">Progetti e link</a><a href="#limiti">Limiti</a>
 </nav>
 
 <section id="inizio">
   <h2>Primi passi</h2>
   <ol>
-    <li><b>Scegli la macchina</b> (SP-1200, RX-5, TR-808, TR-909, TR-707, CR-78, LinnDrum) sotto la barra Salva: cambia il suono di tutte le righe.</li>
+    <li><b>Scegli la macchina</b> dal menu <b>Macchina</b> sotto la barra Salva (SP-1200, RX-5, TR-808, TR-909, TR-707, CR-78, LinnDrum): cambia il suono di tutte le righe. Di partenza &egrave; la TR-808; la macchina che scegli resta anche la volta dopo. <b>Approfondisci</b> porta alla storia delle macchine.</li>
     <li><b>Carica un ritmo</b>: nel pannello Pattern premi <b>Scegli…</b>, filtra per stile e premi Carica. Oppure parti da una griglia vuota con <b>+ Nuovo</b>.</li>
     <li><b>Play</b> (o barra spaziatrice). Mentre suona puoi accendere e spegnere gli step: il cambio si sente dal giro successivo.</li>
     <li><b>Modifica</b>: click su uno step lo accende o lo spegne. Sopra la griglia, "Click sugli step" cambia cosa fa il click (Probabilit&agrave;, Ripetizioni, Flam, Intonazione, Decay, Filtro).</li>
@@ -235,6 +235,30 @@ th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-sp
   </ul>
 </section>
 
+<section id="import">
+  <h2>Import</h2>
+  <p>Il pulsante <b>Import</b> (accanto a Export) apre una finestra: trascina un file o sceglilo, oppure incolla del testo. Un file si pu&ograve; anche trascinare direttamente sulla pagina.
+    Di norma l'import apre un progetto nuovo (se quello aperto ha modifiche non salvate lo chiede); con <b>aggiungi al progetto aperto</b> pattern e blocchi si aggiungono in fondo.</p>
+  <div class="table-wrap"><table>
+    <tr><th>Formato</th><th>Estensioni</th><th>Cosa entra</th></tr>
+    <tr><td>MIDI</td><td>.mid .midi .kar .smf .rmi</td><td>note (solo il canale 10 se c'&egrave;), tempo e titolo. Mappa General MIDI o del kit di PatternMachine (36 + slot), riconosciuta da sola o scelta nella finestra</td></tr>
+    <tr><td>Audio (loop di batteria)</td><td>.wav .aif .aiff .mp3 .m4a .aac .ogg .opus .flac .caf</td><td><b>stima</b>: cassa, rullante e hi-hat dagli attacchi in tre bande, tempo stimato o quello attuale. Va bene su loop puliti; controlla sempre la griglia</td></tr>
+    <tr><td>PatternTXT</td><td>.ptxt .pattern.txt .txt</td><td>tutti i PATTERN e le BAR, mappa, tempo, accenti (<code>&gt;</code>, <code>X</code>, <code>x</code>)</td></tr>
+    <tr><td>Drum tab</td><td>.txt .tab o testo incollato</td><td>righe tipo <code>HH|x-x-x-x-|</code>: BD, SD, HH, OH, CC, RC, tom&hellip;; <code>o</code> sull'hi-hat = aperto, <code>g</code> = fantasma, <code>X</code>/<code>O</code> = accento</td></tr>
+    <tr><td>Hydrogen</td><td>.h2song .h2pattern</td><td>pattern, strumenti per nome, tempo e ordine della canzone</td></tr>
+    <tr><td>REAPER</td><td>.rpp</td><td>le note MIDI di tutti gli item, al loro posto, e il tempo</td></tr>
+    <tr><td>Ableton Live</td><td>.als</td><td>clip MIDI: quelle nell'arrangiamento come una canzone, altrimenti un pattern per clip; tempo</td></tr>
+    <tr><td>MusicXML</td><td>.musicxml .xml .mxl</td><td>la parte di batteria: strumenti dalla partitura o dalla posizione sul rigo, accenti, tempo</td></tr>
+    <tr><td>Progetto PatternMachine</td><td>.json</td><td>tutto il progetto, come esce da Export &rsaquo; Progetto PatternMachine (.json)</td></tr>
+    <tr><td>Codice o link</td><td>testo incollato</td><td>apre il pattern condiviso nella libreria</td></tr>
+  </table></div>
+  <ul>
+    <li>Le note diventano righe (una per suono), i colpi step a sedicesimi, la velocity il livello (forte = accento, piano = fantasma). Le battute uguali diventano un solo pattern ripetuto in Canzone.</li>
+    <li>Pattern di 8, 16 o 32 step restano interi; brani pi&ugrave; lunghi si dividono in battute da 16.</li>
+    <li>Formati chiusi o binari (Logic, FL Studio, Cubase, Guitar Pro) non si leggono: esportali prima in MIDI.</li>
+  </ul>
+</section>
+
 <section id="progetti">
   <h2>Progetti, codici e link</h2>
   <ul>
@@ -261,18 +285,18 @@ th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-sp
 <footer class="site-footer"><span class="site-version"><!--build-->versione locale<!--/build--></span><a class="site-badge" href="https://tongatron.org/"><span class="mark"></span><span>tongatron.org</span></a></footer>
 </div>
 
-<script src="engine/core.js?v=2026-09-25.8"></script>
-<script src="engine/styles-punk.js?v=2026-09-25.8"></script>
-<script src="engine/styles-post.js?v=2026-09-25.8"></script>
-<script src="engine/styles-machines.js?v=2026-09-25.8"></script>
-<script src="engine/styles-alt.js?v=2026-09-25.8"></script>
-<script src="engine/styles-groove.js?v=2026-09-25.8"></script>
-<script src="engine/styles-dub.js?v=2026-09-25.8"></script>
-<script src="engine/styles-break.js?v=2026-09-25.8"></script>
-<script src="engine/styles-soul.js?v=2026-09-25.8"></script>
-<script src="engine/styles-metal.js?v=2026-09-25.8"></script>
-<script src="engine/styles-electro.js?v=2026-09-25.8"></script>
-<script src="engine/variations.js?v=2026-09-25.8"></script>
+<script src="engine/core.js?v=2026-09-25.9"></script>
+<script src="engine/styles-punk.js?v=2026-09-25.9"></script>
+<script src="engine/styles-post.js?v=2026-09-25.9"></script>
+<script src="engine/styles-machines.js?v=2026-09-25.9"></script>
+<script src="engine/styles-alt.js?v=2026-09-25.9"></script>
+<script src="engine/styles-groove.js?v=2026-09-25.9"></script>
+<script src="engine/styles-dub.js?v=2026-09-25.9"></script>
+<script src="engine/styles-break.js?v=2026-09-25.9"></script>
+<script src="engine/styles-soul.js?v=2026-09-25.9"></script>
+<script src="engine/styles-metal.js?v=2026-09-25.9"></script>
+<script src="engine/styles-electro.js?v=2026-09-25.9"></script>
+<script src="engine/variations.js?v=2026-09-25.9"></script>
 <script>
 // Stili, gruppi e variazioni vengono dal motore: questa pagina non va aggiornata a mano quando se ne aggiungono.
 (function(){

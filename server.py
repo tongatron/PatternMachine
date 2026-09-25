@@ -324,6 +324,13 @@ def send_mail(to, subject, text, html_body):
     return True
 
 
+# Pulsante di tongatron.org (tongatron.org/pulsanti, variante E2) con stili in linea, per mail e pagine di accesso.
+TONGATRON_BADGE = ('<a href="https://tongatron.org/" style="display:inline-block;border:1px solid #333;border-radius:6px;'
+                   'padding:6px 10px;color:#111;text-decoration:none;font:14px system-ui,-apple-system,\'Segoe UI\',Helvetica,Arial,sans-serif;">'
+                   '<span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:#ffcc00;'
+                   'vertical-align:-1px;margin-right:10px;"></span>tongatron.org</a>')
+
+
 def mail_html(title, intro, button_text, button_url, rows=(), outro=""):
     e = html.escape
     table = "".join(f'<tr><td style="padding:6px 14px 6px 0;color:#6b6f75;">{e(k)}</td>'
@@ -339,6 +346,7 @@ font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;color:#1b1d20;">
 <a href="{e(button_url)}" style="display:inline-block;background:#4f9e63;color:#fff;text-decoration:none;font-weight:700;
 letter-spacing:.08em;text-transform:uppercase;font-size:13px;padding:13px 22px;border-radius:9px;">{e(button_text)}</a>
 {f'<p style="font-size:12px;line-height:1.5;color:#6b6f75;margin:20px 0 0;">{e(outro)}</p>' if outro else ''}
+<div style="border-top:1px solid #e3e1db;margin:24px 0 0;padding:18px 0 0;text-align:center;">{TONGATRON_BADGE}</div>
 </div></body></html>"""
 
 
@@ -424,6 +432,9 @@ td form{display:inline;}
 .row-acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;}
 .tag{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);}
 .table-wrap{overflow-x:auto;}
+.site-footer{margin-top:10px;}
+.site-footer a{transition:transform .2s;}
+.site-footer a:hover{transform:translateY(-1px);}
 code{word-break:break-all;font-size:12px;background:var(--panel-2);padding:8px;border-radius:6px;display:block;margin:0 0 12px;}
 </style>
 <script defer src="https://analytics.tongatron.org/script.js" data-website-id="9daa93b6-2afb-494a-89fb-288437a030d1" data-domains="patternmachine.tongatron.org"></script>
@@ -434,9 +445,10 @@ code{word-break:break-all;font-size:12px;background:var(--panel-2);padding:8px;b
 if(location.hash.startsWith("#trasloco=")){ try{ sessionStorage.setItem("trasloco", location.hash.slice(10)); }catch(e){} }
 </script>
 {body}
+<footer class="site-footer">{badge}</footer>
 </body>
 </html>
-"""
+""".replace("{badge}", TONGATRON_BADGE)
 
 
 # Pagina servita sul vecchio indirizzo: legge i dati salvati nel browser per quel dominio, li comprime

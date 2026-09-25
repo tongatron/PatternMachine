@@ -521,12 +521,15 @@ table.recent .empty td{color:var(--text-faint); font-style:italic; text-align:ce
 .acts{display:flex; gap:5px;}
 
 .status{font-size:10px; color:var(--text-dim); letter-spacing:0.03em;}
-/* pulsante di tongatron.org (tongatron.org/pulsanti, variante 9: pillola gialla) */
+/* pulsante di tongatron.org (tongatron.org/pulsanti, variante D2: contorno sottile, pallino giallo);
+   nel tema scuro testo e contorno si schiariscono per restare leggibili. */
 .site-footer{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; margin:22px 0 6px; font-size:11px; color:var(--text-dim);}
-.site-badge{display:inline-flex; align-items:center; gap:10px; text-decoration:none; font-size:14px; font-weight:700; line-height:1.2;
-  background:#ffcc00; color:#000; padding:5px 12px; border-radius:999px; transition:.2s;}
-.site-badge .mark{width:11px; height:11px; border-radius:50%; background:#000; flex-shrink:0;}
-.site-badge:hover{box-shadow:0 0 0 2px #000;}
+.site-badge{display:inline-flex; align-items:center; gap:10px; text-decoration:none; font:14px system-ui,-apple-system,"Segoe UI",sans-serif;
+  color:#efefed; border:1px solid #8f8f8f; padding:6px 10px; border-radius:6px; transition:.2s;}
+.site-badge .mark{width:11px; height:11px; border-radius:50%; background:#ffcc00; flex-shrink:0;}
+.site-badge:hover{transform:translateY(-1px);}
+@media (prefers-color-scheme: light){ :root:not([data-theme="dark"]) .site-badge{color:#111; border-color:#333;} }
+:root[data-theme="light"] .site-badge{color:#111; border-color:#333;}
 .status.err{color:var(--danger);}
 .hint{color:var(--text-faint); font-size:10px; line-height:1.7; margin:12px 0 0;}
 .hint b{color:var(--text-dim);}

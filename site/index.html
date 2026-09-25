@@ -505,7 +505,7 @@ table.recent .empty td{color:var(--text-faint); font-style:italic; text-align:ce
 
 .status{font-size:10px; color:var(--text-dim); letter-spacing:0.03em;}
 /* pulsante di tongatron.org (tongatron.org/pulsanti, variante 9: pillola gialla) */
-.site-footer{display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:10px; margin:22px 0 6px; font-size:11px; color:var(--text-dim);}
+.site-footer{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; margin:22px 0 6px; font-size:11px; color:var(--text-dim);}
 .site-badge{display:inline-flex; align-items:center; gap:10px; text-decoration:none; font-size:14px; font-weight:700; line-height:1.2;
   background:#ffcc00; color:#000; padding:5px 12px; border-radius:999px; transition:.2s;}
 .site-badge .mark{width:11px; height:11px; border-radius:50%; background:#000; flex-shrink:0;}
@@ -818,7 +818,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       </section>
     </div>
   </details>
-  <footer class="site-footer">PatternMachine è un progetto di <a class="site-badge" href="https://tongatron.org/"><span class="mark"></span><span>tongatron.org</span></a></footer>
+  <footer class="site-footer"><span class="site-version"><!--build-->versione locale<!--/build--></span><a class="site-badge" href="https://tongatron.org/"><span class="mark"></span><span>tongatron.org</span></a></footer>
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->

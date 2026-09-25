@@ -41,6 +41,20 @@ trap 'rm -rf "$STAGE"' EXIT
 EXCLUDE_LOGIC=(--exclude machines/tr808 --exclude machines/tr909 --exclude machines/tr707 --exclude machines/cr78 --exclude machines/linn)
 for arg in "$@"; do [ "$arg" = "--con-kit-logic" ] && EXCLUDE_LOGIC=(); done
 rsync -a --exclude .DS_Store ${EXCLUDE_LOGIC[@]+"${EXCLUDE_LOGIC[@]}"} site/ "$STAGE/"
+# Data della versione nel footer: l'ultima modifica dei file del sito (non l'ora del deploy, cosi' se
+# non cambia niente il confronto con il server resta vuoto).
+build=$(python3 - <<'PY'
+import glob, os, time
+files = glob.glob("site/*.html") + glob.glob("site/*.js") + glob.glob("site/engine/*.js")
+t = time.localtime(max(os.path.getmtime(f) for f in files))
+mesi = "gennaio febbraio marzo aprile maggio giugno luglio agosto settembre ottobre novembre dicembre".split()
+print(f"versione del {t.tm_mday} {mesi[t.tm_mon - 1]} {t.tm_year} delle {t.tm_hour:02d}:{t.tm_min:02d}")
+PY
+)
+for f in "$STAGE/index.html" "$STAGE/funzioni.html"; do
+  sed -i '' "s|<!--build-->[^<]*<!--/build-->|<!--build-->$build<!--/build-->|" "$f"
+done
+echo "footer: $build"
 cp index.html "$STAGE/toolkit.html"
 cp server.py "$STAGE/server.py"
 cp scripts/set-password.py "$STAGE/set-password.py"

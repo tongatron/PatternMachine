@@ -508,13 +508,14 @@ button.danger-fill{background:var(--danger); border-color:var(--danger); color:#
   display:flex; gap:8px; overflow-x:auto; padding:6px 2px 12px; min-height:132px; align-items:stretch;
 }
 .seqblock{
-  flex:0 0 auto; width:138px; border-radius:9px; border:1px solid var(--edge);
+  flex:0 0 auto; width:178px; border-radius:9px; border:1px solid var(--edge);
+  border-top:3px solid var(--section-color,var(--edge));
   background:var(--panel-2); padding:8px; cursor:grab;
   display:flex; flex-direction:column; gap:6px;
 }
 .seqblock:active{cursor:grabbing;}
 .seqblock.sel{border-color:var(--song); box-shadow:0 0 0 1px var(--song) inset;}
-.seqblock.playing{background:var(--panel-3); outline:1px solid var(--led-accent);}
+.seqblock.playing{background:var(--panel-3); outline:2px solid var(--accent); transform:translateY(-2px);}
 .seqblock.dragging{opacity:0.35;}
 .seqblock.dropbefore{box-shadow:-3px 0 0 var(--accent);}
 .seqblock.dropafter{box-shadow:3px 0 0 var(--accent);}
@@ -523,6 +524,7 @@ button.danger-fill{background:var(--danger); border-color:var(--danger); color:#
 .seqblock-head .dot{width:8px; height:8px; border-radius:50%; flex:0 0 auto;}
 .seqblock-head .grip{margin-left:auto; color:var(--text-faint); letter-spacing:-1px;}
 .seqblock select{width:100%; font-size:10px; padding:3px 4px;}
+.seqblock .seq-section{font-weight:700; color:var(--text); border-color:var(--section-color,var(--edge));}
 .seqblock .prev{display:flex; flex-direction:column; gap:2px; min-height:26px; justify-content:center;}
 .seqblock-foot{display:flex; align-items:center; gap:3px;}
 .seqblock-foot input{width:36px; text-align:center; padding:3px 2px; font-size:10px;}
@@ -530,11 +532,11 @@ button.danger-fill{background:var(--danger); border-color:var(--danger); color:#
 .seqblock-foot .sp{margin-left:auto;}
 .song-empty{font-size:10.5px; color:var(--text-faint); font-style:italic; align-self:center; padding:14px;}
 .seq-ruler{display:flex; gap:8px; padding:0 2px; font-size:8.5px; color:var(--text-faint);}
-.seq-ruler span{flex:0 0 auto; width:138px; text-align:left;}
+.seq-ruler span{flex:0 0 auto; width:178px; text-align:left;}
 .seqblock{position:relative;}
 .seqblock .prev{position:relative;}
 .seq-prog{height:3px; border-radius:2px; background:var(--led-off); overflow:hidden;}
-.seq-prog i{display:block; height:100%; width:0; background:var(--ok);}
+.seq-prog i{display:block; height:100%; width:0; background:var(--accent);}
 .prev-head{position:absolute; top:-2px; bottom:-2px; left:0; width:2px; border-radius:1px;
   background:var(--led-head); box-shadow:0 0 6px var(--led-head); pointer-events:none; display:none;}
 .seqblock.playing .prev-head{display:block;}
@@ -821,8 +823,8 @@ div.flexline > .modeswitch:not(.theme-switch){border:none; overflow:visible; gap
     <div class="seq-ruler" id="seqRuler"></div>
     <div class="seq-track" id="seqTrack"></div>
     <p class="hint" style="margin-top:0;">
-      Trascina i blocchi per riordinarli &middot; doppio click apre il beat nella griglia &middot;
-      click seleziona il punto da cui parte il play in modalit&agrave; Canzone.
+      Trascina i blocchi per riordinarli &middot; scegli la sezione direttamente nel blocco &middot;
+      doppio click apre il beat nella griglia &middot; click seleziona il punto da cui parte il play.
     </p>
   </div>
 
@@ -1952,7 +1954,7 @@ function renderTimeline(){
     const seg=document.createElement("div");
     seg.className="tl-seg"+(x.b.id===ui.blockId?" sel":"");
     seg.style.flex=`${x.steps} 1 0`;
-    seg.style.setProperty("--seg-color",`hsl(${patternHue(x.b.patternId)} 70% 55%)`);
+    seg.style.setProperty("--seg-color",`hsl(${songSectionColor(x.b.section||"verse")} 70% 55%)`);
     seg.style.setProperty("--bar-w",`${16/x.steps*100}%`);
     const name=document.createElement("b"); name.textContent=x.p?x.p.name:"?";
     const info=document.createElement("span"); info.textContent=`×${x.b.repeats} · ${x.steps/16} batt.`;
@@ -2100,6 +2102,7 @@ function renderSong(){
   project.song.forEach((b,idx)=>{
     const p=patternById(b.patternId);
     const bars=blockBars(b);
+    const section=b.section||"verse";
 
     const tick=document.createElement("span");
     tick.textContent=`batt. ${bar}`;
@@ -2109,6 +2112,8 @@ function renderSong(){
     card.className="seqblock"+(b.id===ui.blockId?" sel":"");
     card.draggable=true;
     card.dataset.idx=idx;
+    card.dataset.section=section;
+    card.style.setProperty("--section-color",`hsl(${songSectionColor(section)} 70% 55%)`);
 
     const head=document.createElement("div"); head.className="seqblock-head";
     const dot=document.createElement("span");
@@ -2118,6 +2123,16 @@ function renderSong(){
     const grip=document.createElement("span"); grip.className="grip"; grip.textContent="⠿";
     head.appendChild(dot); head.appendChild(span); head.appendChild(grip);
     card.appendChild(head);
+
+    const sectionSel=document.createElement("select"); sectionSel.className="seq-section";
+    sectionSel.setAttribute("aria-label","Sezione della canzone");
+    SONG_SECTIONS.forEach(([id,label])=>{
+      const o=document.createElement("option"); o.value=id; o.textContent=label; sectionSel.appendChild(o);
+    });
+    sectionSel.value=section;
+    sectionSel.onclick=e=>e.stopPropagation();
+    sectionSel.onchange=()=>{ pushUndo(); b.section=sectionSel.value; renderSong(); };
+    card.appendChild(sectionSel);
 
     const psel=document.createElement("select");
     project.patterns.forEach(x=>{
@@ -2148,7 +2163,7 @@ function renderSong(){
     const dup=document.createElement("button");
     dup.className="sp"; dup.textContent="⧉"; dup.title="duplica";
     dup.onclick=e=>{ e.stopPropagation(); pushUndo();
-      project.song.splice(idx+1,0,{id:uid(),patternId:b.patternId,repeats:b.repeats});
+        project.song.splice(idx+1,0,{id:uid(),patternId:b.patternId,repeats:b.repeats,section:b.section||"verse"});
       ui.blockId=project.song[idx+1].id; renderSong(); };
     const del=document.createElement("button");
     del.className="danger"; del.textContent="×"; del.title="rimuovi";
@@ -2502,11 +2517,17 @@ el("addRowBtn").onclick=()=>{
 };
 
 // ---------- song ops ----------
+const SONG_SECTIONS=[
+  ["intro","Intro"], ["verse","Strofa"], ["chorus","Ritornello"],
+  ["break","Break"], ["outro","Outro"]
+];
+const songSectionLabel=section=>SONG_SECTIONS.find(([id])=>id===section)?.[1]||"Strofa";
+const songSectionColor=section=>({intro:18,verse:42,chorus:150,break:265,outro:320}[section]||42);
 const blockIndex = ()=> project.song.findIndex(b=>b.id===ui.blockId);
 el("sAdd").onclick=()=>{
   pushUndo();
   const chosen=el("seqPattern").value;
-  const b={id:uid(), patternId:patternById(chosen)?chosen:curPattern().id, repeats:1};
+  const b={id:uid(), patternId:patternById(chosen)?chosen:curPattern().id, repeats:1, section:"verse"};
   const i=blockIndex();
   if(i>=0) project.song.splice(i+1,0,b); else project.song.push(b);
   ui.blockId=b.id; renderSong();
@@ -2515,7 +2536,7 @@ el("sDup").onclick=()=>{
   const i=blockIndex(); if(i<0) return setStatus("seleziona un blocco","err");
   pushUndo();
   const src=project.song[i];
-  const b={id:uid(), patternId:src.patternId, repeats:src.repeats};
+  const b={id:uid(), patternId:src.patternId, repeats:src.repeats, section:src.section||"verse"};
   project.song.splice(i+1,0,b); ui.blockId=b.id; renderSong();
 };
 el("sLeft").onclick=()=>{
@@ -2551,7 +2572,7 @@ function serialize(){
       grid:Object.fromEntries(Object.entries(p.grid).map(([k,v])=>[k,v.slice()])),
       ...(p.mods&&Object.keys(p.mods).length?{mods:cloneMods(p.mods)}:{}),
       ...(p.lens&&Object.keys(p.lens).length?{lens:{...p.lens}}:{})})),
-    song: project.song.map(b=>({id:b.id, patternId:b.patternId, repeats:b.repeats})),
+    song: project.song.map(b=>({id:b.id, patternId:b.patternId, repeats:b.repeats, section:b.section||"verse"})),
     updatedAt: Date.now(),
   };
 }
@@ -2563,7 +2584,7 @@ function deserialize(d,keepSel){
       tune:t.tune||0, choke:t.choke||0, mute:false, solo:false, ...voiceDefaults(t)})),
     patterns:(d.patterns||[]).map(p=>({id:p.id, name:p.name, len:p.len||16,
       grid:Object.fromEntries(Object.entries(p.grid||{}).map(([k,v])=>[k,v.slice()])), mods:cloneMods(p.mods), lens:{...(p.lens||{})}})),
-    song:(d.song||[]).map(b=>({id:b.id, patternId:b.patternId, repeats:b.repeats||1})),
+    song:(d.song||[]).map(b=>({id:b.id, patternId:b.patternId, repeats:b.repeats||1, section:b.section||"verse"})),
   };
   const ids=[...project.tracks, ...project.patterns, ...project.song].map(x=>+x.id).filter(n=>!isNaN(n));
   idSeq=Math.max(idSeq, ...(ids.length?ids:[0]))+1;

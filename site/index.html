@@ -263,7 +263,6 @@ label.fld input[type=number]{width:54px;}
 .rec-dot{color:#d83a2f; font-size:1.35em; line-height:0; vertical-align:-0.08em; text-shadow:0 0 3px color-mix(in srgb, #d83a2f 45%, transparent);}
 #recBtn.on .rec-dot{color:#fff; text-shadow:none;}
 .modeswitch{display:flex; border:1px solid var(--edge); border-radius:6px; overflow:hidden;}
-#modeSwitch[hidden]{display:none !important;}
 .modeswitch button{border:none; border-radius:0; background:var(--key,var(--panel-2));}
 .modeswitch button.on{background:var(--key-on,var(--accent)); color:var(--on-accent); font-weight:700;}
 .counter{
@@ -645,17 +644,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 #viewGrid:active, #viewSeq:active{transform:translateY(2px); box-shadow:inset 0 1px 0 rgba(255,255,255,.08), inset 0 -1px 0 rgba(0,0,0,.2);}
 #viewGrid.on, #viewSeq.on{background:linear-gradient(180deg,#ff8a3d,#e0561a); border-color:#b8471f; color:#1c1b19; box-shadow:inset 0 2px 0 rgba(255,255,255,.35), inset 0 -3px 0 rgba(0,0,0,.2), 0 3px 0 rgba(0,0,0,.28);}
 #pChoose, #pVary, #pNew{font-size:13px; padding:9px 16px; min-height:40px;}
-#modePattern, #modeSong, #recBtn{font-size:13.5px; padding:11px 18px; min-height:44px;}
-#modePattern, #modeSong{
-  min-height:52px; padding:12px 24px; border:2px solid var(--edge); border-radius:9px;
-  font-weight:800; letter-spacing:.08em;
-  box-shadow:inset 0 2px 0 rgba(255,255,255,.16), inset 0 -3px 0 rgba(0,0,0,.22), 0 3px 0 rgba(0,0,0,.28);
-  transition:transform .06s, box-shadow .06s, background .12s;
-}
-div.flexline > .modeswitch:not(.theme-switch){border:none; overflow:visible; gap:7px;}
-#modePattern:hover, #modeSong:hover{border-color:var(--text-faint);}
-#modePattern:active, #modeSong:active{transform:translateY(2px); box-shadow:inset 0 1px 0 rgba(255,255,255,.08), inset 0 -1px 0 rgba(0,0,0,.2);}
-#modePattern.on, #modeSong.on{background:linear-gradient(180deg,#ff8a3d,#e0561a); border-color:#b8471f; color:#1c1b19; box-shadow:inset 0 2px 0 rgba(255,255,255,.35), inset 0 -3px 0 rgba(0,0,0,.2), 0 3px 0 rgba(0,0,0,.28);}
+#recBtn{font-size:13.5px; padding:11px 18px; min-height:44px;}
 #bpmNum{height:44px; width:72px; font-size:14px;}
 #tapBtn{min-height:44px; padding:11px 18px; font-size:13.5px;}
 .topbar .help-link{margin-left:auto;}
@@ -759,10 +748,6 @@ div.flexline > .modeswitch:not(.theme-switch){border:none; overflow:visible; gap
   <div class="panel">
     <div class="flexline">
       <button id="playBtn" title="Play / Stop (barra spaziatrice)"><span class="ico">&#9654;</span> Play</button>
-      <div class="modeswitch" id="modeSwitch" hidden>
-        <button id="modePattern" class="on">Pattern</button>
-        <button id="modeSong">Canzone</button>
-      </div>
       <button id="recBtn"><span class="rec-dot" aria-hidden="true">&#9679;</span> Rec</button>
       <label class="fld">BPM
         <input type="range" id="bpmRange" min="60" max="180" value="93">
@@ -2021,9 +2006,7 @@ function paintTimeline(){
   el("tlPos").textContent=L.total
     ? `battuta ${Math.floor(step/16)+1} · ${Math.floor((step%16)/4)+1}` + (L.blocks[live?nowIdx:selIdx]?` · blocco ${(live?nowIdx:selIdx)+1}`:"")
     : "canzone vuota";
-  el("tlNote").textContent = ui.mode!=="song"
-    ? "modalità Pattern: premi Canzone (o clicca la timeline) per suonare l'arrangiamento"
-    : (playing?"":"click sulla timeline per scegliere da dove partire");
+  el("tlNote").textContent = playing?"":"click sulla timeline per scegliere da dove partire";
 }
 
 el("timeline").onclick=e=>{
@@ -2265,7 +2248,7 @@ function setView(v){
   el("panelGrid").hidden = v!=="grid";
   el("panelSeq").hidden = v!=="seq";
   el("panelRecent").hidden = v!=="recent";
-  el("modeSwitch").hidden = v!=="seq";
+  setMode(v==="seq"?"song":"pattern");
   el("helpKeys").hidden = v==="recent";
   // Rec registra nella griglia del pattern: fuori dalla Griglia sparisce e si spegne
   el("recBtn").hidden = v!=="grid";
@@ -2436,12 +2419,8 @@ function fillKitOptions(sel){
 el("recBtn").onclick=()=>{ recording=!recording; el("recBtn").classList.toggle("on",recording); };
 function setMode(m){
   ui.mode=m;
-  el("modePattern").classList.toggle("on",m==="pattern");
-  el("modeSong").classList.toggle("on",m==="song");
   if(playing){ stop(); play(); }
 }
-el("modePattern").onclick=()=>{ setMode("pattern"); setView("grid"); };
-el("modeSong").onclick=()=>{ setMode("song"); setView("seq"); };
 
 const bpmRange=el("bpmRange"), bpmNum=el("bpmNum");
 bpmRange.oninput=()=>{ bpmNum.value=bpmRange.value; project.bpm=+bpmRange.value; paintTimeline(); };

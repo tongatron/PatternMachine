@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<title>PatternMachine</title>
-<meta name="description" content="PatternMachine: drum machine a step con SP-1200, RX-5, 808 e 909, generatore di pattern in decine di stili, variazioni, arrangiamento della canzone ed export MIDI.">
+<title>PatternMachine — drum machine e pattern</title>
+<meta name="description" content="PatternMachine: drum machine a step con SP-1200, Yamaha RX-5, Roland TR-606 e TR-909, campioni Logic, pattern, canzoni ed export MIDI.">
 <meta name="theme-color" content="#0a0a0b" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#a3a097" media="(prefers-color-scheme: light)">
 
@@ -56,20 +56,20 @@
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="PatternMachine">
-<meta property="og:title" content="PatternMachine — drum machine a step con generatore di pattern">
-<meta property="og:description" content="Drum machine a step con SP-1200, RX-5, 808, 909, 707, 606, CR-78, LinnDrum, DMX e altre: generatore di pattern in decine di stili (punk, dub, metal, breakbeat, elettronica, soul e altri), variazioni, arrangiamento della canzone ed export MIDI, direttamente nel browser.">
-<meta property="og:image" content="https://patternmachine.tongatron.org/assets/og-drum-machine-lab.jpg">
+<meta property="og:title" content="PatternMachine — drum machine e pattern">
+<meta property="og:description" content="Drum machine a step con SP-1200, Yamaha RX-5, Roland TR-606 e TR-909, campioni Logic, pattern, canzoni ed export MIDI direttamente nel browser.">
+<meta property="og:image" content="https://patternmachine.tongatron.org/assets/patternmachine-preview.jpg">
 <meta property="og:image:type" content="image/jpeg">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="800">
-<meta property="og:image:alt" content="SP-1200, TR-808, TR-909 e Yamaha RX5 con l'interfaccia di PatternMachine in primo piano">
+<meta property="og:image:width" content="1672">
+<meta property="og:image:height" content="941">
+<meta property="og:image:alt" content="PatternMachine con griglia ritmica e drum machine Roland, SP-1200 e Yamaha RX-5">
 <meta property="og:url" content="https://patternmachine.tongatron.org/">
 <meta property="og:locale" content="it_IT">
 
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="PatternMachine — drum machine a step con generatore di pattern">
-<meta name="twitter:description" content="Drum machine a step con SP-1200, RX-5, 808, 909, 707, 606, CR-78, LinnDrum, DMX e altre: generatore di pattern in decine di stili (punk, dub, metal, breakbeat, elettronica, soul e altri), variazioni, arrangiamento della canzone ed export MIDI, direttamente nel browser.">
-<meta name="twitter:image" content="https://patternmachine.tongatron.org/assets/og-drum-machine-lab.jpg">
+<meta name="twitter:title" content="PatternMachine — drum machine e pattern">
+<meta name="twitter:description" content="Drum machine a step con SP-1200, Yamaha RX-5, Roland TR-606 e TR-909, campioni Logic, pattern, canzoni ed export MIDI direttamente nel browser.">
+<meta name="twitter:image" content="https://patternmachine.tongatron.org/assets/patternmachine-preview.jpg">
 <script defer src="https://analytics.tongatron.org/script.js" data-website-id="9daa93b6-2afb-494a-89fb-288437a030d1" data-domains="patternmachine.tongatron.org"></script>
 </head>
 <body style="margin:0">
@@ -184,13 +184,21 @@ h1{font-size:26px; letter-spacing:0.18em; text-transform:uppercase; margin:0; li
   padding-bottom:6px; border-bottom:1px solid var(--accent);
 }
 .flexline{display:flex; flex-wrap:wrap; gap:7px; align-items:center;}
+.project-panel h2{margin-bottom:8px;}
+.project-buttons{display:flex; flex-wrap:wrap; gap:8px;}
+.project-buttons button{min-height:42px; padding:10px 16px; font-size:12px; letter-spacing:.06em;}
+.project-panel #projectName{height:42px; box-sizing:border-box;}
+.project-panel #importBtn{min-height:42px; padding:10px 16px; font-size:12px; letter-spacing:.06em; display:inline-flex; align-items:center; gap:6px;}
+.project-arrow{display:inline-block; width:14px; text-align:center; font-size:14px; line-height:1;}
+@media (max-width:560px){.project-buttons{width:100%;}.project-buttons button{flex:1 1 30%;}}
 /* Menu Export: il summary ha l'aspetto di un tasto, l'elenco si apre sotto e si chiude al click fuori. */
 .export-menu{position:relative;}
 .export-menu summary{list-style:none; cursor:pointer; font-family:inherit; border:1px solid var(--edge);
   background:var(--key,var(--panel-2)); color:var(--text); border-radius:var(--r-key,6px); box-shadow:var(--key-shadow,none);
-  padding:6px 10px; font-size:10.5px; letter-spacing:0.04em; text-transform:uppercase; white-space:nowrap; user-select:none;}
+  min-height:42px; box-sizing:border-box; display:flex; align-items:center; padding:10px 16px;
+  font-size:12px; letter-spacing:0.06em; text-transform:uppercase; white-space:nowrap; user-select:none;}
 .export-menu summary::-webkit-details-marker{display:none;}
-.export-menu summary::after{content:"\25BE"; margin-left:6px;}
+.export-menu summary::after{content:"\25B2"; display:inline-block; width:14px; margin-left:6px; text-align:center; font-size:14px; line-height:1;}
 .export-menu summary:hover{border-color:var(--text-faint);}
 .export-menu summary:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
 .export-menu[open] summary{border-color:var(--accent);}
@@ -201,6 +209,7 @@ h1{font-size:26px; letter-spacing:0.18em; text-transform:uppercase; margin:0; li
 .export-head{font-size:9px; letter-spacing:0.14em; text-transform:uppercase; color:var(--text-faint); margin:6px 2px 0;}
 .export-head:first-child{margin-top:0;}
 .export-head span{display:block; margin-top:2px; letter-spacing:0.04em; text-transform:none;}
+#accountLinks{display:flex; align-items:center; gap:10px;}
 
 button{
   font-family:inherit; cursor:pointer; border:1px solid var(--edge);
@@ -251,7 +260,10 @@ label.fld input[type=number]{width:54px;}
 @media (prefers-reduced-motion: reduce){ #playBtn.on{animation:none;} }
 @media (max-width:560px){ #playBtn{flex:1 1 100%; padding:14px 20px; font-size:15px;} }
 #recBtn.on{background:var(--danger); border-color:var(--danger); color:#fff;}
+.rec-dot{color:#d83a2f; font-size:1.35em; line-height:0; vertical-align:-0.08em; text-shadow:0 0 3px color-mix(in srgb, #d83a2f 45%, transparent);}
+#recBtn.on .rec-dot{color:#fff; text-shadow:none;}
 .modeswitch{display:flex; border:1px solid var(--edge); border-radius:6px; overflow:hidden;}
+#modeSwitch[hidden]{display:none !important;}
 .modeswitch button{border:none; border-radius:0; background:var(--key,var(--panel-2));}
 .modeswitch button.on{background:var(--key-on,var(--accent)); color:var(--on-accent); font-weight:700;}
 .counter{
@@ -264,6 +276,13 @@ label.fld input[type=number]{width:54px;}
 .chips{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:9px;}
 #patternChips{align-items:center; gap:9px;}
 #pVaryPanel[hidden]{display:none;}
+#pVary.on, #pVaryPanel .mini.on{
+  background:var(--key-primary,var(--accent));
+  color:var(--on-accent);
+  border-color:var(--accent-dim);
+  font-weight:700;
+}
+#pVaryPanel{align-items:center;}
 .pattern-select{min-width:220px; max-width:100%; font-size:12px; padding:6px 8px;}
 .pattern-dot{width:10px; height:10px; border-radius:50%; flex:0 0 auto;}
 .machine-bar{display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-top:12px; padding-top:11px; border-top:1px solid var(--edge-soft);}
@@ -271,6 +290,7 @@ label.fld input[type=number]{width:54px;}
 .machine-buttons{display:flex; flex-wrap:wrap; gap:6px;}
 .machine-more{margin-left:auto;}
 .machine-select{font-size:14px; font-weight:700; padding:8px 12px; min-width:220px; max-width:100%;}
+.library-machine-select{min-width:220px;}
 #machinePanel{padding-top:9px; padding-bottom:9px;}
 .chip{
   display:flex; align-items:center; gap:6px; padding:5px 10px; border-radius:6px;
@@ -455,7 +475,6 @@ button.danger-fill{background:var(--danger); border-color:var(--danger); color:#
 .gen-count{display:flex; align-items:center; gap:4px;}
 .gen-count .fld{font-size:10.5px; color:var(--text-dim); margin-right:2px; text-transform:uppercase; letter-spacing:0.08em;}
 .gen-count button{min-width:34px;}
-.lib-interest{color:var(--accent); letter-spacing:0.12em; margin-left:6px; font-size:9px;}
 .lib-empty{padding:18px 6px; font-size:11px; color:var(--text-faint); font-style:italic; text-align:center;}
 .lib-code{font-size:9px; color:var(--text-dim); margin-top:3px; letter-spacing:0.02em; -webkit-user-select:all; user-select:all;}
 .lib-play{
@@ -610,8 +629,31 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 /* Comandi principali piu' grandi. */
 #machinePanel .machine-bar{margin-top:0; padding-top:0; border-top:none;}
 #viewGrid, #viewSeq, #viewRecent{font-size:14px; padding:11px 22px; min-height:44px;}
+#viewGrid, #viewSeq{
+  min-height:52px; padding:12px 24px; border:2px solid var(--edge);
+  border-radius:9px; font-weight:800; letter-spacing:.08em;
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.16), inset 0 -3px 0 rgba(0,0,0,.22), 0 3px 0 rgba(0,0,0,.28);
+  transition:transform .06s, box-shadow .06s, background .12s;
+}
+#viewGrid:hover, #viewSeq:hover{border-color:var(--text-faint);}
+#viewGrid:active, #viewSeq:active{transform:translateY(2px); box-shadow:inset 0 1px 0 rgba(255,255,255,.08), inset 0 -1px 0 rgba(0,0,0,.2);}
+#viewGrid.on, #viewSeq.on{background:linear-gradient(180deg,#ff8a3d,#e0561a); border-color:#b8471f; color:#1c1b19; box-shadow:inset 0 2px 0 rgba(255,255,255,.35), inset 0 -3px 0 rgba(0,0,0,.2), 0 3px 0 rgba(0,0,0,.28);}
 #pChoose, #pVary, #pNew{font-size:13px; padding:9px 16px; min-height:40px;}
 #modePattern, #modeSong, #recBtn{font-size:13.5px; padding:11px 18px; min-height:44px;}
+#modePattern, #modeSong{
+  min-height:52px; padding:12px 24px; border:2px solid var(--edge); border-radius:9px;
+  font-weight:800; letter-spacing:.08em;
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.16), inset 0 -3px 0 rgba(0,0,0,.22), 0 3px 0 rgba(0,0,0,.28);
+  transition:transform .06s, box-shadow .06s, background .12s;
+}
+div.flexline > .modeswitch:not(.theme-switch){border:none; overflow:visible; gap:7px;}
+#modePattern:hover, #modeSong:hover{border-color:var(--text-faint);}
+#modePattern:active, #modeSong:active{transform:translateY(2px); box-shadow:inset 0 1px 0 rgba(255,255,255,.08), inset 0 -1px 0 rgba(0,0,0,.2);}
+#modePattern.on, #modeSong.on{background:linear-gradient(180deg,#ff8a3d,#e0561a); border-color:#b8471f; color:#1c1b19; box-shadow:inset 0 2px 0 rgba(255,255,255,.35), inset 0 -3px 0 rgba(0,0,0,.2), 0 3px 0 rgba(0,0,0,.28);}
+#bpmNum{height:44px; width:72px; font-size:14px;}
+#tapBtn{min-height:44px; padding:11px 18px; font-size:13.5px;}
+.topbar .help-link{margin-left:auto;}
+.toolkit-link{color:var(--text-dim);}
 @media (max-width:560px){
   #viewGrid, #viewSeq, #viewRecent{padding:10px 14px;}
 }
@@ -621,27 +663,33 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
   <div class="topbar">
     <h1>PatternMachine</h1>
     <span class="tagline">Drum machine a step, generatore di pattern e canzone, export MIDI</span>
-    <a class="linkbtn" href="funzioni.html" style="margin-left:auto" title="come si usa e cosa fa ogni funzione">Istruzioni e funzioni</a>
+    <a class="linkbtn help-link" href="funzioni.html" title="come si usa e cosa fa ogni funzione">Istruzioni e funzioni</a>
     <a class="linkbtn" href="app.html" title="PatternMachine come app per macOS: MIDI verso Logic, sync al clock, trascinamento">App per Mac</a>
-    <button id="installBtn" class="linkbtn" hidden title="Installa PatternMachine come web app">&#8681; Web app</button>
-    <span class="tagline"><a href="toolkit.html" target="_blank" rel="noopener" style="color:var(--text-dim)">Drum Machine Toolkit &rarr;</a></span>
+    <button id="installBtn" class="linkbtn" title="Installa PatternMachine come app web PWA">&#8681; App web PWA</button>
+    <a class="linkbtn toolkit-link" href="toolkit.html" target="_blank" rel="noopener">Drum Machine Toolkit &rarr;</a>
     <div class="modeswitch theme-switch" role="group" aria-label="Tema dell'interfaccia">
       <button type="button" data-theme-choice="light" title="Tema chiaro">&#9728;&#xFE0E; Chiaro</button>
       <button type="button" data-theme-choice="dark" title="Tema scuro">&#9790; Scuro</button>
     </div>
     <span class="net-badge" id="netBadge" hidden>offline</span>
-    <span class="whoami" id="whoami" hidden></span>
-    <a class="logout" id="adminLink" href="/admin" title="Utenti registrati" hidden>Utenti</a>
-    <a class="logout" id="registerLink" href="/register" title="Crea un account per salvare progetti e preferiti" hidden>Registrati</a>
-    <a class="logout" href="/logout" title="Esci dal tuo account">Esci</a>
+    <span id="accountLinks">
+      <span class="whoami" id="whoami" hidden></span>
+      <a class="logout" id="adminLink" href="/admin" title="Utenti registrati" hidden>Utenti</a>
+      <a class="logout" id="registerLink" href="/register" title="Crea un account per salvare progetti e preferiti" hidden>Registrati</a>
+      <a class="logout" href="/logout" title="Esci dal tuo account">Esci</a>
+    </span>
   </div>
 
-  <div class="panel">
+  <div class="panel project-panel">
+    <h2>Progetto</h2>
     <div class="flexline">
       <input type="text" id="projectName" value="Senza titolo" placeholder="Nome progetto" style="width:210px; flex:0 1 210px;">
-      <button id="saveBtn" class="primary">Salva</button>
-      <button id="newBtn">Nuovo</button>
-      <button id="importBtn" title="Importa MIDI, audio, PatternTXT, drum tab, Hydrogen, REAPER, Ableton, MusicXML o un progetto JSON (anche trascinando un file sulla pagina)">Import</button>
+      <div class="project-buttons">
+        <button id="saveBtn" class="primary">Salva</button>
+        <button id="newBtn">Nuovo</button>
+        <button id="viewRecent"><span id="recentLabel">Progetti recenti</span> <span id="recentCount"></span></button>
+        <button id="importBtn" title="Importa MIDI, audio, PatternTXT, drum tab, Hydrogen, REAPER, Ableton, MusicXML o un progetto JSON (anche trascinando un file sulla pagina)">Import <span class="project-arrow" aria-hidden="true">&#9662;</span></button>
+      </div>
       <details class="export-menu" id="exportMenu">
         <summary>Export</summary>
         <div class="export-list">
@@ -676,7 +724,6 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
   <div class="tabs">
     <button id="viewGrid" class="on">Griglia</button>
     <button id="viewSeq">Sequencer</button>
-    <button id="viewRecent"><span id="recentLabel">Progetti recenti</span> <span id="recentCount"></span></button>
   </div>
 
   <div class="panel" id="panelPatterns">
@@ -684,7 +731,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <div class="chips" id="patternChips"></div>
     <div class="flexline">
       <button id="pChoose" class="mini primary">Scegli&hellip;</button>
-      <button id="pVary" class="mini" aria-expanded="false" title="trasforma il pattern che stai modificando: scarno, mezzo tempo, nuovo fill, ibrido...">&#10022; Varia</button>
+      <button id="pVary" class="mini" aria-expanded="false" title="applica o disattiva una variazione al pattern che stai modificando">&#10022; Variazioni</button>
       <button id="pNew" class="mini">+ Nuovo</button>
       <button id="pDup" class="mini">Duplica</button>
       <button id="pCopy" class="mini">Copia</button>
@@ -706,11 +753,11 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
   <div class="panel">
     <div class="flexline">
       <button id="playBtn" title="Play / Stop (barra spaziatrice)"><span class="ico">&#9654;</span> Play</button>
-      <div class="modeswitch">
+      <div class="modeswitch" id="modeSwitch" hidden>
         <button id="modePattern" class="on">Pattern</button>
         <button id="modeSong">Canzone</button>
       </div>
-      <button id="recBtn">&#9679; Rec</button>
+      <button id="recBtn"><span class="rec-dot" aria-hidden="true">&#9679;</span> Rec</button>
       <label class="fld">BPM
         <input type="range" id="bpmRange" min="60" max="180" value="93">
         <input type="number" id="bpmNum" min="40" max="240" value="93">
@@ -813,6 +860,9 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
         </label>
         <label class="fld">Step
           <select id="genLen"><option>16</option><option>32</option></select>
+        </label>
+        <label class="fld">Macchina
+          <select id="libKitSelect" class="machine-select library-machine-select" aria-label="Macchina da usare quando si carica un pattern"></select>
         </label>
         <label class="fld"><input type="checkbox" id="genFill"> Fill</label>
         <div class="gen-count" id="genCount" role="group" aria-label="Quanti pattern generare">
@@ -1991,7 +2041,7 @@ function renderPatterns(){
     sel.appendChild(o);
   });
   sel.value=ui.patternId;
-  sel.onchange=()=>{ const p=patternById(sel.value); if(!p) return; ui.patternId=p.id; el("pLen").value=p.len; renderPatterns(); renderRuler(); renderTracks(); };
+  sel.onchange=()=>{ const p=patternById(sel.value); if(!p) return; resetGridVariationState(); ui.patternId=p.id; el("pLen").value=p.len; renderPatterns(); renderRuler(); renderTracks(); };
   const dot=document.createElement("span"); dot.className="dot pattern-dot";
   dot.style.background=`hsl(${patternHue(ui.patternId)} 70% 55%)`;
   const count=document.createElement("span"); count.className="tiny";
@@ -2165,6 +2215,7 @@ function setView(v){
   el("panelGrid").hidden = v!=="grid";
   el("panelSeq").hidden = v!=="seq";
   el("panelRecent").hidden = v!=="recent";
+  el("modeSwitch").hidden = v!=="seq";
   el("helpKeys").hidden = v==="recent";
   // Rec registra nella griglia del pattern: fuori dalla Griglia sparisce e si spegne
   el("recBtn").hidden = v!=="grid";
@@ -2290,10 +2341,32 @@ function paintKitButtons(){
 }
 const KIT_KEY="pm.kit";
 const preferredKit=()=>{ let k=null; try{ k=localStorage.getItem(KIT_KEY); }catch(e){} return KITS[k]?k:"tr808"; };
+const KIT_MENU_FIRST=["std","12bit","rx5","tr606","tr909"];
+function fillKitOptions(sel){
+  if(!sel) return;
+  sel.innerHTML="";
+  KIT_MENU_FIRST.forEach(k=>{
+    const x=KITS[k], o=document.createElement("option"); o.value=k; o.textContent=x.label; sel.appendChild(o);
+  });
+  const logic=document.createElement("optgroup"); logic.label="Altri campioni";
+  Object.entries(KITS).forEach(([k,x])=>{
+    if(KIT_MENU_FIRST.includes(k)) return;
+    const o=document.createElement("option"); o.value=k; o.textContent=x.label; logic.appendChild(o);
+  });
+  sel.appendChild(logic);
+}
 (function initKitSelect(){
   const sel=el("kitSelect");
-  Object.entries(KITS).forEach(([k,x])=>{ const o=document.createElement("option"); o.value=k; o.textContent=x.label; sel.appendChild(o); });
+  // Le macchine principali restano in cima; tutti gli altri kit sono raccolti
+  // in un solo menu "Altri campioni".
+  fillKitOptions(sel);
+  fillKitOptions(el("libKitSelect"));
   sel.value=sampleSet;
+  el("libKitSelect").value=sampleSet;
+  el("libKitSelect").onchange=()=>{
+    setSampleSet(el("libKitSelect").value);
+    try{ localStorage.setItem(KIT_KEY,el("libKitSelect").value); }catch(e){}
+  };
   // la macchina scelta dal menu resta per la prossima visita (di default la TR-808)
   sel.onchange=()=>{ setSampleSet(sel.value); try{ localStorage.setItem(KIT_KEY,sel.value); }catch(e){} };
   paintKitButtons();
@@ -2304,7 +2377,7 @@ const preferredKit=()=>{ let k=null; try{ k=localStorage.getItem(KIT_KEY); }catc
     if(!x.remote) return;
     fetch(encodeURI(x.url(kick)),{cache:"no-cache"}).then(r=>{ if(!r.ok) throw new Error(r.status); }).catch(()=>{
       x.ok=false;
-      sel.querySelector(`option[value="${k}"]`)?.remove();
+      document.querySelectorAll(`#kitSelect option[value="${k}"], #libKitSelect option[value="${k}"]`).forEach(o=>o.remove());
       if(sampleSet===k) setSampleSet("std");
       paintKitButtons();
     });
@@ -2317,7 +2390,7 @@ function setMode(m){
   el("modeSong").classList.toggle("on",m==="song");
   if(playing){ stop(); play(); }
 }
-el("modePattern").onclick=()=>setMode("pattern");
+el("modePattern").onclick=()=>{ setMode("pattern"); setView("grid"); };
 el("modeSong").onclick=()=>{ setMode("song"); setView("seq"); };
 
 const bpmRange=el("bpmRange"), bpmNum=el("bpmNum");
@@ -2342,7 +2415,7 @@ el("tapBtn").onclick=()=>{
 };
 
 // ---------- pattern ops ----------
-function selectPattern(id){ ui.patternId=id; el("pLen").value=curPattern().len; renderAll(); }
+function selectPattern(id){ resetGridVariationState(); ui.patternId=id; el("pLen").value=curPattern().len; renderAll(); }
 el("pNew").onclick=()=>{
   pushUndo();
   const p=makePattern("Beat "+(project.patterns.length+1), curPattern().len);
@@ -2688,7 +2761,7 @@ function renderRecent(list){
     const acts=document.createElement("td");
     const wrap=document.createElement("div"); wrap.className="acts";
     const open=async()=>{ stopAudition(); await loadProject(p.id); setView("grid"); };
-    wrap.appendChild(btn("Accedi","mini primary","apre il progetto nella griglia, pronto da modificare",open));
+    wrap.appendChild(btn("Apri","mini primary","apre il progetto nella griglia, pronto da modificare",open));
     wrap.appendChild(btn("Rinomina","mini","",()=>renameProject(p.id,p.name||"Senza titolo")));
     wrap.appendChild(btn("Rimuovi","mini danger","",()=>removeProject(p.id,p.name||"Senza titolo")));
     acts.appendChild(wrap); tr.appendChild(acts);
@@ -3667,8 +3740,22 @@ function genVariation(){
 }
 
 let library=PRESETS.slice();
+let libraryOriginalKit=null;
 
-function applyLibrary(item, asNew){
+async function applyLibrary(item, asNew){
+  if(!asNew){
+    const requestedKit=el("libKitSelect")?.value||sampleSet;
+    const originalKit=libraryOriginalKit||sampleSet;
+    if(requestedKit!==originalKit){
+      const useLibraryKit=await ask({
+        title:"Scegli la macchina",
+        message:`La canzone usa “${KITS[originalKit].label}”, mentre nella libreria hai selezionato “${KITS[requestedKit].label}”.\nQuale macchina vuoi usare per il pattern?`,
+        ok:"Usa quella selezionata",
+        cancel:"Usa quella originale"
+      });
+      setSampleSet(useLibraryKit?requestedKit:originalKit);
+    }
+  }
   pushUndo();
   let pat;
   if(asNew){
@@ -3700,7 +3787,7 @@ function renderLibrary(){
   host.innerHTML="";
   paintLibCount();
   paintLibManage();
-  const list=libView==="fav"?favItems():library;
+  const list=(libView==="fav"?favItems():library).slice().sort((a,b)=>libraryInterest(b)-libraryInterest(a));
   const favs=new Set(favCodes());
   if(!list.length){
     const e=document.createElement("div"); e.className="lib-empty";
@@ -3727,7 +3814,6 @@ function renderLibrary(){
     }
     nm.appendChild(document.createTextNode(item.name));
     const tg=document.createElement("div"); tg.className="lib-tag"; tg.textContent=`${item.tag} · ${item.len} step`+(item.code?"":" · preset");
-    if(item.dots){ const d=document.createElement("span"); d.className="lib-interest"; d.textContent="●".repeat(item.dots)+"○".repeat(5-item.dots); d.title=`interesse ${item.dots}/5 (sincopi, dinamica, voci, varieta')`; tg.appendChild(d); }
     meta.appendChild(nm); meta.appendChild(tg);
     if(item.ref){ const rf=document.createElement("div"); rf.className="lib-ref"; rf.textContent=item.ref; meta.appendChild(rf); }
     if(item.code){ const cd=document.createElement("div"); cd.className="lib-code"; cd.textContent=item.code; cd.title="codice del pattern"; meta.appendChild(cd); }
@@ -3833,7 +3919,7 @@ function paintLibManage(){
 el("libBase").onclick=addBasePatterns;
 el("libClear").onclick=clearLibraryView;
 
-function openLib(){ el("libOverlay").hidden=false; renderLibrary(); }
+function openLib(){ libraryOriginalKit=sampleSet; el("libKitSelect").value=sampleSet; el("libOverlay").hidden=false; renderLibrary(); }
 function closeLib(){ stopAudition(); el("libOverlay").hidden=true; }
 el("libTabAll").onclick=()=>setLibView("all");
 el("libTabFav").onclick=()=>setLibView("fav");
@@ -3859,6 +3945,45 @@ ui.stepMode="hit";
 // Le variazioni del motore lavorano per ruolo (kick, snare, chh...): ogni riga si riconosce dal suo slot.
 // Le righe con un suono che non corrisponde a nessun ruolo restano come sono. Si annulla con cmd+Z.
 const ROLE_OF_SAMPLE=Object.fromEntries(Object.entries(ROLE_SAMPLE).map(([role,name])=>[sampleIdx(name),role]));
+let activeGridVariationId=null;
+let gridVariationBase=null;
+
+function paintGridVariationState(){
+  const box=el("pVaryPanel"), btn=el("pVary"), off=el("pVaryOff");
+  box.querySelectorAll("[data-variation-id]").forEach(b=>{
+    const active=b.dataset.variationId===activeGridVariationId;
+    b.classList.toggle("on",active);
+    b.setAttribute("aria-pressed",String(active));
+  });
+  if(off) off.hidden=!activeGridVariationId;
+  btn.classList.toggle("on",!box.hidden||!!activeGridVariationId);
+}
+
+function resetGridVariationState(){
+  activeGridVariationId=null;
+  gridVariationBase=null;
+  const box=el("pVaryPanel"), btn=el("pVary");
+  if(!box||!btn) return;
+  paintGridVariationState();
+}
+
+function disableGridVariation(){
+  if(!gridVariationBase){ activeGridVariationId=null; paintGridVariationState(); return; }
+  pushUndo();
+  const pat=curPattern();
+  pat.name=gridVariationBase.name;
+  pat.len=gridVariationBase.len;
+  pat.grid=JSON.parse(JSON.stringify(gridVariationBase.grid));
+  pat.mods=JSON.parse(JSON.stringify(gridVariationBase.mods||{}));
+  pat.lens=JSON.parse(JSON.stringify(gridVariationBase.lens||{}));
+  activeGridVariationId=null;
+  gridVariationBase=null;
+  normalize();
+  paintGridVariationState();
+  renderAll();
+  setStatus("variazione disattivata");
+}
+
 function varyCurrent(type){
   const pat=curPattern(), roles={}, trackOf={};
   project.tracks.forEach(t=>{
@@ -3869,26 +3994,41 @@ function varyCurrent(type){
     if(g && g.some(v=>v)) roles[role]=g.slice(0,pat.len);
   });
   if(!Object.keys(roles).length){ setStatus("pattern vuoto: niente da variare","err"); return; }
+  if(activeGridVariationId===type){ disableGridVariation(); return; }
+  if(!gridVariationBase){
+    gridVariationBase={
+      name:pat.name, len:pat.len,
+      grid:JSON.parse(JSON.stringify(pat.grid)),
+      mods:JSON.parse(JSON.stringify(pat.mods||{})),
+      lens:JSON.parse(JSON.stringify(pat.lens||{}))
+    };
+  }
   const parent={code:"griglia", style:Object.keys(SPEngine.styles)[0], len:pat.len, section:"verse", fill:false, tag:"", roles};
   const out=SPEngine.vary(parent,type,SPEngine.randomSeed(16));
   pushUndo();
   Object.values(trackOf).forEach(t=>{ pat.grid[t.id]=new Array(pat.len).fill(0); });
   Object.entries(out.roles).forEach(([role,arr])=>{ pat.grid[(trackOf[role]||trackForRole(role)).id]=arr.slice(0,pat.len); });
+  activeGridVariationId=type;
   normalize(); renderAll();
+  paintGridVariationState();
   const meta=SPEngine.variationTypes.find(x=>x.id===type), note=(/\(([^)]+)\)$/.exec(out.tag)||[])[1];
   setStatus(`${meta.label}${note?` (${note})`:""} · cmd+Z per annullare`);
 }
 (function initGridVary(){
   const box=el("pVaryPanel"), btn=el("pVary");
   const hint=document.createElement("span"); hint.className="tiny";
-  hint.textContent="trasforma il pattern che stai modificando; ogni click ne fa una nuova, cmd+Z annulla";
+  hint.textContent="trasforma il pattern che stai modificando; seleziona di nuovo la variazione per disattivarla";
   box.appendChild(hint);
+  const off=document.createElement("button"); off.type="button"; off.id="pVaryOff"; off.className="mini";
+  off.textContent="Disattiva variazione"; off.hidden=true; off.onclick=disableGridVariation;
+  box.appendChild(off);
   SPEngine.variationTypes.forEach(t=>{
     const b=document.createElement("button"); b.type="button"; b.className="mini";
-    b.textContent=t.label; b.title=t.hint; b.onclick=()=>varyCurrent(t.id);
+    b.dataset.variationId=t.id; b.textContent=t.label; b.title=t.hint; b.setAttribute("aria-pressed","false");
+    b.onclick=()=>varyCurrent(t.id);
     box.appendChild(b);
   });
-  btn.onclick=()=>{ box.hidden=!box.hidden; btn.classList.toggle("on",!box.hidden); btn.setAttribute("aria-expanded",String(!box.hidden)); };
+  btn.onclick=()=>{ box.hidden=!box.hidden; btn.setAttribute("aria-expanded",String(!box.hidden)); paintGridVariationState(); };
 })();
 
 // Quanto e' "interessante" un pattern: sincopi (colpi fuori dai quarti, pesati di piu' su cassa e rullante),
@@ -3917,12 +4057,9 @@ function interestScore(item){
   const density=hits/cells, balance=1-Math.min(1,Math.abs(density-0.3)*2.5);
   return sync/hits*4 + Math.min(dyn,6)*0.35 + Math.min(voices,7)*0.45 + varied*0.3 + balance*1.5;
 }
-// Pallini su scala fissa: soglie ai quintili del punteggio misurati su tutti gli stili (16 e 32 step),
-// cosi' un pattern da 5 pallini e' tra i piu' ricchi in assoluto, non solo della sua generazione.
-const INTEREST_STEPS=[6.15,6.85,7.65,8.7];
-const interestDots=score=>1+INTEREST_STEPS.filter(t=>score>=t).length;
+function libraryInterest(item){ return Number.isFinite(item.interest) ? item.interest : interestScore(item); }
 // Genera N pattern dello stile scelto: prima toglie dalla lista quelli degli altri stili (anche i base),
-// poi li mette in cima in ordine crescente di interesse, ognuno con i pallini del suo livello.
+// poi li mette in cima in ordine decrescente di interesse.
 function generateBatch(n){
   const style=el("genStyle").value, len=+el("genLen").value;
   const section=el("genSection").value, fill=el("genFill").checked;
@@ -3935,8 +4072,8 @@ function generateBatch(n){
     for(let t=0;t<8 && made.some(q=>sig(q)===sig(p));t++) p=genPattern(style,len,{section:sec, fill});
     made.push(p);
   }
-  made.forEach(p=>{ p.interest=interestScore(p); p.dots=interestDots(p.interest); });
-  made.sort((a,b)=>a.interest-b.interest);
+  made.forEach(p=>{ p.interest=interestScore(p); });
+  made.sort((a,b)=>b.interest-a.interest);
   const styles=new Set(made.map(p=>p.style));
   const before=library.length;
   if(audition.item && !styles.has(audition.item.style)) stopAudition();
@@ -3966,6 +4103,7 @@ ui.blockId=project.song[0].id;
 if(preferredKit()!==sampleSet) setSampleSet(preferredKit(),true);
 project.tracks.forEach(t=>loadBuffer(t.sampleIndex));
 renderAll();
+setView("grid");
 markSaved();
 try{ if(sessionStorage.getItem("traslocoFatto")){ sessionStorage.removeItem("traslocoFatto"); setStatus("progetti e preferiti trasferiti dal vecchio indirizzo"); } }catch(e){}
 refreshRecent();

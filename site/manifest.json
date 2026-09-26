@@ -2,7 +2,7 @@
   "id": "/",
   "name": "PatternMachine",
   "short_name": "PatternMachine",
-  "description": "Drum machine a step con SP-1200, RX-5, 808 e 909: generatore di pattern in decine di stili, variazioni, canzone ed export MIDI. Funziona anche offline.",
+  "description": "Drum machine a step con SP-1200, Yamaha RX-5, Roland TR-606 e TR-909, campioni Logic, pattern, canzoni ed export MIDI. Funziona anche offline.",
   "lang": "it",
   "dir": "ltr",
   "start_url": "/?source=pwa",
@@ -18,6 +18,6 @@
     { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
   "screenshots": [
-    { "src": "/assets/og-drum-machine-lab.jpg", "sizes": "1200x800", "type": "image/jpeg", "form_factor": "wide", "label": "PatternMachine nel browser" }
+    { "src": "/assets/patternmachine-preview.jpg", "sizes": "1672x941", "type": "image/jpeg", "form_factor": "wide", "label": "PatternMachine con drum machine e griglia ritmica" }
   ]
 }

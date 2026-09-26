@@ -42,7 +42,7 @@ STATIC_FILES = {"index.html", "toolkit.html", "funzioni.html", "macchine.html", 
 STATIC_DIRS = ("engine/", "icons/", "samples/", "samples12/", "machines/", "assets/", "download/")
 
 # Visibili senza password: servono al browser per installare la PWA e alle anteprime dei link.
-OPEN_PATHS = {"/login", "/logout", "/register", "/forgot", "/reset", "/manifest.json", "/assets/og-sp1200.png", "/assets/og-drum-machine-lab.jpg"}
+OPEN_PATHS = {"/login", "/logout", "/register", "/forgot", "/reset", "/manifest.json", "/assets/og-sp1200.png", "/assets/og-drum-machine-lab.jpg", "/assets/patternmachine-preview.jpg"}
 OPEN_DIRS = ("/icons/",)
 
 # Dietro la password niente cache condivise (Cloudflare): "private" tiene la copia solo nel

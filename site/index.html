@@ -1417,7 +1417,7 @@ const jitterT = ()=> (Math.random()*2-1)*human()*0.010;
 const jitterV = ()=> 1+(Math.random()*2-1)*human()*0.15;
 
 let project=null;
-let ui={patternId:null, blockId:null, mode:"pattern", recording:false, clip:null};
+let ui={patternId:null, blockId:null, mode:"pattern", recording:false, clip:null, songSoloBlockId:null};
 
 function starterProject(){
   const tracks=[
@@ -1599,7 +1599,8 @@ function scheduler(){
         const block=project.song[cursor.blockIndex];
         if(cursor.rep >= Math.max(1,block?.repeats||1)){
           cursor.rep=0;
-          cursor.blockIndex=(cursor.blockIndex+1)%Math.max(1,project.song.length);
+          const soloIdx=ui.songSoloBlockId ? project.song.findIndex(b=>b.id===ui.songSoloBlockId) : -1;
+          cursor.blockIndex=soloIdx>=0 ? soloIdx : (cursor.blockIndex+1)%Math.max(1,project.song.length);
         }
       }
     }
@@ -1631,6 +1632,10 @@ function play(){
   cursor={step:0, blockIndex:0, rep:0};
   if(ui.mode==="song" && ui.blockId){
     const i=project.song.findIndex(b=>b.id===ui.blockId);
+    if(i>=0) cursor.blockIndex=i;
+  }
+  if(ui.mode==="song" && ui.songSoloBlockId){
+    const i=project.song.findIndex(b=>b.id===ui.songSoloBlockId);
     if(i>=0) cursor.blockIndex=i;
   }
   barCount=1; queue=[];
@@ -2161,7 +2166,17 @@ function renderSong(){
     fillBlock.className=b.fillPatternId?"on":"";
     fillBlock.title=b.fillPatternId?"disattiva il fill finale":"crea un fill nell'ultima ripetizione";
     fillBlock.onclick=e=>{ e.stopPropagation(); toggleSongFill(b); };
-    actions.append(varyBlock,fillBlock); card.appendChild(actions);
+    const soloBlock=document.createElement("button"); soloBlock.type="button";
+    soloBlock.textContent=ui.songSoloBlockId===b.id?"Solo attivo":"Solo";
+    soloBlock.className=ui.songSoloBlockId===b.id?"on":"";
+    soloBlock.title=ui.songSoloBlockId===b.id?"disattiva il solo":"riproduci solo questo blocco";
+    soloBlock.onclick=e=>{
+      e.stopPropagation();
+      ui.songSoloBlockId=ui.songSoloBlockId===b.id?null:b.id;
+      renderSong();
+      setStatus(ui.songSoloBlockId?"solo attivo: il blocco si ripete":"solo disattivato");
+    };
+    actions.append(varyBlock,fillBlock,soloBlock); card.appendChild(actions);
 
     const prev=miniPreview(p);
     const phead=document.createElement("div"); phead.className="prev-head";
@@ -2187,7 +2202,7 @@ function renderSong(){
       ui.blockId=project.song[idx+1].id; renderSong(); };
     const del=document.createElement("button");
     del.className="danger"; del.textContent="×"; del.title="rimuovi";
-    del.onclick=e=>{ e.stopPropagation(); pushUndo(); project.song.splice(idx,1);
+    del.onclick=e=>{ e.stopPropagation(); pushUndo(); if(ui.songSoloBlockId===b.id) ui.songSoloBlockId=null; project.song.splice(idx,1);
       ui.blockId=project.song[Math.min(idx,project.song.length-1)]?.id||null; renderSong(); };
     const repNow=document.createElement("span"); repNow.className="seq-rep"; repNow.title="ripetizione in corso";
     foot.append(minus,rep,plus,repNow,dup,del);
@@ -2366,7 +2381,7 @@ el("viewSeq").onclick=()=>setView("seq");
 el("seqClear").onclick=async()=>{
   if(!project.song.length) return;
   if(!await ask({title:"Svuota arrangiamento", message:"Togliere tutti i blocchi della canzone? I pattern restano.", ok:"Svuota", danger:true})) return;
-  pushUndo(); project.song=[]; ui.blockId=null; renderSong(); setStatus("canzone svuotata");
+  pushUndo(); project.song=[]; ui.blockId=null; ui.songSoloBlockId=null; renderSong(); setStatus("canzone svuotata");
 };
 // La macchina si sceglie dal menu (che resta lo stato: le macchine non raggiungibili ne vengono tolte);
 // qui si aggiorna solo il suggerimento con l'origine dei suoni.
@@ -2578,6 +2593,7 @@ el("sRight").onclick=()=>{
 el("sDel").onclick=()=>{
   const i=blockIndex(); if(i<0) return setStatus("seleziona un blocco","err");
   pushUndo();
+  if(ui.songSoloBlockId===project.song[i].id) ui.songSoloBlockId=null;
   project.song.splice(i,1); ui.blockId=project.song[Math.min(i,project.song.length-1)]?.id||null; renderSong();
 };
 

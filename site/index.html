@@ -525,6 +525,7 @@ button.danger-fill{background:var(--danger); border-color:var(--danger); color:#
 .seqblock-head .grip{margin-left:auto; color:var(--text-faint); letter-spacing:-1px;}
 .seqblock select{width:100%; font-size:10px; padding:3px 4px;}
 .seqblock .seq-section{font-weight:700; color:var(--text); border-color:var(--section-color,var(--edge));}
+.seqblock-meta{font-size:9px; color:var(--text-faint); letter-spacing:.04em;}
 .seqblock .prev{display:flex; flex-direction:column; gap:2px; min-height:26px; justify-content:center;}
 .seqblock-foot{display:flex; align-items:center; gap:3px;}
 .seqblock-foot input{width:36px; text-align:center; padding:3px 2px; font-size:10px;}
@@ -802,6 +803,7 @@ div.flexline > .modeswitch:not(.theme-switch){border:none; overflow:visible; gap
     <div class="flexline" style="margin-bottom:9px;">
       <select id="seqPattern"></select>
       <button id="sAdd" class="mini primary">+ Inserisci</button>
+      <button id="sPlay" class="mini" title="Riproduci la canzone dal blocco selezionato">&#9654; Da qui</button>
       <button id="sDup" class="mini">Duplica</button>
       <button id="sLeft" class="mini" title="Sposta a sinistra">&larr;</button>
       <button id="sRight" class="mini" title="Sposta a destra">&rarr;</button>
@@ -2142,6 +2144,9 @@ function renderSong(){
     psel.onclick=e=>e.stopPropagation();
     psel.onchange=()=>{ pushUndo(); b.patternId=psel.value; renderSong(); };
     card.appendChild(psel);
+    const meta=document.createElement("div"); meta.className="seqblock-meta";
+    meta.textContent=`${bars} ${bars===1?"battuta":"battute"} · ×${b.repeats}`;
+    card.appendChild(meta);
 
     const prev=miniPreview(p);
     const phead=document.createElement("div"); phead.className="prev-head";
@@ -2531,6 +2536,12 @@ el("sAdd").onclick=()=>{
   const i=blockIndex();
   if(i>=0) project.song.splice(i+1,0,b); else project.song.push(b);
   ui.blockId=b.id; renderSong();
+};
+el("sPlay").onclick=()=>{
+  if(blockIndex()<0) return setStatus("seleziona un blocco","err");
+  setMode("song"); setView("seq");
+  if(playing) stop();
+  play();
 };
 el("sDup").onclick=()=>{
   const i=blockIndex(); if(i<0) return setStatus("seleziona un blocco","err");

@@ -2,7 +2,7 @@
 // Ogni lettore restituisce la stessa forma:
 //   {name, bpm, map, sections:[{name, len, hits:[{pos, note, vel}]}], order?}
 // pos in sedicesimi dall'inizio della sezione (anche con la virgola: la pagina arrotonda),
-// note = nota MIDI (General MIDI, o la mappa del kit di PatternMachine se map === "pm"), vel 1..127.
+// note = nota MIDI (General MIDI, o la mappa del kit di PATTERN-MACHINE se map === "pm"), vel 1..127.
 // len = lunghezza della sezione in sedicesimi; order = indici delle sezioni nell'ordine della canzone.
 (function(){
 "use strict";
@@ -413,14 +413,14 @@ const AUDIO_EXT=/\.(wav|wave|aif|aiff|aifc|mp3|m4a|aac|ogg|oga|opus|flac|webm|ca
 const ACCEPT=".mid,.midi,.kar,.smf,.rmi,.ptxt,.txt,.tab,.json,.h2song,.h2pattern,.rpp,.als,.musicxml,.xml,.mxl,"+
   ".wav,.wave,.aif,.aiff,.aifc,.mp3,.m4a,.aac,.ogg,.oga,.opus,.flac,.webm,.caf";
 
-// Testo incollato o letto da file. Restituisce il risultato, oppure {project} per un progetto PatternMachine.
+// Testo incollato o letto da file. Restituisce il risultato, oppure {project} per un progetto PATTERN-MACHINE.
 async function fromText(text, name="Import"){
   const t=text.replace(/^﻿/,"").trim();
   if(!t) throw new Error("testo vuoto");
   if(t[0]==="{"){
     let j; try{ j=JSON.parse(t); }catch(e){ throw new Error("JSON non valido"); }
     if(Array.isArray(j.patterns) && Array.isArray(j.tracks)) return {project:j};
-    throw new Error("questo JSON non è un progetto PatternMachine");
+    throw new Error("questo JSON non è un progetto PATTERN-MACHINE");
   }
   if(/^<REAPER_PROJECT/.test(t)) return parseReaper(t,name);
   if(t[0]==="<"){

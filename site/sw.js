@@ -1,4 +1,4 @@
-// Service worker della PWA PatternMachine.
+// Service worker della PWA PATTERN-MACHINE.
 // - pagine: rete prima (cosi' online arriva sempre l'ultima versione), cache se offline
 // - script del motore (engine/*.js): rete prima, cache se offline, cosi' pagina e motore restano allineati
 // - campioni, icone, immagini: cache prima (non cambiano)

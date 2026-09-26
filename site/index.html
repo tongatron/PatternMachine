@@ -526,6 +526,9 @@ button.danger-fill{background:var(--danger); border-color:var(--danger); color:#
 .seqblock select{width:100%; font-size:10px; padding:3px 4px;}
 .seqblock .seq-section{font-weight:700; color:var(--text); border-color:var(--section-color,var(--edge));}
 .seqblock-meta{font-size:9px; color:var(--text-faint); letter-spacing:.04em;}
+.seqblock-actions{display:flex; gap:4px;}
+.seqblock-actions button{flex:1 1 0; padding:4px 5px; font-size:9px;}
+.seqblock-actions button.on{background:var(--key-primary,var(--accent)); color:var(--on-accent); border-color:var(--accent-dim); font-weight:700;}
 .seqblock .prev{display:flex; flex-direction:column; gap:2px; min-height:26px; justify-content:center;}
 .seqblock-foot{display:flex; align-items:center; gap:3px;}
 .seqblock-foot input{width:36px; text-align:center; padding:3px 2px; font-size:10px;}
@@ -1561,7 +1564,9 @@ const stepDur = step => baseStepDur()*(step%2===0 ? 1+swing() : 1-swing());
 function playingPattern(){
   if(ui.mode==="song"){
     const block=project.song[cursor.blockIndex];
-    return block ? patternById(block.patternId) : null;
+    if(!block) return null;
+    const lastRep=cursor.rep>=Math.max(1,block.repeats||1)-1;
+    return patternById(lastRep&&block.fillPatternId?block.fillPatternId:block.patternId);
   }
   return curPattern();
 }
@@ -2147,6 +2152,16 @@ function renderSong(){
     const meta=document.createElement("div"); meta.className="seqblock-meta";
     meta.textContent=`${bars} ${bars===1?"battuta":"battute"} · ×${b.repeats}`;
     card.appendChild(meta);
+    const actions=document.createElement("div"); actions.className="seqblock-actions";
+    const varyBlock=document.createElement("button"); varyBlock.type="button"; varyBlock.textContent="Varia";
+    varyBlock.title="crea una variazione solo per questo blocco";
+    varyBlock.onclick=e=>{ e.stopPropagation(); varySongBlock(b); };
+    const fillBlock=document.createElement("button"); fillBlock.type="button";
+    fillBlock.textContent=b.fillPatternId?"Fill attivo":"Fill";
+    fillBlock.className=b.fillPatternId?"on":"";
+    fillBlock.title=b.fillPatternId?"disattiva il fill finale":"crea un fill nell'ultima ripetizione";
+    fillBlock.onclick=e=>{ e.stopPropagation(); toggleSongFill(b); };
+    actions.append(varyBlock,fillBlock); card.appendChild(actions);
 
     const prev=miniPreview(p);
     const phead=document.createElement("div"); phead.className="prev-head";
@@ -2168,7 +2183,7 @@ function renderSong(){
     const dup=document.createElement("button");
     dup.className="sp"; dup.textContent="⧉"; dup.title="duplica";
     dup.onclick=e=>{ e.stopPropagation(); pushUndo();
-        project.song.splice(idx+1,0,{id:uid(),patternId:b.patternId,repeats:b.repeats,section:b.section||"verse"});
+        project.song.splice(idx+1,0,{id:uid(),patternId:b.patternId,repeats:b.repeats,section:b.section||"verse",fillPatternId:b.fillPatternId||null});
       ui.blockId=project.song[idx+1].id; renderSong(); };
     const del=document.createElement("button");
     del.className="danger"; del.textContent="×"; del.title="rimuovi";
@@ -2547,7 +2562,7 @@ el("sDup").onclick=()=>{
   const i=blockIndex(); if(i<0) return setStatus("seleziona un blocco","err");
   pushUndo();
   const src=project.song[i];
-  const b={id:uid(), patternId:src.patternId, repeats:src.repeats, section:src.section||"verse"};
+  const b={id:uid(), patternId:src.patternId, repeats:src.repeats, section:src.section||"verse", fillPatternId:src.fillPatternId||null};
   project.song.splice(i+1,0,b); ui.blockId=b.id; renderSong();
 };
 el("sLeft").onclick=()=>{
@@ -2583,7 +2598,7 @@ function serialize(){
       grid:Object.fromEntries(Object.entries(p.grid).map(([k,v])=>[k,v.slice()])),
       ...(p.mods&&Object.keys(p.mods).length?{mods:cloneMods(p.mods)}:{}),
       ...(p.lens&&Object.keys(p.lens).length?{lens:{...p.lens}}:{})})),
-    song: project.song.map(b=>({id:b.id, patternId:b.patternId, repeats:b.repeats, section:b.section||"verse"})),
+    song: project.song.map(b=>({id:b.id, patternId:b.patternId, repeats:b.repeats, section:b.section||"verse", ...(b.fillPatternId?{fillPatternId:b.fillPatternId}: {})})),
     updatedAt: Date.now(),
   };
 }
@@ -2595,7 +2610,7 @@ function deserialize(d,keepSel){
       tune:t.tune||0, choke:t.choke||0, mute:false, solo:false, ...voiceDefaults(t)})),
     patterns:(d.patterns||[]).map(p=>({id:p.id, name:p.name, len:p.len||16,
       grid:Object.fromEntries(Object.entries(p.grid||{}).map(([k,v])=>[k,v.slice()])), mods:cloneMods(p.mods), lens:{...(p.lens||{})}})),
-    song:(d.song||[]).map(b=>({id:b.id, patternId:b.patternId, repeats:b.repeats||1, section:b.section||"verse"})),
+    song:(d.song||[]).map(b=>({id:b.id, patternId:b.patternId, repeats:b.repeats||1, section:b.section||"verse", fillPatternId:b.fillPatternId||null})),
   };
   const ids=[...project.tracks, ...project.patterns, ...project.song].map(x=>+x.id).filter(n=>!isNaN(n));
   idSeq=Math.max(idSeq, ...(ids.length?ids:[0]))+1;
@@ -3750,8 +3765,7 @@ function openCode(code){
   return true;
 }
 
-function genVariation(){
-  const src=curPattern();
+function genVariation(src=curPattern()){
   const byTrack={};
   project.tracks.forEach(t=>{
     const a=(src.grid[t.id]||zeros(src.len)).slice();
@@ -3769,6 +3783,64 @@ function genVariation(){
     byTrack[t.id]=a;
   });
   return {name:src.name+" var", tag:"variazione", len:src.len, byTrack, fresh:true};
+}
+
+function patternRoles(src){
+  const roles={}, trackOf={};
+  project.tracks.forEach(t=>{
+    const role=ROLE_OF_SAMPLE[t.sampleIndex];
+    if(!role || trackOf[role]) return;
+    const g=src.grid[t.id];
+    if(g && g.some(v=>v)){ trackOf[role]=t; roles[role]=g.slice(0,src.len); }
+  });
+  return {roles,trackOf};
+}
+
+function forkPatternVariant(src, out, suffix){
+  const p=makePattern(`${src.name} · ${suffix}`,src.len);
+  project.tracks.forEach(t=>{ p.grid[t.id]=(src.grid[t.id]||zeros(src.len)).slice(0,src.len); });
+  const source=out.byTrack||{};
+  Object.entries(source).forEach(([tid,arr])=>{ p.grid[tid]=arr.slice(0,src.len); });
+  Object.entries(out.roles||{}).forEach(([role,arr])=>{
+    const t=project.tracks.find(x=>ROLE_OF_SAMPLE[x.sampleIndex]===role);
+    if(t) p.grid[t.id]=arr.slice(0,src.len);
+  });
+  project.patterns.push(p); normalize();
+  return p;
+}
+
+function makeFillVariant(src){
+  const {roles,trackOf}=patternRoles(src);
+  if(!Object.keys(roles).length) return null;
+  const parent={code:"sequencer", style:Object.keys(SPEngine.styles)[0], len:src.len, section:"verse", fill:false, tag:"", roles};
+  const out=SPEngine.vary(parent,"L",SPEngine.randomSeed(16));
+  const p=forkPatternVariant(src,{roles:out.roles},"fill finale");
+  return {pattern:p,trackOf};
+}
+
+function varySongBlock(b){
+  const src=patternById(b.patternId);
+  if(!src) return;
+  pushUndo();
+  const p=forkPatternVariant(src,genVariation(src),"variazione");
+  b.patternId=p.id;
+  b.fillPatternId=null;
+  renderSong();
+  setStatus(`variazione applicata a “${src.name}” nel blocco`);
+}
+
+function toggleSongFill(b){
+  if(b.fillPatternId){
+    pushUndo(); b.fillPatternId=null; renderSong(); setStatus("fill finale disattivato"); return;
+  }
+  const src=patternById(b.patternId);
+  if(!src) return;
+  pushUndo();
+  const out=makeFillVariant(src);
+  if(!out){ setStatus("pattern vuoto: impossibile creare il fill","err"); return; }
+  b.fillPatternId=out.pattern.id;
+  renderSong();
+  setStatus("fill finale attivato sull'ultima ripetizione");
 }
 
 let library=PRESETS.slice();

@@ -5,7 +5,7 @@
 #   scripts/deploy.sh --yes    pubblica davvero (backup sul server, upload, verifica)
 #   --con-kit-logic            pubblica anche i kit estratti da Logic (808, 909, 707, CR-78, LinnDrum, 606, 727, CR-8000, DMX, Drumulator, DrumTraks, SDS-V, SP12; contenuti Apple: di norma restano solo in locale)
 #
-# Sul server la cartella e' piatta: site/* nella radice, index.html del toolkit come toolkit.html,
+# Sul server la cartella e' piatta: site/* nella radice,
 # server.py, add-user.py, set-mail.py e set-telegram.py accanto. data/users.json (utenti), mail.json (Gmail) e
 # telegram.json (bot delle segnalazioni) vivono solo sul server e non si toccano.
 # Non cancella nulla sul server (data/, assets/*.zip restano dove sono).
@@ -50,14 +50,13 @@ import glob, os, time
 files = glob.glob("site/*.html") + glob.glob("site/*.js") + glob.glob("site/engine/*.js")
 t = time.localtime(max(os.path.getmtime(f) for f in files))
 mesi = "gennaio febbraio marzo aprile maggio giugno luglio agosto settembre ottobre novembre dicembre".split()
-print(f"versione del {t.tm_mday} {mesi[t.tm_mon - 1]} {t.tm_year} delle {t.tm_hour:02d}:{t.tm_min:02d}")
+print(f"versione del {t.tm_mday} {mesi[t.tm_mon - 1]} {t.tm_year} {t.tm_hour:02d}:{t.tm_min:02d}")
 PY
 )
 for f in "$STAGE/index.html" "$STAGE/funzioni.html" "$STAGE/macchine.html"; do
   sed -i '' "s|<!--build-->[^<]*<!--/build-->|<!--build-->$build<!--/build-->|" "$f"
 done
 echo "footer: $build"
-cp index.html "$STAGE/toolkit.html"
 cp server.py "$STAGE/server.py"
 cp scripts/add-user.py "$STAGE/add-user.py"
 cp scripts/set-mail.py "$STAGE/set-mail.py"
@@ -87,6 +86,7 @@ echo "== backup in $BACKUPS/$ts"
 ssh "$HOST" "mkdir -p '$BACKUPS/$ts' && cd '$REMOTE' && cp -a index.html toolkit.html server.py sw.js manifest.json engine '$BACKUPS/$ts/' 2>/dev/null || true"
 
 echo "== upload"
+ssh "$HOST" "rm -f '$REMOTE/toolkit.html'"
 # Prima tutto il resto, index.html per ultimo: la pagina nuova non punta mai a file mancanti.
 "${RSYNC[@]}" --exclude /index.html "$STAGE/" "$HOST:$REMOTE/"
 "${RSYNC[@]}" "$STAGE/index.html" "$HOST:$REMOTE/index.html"

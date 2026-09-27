@@ -34,5 +34,7 @@ site/machines/sp12b/
 site/machines/tr808u/
 site/machines/tr909u/
 
-# App per macOS da scaricare: la crea desktop/scripts/release.sh.
+# Build locali e artefatti delle app da scaricare: li creano electron-builder e desktop/scripts/release.sh.
+desktop/dist/
 site/download/
+.claude/settings.local.json

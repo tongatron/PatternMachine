@@ -29,12 +29,12 @@ npm run dist            # crea dist/mac-arm64/PatternMachine.app (non firmata)
 ```
 
 L'app non è firmata: la prima volta si apre con tasto destro › Apri.
-I kit 808 e 909 (contenuti Apple) entrano nell'app solo con `PM_KIT_LOGIC=1 npm run dist` e se sono stati estratti in `site/machines` (`scripts/extract-logic-kits.sh`).
+È un progetto personale: ogni build include tutti i suoni del sito, cioè i campioni SP-1200 e RX-5 e tutti i kit estratti da Logic in `site/machines` (`scripts/extract-logic-kits.sh`), anche quelli che non vanno sul sito web. Prima di una build i kit devono essere stati estratti.
 
 ## Pubblicarla sul sito (pagina "App per Mac")
 
 ```bash
-desktop/scripts/release.sh     # build senza kit Apple, firma ad-hoc, zip + app.json in site/download/
+desktop/scripts/release.sh     # build macOS, Windows e Linux con tutti i suoni (si ferma se ne manca uno), firma ad-hoc, zip + app.json in site/download/
 scripts/deploy.sh --yes        # pubblica sito e download (come sempre)
 ```
 
@@ -43,6 +43,18 @@ così una versione nuova non arriva mai dalla cache. `site/download/` non va in 
 Il download sta dietro la password del sito come tutto il resto e passa dal tunnel Cloudflare senza essere messo in cache
 (`Cache-Control: private`): Cloudflare non ha limiti di dimensione sulle risposte (il limite di 100 MB vale solo per gli upload).
 Per aggiornare l'app: alza `version` in `package.json`, rilancia i due comandi.
+
+L'app controlla anche il messaggio opzionale `GET /api/app-message` e lo mostra una sola volta. Sul server si attiva creando `/srv/apps/patternmachine/data/app-message.json`, per esempio:
+
+```json
+{
+  "id": "download-2026-09-27",
+  "title": "Nuova versione disponibile",
+  "message": "Puoi scaricare la nuova versione di PatternMachine.",
+  "url": "https://patternmachine.tongatron.org/app.html",
+  "expires": "2026-10-31T23:59:59Z"
+}
+```
 
 ## Collegarla a Logic
 
@@ -65,7 +77,7 @@ Per aggiornare l'app: alza `version` in `package.json`, rilancia i due comandi.
 
 - `main.js`: finestra, protocollo `app://pm/` che serve `../site` dal disco (e inserisce il ponte in `index.html`), porte MIDI virtuali ([`@julusian/midi`](https://www.npmjs.com/package/@julusian/midi), CoreMIDI), file di progetti ed export, trascinamento (`webContents.startDrag`).
 - `preload.js`: le sole funzioni che la pagina può chiamare (`window.pmDesktop`), con isolamento del contesto e sandbox.
-- `bridge/bridge.js`: si aggancia al sito senza modificarlo. Sostituisce `db` e `downloadsCap` (salvataggio ed export), `trigger` (ogni colpo diventa anche una nota MIDI), `stop` (spegne le note in sospeso) e `makeZip` (il pacchetto Logic diventa una cartella), e aggiunge il pannello.
+- `bridge/bridge.js`: si aggancia al sito senza modificarlo. Sostituisce `db` e `downloadsCap` (salvataggio ed export con dialogo nativo), `trigger` (ogni colpo diventa anche una nota MIDI), `stop` (spegne le note in sospeso) e `makeZip` (il pacchetto Logic diventa una cartella), e aggiunge il pannello.
   In modalità clock gli step li decide `clockStep()`, che è una copia di `scheduler()` del sito: **se cambia `scheduler()` in `site/index.html`, va allineata anche questa**.
 - `PM_HOME=/percorso npm start` usa un'altra cartella al posto di `~/Music/PatternMachine` (serve per le prove).
 

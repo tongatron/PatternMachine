@@ -4,9 +4,12 @@
 // - porta MIDI virtuale "PatternMachine": uscita (note verso Logic) e ingresso (MIDI Clock da Logic).
 // - progetti ed esportazioni come file veri in ~/Music/PatternMachine.
 // - trascinamento di MIDI/WAV dall'app alla timeline di Logic.
-const { app, BrowserWindow, protocol, net, ipcMain, shell, Menu, nativeImage } = require("electron");
+const { app, BrowserWindow, protocol, net, ipcMain, shell, Menu, nativeImage, dialog } = require("electron");
 const path = require("path");
 const fs = require("fs");
+const https = require("https");
+const { execFileSync } = require("child_process");
+const { randomUUID } = require("crypto");
 const { pathToFileURL } = require("url");
 
 const SITE_DIR = app.isPackaged ? path.join(process.resourcesPath, "site") : path.join(__dirname, "..", "site");
@@ -15,7 +18,10 @@ const HOME_DIR = process.env.PM_HOME || path.join(app.getPath("music"), "Pattern
 const PROJECTS_DIR = path.join(HOME_DIR, "Progetti");
 const EXPORT_DIR = path.join(HOME_DIR, "Export");
 const DRAG_DIR = path.join(app.getPath("temp"), "PatternMachine-drag");
+const KITS_DIR = path.join(app.getPath("userData"), "drum-machines");
 const PORT_NAME = "PatternMachine";
+const APP_MESSAGE_URL = "https://patternmachine.tongatron.org/api/app-message";
+const APP_MESSAGE_STATE = path.join(app.getPath("userData"), "app-message-state.json");
 
 protocol.registerSchemesAsPrivileged([
   { scheme: "app", privileges: { standard: true, secure: true, supportFetchAPI: true, stream: true } },
@@ -27,7 +33,8 @@ let win = null;
 // Dentro la cartella del sito e basta; /__desktop/ porta ai file del ponte.
 function resolveAppPath(urlPath) {
   const rel = decodeURIComponent(urlPath).replace(/^\/+/, "") || "index.html";
-  const [root, sub] = rel.startsWith("__desktop/") ? [BRIDGE_DIR, rel.slice("__desktop/".length)] : [SITE_DIR, rel];
+  const [root, sub] = rel.startsWith("__desktop/") ? [BRIDGE_DIR, rel.slice("__desktop/".length)]
+    : rel.startsWith("__kits/") ? [KITS_DIR, rel.slice("__kits/".length)] : [SITE_DIR, rel];
   const full = path.normalize(path.join(root, sub));
   return full.startsWith(root + path.sep) ? full : null;
 }
@@ -116,6 +123,98 @@ ipcMain.handle("projects:delete", async (_e, id) => {
   return true;
 });
 
+// ---------- drum machine personali ----------
+const AUDIO_EXT = /\.(wav|aif|aiff|mp3|ogg|flac|m4a)$/i;
+const safeKitId = id => /^custom-[A-Za-z0-9-]+$/.test(String(id));
+function listKitAudio(root) {
+  const out = [];
+  function walk(dir) {
+    for (const name of fs.readdirSync(dir)) {
+      const full = path.join(dir, name), st = fs.statSync(full);
+      if (st.isDirectory()) walk(full);
+      else if (st.isFile() && AUDIO_EXT.test(name)) out.push({ file: path.relative(root, full).split(path.sep).join("/"), name });
+    }
+  }
+  walk(root);
+  return out.sort((a, b) => a.file.localeCompare(b.file, undefined, { numeric: true, sensitivity: "base" }));
+}
+function kitPath(id) { if (!safeKitId(id)) throw new Error("kit non valido"); return path.join(KITS_DIR, id); }
+function kitMeta(id) { return JSON.parse(fs.readFileSync(path.join(kitPath(id), "kit.json"), "utf8")); }
+
+ipcMain.handle("kits:list", () => {
+  fs.mkdirSync(KITS_DIR, { recursive: true });
+  return fs.readdirSync(KITS_DIR).filter(safeKitId).map(id => {
+    try { return kitMeta(id); } catch (e) { return null; }
+  }).filter(Boolean);
+});
+ipcMain.handle("kits:pick", async () => {
+  fs.mkdirSync(KITS_DIR, { recursive: true });
+  const result = await dialog.showOpenDialog(win, {
+    title: "Importa Drum Machine",
+    buttonLabel: "Scegli campioni",
+    properties: ["openFile", "openDirectory"],
+    filters: [{ name: "Cartella o archivio ZIP", extensions: ["zip"] }],
+  });
+  if (result.canceled || !result.filePaths[0]) return null;
+  const source = result.filePaths[0], stagingId = `.staging-${randomUUID()}`, staging = path.join(KITS_DIR, stagingId);
+  fs.mkdirSync(staging, { recursive: true });
+  try {
+    if (fs.statSync(source).isDirectory()) {
+      for (const item of listKitAudio(source)) {
+        const dest = path.join(staging, ...item.file.split("/"));
+        fs.mkdirSync(path.dirname(dest), { recursive: true });
+        fs.copyFileSync(path.join(source, ...item.file.split("/")), dest);
+      }
+    } else if (/\.zip$/i.test(source)) {
+      execFileSync("/usr/bin/ditto", ["-x", "-k", source, staging], { stdio: "pipe" });
+    } else throw new Error("scegli una cartella o un file ZIP");
+    const files = listKitAudio(staging);
+    if (!files.length) throw new Error("non ho trovato campioni audio (WAV, AIFF, MP3, OGG, FLAC o M4A)");
+    return { stagingId, files };
+  } catch (e) {
+    fs.rmSync(staging, { recursive: true, force: true });
+    throw new Error(e.message || "importazione non riuscita");
+  }
+});
+function normalizeKitSlots(id, slots) {
+  if (!Array.isArray(slots) || !slots.length || slots.length > 42) throw new Error("un kit deve contenere da 1 a 42 campioni");
+  const root = kitPath(id), seen = new Set();
+  return slots.map(s => {
+    const file = String(s.file || "").replaceAll("\\", "/");
+    if (!file || file.startsWith("/") || file.includes("../") || !AUDIO_EXT.test(file) || seen.has(file)) throw new Error("campione non valido");
+    const full = path.normalize(path.join(root, file));
+    if (!full.startsWith(root + path.sep) || !fs.existsSync(full)) throw new Error("campione non trovato");
+    seen.add(file);
+    return { slot: String(s.slot || "").slice(0, 80), file, label: String(s.label || s.slot || file).trim().slice(0, 80) || file };
+  });
+}
+ipcMain.handle("kits:create", (_e, stagingId, data) => {
+  if (!/^\.staging-[A-Za-z0-9-]+$/.test(String(stagingId))) throw new Error("importazione non valida");
+  const staging = path.join(KITS_DIR, stagingId);
+  if (!fs.existsSync(staging)) throw new Error("importazione scaduta");
+  const id = `custom-${Date.now()}-${randomUUID().slice(0, 8)}`, target = kitPath(id);
+  fs.renameSync(staging, target);
+  try {
+    const meta = { id, label: String(data?.label || "Drum Machine").trim().slice(0, 80) || "Drum Machine", source: "campioni personali", slots: normalizeKitSlots(id, data?.slots) };
+    fs.writeFileSync(path.join(target, "kit.json"), JSON.stringify(meta, null, 2));
+    return meta;
+  } catch (e) { fs.rmSync(target, { recursive: true, force: true }); throw e; }
+});
+ipcMain.handle("kits:discard", (_e, stagingId) => {
+  if (/^\.staging-[A-Za-z0-9-]+$/.test(String(stagingId))) fs.rmSync(path.join(KITS_DIR, stagingId), { recursive: true, force: true });
+  return true;
+});
+ipcMain.handle("kits:update", (_e, id, data) => {
+  const old = kitMeta(id), meta = { ...old, label: String(data?.label || old.label).trim().slice(0, 80) || old.label };
+  meta.slots = normalizeKitSlots(id, data?.slots || old.slots);
+  fs.writeFileSync(path.join(kitPath(id), "kit.json"), JSON.stringify(meta, null, 2));
+  return meta;
+});
+ipcMain.handle("kits:delete", (_e, id) => {
+  fs.rmSync(kitPath(id), { recursive: true, force: true });
+  return true;
+});
+
 // ---------- esportazioni ----------
 const cleanName = s => String(s).replace(/[\/:\0]/g, "-").replace(/^\.+/, "").trim() || "export";
 function freeName(dir, name) {
@@ -124,27 +223,48 @@ function freeName(dir, name) {
   while (fs.existsSync(path.join(dir, out))) out = `${base} ${n++}${ext}`;
   return out;
 }
-// Un file nella cartella Export, senza sovrascrivere. Restituisce il percorso.
-ipcMain.handle("export:file", (_e, filename, bytes) => {
+// Un file scelto dall'utente con il dialogo nativo "Salva con nome".
+ipcMain.handle("export:file", async (_e, filename, bytes) => {
   fs.mkdirSync(EXPORT_DIR, { recursive: true });
-  const f = path.join(EXPORT_DIR, freeName(EXPORT_DIR, cleanName(filename)));
-  fs.writeFileSync(f, Buffer.from(bytes));
-  return f;
+  const safe = cleanName(filename);
+  const ext = path.extname(safe).slice(1).toLowerCase();
+  const result = await dialog.showSaveDialog(win, {
+    title: "Esporta PatternMachine",
+    defaultPath: path.join(EXPORT_DIR, safe),
+    filters: ext ? [{ name: ext.toUpperCase(), extensions: [ext] }, { name: "Tutti i file", extensions: ["*"] }] : undefined,
+  });
+  if (result.canceled || !result.filePath) return { canceled: true };
+  fs.writeFileSync(result.filePath, Buffer.from(bytes));
+  return { path: result.filePath };
 });
 // Un gruppo di file in sottocartelle: il pacchetto per Logic, gia' scompattato.
-ipcMain.handle("export:folder", (_e, files) => {
+ipcMain.handle("export:folder", async (_e, files) => {
   fs.mkdirSync(EXPORT_DIR, { recursive: true });
-  const root = path.join(EXPORT_DIR, freeName(EXPORT_DIR, cleanName(files[0].name.split("/")[0])));
+  const result = await dialog.showOpenDialog(win, {
+    title: "Scegli dove esportare il pacchetto",
+    defaultPath: EXPORT_DIR,
+    properties: ["openDirectory", "createDirectory"],
+  });
+  if (result.canceled || !result.filePaths[0]) return { canceled: true };
+  const parent = result.filePaths[0];
+  const root = path.join(parent, freeName(parent, cleanName(files[0].name.split("/")[0])));
   for (const { name, data } of files) {
     const f = path.join(root, ...name.split("/").slice(1).map(cleanName));
     if (!f.startsWith(root + path.sep)) continue;
     fs.mkdirSync(path.dirname(f), { recursive: true });
     fs.writeFileSync(f, Buffer.from(data));
   }
-  return root;
+  return { path: root };
 });
 ipcMain.on("export:reveal", (_e, p) => {
   if (typeof p === "string" && p.startsWith(HOME_DIR + path.sep)) shell.showItemInFolder(p);
+});
+
+ipcMain.on("app-message:remember", (_e, id) => {
+  if (typeof id === "string" && id) rememberAppMessage(id);
+});
+ipcMain.on("app-message:open", (_e, url) => {
+  if (typeof url === "string" && /^https:\/\/patternmachine\.tongatron\.org\//.test(url)) shell.openExternal(url);
 });
 
 // ---------- trascinamento verso Logic ----------
@@ -159,6 +279,47 @@ ipcMain.on("drag:start", (e, filename, bytes) => {
 });
 
 // ---------- finestra e menu ----------
+function fetchAppMessage() {
+  return new Promise((resolve, reject) => {
+    const req = https.get(APP_MESSAGE_URL, { headers: { Accept: "application/json" } }, res => {
+      let raw = "";
+      res.setEncoding("utf8");
+      res.on("data", chunk => {
+        raw += chunk;
+        if (raw.length > 64 * 1024) req.destroy(new Error("messaggio troppo grande"));
+      });
+      res.on("end", () => {
+        if (res.statusCode < 200 || res.statusCode >= 300) return reject(new Error("risposta non valida"));
+        try { resolve(JSON.parse(raw)); } catch (e) { reject(e); }
+      });
+    });
+    req.setTimeout(5000, () => req.destroy(new Error("timeout")));
+    req.on("error", reject);
+  });
+}
+
+function readAppMessageState() {
+  try { return JSON.parse(fs.readFileSync(APP_MESSAGE_STATE, "utf8")); } catch (e) { return {}; }
+}
+
+function rememberAppMessage(id) {
+  try {
+    fs.mkdirSync(path.dirname(APP_MESSAGE_STATE), { recursive: true });
+    fs.writeFileSync(APP_MESSAGE_STATE, JSON.stringify({ id }));
+  } catch (e) {}
+}
+
+async function checkAppMessage() {
+  if (!app.isPackaged || !win || win.isDestroyed()) return;
+  try {
+    const msg = await fetchAppMessage();
+    if (!msg || msg.show !== true || !msg.id || !msg.title || !msg.message) return;
+    if (msg.url && !/^https:\/\/patternmachine\.tongatron\.org\//.test(msg.url)) return;
+    if (readAppMessageState().id === msg.id) return;
+    win.webContents.send("app-message:show", { id: msg.id, title: msg.title, message: msg.message, url: msg.url || "" });
+  } catch (e) {}
+}
+
 function createWindow() {
   win = new BrowserWindow({
     width: 1380, height: 900, minWidth: 900, minHeight: 600,
@@ -202,6 +363,7 @@ app.whenReady().then(() => {
   openMidi();
   buildMenu();
   createWindow();
+  setTimeout(checkAppMessage, 3000);
   app.on("activate", () => { if (!win) createWindow(); });
 });
 app.on("window-all-closed", () => app.quit());

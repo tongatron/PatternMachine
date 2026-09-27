@@ -2,6 +2,10 @@
 const { contextBridge, ipcRenderer } = require("electron");
 
 const bytes = b => (b instanceof Uint8Array ? b : new Uint8Array(b));
+let pendingAppMessage = null, appMessageListener = null;
+ipcRenderer.on("app-message:show", (_e, message) => {
+  if (appMessageListener) appMessageListener(message); else pendingAppMessage = message;
+});
 
 contextBridge.exposeInMainWorld("pmDesktop", {
   projects: {
@@ -14,6 +18,19 @@ contextBridge.exposeInMainWorld("pmDesktop", {
   exportFolder: files => ipcRenderer.invoke("export:folder", files.map(f => ({ name: f.name, data: bytes(f.data) }))),
   reveal: p => ipcRenderer.send("export:reveal", p),
   startDrag: (filename, data) => ipcRenderer.send("drag:start", filename, bytes(data)),
+  kits: {
+    list: () => ipcRenderer.invoke("kits:list"),
+    pick: () => ipcRenderer.invoke("kits:pick"),
+    create: (stagingId, data) => ipcRenderer.invoke("kits:create", stagingId, data),
+    discard: stagingId => ipcRenderer.invoke("kits:discard", stagingId),
+    update: (id, data) => ipcRenderer.invoke("kits:update", id, data),
+    delete: id => ipcRenderer.invoke("kits:delete", id),
+  },
+  appMessage: {
+    onShow: cb => { appMessageListener = cb; if (pendingAppMessage) { const message = pendingAppMessage; pendingAppMessage = null; cb(message); } },
+    remember: id => ipcRenderer.send("app-message:remember", id),
+    open: url => ipcRenderer.send("app-message:open", url),
+  },
   midi: {
     status: () => ipcRenderer.invoke("midi:status"),
     notes: list => ipcRenderer.send("midi:notes", list),

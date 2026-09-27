@@ -483,11 +483,11 @@ def send_report_mail(text):
     return all(send_mail(a, "PatternMachine: segnalazione", text, body) for a in admins)
 
 
-# Logo di tongatron.org in linea, uguale alla pillola gialla della pagina app.
+# Logo di tongatron.org in linea, nell'arancio dei pulsanti del sito, testo bianco.
 TONGATRON_BADGE = ('<a href="https://tongatron.org/" style="display:inline-flex;align-items:center;gap:10px;'
-                   'background:#ffcc00;color:#000;padding:5px 12px;border-radius:999px;text-decoration:none;'
+                   'background:#c8471f;background-image:linear-gradient(180deg,#e0743f,#b8471f);color:#fff;padding:5px 12px;border-radius:999px;text-decoration:none;'
                    'font:700 14px/1.2 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;">'
-                   '<span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:#000;'
+                   '<span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:#fff;'
                    'flex-shrink:0;"></span>tongatron.org</a>')
 
 

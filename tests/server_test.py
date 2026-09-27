@@ -9,6 +9,7 @@ import http.client
 import importlib.util
 import json
 import os
+import re
 import shutil
 import stat
 import subprocess
@@ -231,7 +232,9 @@ def main():
         check("ospite non salva pattern", guest.call("/api/patterns", "POST", {"name": "n", "text": "t"}, same)[0], 403)
         check("ospite non entra in /admin", guest.call("/admin")[0], 403)
         check("ospite puo' aprire login e registrazione", (guest.call("/login")[0], guest.call("/register")[0]), (200, 200))
-        check("pagina di accesso con pulsante ospite", b"Accedi senza registrarti" in anon.call("/login")[2], True)
+        login_html = anon.call("/login")[2]
+        check("pagina di accesso con pulsante ospite", (b"Accedi senza registrarti" in login_html,
+              b"sessionStorage.setItem('guestWelcome','1')" in login_html), (True, True))
         fake = Client(port)
         fake.cookie = guest.cookie[:-1] + ("0" if guest.cookie[-1] != "0" else "1")
         check("cookie ospite manomesso", fake.call("/")[0], 303)
@@ -303,7 +306,11 @@ def main():
         admin_downloads = next(u for u in db_after_download["users"] if u["name"] == ADMIN).get("downloads", [])
         check("download registrato per utente", (admin_downloads[-1]["platform"], admin_downloads[-1]["file"]),
               ("macOS", "PatternMachine-macOS.zip"))
-        check("admin vede app scaricate", b"App scaricate" in user.call("/admin")[2] and b"macOS" in user.call("/admin")[2], True)
+        admin_page = user.call("/admin")[2].decode()
+        section = admin_page[admin_page.index("Download delle app"):]
+        check("admin: sezione download con chi, cosa e quando",
+              ("1 download da 1 utente" in section, f"<b>{ADMIN}</b>" in section, "PatternMachine-macOS.zip" in section,
+               bool(re.search(r"<td>\d\d/\d\d/\d{4} \d\d:\d\d</td>", section))), (True, True, True, True))
         check("pagina app", user.call("/app.html")[0], 200)
         check("scheda app non in cache", user.call("/download/app.json")[1].get("cache-control"), "private, no-cache")
         check("cache html privata", user.call("/")[1].get("cache-control"), "private, no-cache")

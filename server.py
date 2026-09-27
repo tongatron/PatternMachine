@@ -446,6 +446,27 @@ def report_text(fields, account):
     return "\n".join(lines)
 
 
+try:
+    from zoneinfo import ZoneInfo
+    LOCAL_TZ = ZoneInfo("Europe/Rome")
+except Exception:  # senza tzdata le date restano in UTC
+    LOCAL_TZ = timezone.utc
+
+
+def local_time(stamp):
+    """'2026-09-27T17:40:00+00:00' -> '27/09/2026 19:40' (ora italiana); il testo com'e' se non si legge."""
+    try:
+        return datetime.fromisoformat(str(stamp).replace("Z", "+00:00")).astimezone(LOCAL_TZ).strftime("%d/%m/%Y %H:%M")
+    except ValueError:
+        return str(stamp or "")
+
+
+def all_downloads(users):
+    """Tutti i download registrati, dal piu' recente: (utente, download)."""
+    rows = [(u, d) for u in users for d in (u.get("downloads") or [])]
+    return sorted(rows, key=lambda r: str(r[1].get("at") or ""), reverse=True)
+
+
 def registration_text(user):
     lines = ["Nuovo utente registrato su PatternMachine", f"Nome: {user['name']}"]
     if user.get("email"):
@@ -835,7 +856,7 @@ class Handler(BaseHTTPRequestHandler):
   <div class="err" role="alert">{e(error)}</div>
   <div class="links"><a href="/register{q}">Registrati</a><a href="/forgot">Password dimenticata?</a></div>
 </form>
-<form class="card" method="post" action="/guest" style="padding:14px 20px;">
+<form class="card" method="post" action="/guest" style="padding:14px 20px;" onsubmit="try{{sessionStorage.setItem('guestWelcome','1')}}catch(e){{}}">
   <input type="hidden" name="next" value="{nxt}">
   <button class="ghost" type="submit" style="margin-top:0;">Accedi senza registrarti</button>
   <p style="margin:8px 0 0;font-size:11px;text-align:center;">Non potrai memorizzare i tuoi pattern.</p>
@@ -1057,14 +1078,33 @@ class Handler(BaseHTTPRequestHandler):
                 acts.append(f'<form method="post" action="/admin/reset"><input type="hidden" name="id" value="{e(u["id"], quote=True)}">'
                             f'<button class="ghost small" type="submit">{"Manda reset" if u.get("email") else "Link reset"}</button></form>')
                 acts.append(f'<a class="btn ghost small" href="/admin?elimina={e(u["id"], quote=True)}">Elimina</a>')
-            downloads = u.get("downloads") or []
-            download_html = "<br>".join(
-                f"{e(d.get('platform') or d.get('file') or 'app')} · {e(str(d.get('at') or '')[:16].replace('T', ' '))}"
-                for d in reversed(downloads[-20:])
-            ) or "—"
             rows.append(f"""<tr><td><b>{e(u['name'])}</b> {'<span class="tag">admin</span>' if u.get('role') == 'admin' else ''}</td>
 <td>{e(u.get('email') or '—')}</td><td>{e(u['created_at'][:10])}</td><td>{e((u.get('last_login') or '—')[:10])}</td>
-<td style="font-size:12px;line-height:1.5;">{download_html}</td><td><div class="row-acts">{''.join(acts)}</div></td></tr>""")
+<td><div class="row-acts">{''.join(acts)}</div></td></tr>""")
+        downloads = all_downloads(users)
+        if downloads:
+            per_app = {}
+            for _, d in downloads:
+                app = d.get("platform") or d.get("file") or "app"
+                per_app[app] = per_app.get(app, 0) + 1
+            people = len({u["id"] for u, _ in downloads})
+            summary = " · ".join(f"{e(app)} <b>{n}</b>" for app, n in sorted(per_app.items()))
+            dl_rows = "".join(
+                f"<tr><td>{e(local_time(d.get('at')))}</td><td><b>{e(u['name'])}</b></td>"
+                f"<td>{e(d.get('platform') or 'app')}</td><td>{e(d.get('file') or '')}</td></tr>"
+                for u, d in downloads[:200])
+            more = f"<p style=\"margin:10px 0 0;\">Mostrati gli ultimi 200 di {len(downloads)}.</p>" if len(downloads) > 200 else ""
+            dl_body = f"""<p>{len(downloads)} download da {people} {'utente' if people == 1 else 'utenti'}: {summary}.</p>
+  <div class="table-wrap"><table>
+    <tr><th>Quando</th><th>Utente</th><th>App</th><th>File</th></tr>
+    {dl_rows}
+  </table></div>{more}"""
+        else:
+            dl_body = "<p>Nessun download registrato.</p>"
+        downloads_section = f"""<div class="card wide" style="margin:0 0 16px;">
+  <h2 style="margin:0 0 4px;font-size:16px;">Download delle app</h2>
+  {dl_body}
+</div>"""
         msg_html = f'<p class="ok">{e(message)}</p>' if message else ""
         link_html = ("<p>Link per la nuova password (vale un&apos;ora, mandalo tu all&apos;utente):</p>"
                      f"<code>{e(link)}</code>") if link else ""
@@ -1073,11 +1113,12 @@ class Handler(BaseHTTPRequestHandler):
   <div class="line"></div>
   {msg_html}{link_html}{top}
   <div class="table-wrap"><table>
-    <tr><th>Nome</th><th>Email</th><th>Registrato</th><th>Ultimo accesso</th><th>App scaricate</th><th></th></tr>
+    <tr><th>Nome</th><th>Email</th><th>Registrato</th><th>Ultimo accesso</th><th></th></tr>
     {''.join(rows)}
   </table></div>
   <div class="links"><a href="/">&larr; Torna a PatternMachine</a><a href="/logout">Esci</a></div>
 </div>
+{downloads_section}
 {app_section}""", badge=False)
 
     def _admin_only(self):

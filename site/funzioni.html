@@ -55,13 +55,13 @@ th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-sp
 .group h3{margin-top:0;}
 .group li{font-size:14px;}
 .muted{color:var(--dim); font-size:13px;}
-/* pulsante di tongatron.org (tongatron.org/pulsanti, variante D2: contorno sottile, pallino giallo) */
+/* logo tongatron.org: pillola gialla con pallino nero, come nella pagina app */
 .report-link{font:700 11px/1.3 var(--mono); color:var(--dim);}
 .site-footer{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; margin:22px 0 6px; font:11px var(--mono); color:var(--dim);}
-.site-badge{display:inline-flex; align-items:center; gap:10px; text-decoration:none; font:14px system-ui,-apple-system,"Segoe UI",sans-serif;
-  color:#111; border:1px solid #333; padding:6px 10px; border-radius:6px; transition:.2s;}
-.site-badge .mark{width:11px; height:11px; border-radius:50%; background:#ffcc00; flex-shrink:0;}
-.site-badge:hover{transform:translateY(-1px);}
+.site-badge{display:inline-flex; align-items:center; gap:10px; text-decoration:none; font:700 14px/1.2 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  background:#ffcc00; color:#000; padding:5px 12px; border-radius:999px; transition:.2s;}
+.site-badge .mark{width:11px; height:11px; border-radius:50%; background:#000; flex-shrink:0;}
+.site-badge:hover{box-shadow:0 0 0 2px #000;}
 </style>
 <script defer src="https://analytics.tongatron.org/script.js" data-website-id="9daa93b6-2afb-494a-89fb-288437a030d1" data-domains="patternmachine.tongatron.org"></script>
 </head>
@@ -75,6 +75,7 @@ th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-sp
 
 <nav>
   <a href="#inizio">Primi passi</a><a href="#tasti">Tastiera e mouse</a>
+  <a href="#daw-midi">DAW, MIDI e clock</a>
   <a href="#numeri">In breve</a><a href="#macchine">Macchine</a><a href="#griglia">Griglia e step</a><a href="#canzone">Canzone</a>
   <a href="#motore">Motore dei pattern</a><a href="#variazioni">Variazioni</a><a href="#stili">Stili</a>
   <a href="#export">Export per Logic</a><a href="#import">Import</a><a href="#progetti">Progetti e link</a><a href="#limiti">Limiti</a>
@@ -91,6 +92,42 @@ th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-sp
     <li><b>Canzone</b>: nella scheda Sequencer metti in fila i pattern, ognuno con le sue ripetizioni, e premi <b>Canzone</b> accanto a Play.</li>
     <li><b>Salva</b> il progetto; dal menu <b>Export</b> scarichi MIDI, WAV o un pacchetto per <b>Logic</b>, <b>Ableton Live</b>, <b>REAPER</b> o altre DAW.</li>
   </ol>
+</section>
+
+<section id="daw-midi">
+  <h2>Collegamento alle DAW, MIDI e clock</h2>
+  <p>La versione macOS di PATTERN-MACHINE crea la porta MIDI virtuale <b>PatternMachine</b>. La porta funziona con Logic Pro, Ableton Live, REAPER, FL Studio, Cubase, Bitwig, Studio One e con le altre DAW che gestiscono MIDI.</p>
+  <h3>Suonare gli strumenti della DAW con PATTERN-MACHINE</h3>
+  <ol>
+    <li>Apri nella DAW una traccia con uno strumento di batteria e attiva monitoraggio o registrazione.</li>
+    <li>Nell'app macOS attiva <b>Uscita MIDI</b>. Le note escono dalla porta virtuale <b>PatternMachine</b>, sul canale 10.</li>
+    <li>Scegli <b>General MIDI</b> per i drum rack e gli strumenti compatibili (36 cassa, 38 rullante, 42 hi-hat chiuso, 46 hi-hat aperto). <b>Kit SP-1200 (36+)</b> serve per il kit SP-1200 creato appositamente in Logic.</li>
+    <li>Suona il pattern o la canzone. I pad e i tasti dell'app possono essere registrati nella DAW come note MIDI.</li>
+  </ol>
+  <h3>Far seguire all'app il tempo e il trasporto della DAW</h3>
+  <ol>
+    <li>Nella DAW abilita l'invio di <b>MIDI Clock</b> verso la porta MIDI <b>PatternMachine</b>. Se disponibile, abilita anche <b>Start/Stop/Continue</b> e <b>Song Position Pointer</b>.</li>
+    <li>Nel pannello DAW dell'app scegli la DAW che sta inviando il clock e attiva <b>Segui il clock della DAW</b>. La scelta serve a rendere leggibile lo stato del collegamento: il protocollo ricevuto è MIDI Clock standard per tutte le DAW.</li>
+    <li>Avvia Play nella DAW. L'app segue Play, Stop, Continua, posizione nei cicli e tempo; ogni sedicesimo viene ricavato dal clock MIDI, senza deriva tra i due programmi.</li>
+  </ol>
+  <p class="muted">Se il clock è presente ma l'app non parte, controlla che la DAW stia inviando anche il trasporto e che la destinazione sia proprio <b>PatternMachine</b>. È consigliabile inviare il clock da una sola DAW alla volta.</p>
+  <h3>Impostazioni rapide per le DAW più comuni</h3>
+  <div class="table-wrap"><table>
+    <tr><th>DAW</th><th>Impostazione</th></tr>
+    <tr><td><b>Logic Pro</b></td><td>Impostazioni progetto &rarr; Sincronizzazione &rarr; MIDI: in Clock MIDI scegli <b>PatternMachine</b> come destinazione e abilita la trasmissione.</td></tr>
+    <tr><td><b>Ableton Live</b></td><td>Preferenze &rarr; Link/Tempo/MIDI: nella porta di uscita <b>PatternMachine</b> attiva <b>Sync</b>. Avvia Play nella Session o nell'Arrangement.</td></tr>
+    <tr><td><b>REAPER</b></td><td>Abilita <b>PatternMachine</b> nei dispositivi MIDI e, nelle impostazioni di sincronizzazione del progetto, selezionala come uscita MIDI Clock.</td></tr>
+    <tr><td><b>Cubase</b></td><td>Impostazioni di sincronizzazione del progetto &rarr; destinazioni MIDI Clock: abilita <b>PatternMachine</b>.</td></tr>
+    <tr><td><b>FL Studio</b></td><td>Impostazioni MIDI: abilita l'uscita <b>PatternMachine</b> e l'invio del MIDI Clock, poi avvia il trasporto.</td></tr>
+    <tr><td><b>Bitwig / Studio One</b></td><td>Nelle impostazioni di sincronizzazione abilita <b>PatternMachine</b> come destinazione MIDI Clock e Start/Stop.</td></tr>
+    <tr><td><b>GarageBand</b></td><td>Le funzioni MIDI Clock disponibili dipendono dalla versione; se non è possibile inviare clock, usa l'export MIDI o WAV e importa il file nella DAW.</td></tr>
+  </table></div>
+  <h3>Esportazione e collegamento offline</h3>
+  <ul>
+    <li><b>MIDI General MIDI</b> è la scelta più compatibile tra DAW diverse. Il MIDI include tempo, posizione, swing, feel e ripetizioni.</li>
+    <li><b>WAV</b> e gli stem sono già allineati dall'inizio: trascinali insieme alla battuta 1 della DAW.</li>
+    <li>Il MIDI Clock serve per suonare l'app in tempo reale con la DAW; non serve per importare un file MIDI già esportato.</li>
+  </ul>
 </section>
 
 <section id="tasti">
@@ -125,17 +162,13 @@ th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-sp
   <h2>Macchine (kit di suoni)</h2>
   <div class="table-wrap"><table>
     <tr><th>Macchina</th><th>Suoni</th><th>Origine</th></tr>
-    <tr><td>SP-1200 · 16 bit</td><td>42</td><td>campioni originali E-mu SP-1200</td></tr>
-    <tr><td>SP-1200 · 12 bit</td><td>42</td><td>gli stessi, passati dal convertitore 12 bit (plugin Twelve)</td></tr>
+    <tr><td>SP-1200</td><td>42</td><td>campioni originali E-mu SP-1200</td></tr>
     <tr><td>Yamaha RX-5</td><td>51</td><td>campioni RX-5, tutti raggiungibili (10 in "Solo questa macchina")</td></tr>
     <tr><td>Roland TR-808</td><td>25</td><td>kit "Boutique 808" di Logic Pro (ricreazione Apple, non campioni Roland)</td></tr>
     <tr><td>Roland TR-909</td><td>24</td><td>kit "Boutique 909" di Logic Pro (ricreazione Apple, non campioni Roland)</td></tr>
     <tr><td>Roland TR-707</td><td>16</td><td>kit "TR-707 Processed" del Sampler di Logic Pro</td></tr>
     <tr><td>Roland CR-78</td><td>24</td><td>kit "Boutique 78" di Logic Pro (ricreazione Apple); niente tom n&eacute; clap: li sostituiscono conga e rim</td></tr>
     <tr><td>Linn LinnDrum</td><td>20</td><td>kit "Cory's LinnDrum" del Sampler di Logic Pro</td></tr>
-    <tr><td>E-mu SP-1200 · Boutique</td><td>24</td><td>kit "Boutique SP12" di Logic Pro (ricreazione Apple)</td></tr>
-    <tr><td>Roland TR-808 · campioni</td><td>16</td><td>kit "TR-808 Unprocessed" del Sampler di Logic Pro</td></tr>
-    <tr><td>Roland TR-909 · campioni</td><td>16</td><td>kit "TR-909 Unprocessed" del Sampler di Logic Pro</td></tr>
     <tr><td>Roland TR-727</td><td>16</td><td>kit "TR-727 Processed" del Sampler di Logic Pro; solo percussioni latine: cassa, rullante e hat sono conga, timbales e maracas</td></tr>
     <tr><td>Roland TR-606</td><td>20</td><td>kit "TR-606 Processed" del Sampler di Logic Pro</td></tr>
     <tr><td>Roland CR-8000</td><td>16</td><td>kit "CR-8000 Processed" del Sampler di Logic Pro</td></tr>
@@ -149,6 +182,15 @@ th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-sp
     <li>Cambiando macchina, una riga che usava un suono assente passa al suono equivalente; la barra di stato lo dice.</li>
     <li>Tutti i campioni sono WAV mono 16 bit / 44,1 kHz, normalizzati a &minus;0,1 dB.</li>
     <li>Una macchina i cui file il server non serve sparisce dal selettore invece di restare muta.</li>
+  </ul>
+  <h3>Importa Drum Machine — app macOS</h3>
+  <p>Nel pannello <b>Macchina</b> dell'app macOS trovi <b>Importa Drum Machine</b>. Scegli una cartella o un archivio <b>.zip</b> con i campioni audio (WAV, AIFF, MP3, OGG, FLAC o M4A), assegna un nome alla nuova macchina e conferma.</p>
+  <ul>
+    <li>I campioni vengono assegnati ai pad in ordine alfabetico, fino a 42 strumenti. Il nome iniziale di ogni strumento deriva dal nome del file.</li>
+    <li>Con <b>Modifica macchina</b> puoi cambiare il nome della macchina e rinominare ogni strumento. I kit personali restano salvati nell'app.</li>
+    <li>Le macchine importate compaiono nella sezione <b>Macchine importate</b> del menu. Se ne selezioni una puoi usare <b>Elimina macchina</b>; l'app chiede conferma prima di rimuovere i file.</li>
+    <li>Un kit personale può essere scelto come qualsiasi altra macchina; i pattern già aperti passano al primo campione disponibile quando uno slot non esiste nel nuovo kit.</li>
+    <li>La funzione importa campioni nell'app macOS: il sito web continua a usare i kit pubblicati sul server.</li>
   </ul>
 </section>
 
@@ -246,6 +288,12 @@ th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-sp
     <li>44,1 kHz stereo, reso offline con gli stessi suoni, filtri, volumi e macchina scelta.</li>
     <li>"WAV pattern" = 4 giri del pattern; "WAV canzone" = tutta la canzone; pi&ugrave; 2 secondi di coda.</li>
   </ul>
+  <h3>MP3</h3>
+  <ul>
+    <li>Export stereo a 192 kbps, con gli stessi suoni, filtri, volumi e macchina del WAV.</li>
+    <li>"MP3 pattern" = 4 giri del pattern; "MP3 canzone" = tutta la canzone; pi&ugrave; 2 secondi di coda.</li>
+    <li>Richiede un browser con encoder MP3 integrato; se non disponibile, usa l'export WAV.</li>
+  </ul>
 </section>
 
 <section id="import">
@@ -295,21 +343,21 @@ th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-sp
     <li>Tutti i kit tranne SP-1200 (16 e 12 bit) e RX-5 vengono dalla libreria di Logic Pro (ricreazioni e campioni Apple), non dalle macchine originali.</li>
   </ul>
 </section>
-<footer class="site-footer"><a class="report-link" href="./#segnala">Segnala un problema</a><span class="site-version"><!--build-->versione locale<!--/build--></span><a class="site-badge" href="https://tongatron.org/"><span class="mark"></span><span>tongatron.org</span></a></footer>
+<footer class="site-footer"><a class="report-link" href="./#segnala">Segnala un problema</a><span class="site-version"><!--build-->versione del giorno mese anno HH:MM<!--/build--></span><a class="site-badge" href="https://tongatron.org/"><span class="mark"></span><span>tongatron.org</span></a></footer>
 </div>
 
-<script src="engine/core.js?v=2026-09-25.10"></script>
-<script src="engine/styles-punk.js?v=2026-09-25.10"></script>
-<script src="engine/styles-post.js?v=2026-09-25.10"></script>
-<script src="engine/styles-machines.js?v=2026-09-25.10"></script>
-<script src="engine/styles-alt.js?v=2026-09-25.10"></script>
-<script src="engine/styles-groove.js?v=2026-09-25.10"></script>
-<script src="engine/styles-dub.js?v=2026-09-25.10"></script>
-<script src="engine/styles-break.js?v=2026-09-25.10"></script>
-<script src="engine/styles-soul.js?v=2026-09-25.10"></script>
-<script src="engine/styles-metal.js?v=2026-09-25.10"></script>
-<script src="engine/styles-electro.js?v=2026-09-25.10"></script>
-<script src="engine/variations.js?v=2026-09-25.10"></script>
+<script src="engine/core.js?v=2026-09-27.02"></script>
+<script src="engine/styles-punk.js?v=2026-09-27.02"></script>
+<script src="engine/styles-post.js?v=2026-09-27.02"></script>
+<script src="engine/styles-machines.js?v=2026-09-27.02"></script>
+<script src="engine/styles-alt.js?v=2026-09-27.02"></script>
+<script src="engine/styles-groove.js?v=2026-09-27.02"></script>
+<script src="engine/styles-dub.js?v=2026-09-27.02"></script>
+<script src="engine/styles-break.js?v=2026-09-27.02"></script>
+<script src="engine/styles-soul.js?v=2026-09-27.02"></script>
+<script src="engine/styles-metal.js?v=2026-09-27.02"></script>
+<script src="engine/styles-electro.js?v=2026-09-27.02"></script>
+<script src="engine/variations.js?v=2026-09-27.02"></script>
 <script>
 // Stili, gruppi e variazioni vengono dal motore: questa pagina non va aggiornata a mano quando se ne aggiungono.
 (function(){

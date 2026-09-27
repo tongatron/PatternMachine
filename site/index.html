@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
 <title>PATTERN-MACHINE — drum machine e pattern</title>
-<meta name="description" content="PATTERN-MACHINE: drum machine a step con SP-1200, Yamaha RX-5, Roland TR-606 e TR-909, campioni Logic, pattern, canzoni ed export MIDI.">
+<meta name="description" content="PATTERN-MACHINE: drum machine a step con SP-1200, Yamaha RX-5, Roland TR-606 e TR-909, campioni Logic, pattern, canzoni ed export MIDI, WAV e MP3.">
 <meta name="theme-color" content="#0a0a0b" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#a3a097" media="(prefers-color-scheme: light)">
 
@@ -57,7 +57,7 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="PATTERN-MACHINE">
 <meta property="og:title" content="PATTERN-MACHINE — drum machine e pattern">
-<meta property="og:description" content="Drum machine a step con SP-1200, Yamaha RX-5, Roland TR-606 e TR-909, campioni Logic, pattern, canzoni ed export MIDI direttamente nel browser.">
+<meta property="og:description" content="Drum machine a step con SP-1200, Yamaha RX-5, Roland TR-606 e TR-909, campioni Logic, pattern, canzoni ed export MIDI, WAV e MP3 direttamente nel browser.">
 <meta property="og:image" content="https://patternmachine.tongatron.org/assets/patternmachine-preview.jpg">
 <meta property="og:image:type" content="image/jpeg">
 <meta property="og:image:width" content="1672">
@@ -68,7 +68,7 @@
 
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="PATTERN-MACHINE — drum machine e pattern">
-<meta name="twitter:description" content="Drum machine a step con SP-1200, Yamaha RX-5, Roland TR-606 e TR-909, campioni Logic, pattern, canzoni ed export MIDI direttamente nel browser.">
+<meta name="twitter:description" content="Drum machine a step con SP-1200, Yamaha RX-5, Roland TR-606 e TR-909, campioni Logic, pattern, canzoni ed export MIDI, WAV e MP3 direttamente nel browser.">
 <meta name="twitter:image" content="https://patternmachine.tongatron.org/assets/patternmachine-preview.jpg">
 <script defer src="https://analytics.tongatron.org/script.js" data-website-id="9daa93b6-2afb-494a-89fb-288437a030d1" data-domains="patternmachine.tongatron.org"></script>
 </head>
@@ -187,9 +187,9 @@ h1{font-size:26px; letter-spacing:0.18em; text-transform:uppercase; margin:0; li
 .project-panel h2{margin-bottom:8px;}
 .project-buttons{display:flex; flex-wrap:wrap; gap:8px;}
 .project-buttons button{min-height:42px; padding:10px 16px; font-size:12px; letter-spacing:.06em;}
+.project-panel #viewRecent{min-height:42px; padding:10px 16px; font-size:12px; letter-spacing:.06em;}
 .project-panel #projectName{height:42px; box-sizing:border-box;}
 .project-panel #importBtn{min-height:42px; padding:10px 16px; font-size:12px; letter-spacing:.06em; display:inline-flex; align-items:center; gap:6px;}
-.project-arrow{display:inline-block; width:14px; text-align:center; font-size:14px; line-height:1;}
 @media (max-width:560px){.project-buttons{width:100%;}.project-buttons button{flex:1 1 30%;}}
 /* Menu Export: il summary ha l'aspetto di un tasto, l'elenco si apre sotto e si chiude al click fuori. */
 .export-menu{position:relative;}
@@ -198,7 +198,6 @@ h1{font-size:26px; letter-spacing:0.18em; text-transform:uppercase; margin:0; li
   min-height:42px; box-sizing:border-box; display:flex; align-items:center; padding:10px 16px;
   font-size:12px; letter-spacing:0.06em; text-transform:uppercase; white-space:nowrap; user-select:none;}
 .export-menu summary::-webkit-details-marker{display:none;}
-.export-menu summary::after{content:"\25B2"; display:inline-block; width:14px; margin-left:6px; text-align:center; font-size:14px; line-height:1;}
 .export-menu summary:hover{border-color:var(--text-faint);}
 .export-menu summary:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
 .export-menu[open] summary{border-color:var(--accent);}
@@ -394,6 +393,10 @@ label.fld input[type=number]{width:54px;}
 .ask input[hidden]{display:none;}
 .ask .ask-btns{display:flex; justify-content:flex-end; gap:8px;}
 .ask .ask-btns button{min-width:90px;}
+/* Primo accesso: invito a scaricare l'app */
+.app-promo{width:min(480px,calc(100% - 32px));}
+.app-promo .promo-list{margin:0 0 16px; padding-left:18px; font-size:13px; line-height:1.5;}
+.app-promo .promo-list li{margin:0 0 6px;}
 /* Segnala un problema */
 .report-btn{font-size:11px; padding:7px 12px;}
 .report-dlg{width:min(480px,calc(100% - 32px));}
@@ -528,6 +531,8 @@ button.danger-fill{background:var(--danger); border-color:var(--danger); color:#
 .seqblock-actions{display:flex; gap:4px;}
 .seqblock-actions button{flex:1 1 0; padding:4px 5px; font-size:9px;}
 .seqblock-actions button.on{background:var(--key-primary,var(--accent)); color:var(--on-accent); border-color:var(--accent-dim); font-weight:700;}
+#metronomeBtn{min-height:44px; padding:11px 18px; font-size:13.5px;}
+#metronomeBtn.on{background:var(--key-primary,var(--accent)); color:var(--on-accent); border-color:var(--accent-dim);}
 .seqblock .prev{display:flex; flex-direction:column; gap:2px; min-height:26px; justify-content:center;}
 .seqblock-foot{display:flex; align-items:center; gap:3px;}
 .seqblock-foot input{width:36px; text-align:center; padding:3px 2px; font-size:10px;}
@@ -565,8 +570,8 @@ button.danger-fill{background:var(--danger); border-color:var(--danger); color:#
   background:color-mix(in srgb, var(--ok) 16%, transparent);}
 .tl-head{position:absolute; top:0; bottom:0; left:0; width:2px; margin-left:-1px; pointer-events:none;
   background:var(--ok); box-shadow:0 0 8px var(--ok), 0 0 2px var(--ok); display:none;}
-.tl-start{position:absolute; top:0; left:0; width:0; height:0; margin-left:-5px; pointer-events:none;
-  border-left:5px solid transparent; border-right:5px solid transparent; border-top:7px solid var(--song);}
+.tl-start{position:absolute; top:0; bottom:0; left:0; width:2px; margin-left:-1px; pointer-events:none;
+  background:var(--ok); box-shadow:0 0 8px var(--ok), 0 0 2px var(--ok);}
 .timeline.live .tl-head{display:block;}
 .timeline.live .tl-start{display:none;}
 .tl-info{display:flex; flex-wrap:wrap; gap:4px 14px; align-items:baseline; font-size:10px; color:var(--text-dim); margin-bottom:8px;}
@@ -597,15 +602,12 @@ table.recent .empty td{color:var(--text-faint); font-style:italic; text-align:ce
 .acts{display:flex; gap:5px;}
 
 .status{font-size:10px; color:var(--text-dim); letter-spacing:0.03em;}
-/* pulsante di tongatron.org (tongatron.org/pulsanti): senza fondo proprio, quindi del colore del sito;
-   variante C2 (contorno giallo, testo chiaro) nel tema scuro, D2 (contorno e testo scuri) nel chiaro. */
+/* logo tongatron.org: pillola gialla con pallino nero, come nella pagina app */
 .site-footer{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; margin:22px 0 6px; font-size:11px; color:var(--text-dim);}
-.site-badge{display:inline-flex; align-items:center; gap:10px; text-decoration:none; font:14px system-ui,-apple-system,"Segoe UI",sans-serif;
-  background:transparent; color:#eee; border:1px solid #ffcc00; padding:6px 10px; border-radius:6px; transition:.2s;}
-.site-badge .mark{width:11px; height:11px; border-radius:50%; background:#ffcc00; flex-shrink:0;}
-.site-badge:hover{transform:translateY(-1px);}
-@media (prefers-color-scheme: light){ :root:not([data-theme="dark"]) .site-badge{color:#111; border-color:#333;} }
-:root[data-theme="light"] .site-badge{color:#111; border-color:#333;}
+.site-badge{display:inline-flex; align-items:center; gap:10px; text-decoration:none; font:700 14px/1.2 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  background:#ffcc00; color:#000; padding:5px 12px; border-radius:999px; transition:.2s;}
+.site-badge .mark{width:11px; height:11px; border-radius:50%; background:#000; flex-shrink:0;}
+.site-badge:hover{box-shadow:0 0 0 2px #000;}
 .status.err{color:var(--danger);}
 .hint{color:var(--text-faint); font-size:10px; line-height:1.7; margin:12px 0 0;}
 .hint b{color:var(--text-dim);}
@@ -647,8 +649,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 #recBtn{font-size:13.5px; padding:11px 18px; min-height:44px;}
 #bpmNum{height:44px; width:72px; font-size:14px;}
 #tapBtn{min-height:44px; padding:11px 18px; font-size:13.5px;}
-.topbar .help-link{margin-left:auto;}
-.toolkit-link{color:var(--text-dim);}
+.topbar #accountLinks{display:inline-flex; align-items:baseline; gap:10px; margin-left:auto;}
 @media (max-width:560px){
   #viewGrid, #viewSeq, #viewRecent{padding:10px 14px;}
 }
@@ -657,11 +658,10 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 <div class="wrap">
   <div class="topbar">
     <h1>PATTERN-MACHINE</h1>
-    <span class="tagline">Drum machine a step, generatore di pattern e canzone, export MIDI</span>
+    <span class="tagline">Drum machine a step, generatore di pattern e canzone, export MIDI, WAV e MP3</span>
     <a class="linkbtn help-link" href="funzioni.html" title="come si usa e cosa fa ogni funzione">Istruzioni e funzioni</a>
-    <a class="linkbtn" href="app.html" title="PATTERN-MACHINE come app per macOS: MIDI verso Logic, sync al clock, trascinamento">App per Mac</a>
+    <a class="linkbtn" id="desktopAppLink" href="app.html" title="PATTERN-MACHINE come app per macOS, Windows e Linux: MIDI, sync al clock e trascinamento">App per Mac, Win, Linux</a>
     <button id="installBtn" class="linkbtn" title="Installa PATTERN-MACHINE come app web PWA">&#8681; App web PWA</button>
-    <a class="linkbtn toolkit-link" href="toolkit.html" target="_blank" rel="noopener">Drum Machine Toolkit &rarr;</a>
     <div class="modeswitch theme-switch" role="group" aria-label="Tema dell'interfaccia">
       <button type="button" data-theme-choice="light" title="Tema chiaro">&#9728;&#xFE0E; Chiaro</button>
       <button type="button" data-theme-choice="dark" title="Tema scuro">&#9790; Scuro</button>
@@ -682,8 +682,8 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       <div class="project-buttons">
         <button id="saveBtn" class="primary">Salva</button>
         <button id="newBtn">Nuovo</button>
-        <button id="viewRecent"><span id="recentLabel">Progetti recenti</span> <span id="recentCount"></span></button>
-        <button id="importBtn" title="Importa MIDI, audio, PatternTXT, drum tab, Hydrogen, REAPER, Ableton, MusicXML o un progetto JSON (anche trascinando un file sulla pagina)">Import <span class="project-arrow" aria-hidden="true">&#9662;</span></button>
+        <button id="viewRecent"><span id="recentLabel">Progetti salvati</span> <span id="recentCount"></span></button>
+        <button id="importBtn" title="Importa MIDI, audio, PatternTXT, drum tab, Hydrogen, REAPER, Ableton, MusicXML o un progetto JSON (anche trascinando un file sulla pagina)">Import</button>
       </div>
       <details class="export-menu" id="exportMenu">
         <summary>Export</summary>
@@ -695,6 +695,8 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
           <div class="export-head">Audio</div>
           <button id="wavPatternBtn" title="Audio del pattern ripetuto 4 volte, con volumi ed effetti delle righe">WAV pattern</button>
           <button id="wavSongBtn" title="Audio dell'intera canzone, con volumi ed effetti delle righe">WAV canzone</button>
+          <button id="mp3PatternBtn" title="Audio MP3 del pattern ripetuto 4 volte, con volumi ed effetti delle righe">MP3 pattern</button>
+          <button id="mp3SongBtn" title="Audio MP3 dell'intera canzone, con volumi ed effetti delle righe">MP3 canzone</button>
           <div class="export-head">Pacchetti per DAW <span>segue Pattern/Canzone</span></div>
           <button id="logicBtn" class="daw-btn" data-daw="logic" title="Zip per Logic Pro: MIDI General MIDI, uno stem WAV per strumento, campioni del kit. Segue Pattern/Canzone">Logic (zip)</button>
           <button class="daw-btn" data-daw="ableton" title="Zip per Ableton Live: MIDI General MIDI per un Drum Rack, uno stem WAV per strumento, campioni del kit. Segue Pattern/Canzone">Ableton Live (zip)</button>
@@ -729,8 +731,6 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       <button id="pVary" class="mini" aria-expanded="false" title="applica o disattiva una variazione al pattern che stai modificando">&#10022; Variazioni</button>
       <button id="pNew" class="mini">+ Nuovo</button>
       <button id="pDup" class="mini">Duplica</button>
-      <button id="pCopy" class="mini">Copia</button>
-      <button id="pPaste" class="mini">Incolla</button>
       <button id="pRename" class="mini">Rinomina</button>
       <button id="pClear" class="mini">Svuota</button>
       <button id="pDel" class="mini danger">Elimina</button>
@@ -751,9 +751,10 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       <button id="recBtn"><span class="rec-dot" aria-hidden="true">&#9679;</span> Rec</button>
       <label class="fld">BPM
         <input type="range" id="bpmRange" min="60" max="180" value="93">
-        <input type="number" id="bpmNum" min="40" max="240" value="93">
+      <input type="number" id="bpmNum" min="40" max="240" value="93">
       </label>
       <button id="tapBtn" class="mini">Tap</button>
+      <button id="metronomeBtn" class="mini" type="button" aria-pressed="false" title="Attiva/disattiva il metronomo">Metronomo</button>
       <label class="fld" title="swing alla MPC: 50% dritto, 66% terzinato, 75% massimo">Swing <input type="range" id="swingRange" min="0" max="100" value="0"> <span id="swingPct" class="tiny">50%</span></label>
       <label class="fld" title="umanizza: piccole differenze a caso di tempo (fino a 10 ms) e forza (fino al 15%)">Umano <input type="range" id="humanRange" min="0" max="100" value="0"></label>
       <label class="fld">Vol <input type="range" id="masterVol" min="0" max="100" value="85"></label>
@@ -791,7 +792,8 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <div class="flexline" style="margin-bottom:9px;">
       <select id="seqPattern"></select>
       <button id="sAdd" class="mini primary">+ Inserisci</button>
-      <button id="sPlay" class="mini" title="Riproduci la canzone dal blocco selezionato">&#9654; Da qui</button>
+      <button id="sPlay" class="mini" title="Riproduci la canzone dall'inizio">&#9654; Dall'inizio</button>
+      <button id="seqRename" class="mini">Rinomina</button>
       <button id="sDup" class="mini">Duplica</button>
       <button id="sLeft" class="mini" title="Sposta a sinistra">&larr;</button>
       <button id="sRight" class="mini" title="Sposta a destra">&rarr;</button>
@@ -804,7 +806,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       <span id="tlPos">battuta 1</span>
       <span class="tl-note" id="tlNote"></span>
     </div>
-    <div class="timeline" id="timeline" title="Click: fai partire la canzone da quel blocco">
+    <div class="timeline" id="timeline" title="Click: scegli il punto da cui far partire la canzone">
       <div class="tl-lane" id="tlLane"></div>
       <div class="tl-done" id="tlDone"></div>
       <div class="tl-start" id="tlStart"></div>
@@ -814,12 +816,12 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <div class="seq-track" id="seqTrack"></div>
     <p class="hint" style="margin-top:0;">
       Trascina i blocchi per riordinarli &middot; scegli la sezione direttamente nel blocco &middot;
-      doppio click apre il beat nella griglia &middot; click seleziona il punto da cui parte il play.
+      doppio click apre il beat nella griglia &middot; clicca sulla linea per scegliere da dove parte il play.
     </p>
   </div>
 
   <div class="panel" id="panelRecent" hidden>
-    <h2 id="recentTitle">Progetti recenti</h2>
+    <h2 id="recentTitle">Progetti salvati</h2>
     <div class="recent-wrap">
       <table class="recent">
         <thead><tr><th>Anteprima</th><th>Nome</th><th>Macchina</th><th>Aggiornato</th><th>BPM</th><th>Pattern</th><th></th></tr></thead>
@@ -882,7 +884,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     </div>
   </div>
 
-  <details class="help" id="helpKeys" open>
+  <details class="help" id="helpKeys">
     <summary>Suonare: i tasti e i comandi</summary>
     <div class="help-body">
       <section>
@@ -1002,23 +1004,54 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       </div>
     </form>
   </dialog>
-  <footer class="site-footer"><button type="button" class="report-btn" id="reportBtn">Segnala un problema</button><span class="site-version"><!--build-->versione locale<!--/build--></span><a class="site-badge" href="https://tongatron.org/"><span class="mark"></span><span>tongatron.org</span></a></footer>
+  <dialog class="ask app-promo" id="appPromo" aria-labelledby="appPromoTitle">
+    <form method="dialog">
+      <h3 id="appPromoTitle">PATTERN-MACHINE anche come app</h3>
+      <p>Per Mac, Windows e Linux. Rispetto al sito nel browser:</p>
+      <ul class="promo-list">
+        <li><b>Trascini</b> il pattern o la canzone (MIDI o WAV) direttamente nella timeline della DAW, senza zip da scompattare.</li>
+        <li><b>Uscita MIDI dal vivo</b>: la porta "PatternMachine" suona Drum Kit Designer, Drum Machine Designer o qualsiasi strumento, e si registra.</li>
+        <li><b>Segue il clock della DAW</b>: parte, si ferma, salta e cambia tempo insieme a Logic.</li>
+        <li><b>Progetti come file</b> in Musica › PatternMachine, da copiare o mettere nel backup.</li>
+        <li><b>Funziona offline</b>, senza rete né password.</li>
+      </ul>
+      <div class="ask-btns">
+        <button type="submit" value="later">Più tardi</button>
+        <button type="submit" value="go" id="appPromoGo" class="primary">Scarica l'app</button>
+      </div>
+    </form>
+  </dialog>
+  <dialog class="ask app-promo" id="guestPromo" aria-labelledby="guestPromoTitle">
+    <form method="dialog">
+      <h3 id="guestPromoTitle">Perché registrarsi</h3>
+      <p>Stai usando PATTERN-MACHINE senza account. Registrandoti, gratis:</p>
+      <ul class="promo-list">
+        <li><b>Salvi i tuoi progetti</b> e li ritrovi in "Progetti salvati", insieme ai preferiti.</li>
+        <li><b>Scarichi l'app</b> per macOS, Windows e Linux, con funzioni avanzate: trascinamento di MIDI e WAV nella DAW, uscita MIDI dal vivo, sincronizzazione al clock della DAW, progetti come file e uso offline.</li>
+      </ul>
+      <div class="ask-btns">
+        <button type="submit" value="later">Procedi senza registrarti</button>
+        <button type="submit" value="go" class="primary">Registrati</button>
+      </div>
+    </form>
+  </dialog>
+  <footer class="site-footer"><button type="button" class="report-btn" id="reportBtn">Segnala un problema</button><span class="site-version"><!--build-->versione del giorno mese anno HH:MM<!--/build--></span><a class="site-badge" href="https://tongatron.org/"><span class="mark"></span><span>tongatron.org</span></a></footer>
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-25.10"></script>
-<script src="engine/styles-punk.js?v=2026-09-25.10"></script>
-<script src="engine/styles-post.js?v=2026-09-25.10"></script>
-<script src="engine/styles-machines.js?v=2026-09-25.10"></script>
-<script src="engine/styles-alt.js?v=2026-09-25.10"></script>
-<script src="engine/styles-groove.js?v=2026-09-25.10"></script>
-<script src="engine/styles-dub.js?v=2026-09-25.10"></script>
-<script src="engine/styles-break.js?v=2026-09-25.10"></script>
-<script src="engine/styles-soul.js?v=2026-09-25.10"></script>
-<script src="engine/styles-metal.js?v=2026-09-25.10"></script>
-<script src="engine/styles-electro.js?v=2026-09-25.10"></script>
-<script src="engine/variations.js?v=2026-09-25.10"></script>
-<script src="engine/import.js?v=2026-09-25.10"></script>
+<script src="engine/core.js?v=2026-09-27.02"></script>
+<script src="engine/styles-punk.js?v=2026-09-27.02"></script>
+<script src="engine/styles-post.js?v=2026-09-27.02"></script>
+<script src="engine/styles-machines.js?v=2026-09-27.02"></script>
+<script src="engine/styles-alt.js?v=2026-09-27.02"></script>
+<script src="engine/styles-groove.js?v=2026-09-27.02"></script>
+<script src="engine/styles-dub.js?v=2026-09-27.02"></script>
+<script src="engine/styles-break.js?v=2026-09-27.02"></script>
+<script src="engine/styles-soul.js?v=2026-09-27.02"></script>
+<script src="engine/styles-metal.js?v=2026-09-27.02"></script>
+<script src="engine/styles-electro.js?v=2026-09-27.02"></script>
+<script src="engine/variations.js?v=2026-09-27.02"></script>
+<script src="engine/import.js?v=2026-09-27.02"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -1280,12 +1313,12 @@ const KITS={
 };
 // Le altre macchine si costruiscono tutte allo stesso modo dalla loro tabella.
 const MACHINES={
-  sp12b:{label:"E-mu SP-1200 · Boutique", source:"kit Boutique SP12 di Logic", slots:SP12B_SLOTS, extra:SP12B_EXTRA},
+  sp12b:{label:"E-mu SP-1200", source:"kit Boutique SP12 di Logic", slots:SP12B_SLOTS, extra:SP12B_EXTRA},
   rx5:{label:"Yamaha RX-5", slots:RX5_SLOTS, extra:RX5_EXTRA},
   tr808:{label:"Roland TR-808", source:"kit Boutique 808 di Logic", slots:TR808_SLOTS, extra:TR808_EXTRA},
-  tr808u:{label:"Roland TR-808 · campioni", source:"kit TR-808 Unprocessed di Logic", slots:TR808U_SLOTS, extra:TR808U_EXTRA},
+  tr808u:{label:"Roland TR-808 · Unprocessed", source:"kit TR-808 Unprocessed di Logic", slots:TR808U_SLOTS, extra:TR808U_EXTRA},
   tr909:{label:"Roland TR-909", source:"kit Boutique 909 di Logic", slots:TR909_SLOTS, extra:TR909_EXTRA},
-  tr909u:{label:"Roland TR-909 · campioni", source:"kit TR-909 Unprocessed di Logic", slots:TR909U_SLOTS, extra:TR909U_EXTRA},
+  tr909u:{label:"Roland TR-909 · Unprocessed", source:"kit TR-909 Unprocessed di Logic", slots:TR909U_SLOTS, extra:TR909U_EXTRA},
   tr707:{label:"Roland TR-707", source:"kit TR-707 di Logic", slots:TR707_SLOTS, extra:TR707_EXTRA},
   tr727:{label:"Roland TR-727", source:"kit TR-727 di Logic", slots:TR727_SLOTS, extra:TR727_EXTRA},
   tr606:{label:"Roland TR-606", source:"kit TR-606 di Logic", slots:TR606_SLOTS, extra:TR606_EXTRA},
@@ -1341,8 +1374,13 @@ function setSampleSet(k,quiet=false){
   const sel=document.getElementById("kitSelect"); if(sel) sel.value=k;
   if(typeof paintKitButtons==="function" && document.getElementById("kitSelect")) paintKitButtons();
   let moved=0;
+  const firstAvailable=()=>SAMPLES.findIndex((_s,i)=>sampleAvailable(i));
   project.tracks.forEach(t=>{
-    if(!sampleAvailable(t.sampleIndex)){ t.sampleIndex=sampleIdx(SAMPLES[t.sampleIndex].fallback||"Perc 1"); moved++; }
+    if(!sampleAvailable(t.sampleIndex)){
+      const fallback=sampleIdx(SAMPLES[t.sampleIndex].fallback||"Perc 1");
+      t.sampleIndex=sampleAvailable(fallback)?fallback:(KITS[k].custom?firstAvailable():fallback);
+      moved++;
+    }
     loadBuffer(t.sampleIndex);
   });
   if(typeof renderAll==="function" && project.patterns) renderAll();
@@ -1402,7 +1440,7 @@ const jitterT = ()=> (Math.random()*2-1)*human()*0.010;
 const jitterV = ()=> 1+(Math.random()*2-1)*human()*0.15;
 
 let project=null;
-let ui={patternId:null, blockId:null, mode:"pattern", recording:false, clip:null, songSoloBlockId:null};
+let ui={patternId:null, blockId:null, mode:"pattern", recording:false, songSoloBlockId:null, songStartPos:0, metronome:false};
 
 function starterProject(){
   const tracks=[
@@ -1546,6 +1584,17 @@ const swing = ()=> (parseInt(document.getElementById("swingRange").value,10)||0)
 const baseStepDur = ()=> 60/bpm()/4;
 const stepDur = step => baseStepDur()*(step%2===0 ? 1+swing() : 1-swing());
 
+function metronomeHit(time, accent=false){
+  const ctx=actx(), osc=ctx.createOscillator(), gain=ctx.createGain();
+  const master=(+document.getElementById("masterVol").value||85)/100;
+  osc.type="square"; osc.frequency.value=accent?1320:880;
+  gain.gain.setValueAtTime(0.0001,time);
+  gain.gain.exponentialRampToValueAtTime((accent?0.18:0.11)*master,time+0.002);
+  gain.gain.exponentialRampToValueAtTime(0.0001,time+0.055);
+  osc.connect(gain).connect(ctx.destination);
+  osc.start(time); osc.stop(time+0.06);
+}
+
 function playingPattern(){
   if(ui.mode==="song"){
     const block=project.song[cursor.blockIndex];
@@ -1563,6 +1612,7 @@ function scheduler(){
     if(!pat){ stop(); return; }
     const live=audibleTracks();
     const dur=stepDur(cursor.step);
+    if(ui.metronome && cursor.step%4===0) metronomeHit(nextTime,cursor.step===0);
     const cycle=ui.mode==="song" ? (cursor.rep||0) : (cursor.loops||0);
     live.forEach(t=>{
       const i=stepIdx(pat,t.id,cursor.step,cycle);
@@ -1615,9 +1665,17 @@ function play(){
   if(ui.mode==="song" && !project.song.length){ setStatus("la canzone e' vuota","err"); return; }
   playing=true;
   cursor={step:0, blockIndex:0, rep:0};
-  if(ui.mode==="song" && ui.blockId){
-    const i=project.song.findIndex(b=>b.id===ui.blockId);
-    if(i>=0) cursor.blockIndex=i;
+  if(ui.mode==="song"){
+    seqLayout=songLayout();
+    const start=Math.max(0,Math.min(Math.max(0,seqLayout.total-1),ui.songStartPos||0));
+    const startIdx=seqLayout.blocks.findIndex(x=>start<x.start+x.steps);
+    const blk=seqLayout.blocks[startIdx>=0?startIdx:0];
+    if(blk){
+      const offset=Math.max(0,start-blk.start);
+      cursor={step:Math.floor(offset)%blk.len, blockIndex:startIdx>=0?startIdx:0,
+        rep:Math.floor(offset/blk.len), loops:0};
+      ui.blockId=blk.b.id;
+    }
   }
   if(ui.mode==="song" && ui.songSoloBlockId){
     const i=project.song.findIndex(b=>b.id===ui.songSoloBlockId);
@@ -1969,7 +2027,7 @@ function paintTimeline(){
   tl.classList.toggle("live",live);
   const sps=60/bpm()/4;
   const selIdx=Math.max(0,L.blocks.findIndex(x=>x.b.id===ui.blockId));
-  let pos=L.blocks[selIdx]?.start||0;
+  let pos=Math.max(0,Math.min(Math.max(0,L.total-1),ui.songStartPos||L.blocks[selIdx]?.start||0));
   const nowIdx=live?visible.blockIndex:-1;
   if(live){
     const blk=L.blocks[visible.blockIndex];
@@ -2016,11 +2074,15 @@ el("timeline").onclick=e=>{
   const pos=Math.max(0,Math.min(L.total-1,(e.clientX-r.left)/r.width*L.total));
   const idx=L.blocks.findIndex(x=>pos<x.start+x.steps);
   const blk=L.blocks[idx];
-  const rep=Math.floor((pos-blk.start)/blk.len);   // si parte dall'inizio di quella ripetizione
+  const offset=Math.max(0,pos-blk.start);
+  const rep=Math.floor(offset/blk.len);
   ui.blockId=blk.b.id;
+  ui.songStartPos=Math.floor(pos);
   if(ui.mode!=="song") setMode("song");            // se stava suonando riparte in Canzone da questo blocco
   if(playing){
-    cursor={step:0, blockIndex:idx, rep};
+    const step=Math.floor(offset)%blk.len;
+    cursor={step, blockIndex:idx, rep, loops:0};
+    nextTime=actx().currentTime+0.06;
     queue=[];
   }
   renderSong();
@@ -2194,6 +2256,7 @@ function renderSong(){
 
     card.onclick=()=>{
       ui.blockId=b.id;
+      ui.songStartPos=seqLayout.blocks[idx]?.start||0;
       if(p){ ui.patternId=p.id; el("pLen").value=p.len; renderPatterns(); renderRuler(); renderTracks(); }
       renderSong();
     };
@@ -2249,7 +2312,7 @@ function setView(v){
   el("panelSeq").hidden = v!=="seq";
   el("panelRecent").hidden = v!=="recent";
   setMode(v==="seq"?"song":"pattern");
-  el("helpKeys").hidden = v==="recent";
+  el("helpKeys").hidden = v!=="grid";
   // Rec registra nella griglia del pattern: fuori dalla Griglia sparisce e si spegne
   el("recBtn").hidden = v!=="grid";
   if(v!=="grid" && recording){ recording=false; el("recBtn").classList.remove("on"); }
@@ -2319,7 +2382,34 @@ fetch("/api/me",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(me=>{
   el("registerLink").hidden=!isGuest;
   if(isGuest && el("viewRecent").classList.contains("on")) setView("grid");
   if(isGuest && libView==="fav") setLibView("all");
+  if(isGuest) showGuestPromo(); else showAppPromo(me);
 }).catch(()=>{});
+
+// Primo accesso di un utente registrato: una volta per utente (e per browser) una finestra invita a
+// scaricare l'app. Non compare dentro l'app per Mac (li' /api/me non risponde e c'e' window.pmDesktop).
+function showAppPromo(me){
+  if(window.pmDesktop) return;
+  const key="pm.appPromo."+me.name.toLowerCase(), d=el("appPromo");
+  try{ if(localStorage.getItem(key)) return; }catch(e){ return; }   // senza storage comparirebbe a ogni visita
+  if(document.querySelector("dialog[open]")) return;               // riprova alla prossima visita
+  try{ localStorage.setItem(key,new Date().toISOString()); }catch(e){}
+  d.returnValue="later";
+  d.onclose=()=>{ if(d.returnValue==="go") location.href="app.html"; };
+  d.showModal();
+  el("appPromoGo").focus();
+}
+// Ospite: a ogni "Accedi senza registrarti" (la pagina di accesso lascia guestWelcome nella sessione)
+// una finestra elenca i vantaggi della registrazione.
+function showGuestPromo(){
+  try{ if(!sessionStorage.getItem("guestWelcome")) return; sessionStorage.removeItem("guestWelcome"); }catch(e){ return; }
+  const d=el("guestPromo");
+  d.returnValue="later";
+  d.onclose=()=>{ if(d.returnValue==="go") location.href="/register?next="+encodeURIComponent(location.pathname); };
+  d.showModal();
+  d.querySelector('button[value="go"]').focus();
+}
+for(const id of ["appPromo","guestPromo"])
+  el(id).addEventListener("click",e=>{ if(e.target===el(id)) el(id).close("later"); });
 
 // ---------- finestra di conferma ----------
 // Sostituisce confirm() e prompt() del browser con una finestra del sito.
@@ -2337,6 +2427,13 @@ function ask({title, message="", ok="Ok", cancel="Annulla", danger=false, input=
     if(input!==null){ f.focus(); f.select(); } else (danger?el("askCancel"):okB).focus();
   });
 }
+const desktopAppLink=el("desktopAppLink");
+if(desktopAppLink) desktopAppLink.addEventListener("click",async e=>{
+  if(!isGuest) return;
+  e.preventDefault();
+  const go=await ask({title:"Download riservato", message:"Per scaricare l'app devi avere un account registrato.", ok:"Registrati", cancel:"Chiudi"});
+  if(go) location.href="/register?next=/app.html";
+});
 // Invio nel campo di testo conferma (l'invio implicito del form userebbe il primo pulsante, Annulla).
 el("askInput").addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); el("askDialog").close("ok"); } });
 // Click fuori dalla finestra = Annulla.
@@ -2358,6 +2455,13 @@ document.addEventListener("keydown",(e)=>{
 
 // ---------- transport UI ----------
 el("playBtn").onclick=togglePlay;
+el("metronomeBtn").onclick=()=>{
+  ui.metronome=!ui.metronome;
+  const b=el("metronomeBtn");
+  b.classList.toggle("on",ui.metronome);
+  b.setAttribute("aria-pressed",String(ui.metronome));
+  b.title=ui.metronome?"Disattiva il metronomo":"Attiva il metronomo";
+};
 el("viewRecent").onclick=()=>setView("recent");
 el("viewGrid").onclick=()=>setView("grid");
 el("viewSeq").onclick=()=>setView("seq");
@@ -2373,25 +2477,26 @@ function paintKitButtons(){
   if(k) sel.title=k.label+(k.source?" · "+k.source+" (ricreazione Apple)":"");
 }
 const KIT_KEY="pm.kit";
-const preferredKit=()=>{ let k=null; try{ k=localStorage.getItem(KIT_KEY); }catch(e){} return KITS[k]?k:"tr808"; };
-const KIT_MENU_FIRST=["std","12bit","rx5","tr606","tr909"];
+const KIT_MENU_HIDDEN=new Set(["sp12b","tr808u","tr909u"]);
+const preferredKit=()=>{ let k=null; try{ k=localStorage.getItem(KIT_KEY); }catch(e){} return KITS[k]&&!KIT_MENU_HIDDEN.has(k)?k:"tr808"; };
+const KIT_MENU_FIRST=["std","rx5","tr606","tr808","tr909","tr707","tr727","cr78","cr8000","linn","dmx","drumulator","drumtraks","sdsv"];
 function fillKitOptions(sel){
   if(!sel) return;
   sel.innerHTML="";
   KIT_MENU_FIRST.forEach(k=>{
     const x=KITS[k], o=document.createElement("option"); o.value=k; o.textContent=x.label; sel.appendChild(o);
   });
-  const logic=document.createElement("optgroup"); logic.label="Altri campioni";
+  const imported=document.createElement("optgroup"); imported.label="Macchine importate";
   Object.entries(KITS).forEach(([k,x])=>{
-    if(KIT_MENU_FIRST.includes(k)) return;
-    const o=document.createElement("option"); o.value=k; o.textContent=x.label; logic.appendChild(o);
+    if(KIT_MENU_FIRST.includes(k)||KIT_MENU_HIDDEN.has(k)) return;
+    const o=document.createElement("option"); o.value=k; o.textContent=x.label;
+    if(x.custom) imported.appendChild(o); else sel.appendChild(o);
   });
-  sel.appendChild(logic);
+  if(imported.children.length) sel.appendChild(imported);
 }
 (function initKitSelect(){
   const sel=el("kitSelect");
-  // Le macchine principali restano in cima; tutti gli altri kit sono raccolti
-  // in un solo menu "Altri campioni".
+  // Le macchine predefinite restano in un unico elenco; i kit personali hanno un gruppo separato.
   fillKitOptions(sel);
   fillKitOptions(el("libKitSelect"));
   sel.value=sampleSet;
@@ -2458,25 +2563,16 @@ el("pDup").onclick=()=>{
   p.mods=cloneMods(src.mods); p.lens={...(src.lens||{})};
   project.patterns.push(p); normalize(); selectPattern(p.id);
 };
-el("pCopy").onclick=()=>{
-  const src=curPattern();
-  ui.clip={len:src.len, grid:Object.fromEntries(Object.entries(src.grid).map(([k,v])=>[k,v.slice()])), mods:cloneMods(src.mods), lens:{...(src.lens||{})}};
-  setStatus("pattern copiato");
-};
-el("pPaste").onclick=()=>{
-  if(!ui.clip){ setStatus("niente da incollare","err"); return; }
-  pushUndo();
-  const p=curPattern();
-  p.len=ui.clip.len; el("pLen").value=p.len;
-  p.grid={}; Object.entries(ui.clip.grid).forEach(([k,v])=>p.grid[k]=v.slice());
-  p.mods=cloneMods(ui.clip.mods); p.lens={...(ui.clip.lens||{})};
-  normalize(); renderRuler(); renderTracks(); renderPatterns(); setStatus("incollato");
-};
-el("pRename").onclick=async()=>{
-  const p=curPattern();
+async function renamePattern(p){
   const n=await ask({title:"Rinomina pattern", ok:"Rinomina", input:p.name});
-  if(n){ p.name=n.trim()||p.name; renderPatterns(); renderSong(); el("gridTitle").textContent="Griglia — "+p.name; }
-};
+  if(n===null) return;
+  const clean=n.trim()||p.name;
+  if(clean===p.name) return;
+  pushUndo();
+  p.name=clean;
+  renderPatterns(); renderSong(); el("gridTitle").textContent="Griglia — "+p.name;
+}
+el("pRename").onclick=()=>renamePattern(curPattern());
 el("pClear").onclick=()=>{
   pushUndo();
   const p=curPattern();
@@ -2547,10 +2643,17 @@ el("sAdd").onclick=()=>{
   ui.blockId=b.id; renderSong();
 };
 el("sPlay").onclick=()=>{
-  if(blockIndex()<0) return setStatus("seleziona un blocco","err");
-  setMode("song"); setView("seq");
+  if(!project.song.length) return setStatus("la canzone e' vuota","err");
   if(playing) stop();
-  play();
+  ui.blockId=project.song[0].id;
+  ui.songStartPos=0;
+  setMode("song"); play();
+};
+el("seqRename").onclick=async()=>{
+  const i=blockIndex();
+  if(i<0) return setStatus("seleziona un blocco","err");
+  const p=patternById(project.song[i].patternId);
+  if(p) await renamePattern(p);
 };
 el("sDup").onclick=()=>{
   const i=blockIndex(); if(i<0) return setStatus("seleziona un blocco","err");
@@ -3012,6 +3115,85 @@ async function exportWav(which){
   }
 }
 
+// MP3: preferisce WebCodecs (disponibile nei browser che espongono il codec MP3);
+// come fallback usa MediaRecorder quando il browser dichiara di saper produrre audio/mpeg.
+async function encodeMp3(buf, gain){
+  const chans=[0,1].map(c=>buf.getChannelData(Math.min(c,buf.numberOfChannels-1)));
+  const frames=buf.length, rate=buf.sampleRate, chunks=[];
+  const config={codec:"mp3", sampleRate:rate, numberOfChannels:2, bitrate:192000};
+  if(window.AudioEncoder && window.AudioData){
+    try{
+      const supported=await AudioEncoder.isConfigSupported(config);
+      if(supported?.supported){
+        const encoder=new AudioEncoder({
+          output(chunk){
+            const data=new Uint8Array(chunk.byteLength);
+            chunk.copyTo(data);
+            chunks.push(data);
+          },
+          error(e){ throw e; }
+        });
+        encoder.configure(config);
+        const block=1152;
+        for(let start=0;start<frames;start+=block){
+          const n=Math.min(block,frames-start), data=new Float32Array(n*2);
+          for(let i=0;i<n;i++){
+            const at=start+i;
+            data[i*2]=Math.max(-1,Math.min(1,chans[0][at]*gain));
+            data[i*2+1]=Math.max(-1,Math.min(1,chans[1][at]*gain));
+          }
+          const audio=new AudioData({format:"f32", sampleRate:rate, numberOfFrames:n,
+            numberOfChannels:2, timestamp:Math.round(start/rate*1e6), data});
+          encoder.encode(audio); audio.close();
+        }
+        await encoder.flush(); encoder.close();
+        if(chunks.length) return new Blob(chunks,{type:"audio/mpeg"});
+      }
+    }catch(e){ /* passa al fallback del browser */ }
+  }
+  const mime=["audio/mpeg","audio/mp3"].find(x=>window.MediaRecorder?.isTypeSupported?.(x));
+  if(!mime) throw new Error("mp3 non supportato da questo browser");
+  const ctx=actx(), dest=ctx.createMediaStreamDestination(), source=ctx.createBufferSource();
+  const level=ctx.createGain(); level.gain.value=gain;
+  source.buffer=buf; source.connect(level).connect(dest);
+  const parts=[];
+  const recorder=new MediaRecorder(dest.stream,{mimeType:mime,audioBitsPerSecond:192000});
+  const done=new Promise((resolve,reject)=>{
+    recorder.ondataavailable=e=>{ if(e.data.size) parts.push(e.data); };
+    recorder.onerror=()=>reject(new Error("encoder MP3 non riuscito"));
+    recorder.onstop=()=>resolve();
+  });
+  recorder.start(); source.start();
+  await new Promise(resolve=>setTimeout(resolve,Math.ceil(buf.duration*1000)+150));
+  recorder.stop();
+  await done;
+  return new Blob(parts,{type:mime});
+}
+
+let mp3Busy=false;
+async function exportMp3(which){
+  if(mp3Busy) return;
+  if(which==="song" && !project.song.length){ setStatus("la canzone e' vuota","err"); return; }
+  mp3Busy=true;
+  const btns=[el("mp3PatternBtn"),el("mp3SongBtn")];
+  btns.forEach(b=>b.disabled=true);
+  setStatus("render MP3 in corso…");
+  try{
+    const {buf, seconds}=await renderWav(which);
+    const {peak}=encodeWav(buf);
+    const gain=peak>0.989?0.989/peak:1;
+    const blob=await encodeMp3(buf,gain);
+    await saveBlob(blob,exportBase(which)+".mp3","MP3");
+    setStatus(`MP3 esportato (${fmtClock(seconds)}, 192 kbps)`);
+  }catch(e){
+    setStatus(e?.message==="vuoto"?"niente da esportare: il pattern e' vuoto o tutto in mute":
+      e?.message==="mp3 non supportato da questo browser"?"questo browser non supporta l'export MP3: usa WAV o un browser Chromium aggiornato":"render MP3 non riuscito","err");
+  }finally{
+    mp3Busy=false;
+    btns.forEach(b=>b.disabled=false);
+  }
+}
+
 // ---------- pacchetto per Logic Pro ----------
 // Uno zip con: MIDI sulla mappa General MIDI (lo capiscono Drummer, Drum Kit Designer e Drum Machine
 // Designer), uno stem WAV per strumento (stessa durata, tutti da zero: trascinati insieme in Logic
@@ -3301,6 +3483,8 @@ el("expPatternBtn").onclick=()=>exportMidi("pattern");
 el("expSongBtn").onclick=()=>exportMidi("song");
 el("wavPatternBtn").onclick=()=>exportWav("pattern");
 el("wavSongBtn").onclick=()=>exportWav("song");
+el("mp3PatternBtn").onclick=()=>exportMp3("pattern");
+el("mp3SongBtn").onclick=()=>exportMp3("song");
 
 // ---------- segnala un problema ----------
 // Il server inoltra al bot Telegram dell'admin (o per mail). Nome e mail si precompilano per chi ha un account;
@@ -3426,7 +3610,7 @@ function buildImport(res, {add, map}){
 }
 
 function remapUnavailable(){
-  project.tracks.forEach(t=>{ if(!sampleAvailable(t.sampleIndex)) t.sampleIndex=sampleIdx(SAMPLES[t.sampleIndex].fallback||"Perc 1"); });
+  project.tracks.forEach(t=>{ if(!sampleAvailable(t.sampleIndex)){ const fallback=sampleIdx(SAMPLES[t.sampleIndex].fallback||"Perc 1"); t.sampleIndex=sampleAvailable(fallback)?fallback:(KITS[sampleSet].custom?SAMPLES.findIndex((_s,i)=>sampleAvailable(i)):fallback); } });
 }
 
 function importMsg(msg,err){ const m=el("importMsg"); m.textContent=msg; m.className="import-msg"+(err?" err":""); }
@@ -4257,7 +4441,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-25.10";
+const SW_VERSION="2026-09-27.02";
 (function pwa(){
   const standalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
   const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);

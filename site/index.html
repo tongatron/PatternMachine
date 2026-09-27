@@ -152,18 +152,8 @@ button, .step, select, input{touch-action:manipulation;}
 body.guest #saveBtn, body.guest #viewRecent, body.guest #libTabFav, body.guest .lib-star{display:none;}
 .whoami{font-size:10px; letter-spacing:0.06em; color:var(--text); font-weight:700;}
 .logout{font-size:10px; letter-spacing:0.06em; text-transform:uppercase; color:var(--text-dim);}
-#installBtn{text-transform:none; cursor:pointer;}
-#installBtn[hidden]{display:none;}
 .net-badge{font-size:9.5px; letter-spacing:0.06em; text-transform:uppercase; color:var(--danger);
   border:1px solid currentColor; border-radius:4px; padding:1px 5px;}
-.pwa-toast{
-  position:fixed; left:50%; transform:translateX(-50%); z-index:50;
-  bottom:max(16px, env(safe-area-inset-bottom)); width:min(460px, calc(100% - 32px));
-  display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px;
-  background:var(--panel-3); border:1px solid var(--edge); box-shadow:0 10px 30px rgba(0,0,0,0.4);
-  font-size:11px; color:var(--text);
-}
-.pwa-toast span{flex:1 1 auto;}
 .wrap{max-width:1100px; margin:0 auto;}
 
 .topbar{display:flex; flex-wrap:wrap; align-items:baseline; gap:10px 16px; margin-bottom:12px;}
@@ -187,6 +177,8 @@ h1{font-size:26px; letter-spacing:0.18em; text-transform:uppercase; margin:0; li
 .project-panel h2{margin-bottom:8px;}
 .project-buttons{display:flex; flex-wrap:wrap; gap:8px;}
 .project-buttons button{min-height:42px; padding:10px 16px; font-size:12px; letter-spacing:.06em;}
+.project-io{display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-left:auto;}
+.project-io button{min-height:42px; padding:10px 16px; font-size:12px; letter-spacing:.06em;}
 .project-panel #viewRecent{min-height:42px; padding:10px 16px; font-size:12px; letter-spacing:.06em;}
 .project-panel #projectName{height:42px; box-sizing:border-box;}
 .project-panel #importBtn{min-height:42px; padding:10px 16px; font-size:12px; letter-spacing:.06em; display:inline-flex; align-items:center; gap:6px;}
@@ -284,6 +276,7 @@ label.fld input[type=number]{width:54px;}
 .pattern-select{min-width:220px; max-width:100%; font-size:12px; padding:6px 8px;}
 .pattern-dot{width:10px; height:10px; border-radius:50%; flex:0 0 auto;}
 .machine-bar{display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-top:12px; padding-top:11px; border-top:1px solid var(--edge-soft);}
+.machine-info{margin-left:auto; font-size:11px; color:var(--text-dim); letter-spacing:.02em; text-align:right;}
 .machine-label{font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--text-dim); font-weight:700;}
 .machine-buttons{display:flex; flex-wrap:wrap; gap:6px;}
 .machine-more{margin-left:auto;}
@@ -672,7 +665,6 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <a class="linkbtn help-link" href="funzioni.html" title="come si usa e cosa fa ogni funzione">Istruzioni e funzioni</a>
     <a class="linkbtn" id="desktopAppLink" href="app.html" title="PATTERN-MACHINE come app per macOS, Windows e Linux: MIDI, sync al clock e trascinamento">App per Mac, Win, Linux</a>
     <a class="linkbtn" id="pluginLink" href="plugin.html" title="PATTERN-MACHINE come plug-in Audio Unit dentro Logic, agganciato al trasporto">Plugin Logic</a>
-    <button id="installBtn" class="linkbtn" title="Installa PATTERN-MACHINE come web app PWA">Web App PWA</button>
     <button type="button" class="theme-toggle" id="themeToggle" role="switch" aria-checked="false" aria-label="Tema scuro" title="Passa dal tema chiaro allo scuro">
       <span class="tt-side tt-light">Chiaro</span><span class="tt-track" aria-hidden="true"><span class="tt-knob"></span></span><span class="tt-side tt-dark">Scuro</span>
     </button>
@@ -693,29 +685,31 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
         <button id="saveBtn" class="primary">Salva</button>
         <button id="newBtn">Nuovo</button>
         <button id="viewRecent"><span id="recentLabel">Progetti salvati</span> <span id="recentCount"></span></button>
-        <button id="importBtn" title="Importa MIDI, audio, PatternTXT, drum tab, Hydrogen, REAPER, Ableton, MusicXML o un progetto JSON (anche trascinando un file sulla pagina)">Import</button>
       </div>
-      <details class="export-menu" id="exportMenu">
-        <summary>Export</summary>
-        <div class="export-list">
-          <div class="export-head">MIDI</div>
-          <button id="expPatternBtn" title="Note del kit SP-1200 di Logic (36 + slot)">MIDI pattern</button>
-          <button id="expSongBtn" title="Note del kit SP-1200 di Logic (36 + slot)">MIDI canzone</button>
-          <button id="gmMidiBtn" title="Mappa General MIDI (36 cassa, 38 rullante, 42 hat chiuso…): va bene in qualsiasi DAW. Segue Pattern/Canzone">MIDI General MIDI</button>
-          <div class="export-head">Audio</div>
-          <button id="wavPatternBtn" title="Audio del pattern ripetuto 4 volte, con volumi ed effetti delle righe">WAV pattern</button>
-          <button id="wavSongBtn" title="Audio dell'intera canzone, con volumi ed effetti delle righe">WAV canzone</button>
-          <button id="mp3PatternBtn" title="Audio MP3 del pattern ripetuto 4 volte, con volumi ed effetti delle righe">MP3 pattern</button>
-          <button id="mp3SongBtn" title="Audio MP3 dell'intera canzone, con volumi ed effetti delle righe">MP3 canzone</button>
-          <div class="export-head">Pacchetti per DAW <span>segue Pattern/Canzone</span></div>
-          <button id="logicBtn" class="daw-btn" data-daw="logic" title="Zip per Logic Pro: MIDI General MIDI, uno stem WAV per strumento, campioni del kit. Segue Pattern/Canzone">Logic (zip)</button>
-          <button class="daw-btn" data-daw="ableton" title="Zip per Ableton Live: MIDI General MIDI per un Drum Rack, uno stem WAV per strumento, campioni del kit. Segue Pattern/Canzone">Ableton Live (zip)</button>
-          <button class="daw-btn" data-daw="reaper" title="Zip per REAPER: progetto .rpp gia' pronto con tempo, stem su tracce separate e una traccia MIDI General MIDI. Segue Pattern/Canzone">REAPER (progetto .rpp)</button>
-          <button class="daw-btn" data-daw="altre" title="Zip per FL Studio, Cubase, Studio One, Bitwig, GarageBand e altre: MIDI General MIDI, stem WAV, campioni. Segue Pattern/Canzone">Altre DAW (zip)</button>
-          <div class="export-head">Progetto</div>
-          <button id="projJsonBtn" title="Tutto il progetto (righe, pattern, canzone) in un file .json da reimportare con Import">Progetto PATTERN-MACHINE (.json)</button>
-        </div>
-      </details>
+      <div class="project-io">
+        <button id="importBtn" title="Importa MIDI, audio, PatternTXT, drum tab, Hydrogen, REAPER, Ableton, MusicXML o un progetto JSON (anche trascinando un file sulla pagina)">Import</button>
+        <details class="export-menu" id="exportMenu">
+          <summary>Export</summary>
+          <div class="export-list">
+            <div class="export-head">MIDI</div>
+            <button id="expPatternBtn" title="Note del kit SP-1200 di Logic (36 + slot)">MIDI pattern</button>
+            <button id="expSongBtn" title="Note del kit SP-1200 di Logic (36 + slot)">MIDI canzone</button>
+            <button id="gmMidiBtn" title="Mappa General MIDI (36 cassa, 38 rullante, 42 hat chiuso…): va bene in qualsiasi DAW. Segue Pattern/Canzone">MIDI General MIDI</button>
+            <div class="export-head">Audio</div>
+            <button id="wavPatternBtn" title="Audio del pattern ripetuto 4 volte, con volumi ed effetti delle righe">WAV pattern</button>
+            <button id="wavSongBtn" title="Audio dell'intera canzone, con volumi ed effetti delle righe">WAV canzone</button>
+            <button id="mp3PatternBtn" title="Audio MP3 del pattern ripetuto 4 volte, con volumi ed effetti delle righe">MP3 pattern</button>
+            <button id="mp3SongBtn" title="Audio MP3 dell'intera canzone, con volumi ed effetti delle righe">MP3 canzone</button>
+            <div class="export-head">Pacchetti per DAW <span>segue Pattern/Canzone</span></div>
+            <button id="logicBtn" class="daw-btn" data-daw="logic" title="Zip per Logic Pro: MIDI General MIDI, uno stem WAV per strumento, campioni del kit. Segue Pattern/Canzone">Logic (zip)</button>
+            <button class="daw-btn" data-daw="ableton" title="Zip per Ableton Live: MIDI General MIDI per un Drum Rack, uno stem WAV per strumento, campioni del kit. Segue Pattern/Canzone">Ableton Live (zip)</button>
+            <button class="daw-btn" data-daw="reaper" title="Zip per REAPER: progetto .rpp gia' pronto con tempo, stem su tracce separate e una traccia MIDI General MIDI. Segue Pattern/Canzone">REAPER (progetto .rpp)</button>
+            <button class="daw-btn" data-daw="altre" title="Zip per FL Studio, Cubase, Studio One, Bitwig, GarageBand e altre: MIDI General MIDI, stem WAV, campioni. Segue Pattern/Canzone">Altre DAW (zip)</button>
+            <div class="export-head">Progetto</div>
+            <button id="projJsonBtn" title="Tutto il progetto (righe, pattern, canzone) in un file .json da reimportare con Import">Progetto PATTERN-MACHINE (.json)</button>
+          </div>
+        </details>
+      </div>
       <span class="status" id="status"></span>
     </div>
   </div>
@@ -724,7 +718,8 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <div class="machine-bar">
       <label class="machine-label" for="kitSelect">Macchina</label>
       <select id="kitSelect" class="machine-select"></select>
-      <a class="linkbtn machine-more" href="macchine.html" title="Storia delle macchine, con confronti da ascoltare">Approfondisci &rarr;</a>
+      <span class="machine-info" id="machineInfo"></span>
+      <a class="linkbtn machine-more" href="macchine.html" title="Storia delle macchine, con confronti da ascoltare">Approfondisci le macchine &rarr;</a>
     </div>
   </div>
 
@@ -1341,6 +1336,31 @@ Object.entries(MACHINES).forEach(([id,m])=>{
   KITS[id]={label:m.label, source:m.source, remote:true, url:x=>`machines/${id}/${sounds[x.name].file}.wav`,
     name:x=>sounds[x.name].label, has:x=>x.name in sounds};
 });
+// Informazioni di base e tecniche per macchina, mostrate accanto al selettore.
+// Dati coerenti con MACHINES di macchine.html; MACHINE_INFO_ALIAS collega gli id
+// di KITS che condividono la stessa macchina reale (unprocessed, kit SP-1200...).
+const MACHINE_INFO={
+  cr78:{maker:"Roland", year:1978, gen:"Analogica", specs:["suoni analogici","ritmi preimpostati"]},
+  tr808:{maker:"Roland", year:1980, gen:"Analogica", specs:["suoni analogici","sequencer a 16 passi"]},
+  tr606:{maker:"Roland", year:1981, gen:"Analogica", specs:["suoni analogici","sequencer a 16 passi"]},
+  cr8000:{maker:"Roland", year:1981, gen:"Analogica", specs:["suoni analogici","ritmi preimpostati + propri"]},
+  dmx:{maker:"Oberheim", year:1981, gen:"Campioni digitali", specs:["campioni a 8 bit","tamburi veri registrati"]},
+  sdsv:{maker:"Simmons", year:1981, gen:"Batteria elettronica", specs:["sintesi analogica","pad esagonali da suonare"]},
+  linn:{maker:"Linn Electronics", year:1982, gen:"Campioni digitali", specs:["campioni a 8 bit","tamburi veri registrati"]},
+  tr909:{maker:"Roland", year:1983, gen:"Ibrida", specs:["cassa/rullante/tom analogici","piatti campionati a 6 bit"]},
+  drumulator:{maker:"E-mu Systems", year:1983, gen:"Campioni digitali", specs:["campioni a 8 bit","prezzo accessibile"]},
+  drumtraks:{maker:"Sequential Circuits", year:1984, gen:"Campioni digitali", specs:["campioni","MIDI tra i primi"]},
+  tr707:{maker:"Roland", year:1985, gen:"Campioni digitali", specs:["tutti i suoni campionati","MIDI"]},
+  tr727:{maker:"Roland", year:1985, gen:"Campioni digitali", specs:["solo percussioni latine","MIDI"]},
+  rx5:{maker:"Yamaha", year:1986, gen:"Campioni digitali", specs:["campioni a 12 bit","cartucce di suoni"]},
+  sp1200:{maker:"E-mu Systems", year:1987, gen:"Campionatore", specs:["campiona a 12 bit, circa 26 kHz","8 cursori"]},
+};
+const MACHINE_INFO_ALIAS={std:"sp1200","12bit":"sp1200", sp12b:"sp1200", tr808u:"tr808", tr909u:"tr909"};
+function updateMachineInfo(k){
+  const box=document.getElementById("machineInfo"); if(!box) return;
+  const info=MACHINE_INFO[MACHINE_INFO_ALIAS[k]||k];
+  box.textContent=info?`${info.maker} · ${info.year} · ${info.gen} · ${info.specs.join(", ")}`:"";
+}
 const BANK_LABEL={A:"Core kit",B:"Percussioni",C:"Altro",D:"Solo questa macchina"};
 const PATTERN_HUES=[18,42,150,200,265,320,95,0];
 
@@ -1377,6 +1397,7 @@ function setSampleSet(k,quiet=false){
   if(KITS[k].ok===false){ setStatus(KITS[k].label+": non disponibile su questo server"); const sel=document.getElementById("kitSelect"); if(sel) sel.value=sampleSet; return; }
   sampleSet=k;
   const sel=document.getElementById("kitSelect"); if(sel) sel.value=k;
+  updateMachineInfo(k);
   if(typeof paintKitButtons==="function" && document.getElementById("kitSelect")) paintKitButtons();
   let moved=0;
   const firstAvailable=()=>SAMPLES.findIndex((_s,i)=>sampleAvailable(i));
@@ -4413,37 +4434,12 @@ window.addEventListener("resize",()=>{
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
 const SW_VERSION="2026-09-27.06";
 (function pwa(){
-  const standalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
-  const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
-  const installBtn=el("installBtn"), netBadge=el("netBadge");
+  const netBadge=el("netBadge");
 
   const syncNet=()=>{ netBadge.hidden=navigator.onLine; };
   addEventListener("online",syncNet); addEventListener("offline",syncNet); syncNet();
 
-  function toast(html){
-    document.querySelector(".pwa-toast")?.remove();
-    const t=document.createElement("div"); t.className="pwa-toast"; t.setAttribute("role","status");
-    const s=document.createElement("span"); s.innerHTML=html; t.appendChild(s);
-    const x=document.createElement("button"); x.className="mini"; x.textContent="✕"; x.setAttribute("aria-label","Chiudi");
-    x.onclick=()=>t.remove(); t.appendChild(x);
-    document.body.appendChild(t);
-  }
-
-  // Chrome, Edge, Android: prompt nativo. iOS non lo ha: spieghiamo il passaggio da Safari.
-  let deferred=null;
-  addEventListener("beforeinstallprompt",e=>{ e.preventDefault(); deferred=e; installBtn.hidden=false; });
-  addEventListener("appinstalled",()=>{ deferred=null; installBtn.hidden=true; setStatus("app installata"); });
-  if(isIOS&&!standalone()) installBtn.hidden=false;
-  installBtn.onclick=async()=>{
-    if(deferred){
-      deferred.prompt();
-      const {outcome}=await deferred.userChoice;
-      deferred=null;
-      if(outcome==="accepted") installBtn.hidden=true;
-    } else if(isIOS){
-      toast("Su iPhone/iPad, in Safari: tocca <b>Condividi</b> e poi <b>Aggiungi alla schermata Home</b>.");
-    }
-  };
+  addEventListener("appinstalled",()=>setStatus("app installata"));
 
   if(!("serviceWorker" in navigator)||!isSecureContext) return;
   addEventListener("load",async()=>{

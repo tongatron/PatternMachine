@@ -1047,19 +1047,19 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-27.06"></script>
-<script src="engine/styles-punk.js?v=2026-09-27.06"></script>
-<script src="engine/styles-post.js?v=2026-09-27.06"></script>
-<script src="engine/styles-machines.js?v=2026-09-27.06"></script>
-<script src="engine/styles-alt.js?v=2026-09-27.06"></script>
-<script src="engine/styles-groove.js?v=2026-09-27.06"></script>
-<script src="engine/styles-dub.js?v=2026-09-27.06"></script>
-<script src="engine/styles-break.js?v=2026-09-27.06"></script>
-<script src="engine/styles-soul.js?v=2026-09-27.06"></script>
-<script src="engine/styles-metal.js?v=2026-09-27.06"></script>
-<script src="engine/styles-electro.js?v=2026-09-27.06"></script>
-<script src="engine/variations.js?v=2026-09-27.06"></script>
-<script src="engine/import.js?v=2026-09-27.06"></script>
+<script src="engine/core.js?v=2026-09-28.01"></script>
+<script src="engine/styles-punk.js?v=2026-09-28.01"></script>
+<script src="engine/styles-post.js?v=2026-09-28.01"></script>
+<script src="engine/styles-machines.js?v=2026-09-28.01"></script>
+<script src="engine/styles-alt.js?v=2026-09-28.01"></script>
+<script src="engine/styles-groove.js?v=2026-09-28.01"></script>
+<script src="engine/styles-dub.js?v=2026-09-28.01"></script>
+<script src="engine/styles-break.js?v=2026-09-28.01"></script>
+<script src="engine/styles-soul.js?v=2026-09-28.01"></script>
+<script src="engine/styles-metal.js?v=2026-09-28.01"></script>
+<script src="engine/styles-electro.js?v=2026-09-28.01"></script>
+<script src="engine/variations.js?v=2026-09-28.01"></script>
+<script src="engine/import.js?v=2026-09-28.01"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -2498,7 +2498,22 @@ el("metronomeBtn").onclick=()=>{
   b.classList.toggle("on",ui.metronome);
   b.setAttribute("aria-pressed",String(ui.metronome));
   b.title=ui.metronome?"Disattiva il metronomo":"Attiva il metronomo";
+  if(ui.metronome){ const ctx=actx(); if(ctx.state==="suspended") ctx.resume(); }
 };
+// Metronomo a trasporto fermo: batte i quarti (accento sull'1) per suonare senza base.
+// Quando parte il play se ne occupa scheduler(); qui si riparte dal battere a ogni stop.
+(function freeMetronome(){
+  let next=0, beat=0, running=false;
+  setInterval(()=>{
+    if(!ui.metronome || playing || !audioCtx || audioCtx.state!=="running"){ running=false; return; }
+    const ctx=audioCtx;
+    if(!running){ running=true; next=ctx.currentTime+0.06; beat=0; }
+    while(next < ctx.currentTime+0.12){
+      metronomeHit(next, beat%4===0);
+      next+=60/bpm(); beat++;
+    }
+  },25);
+})();
 el("viewRecent").onclick=()=>setView("recent");
 el("viewGrid").onclick=()=>setView("grid");
 el("viewSeq").onclick=()=>setView("seq");
@@ -2517,7 +2532,7 @@ function paintKitButtons(){
 const KIT_KEY="pm.kit";
 const KIT_MENU_HIDDEN=new Set(["sp12b","tr808u","tr909u"]);
 const preferredKit=()=>{ let k=null; try{ k=localStorage.getItem(KIT_KEY); }catch(e){} return KITS[k]&&!KIT_MENU_HIDDEN.has(k)?k:"tr808"; };
-const KIT_MENU_FIRST=["std","rx5","tr606","tr808","tr909","tr707","tr727","cr78","cr8000","linn","dmx","drumulator","drumtraks","sdsv"];
+const KIT_MENU_FIRST=["std","12bit","rx5","tr606","tr808","tr909","tr707","tr727","cr78","cr8000","linn","dmx","drumulator","drumtraks","sdsv"];
 function fillKitOptions(sel){
   if(!sel) return;
   sel.innerHTML="";
@@ -4490,7 +4505,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-27.06";
+const SW_VERSION="2026-09-28.01";
 (function pwa(){
   const netBadge=el("netBadge");
 

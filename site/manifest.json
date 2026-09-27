@@ -2,8 +2,8 @@
   "id": "/",
   "name": "PATTERN-MACHINE",
   "short_name": "PATTERN-MACHINE",
-  "description": "Drum machine a step con SP-1200, Yamaha RX-5, Roland TR-606 e TR-909, campioni Logic, pattern, canzoni ed export MIDI. Funziona anche offline.",
-  "lang": "it",
+  "description": "Step drum machine with SP-1200, Yamaha RX-5, Roland TR-606 and TR-909, Logic samples, patterns, songs and MIDI export. Also works offline.",
+  "lang": "en",
   "dir": "ltr",
   "start_url": "/?source=pwa",
   "scope": "/",
@@ -18,6 +18,6 @@
     { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
   "screenshots": [
-    { "src": "/assets/patternmachine-preview.jpg", "sizes": "1672x941", "type": "image/jpeg", "form_factor": "wide", "label": "PATTERN-MACHINE con drum machine e griglia ritmica" }
+    { "src": "/assets/patternmachine-preview.jpg", "sizes": "1672x941", "type": "image/jpeg", "form_factor": "wide", "label": "PATTERN-MACHINE with drum machine and step grid" }
   ]
 }

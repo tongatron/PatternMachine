@@ -2,7 +2,7 @@
 // Qui la macchina e' dichiarata: poche risposte tra le battute, accenti regolari. Formato in styles-punk.js.
 (function (E) {
   const { cells, hits, backbeat, euclidBars, openHat } = E.h;
-  E.defineGroup({ id: "machines", label: "Macchine e freddo" });
+  E.defineGroup({ id: "machines", label: "Machines & cold wave" });
   E.defineStyles("machines", [
     {
       id: "suicide", label: "Rhythm box", ref: "Suicide, Silver Apples, Soft Cell", bpm: [110, 150],
@@ -74,7 +74,7 @@
       id: "avalanche", label: "Goth rock machine", ref: "The Sisters of Mercy, The March Violets, Xmal Deutschland",
       bpm: [130, 162], fills: ["machine", "toms"], must: { snare: [4], clap: [4] },
       variants: [
-        { id: "pulse", label: "ottavi di cassa", w: 3, must: { kick: [0, 2, 4, 6] } },
+        { id: "pulse", label: "eighth-note kick", w: 3, must: { kick: [0, 2, 4, 6] } },
         { id: "rock", label: "rock", w: 3, must: { kick: [0, 8] } },
         { id: "run", label: "corsa sui tom", w: 2, must: { kick: [0, 8] } },
       ],

@@ -24,9 +24,6 @@ echo "== test"
 node tests/engine.test.js | tail -1
 python3 tests/server_test.py | tail -1
 python3 tests/site_test.py
-echo "== traduzione inglese"
-# non blocca: i testi senza traduzione restano in italiano anche con ENG (vedi site/engine/lang-en.js)
-if ! node scripts/i18n-check.mjs | tail -20; then echo "attenzione: testi senza traduzione inglese (elenco sopra)"; fi
 
 echo "== versioni"
 # Service worker, pagina e script del motore devono avere la stessa versione.

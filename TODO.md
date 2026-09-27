@@ -45,23 +45,18 @@ In ordine consigliato.
 - [ ] Riga della traccia essenziale (nome, M, S, step) con gli altri controlli sotto **⋯**.
 - [ ] Valutare il bordo doppio sul primo step di ogni battuta (segna il tempo, ma può sembrare pesante).
 
-## Traduzione inglese
-Il sito ha lo switch ITA/ENG (`site/engine/i18n.js` + dizionario `site/engine/lang-en.js`); le pagine restano
-scritte in italiano. `node scripts/i18n-check.mjs` elenca le frasi del sito ancora senza traduzione (oggi nessuna).
-Restano in italiano:
+## Interfaccia in inglese
+Dal 28 settembre 2026 `index.html`, `funzioni.html`, `macchine.html` e `plugin.html` sono scritte in inglese
+(niente più switch ITA/ENG: si è provato e poi tolto). Il codice sorgente (commenti, nomi di variabili) resta
+in italiano. Restano in italiano, perché fuori da queste pagine:
 - [ ] **Pagina di download dell'app** (`site/app.html`): da tradurre solo con una richiesta esplicita (regola in `AGENTS.md`).
 - [ ] **Accesso, registrazione, password dimenticata e pagina admin**: le genera `server.py`; dopo la modifica
   serve `sudo systemctl restart patternmachine` sul server.
 - [ ] **Mail** di benvenuto e di reset della password (testi in `server.py`).
 - [ ] **Messaggi di errore del server** (`{"error": "accesso richiesto"}`, "gli ospiti non possono salvare"...): arrivano
-  in italiano nella barra di stato; aggiungerli al dizionario o tradurli nel server.
-- [ ] **File esportati**: `Leggimi.txt` dei pacchetti per DAW, nomi di file e tracce ("Senza titolo").
-- [ ] **Anteprime dei link e web app**: `<meta name="description">`, Open Graph e `manifest.json` (description)
-  sono solo in italiano.
+  in italiano nella barra di stato.
 - [ ] **App desktop**: pannelli aggiunti da `desktop/bridge/` (Logic/DAW, importa drum machine, "Logic (cartella)").
-  Alla prossima build va allineato anche `setStatus` di `bridge.js` (ora confronta un contrassegno, non il testo).
 - [ ] **Plug-in per Logic**: pannello di `plugin/bridge/plugin-bridge.js` (selettore Istanza, badge Logic).
-- [ ] **Scegliere la lingua dal browser** alla prima visita (oggi si parte sempre da ITA).
 
 ## Nome
 - [ ] Nome del sito: da settembre 2026 **PatternMachine**. Alternative tenute da parte: **PatternLab**,

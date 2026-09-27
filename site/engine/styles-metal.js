@@ -1,7 +1,7 @@
 // Schede: rock classico, hard rock, doom e metal. Formato dei campi in styles-punk.js.
 (function (E) {
   const { hits, cells, backbeat, cymbal, ghosts, openHat } = E.h;
-  E.defineGroup({ id: "metal", label: "Rock pesante / Metal" });
+  E.defineGroup({ id: "metal", label: "Heavy rock / Metal" });
 
   // Cassa e rullante alternati sui sedicesimi (blast beat): cassa sui pari, rullante sui dispari.
   const blast = (c, a = 0, b = c.len) => {
@@ -10,7 +10,7 @@
 
   E.defineStyles("metal", [
     {
-      id: "rockclassic", label: "Rock classico", ref: "AC/DC, Led Zeppelin, The Who, Black Sabbath", bpm: [100, 142],
+      id: "rockclassic", label: "Classic rock", ref: "AC/DC, Led Zeppelin, The Who, Black Sabbath", bpm: [100, 142],
       fills: ["down", "toms", "roll"], must: { kick: [0, 8], snare: [4, 12] },
       gen(c) {
         cells(c, "kick", [[0, 8], [0, 6, 8], [0, 8, 10], [0, 3, 8]], [0, 8]);
@@ -32,7 +32,7 @@
         else cells(c, "kick", [[0, 8], [0, 6, 8], [0, 8, 11]], [0, 8]);
         backbeat(c);
         if (c.verse) cymbal(c, "chh", 2);
-        else { cymbal(c, "ohh", 4); cymbal(c, "chh", 2); c.put("crash", 0, 2); c.note = "hat aperti"; }
+        else { cymbal(c, "ohh", 4); cymbal(c, "chh", 2); c.put("crash", 0, 2); c.note = "open hats"; }
         ghosts(c, "snare", [7, 15], 0, 1);
       },
     },

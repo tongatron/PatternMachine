@@ -1,13 +1,11 @@
 <!doctype html>
-<html lang="it">
+<html lang="en">
 <head>
 <meta charset="utf-8">
-<script src="engine/lang-en.js?v=2026-09-28.05"></script>
-<script src="engine/i18n.js?v=2026-09-28.05"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<title>PATTERN-MACHINE — drum machine e pattern</title>
-<meta name="description" content="PATTERN-MACHINE: drum machine a step con SP-1200, Yamaha RX-5, Roland TR-606 e TR-909, campioni Logic, pattern, canzoni ed export MIDI, WAV e MP3.">
+<title>PATTERN-MACHINE — drum machine and patterns</title>
+<meta name="description" content="PATTERN-MACHINE: step drum machine with SP-1200, Yamaha RX-5, Roland TR-606 and TR-909, Logic samples, patterns, songs and MIDI, WAV and MP3 export.">
 <meta name="theme-color" content="#0a0a0b" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#a3a097" media="(prefers-color-scheme: light)">
 
@@ -58,19 +56,19 @@
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="PATTERN-MACHINE">
-<meta property="og:title" content="PATTERN-MACHINE — drum machine e pattern">
-<meta property="og:description" content="Drum machine a step con SP-1200, Yamaha RX-5, Roland TR-606 e TR-909, campioni Logic, pattern, canzoni ed export MIDI, WAV e MP3 direttamente nel browser.">
+<meta property="og:title" content="PATTERN-MACHINE — drum machine and patterns">
+<meta property="og:description" content="Step drum machine with SP-1200, Yamaha RX-5, Roland TR-606 and TR-909, Logic samples, patterns, songs and MIDI, WAV and MP3 export right in the browser.">
 <meta property="og:image" content="https://patternmachine.tongatron.org/assets/patternmachine-preview.jpg">
 <meta property="og:image:type" content="image/jpeg">
 <meta property="og:image:width" content="1672">
 <meta property="og:image:height" content="941">
-<meta property="og:image:alt" content="PATTERN-MACHINE con griglia ritmica e drum machine Roland, SP-1200 e Yamaha RX-5">
+<meta property="og:image:alt" content="PATTERN-MACHINE with step grid and Roland, SP-1200 and Yamaha RX-5 drum machines">
 <meta property="og:url" content="https://patternmachine.tongatron.org/">
-<meta property="og:locale" content="it_IT">
+<meta property="og:locale" content="en_US">
 
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="PATTERN-MACHINE — drum machine e pattern">
-<meta name="twitter:description" content="Drum machine a step con SP-1200, Yamaha RX-5, Roland TR-606 e TR-909, campioni Logic, pattern, canzoni ed export MIDI, WAV e MP3 direttamente nel browser.">
+<meta name="twitter:title" content="PATTERN-MACHINE — drum machine and patterns">
+<meta name="twitter:description" content="Step drum machine with SP-1200, Yamaha RX-5, Roland TR-606 and TR-909, Logic samples, patterns, songs and MIDI, WAV and MP3 export right in the browser.">
 <meta name="twitter:image" content="https://patternmachine.tongatron.org/assets/patternmachine-preview.jpg">
 <script defer src="https://analytics.tongatron.org/script.js" data-website-id="9daa93b6-2afb-494a-89fb-288437a030d1" data-domains="patternmachine.tongatron.org"></script>
 </head>
@@ -159,8 +157,6 @@ body.guest #saveBtn, body.guest #viewRecent, body.guest #libTabFav, body.guest .
 .wrap{max-width:1100px; margin:0 auto;}
 
 .topbar{display:flex; flex-wrap:wrap; align-items:baseline; gap:10px 16px; margin-bottom:12px;}
-/* i pulsanti vanno sempre sulla seconda riga, qualunque sia la lunghezza del sottotitolo (ITA/ENG) */
-.topbar-break{flex-basis:100%; height:0;}
 h1{font-size:26px; letter-spacing:0.18em; text-transform:uppercase; margin:0; line-height:1.15;}
 .tagline{font-size:13px; color:var(--text-faint); letter-spacing:0.03em;}
 .topbar .linkbtn{font-size:12.5px; padding:8px 14px;}
@@ -441,7 +437,7 @@ body.sound-view #liveKeysBtn{display:inline-flex; align-items:center;}
 .import-opts input[type=checkbox]{width:auto; margin:2px 0 0; flex-shrink:0;}
 .import-msg{font-size:12px; min-height:1.2em; margin:0 0 10px !important;}
 .import-msg.err{color:var(--danger);}
-body.dropping::after{content:"Rilascia per importare"; position:fixed; inset:12px; z-index:60; display:grid; place-items:center;
+body.dropping::after{content:"Drop to import"; position:fixed; inset:12px; z-index:60; display:grid; place-items:center;
   border:3px dashed var(--accent); border-radius:16px; background:rgba(0,0,0,.45); color:#fff; font-size:18px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; pointer-events:none;}
 button.danger-fill{background:var(--danger); border-color:var(--danger); color:#fff; font-weight:700;}
 .modal{
@@ -684,55 +680,53 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 <div class="wrap">
   <div class="topbar">
     <h1>PATTERN-MACHINE</h1>
-    <span class="tagline">Drum machine a step, generatore di pattern e canzone, export MIDI, WAV e MP3</span>
-    <span class="topbar-break" aria-hidden="true"></span>
-    <a class="linkbtn help-link" href="funzioni.html" title="come si usa e cosa fa ogni funzione">Istruzioni e funzioni</a>
-    <a class="linkbtn" id="desktopAppLink" href="app.html" title="PATTERN-MACHINE come app per macOS, Windows e Linux: MIDI, sync al clock e trascinamento">App per Mac, Win, Linux</a>
-    <a class="linkbtn" id="pluginLink" href="plugin.html" title="PATTERN-MACHINE come plug-in Audio Unit dentro Logic, agganciato al trasporto">Plugin Logic</a>
-    <button type="button" class="theme-toggle" id="themeToggle" role="switch" aria-checked="false" aria-label="Tema scuro" title="Passa dal tema chiaro allo scuro">
-      <span class="tt-side tt-light">Chiaro</span><span class="tt-track" aria-hidden="true"><span class="tt-knob"></span></span><span class="tt-side tt-dark">Scuro</span>
+    <span class="tagline">Step drum machine, pattern &amp; song generator, MIDI/WAV/MP3 export</span>
+    <a class="linkbtn help-link" href="funzioni.html" title="how to use it and what every feature does">Guide and features</a>
+    <a class="linkbtn" id="desktopAppLink" href="app.html" title="PATTERN-MACHINE as an app for macOS, Windows and Linux: MIDI, clock sync and drag and drop">App for Mac, Win, Linux</a>
+    <a class="linkbtn" id="pluginLink" href="plugin.html" title="PATTERN-MACHINE as an Audio Unit plug-in inside Logic, locked to the transport">Logic plug-in</a>
+    <button type="button" class="theme-toggle" id="themeToggle" role="switch" aria-checked="false" aria-label="Dark theme" title="Switch between light and dark theme">
+      <span class="tt-side tt-light">Light</span><span class="tt-track" aria-hidden="true"><span class="tt-knob"></span></span><span class="tt-side tt-dark">Dark</span>
     </button>
     <span class="net-badge" id="netBadge" hidden>offline</span>
     <span id="accountLinks">
       <span class="whoami" id="whoami" hidden></span>
-      <a class="logout" id="adminLink" href="/admin" title="Utenti registrati" hidden>Utenti</a>
-      <a class="logout" id="registerLink" href="/register" title="Crea un account per salvare progetti e preferiti" hidden>Registrati</a>
-      <a class="logout" href="/logout" title="Esci dal tuo account">Esci</a>
+      <a class="logout" id="adminLink" href="/admin" title="Registered users" hidden>Users</a>
+      <a class="logout" id="registerLink" href="/register" title="Create an account to save projects and favorites" hidden>Sign up</a>
+      <a class="logout" href="/logout" title="Log out of your account">Log out</a>
     </span>
-    <span class="lang-switch"></span>
   </div>
 
   <div class="panel project-panel">
-    <h2>Progetto</h2>
+    <h2>Project</h2>
     <div class="flexline">
-      <input type="text" id="projectName" value="Senza titolo" placeholder="Nome progetto" style="width:210px; flex:0 1 210px;">
+      <input type="text" id="projectName" value="Untitled" placeholder="Project name" style="width:210px; flex:0 1 210px;">
       <div class="project-buttons">
-        <button id="saveBtn" class="primary">Salva</button>
-        <button id="newBtn">Nuovo</button>
-        <button id="viewRecent"><span id="recentLabel">Progetti salvati</span> <span id="recentCount"></span></button>
+        <button id="saveBtn" class="primary">Save</button>
+        <button id="newBtn">New</button>
+        <button id="viewRecent"><span id="recentLabel">Saved projects</span> <span id="recentCount"></span></button>
       </div>
       <div class="project-io">
-        <button id="importBtn" title="Importa MIDI, audio, PatternTXT, drum tab, Hydrogen, REAPER, Ableton, MusicXML o un progetto JSON (anche trascinando un file sulla pagina)">Import</button>
+        <button id="importBtn" title="Import MIDI, audio, PatternTXT, drum tabs, Hydrogen, REAPER, Ableton, MusicXML or a JSON project (you can also drop a file on the page)">Import</button>
         <details class="export-menu" id="exportMenu">
           <summary>Export</summary>
           <div class="export-list">
             <div class="export-head">MIDI</div>
-            <button id="expPatternBtn" title="Note del kit SP-1200 di Logic (36 + slot)">MIDI pattern</button>
-            <button id="expSongBtn" title="Note del kit SP-1200 di Logic (36 + slot)">MIDI canzone</button>
-            <button id="gmMidiBtn" title="Mappa General MIDI (36 cassa, 38 rullante, 42 hat chiuso…): va bene in qualsiasi DAW. Segue Pattern/Canzone">MIDI General MIDI</button>
-            <button id="multiMidiBtn" title="Mappa General MIDI, una traccia MIDI per ogni strumento: importandolo nella DAW crea canali separati">MIDI multitraccia</button>
+            <button id="expPatternBtn" title="Notes for Logic's SP-1200 kit (36 + slot)">MIDI pattern</button>
+            <button id="expSongBtn" title="Notes for Logic's SP-1200 kit (36 + slot)">MIDI song</button>
+            <button id="gmMidiBtn" title="General MIDI map (36 kick, 38 snare, 42 closed hat…): works in any DAW. Follows Pattern/Song">MIDI (General MIDI)</button>
+            <button id="multiMidiBtn" title="General MIDI map, one MIDI track per instrument: imported into a DAW it creates separate channels">Multitrack MIDI</button>
             <div class="export-head">Audio</div>
-            <button id="wavPatternBtn" title="Audio del pattern ripetuto 4 volte, con volumi ed effetti delle righe">WAV pattern</button>
-            <button id="wavSongBtn" title="Audio dell'intera canzone, con volumi ed effetti delle righe">WAV canzone</button>
-            <button id="mp3PatternBtn" title="Audio MP3 del pattern ripetuto 4 volte, con volumi ed effetti delle righe">MP3 pattern</button>
-            <button id="mp3SongBtn" title="Audio MP3 dell'intera canzone, con volumi ed effetti delle righe">MP3 canzone</button>
-            <div class="export-head">Pacchetti per DAW <span>segue Pattern/Canzone</span></div>
-            <button id="logicBtn" class="daw-btn" data-daw="logic" title="Zip per Logic Pro: MIDI General MIDI, uno stem WAV per strumento, campioni del kit. Segue Pattern/Canzone">Logic (zip)</button>
-            <button class="daw-btn" data-daw="ableton" title="Zip per Ableton Live: MIDI General MIDI per un Drum Rack, uno stem WAV per strumento, campioni del kit. Segue Pattern/Canzone">Ableton Live (zip)</button>
-            <button class="daw-btn" data-daw="reaper" title="Zip per REAPER: progetto .rpp gia' pronto con tempo, stem su tracce separate e una traccia MIDI General MIDI. Segue Pattern/Canzone">REAPER (progetto .rpp)</button>
-            <button class="daw-btn" data-daw="altre" title="Zip per FL Studio, Cubase, Studio One, Bitwig, GarageBand e altre: MIDI General MIDI, stem WAV, campioni. Segue Pattern/Canzone">Altre DAW (zip)</button>
-            <div class="export-head">Progetto</div>
-            <button id="projJsonBtn" title="Tutto il progetto (righe, pattern, canzone) in un file .json da reimportare con Import">Progetto PATTERN-MACHINE (.json)</button>
+            <button id="wavPatternBtn" title="Audio of the pattern looped 4 times, with row levels and effects">WAV pattern</button>
+            <button id="wavSongBtn" title="Audio of the whole song, with row levels and effects">WAV song</button>
+            <button id="mp3PatternBtn" title="MP3 audio of the pattern looped 4 times, with row levels and effects">MP3 pattern</button>
+            <button id="mp3SongBtn" title="MP3 audio of the whole song, with row levels and effects">MP3 song</button>
+            <div class="export-head">DAW packages <span>follows Pattern/Song</span></div>
+            <button id="logicBtn" class="daw-btn" data-daw="logic" title="Zip for Logic Pro: General MIDI file, one WAV stem per instrument, kit samples. Follows Pattern/Song">Logic (zip)</button>
+            <button class="daw-btn" data-daw="ableton" title="Zip for Ableton Live: General MIDI file for a Drum Rack, one WAV stem per instrument, kit samples. Follows Pattern/Song">Ableton Live (zip)</button>
+            <button class="daw-btn" data-daw="reaper" title="Zip for REAPER: ready-made .rpp project with tempo, stems on separate tracks and a General MIDI track. Follows Pattern/Song">REAPER (.rpp project)</button>
+            <button class="daw-btn" data-daw="altre" title="Zip for FL Studio, Cubase, Studio One, Bitwig, GarageBand and others: General MIDI file, WAV stems, samples. Follows Pattern/Song">Other DAWs (zip)</button>
+            <div class="export-head">Project</div>
+            <button id="projJsonBtn" title="The whole project (rows, patterns, song) in a .json file you can bring back with Import">PATTERN-MACHINE project (.json)</button>
           </div>
         </details>
       </div>
@@ -742,31 +736,31 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 
   <div class="panel" id="machinePanel">
     <div class="machine-bar">
-      <label class="machine-label" for="kitSelect">Macchina</label>
+      <label class="machine-label" for="kitSelect">Machine</label>
       <select id="kitSelect" class="machine-select"></select>
       <span class="machine-info" id="machineInfo"></span>
-      <a class="linkbtn machine-more" href="macchine.html" title="Storia delle macchine, con confronti da ascoltare">Approfondisci le macchine &rarr;</a>
+      <a class="linkbtn machine-more" href="macchine.html" title="History of the machines, with side-by-side listening">About the machines →</a>
     </div>
   </div>
 
   <div class="tabs">
-    <button id="viewGrid" class="on">Griglia</button>
+    <button id="viewGrid" class="on">Grid</button>
     <button id="viewSeq">Sequencer</button>
-    <button id="viewSound" title="Per suonare dal vivo: la griglia, Play, Rec, tempo e metronomo">Vista Live</button>
+    <button id="viewSound" title="For playing live: the grid, Play, Rec, tempo and metronome">Live View</button>
   </div>
 
   <div class="panel" id="panelPatterns">
     <h2>Pattern</h2>
     <div class="chips" id="patternChips"></div>
     <div class="flexline">
-      <button id="pChoose" class="mini primary">Scegli&hellip;</button>
-      <button id="pVary" class="mini" aria-expanded="false" title="applica o disattiva una variazione al pattern che stai modificando">&#10022; Variazioni</button>
-      <button id="pNew" class="mini">+ Nuovo</button>
-      <button id="pDup" class="mini">Duplica</button>
-      <button id="pRename" class="mini">Rinomina</button>
-      <button id="pClear" class="mini">Svuota</button>
-      <button id="pDel" class="mini danger">Elimina</button>
-      <label class="fld" style="margin-left:auto;">Step
+      <button id="pChoose" class="mini primary">Browse…</button>
+      <button id="pVary" class="mini" aria-expanded="false" title="apply or remove a variation on the pattern you are editing">✦ Variations</button>
+      <button id="pNew" class="mini">+ New</button>
+      <button id="pDup" class="mini">Duplicate</button>
+      <button id="pRename" class="mini">Rename</button>
+      <button id="pClear" class="mini">Clear</button>
+      <button id="pDel" class="mini danger">Delete</button>
+      <label class="fld" style="margin-left:auto;">Steps
         <select id="pLen">
           <option value="8">8</option>
           <option value="16" selected>16</option>
@@ -779,7 +773,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 
   <div class="panel" id="panelTransport">
     <div class="flexline">
-      <button id="playBtn" title="Play / Stop (barra spaziatrice)"><span class="ico">&#9654;</span> Play</button>
+      <button id="playBtn" title="Play / Stop (space bar)"><span class="ico">&#9654;</span> Play</button>
       <div class="transport-extra">
         <button id="recBtn" class="live-keep"><span class="rec-dot" aria-hidden="true">&#9679;</span> Rec</button>
         <label class="fld live-keep">BPM
@@ -787,10 +781,10 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
         <input type="number" id="bpmNum" min="40" max="240" value="93">
         </label>
         <button id="tapBtn" class="mini live-keep">Tap</button>
-        <button id="metronomeBtn" class="mini live-keep" type="button" aria-pressed="false" title="Attiva/disattiva il metronomo"><svg class="metro-ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.5h4l5.5 17h-15z"/><path d="M7.2 15.5h9.6" stroke-width="1.3"/><g class="rod"><path d="M12 19V2.5"/><rect x="10.2" y="7" width="3.6" height="2.6" rx=".6" fill="currentColor" stroke="none"/></g></svg>Metronomo</button>
-        <button id="liveKeysBtn" class="mini live-keep" type="button" title="Mostra i tasti degli strumenti">Tasti</button>
-        <label class="fld" title="swing alla MPC: 50% dritto, 66% terzinato, 75% massimo">Swing <input type="range" id="swingRange" min="0" max="100" value="0"> <span id="swingPct" class="tiny">50%</span></label>
-        <label class="fld" title="umanizza: piccole differenze a caso di tempo (fino a 10 ms) e forza (fino al 15%)">Umano <input type="range" id="humanRange" min="0" max="100" value="0"></label>
+        <button id="metronomeBtn" class="mini live-keep" type="button" aria-pressed="false" title="Metronome on/off"><svg class="metro-ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.5h4l5.5 17h-15z"/><path d="M7.2 15.5h9.6" stroke-width="1.3"/><g class="rod"><path d="M12 19V2.5"/><rect x="10.2" y="7" width="3.6" height="2.6" rx=".6" fill="currentColor" stroke="none"/></g></svg>Metronome</button>
+        <button id="liveKeysBtn" class="mini live-keep" type="button" title="Show the instrument keys">Keys</button>
+        <label class="fld" title="MPC-style swing: 50% straight, 66% triplet feel, 75% maximum">Swing <input type="range" id="swingRange" min="0" max="100" value="0"> <span id="swingPct" class="tiny">50%</span></label>
+        <label class="fld" title="humanize: small random variations in timing (up to 10 ms) and velocity (up to 15%)">Humanize <input type="range" id="humanRange" min="0" max="100" value="0"></label>
         <label class="fld">Vol <input type="range" id="masterVol" min="0" max="100" value="85"></label>
         <div class="counter" id="counter">1 . 1</div>
       </div>
@@ -798,50 +792,50 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
   </div>
 
   <div class="panel" id="panelGrid">
-    <h2 id="gridTitle">Griglia</h2>
+    <h2 id="gridTitle">Grid</h2>
     <div class="flexline step-mode-line">
-      <span class="tiny">Click sugli step:</span>
-      <div class="modeswitch" id="stepMode" role="group" aria-label="Cosa cambia il click su uno step">
-        <button type="button" data-mode="hit" class="on" title="accende e spegne i colpi (alt = accento, shift = nota fantasma)">Colpi</button>
-        <button type="button" data-mode="prob" title="quante volte suona lo step: 100, 75, 50, 25%">Probabilit&agrave;</button>
-        <button type="button" data-mode="rat" title="quanti colpi rapidi dentro lo step: 1, 2, 3, 4">Ripetizioni</button>
-        <button type="button" data-mode="flam" title="flam: un colpo morbido appena prima di quello vero">Flam</button>
-        <button type="button" data-mode="tune" title="intonazione di questo solo colpo: +2, +5, +7, +12, -12, -7, -5 semitoni">Intonazione</button>
-        <button type="button" data-mode="dec" title="decay di questo solo colpo: 70, 40, 15 (piu' corto)">Decay</button>
-        <button type="button" data-mode="cut" title="filtro di questo solo colpo: 70, 50, 30 (piu' scuro)">Filtro</button>
+      <span class="tiny">Step click:</span>
+      <div class="modeswitch" id="stepMode" role="group" aria-label="What a click on a step changes">
+        <button type="button" data-mode="hit" class="on" title="turns hits on and off (alt = accent, shift = ghost note)">Hits</button>
+        <button type="button" data-mode="prob" title="how often the step plays: 100, 75, 50, 25%">Probability</button>
+        <button type="button" data-mode="rat" title="how many rapid hits inside the step: 1, 2, 3, 4">Ratchets</button>
+        <button type="button" data-mode="flam" title="flam: a soft grace note just before the main hit">Flam</button>
+        <button type="button" data-mode="tune" title="tuning of this hit only: +2, +5, +7, +12, -12, -7, -5 semitones">Tuning</button>
+        <button type="button" data-mode="dec" title="decay of this hit only: 70, 40, 15 (shorter)">Decay</button>
+        <button type="button" data-mode="cut" title="filter of this hit only: 70, 50, 30 (darker)">Filter</button>
       </div>
       <span class="tiny" id="stepModeHint"></span>
     </div>
     <div class="ruler" id="ruler"></div>
     <div class="rows" id="rows"></div>
     <div class="flexline" style="margin-top:9px;">
-      <span class="tiny">Aggiungi strumento</span>
+      <span class="tiny">Add instrument</span>
       <select id="sampleSelect"></select>
-      <button id="addRowBtn" class="mini">+ Riga</button>
-      <button id="pruneRowsBtn" class="mini" title="Toglie le righe senza colpi in nessun pattern del progetto (le righe sono in comune a tutti i pattern)">Togli righe vuote</button>
+      <button id="addRowBtn" class="mini">+ Row</button>
+      <button id="pruneRowsBtn" class="mini" title="Removes rows with no hits in any pattern of the project (rows are shared by all patterns)">Remove empty rows</button>
     </div>
   </div>
 
   <div class="panel" id="panelSeq" hidden>
-    <h2>Sequencer &mdash; arrangiamento della canzone</h2>
+    <h2>Sequencer — song arrangement</h2>
     <div class="flexline" style="margin-bottom:9px;">
       <select id="seqPattern"></select>
-      <button id="sAdd" class="mini primary">+ Inserisci</button>
-      <button id="sPlay" class="mini" title="Riproduci la canzone dall'inizio">&#9654; Dall'inizio</button>
-      <button id="seqRename" class="mini">Rinomina</button>
-      <button id="sDup" class="mini">Duplica</button>
-      <button id="sLeft" class="mini" title="Sposta a sinistra">&larr;</button>
-      <button id="sRight" class="mini" title="Sposta a destra">&rarr;</button>
-      <button id="sDel" class="mini danger">Rimuovi</button>
-      <button id="seqClear" class="mini danger">Svuota</button>
+      <button id="sAdd" class="mini primary">+ Insert</button>
+      <button id="sPlay" class="mini" title="Play the song from the start">▶ From the start</button>
+      <button id="seqRename" class="mini">Rename</button>
+      <button id="sDup" class="mini">Duplicate</button>
+      <button id="sLeft" class="mini" title="Move left">&larr;</button>
+      <button id="sRight" class="mini" title="Move right">&rarr;</button>
+      <button id="sDel" class="mini danger">Remove</button>
+      <button id="seqClear" class="mini danger">Clear</button>
       <span class="tiny" id="songInfo" style="margin-left:auto;"></span>
     </div>
     <div class="tl-info">
       <span class="tl-time" id="tlTime">0:00 / 0:00</span>
-      <span id="tlPos">battuta 1</span>
+      <span id="tlPos">bar 1</span>
       <span class="tl-note" id="tlNote"></span>
     </div>
-    <div class="timeline" id="timeline" title="Click: scegli il punto da cui far partire la canzone">
+    <div class="timeline" id="timeline" title="Click: choose where the song starts">
       <div class="tl-lane" id="tlLane"></div>
       <div class="tl-done" id="tlDone"></div>
       <div class="tl-start" id="tlStart"></div>
@@ -850,17 +844,16 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <div class="seq-ruler" id="seqRuler"></div>
     <div class="seq-track" id="seqTrack"></div>
     <p class="hint" style="margin-top:0;">
-      Trascina i blocchi per riordinarli &middot; scegli la sezione direttamente nel blocco &middot;
-      doppio click apre il beat nella griglia &middot; clicca sulla linea per scegliere da dove parte il play.
+      Drag blocks to reorder them · pick the section right on the block · double-click opens the beat in the grid · click the line to choose where playback starts.
     </p>
   </div>
 
   <div class="panel" id="panelRecent" hidden>
-    <h2 id="recentTitle">Progetti salvati</h2>
+    <h2 id="recentTitle">Saved projects</h2>
     <div class="recent-wrap">
       <table class="recent">
-        <thead><tr><th>Anteprima</th><th>Nome</th><th>Macchina</th><th>Aggiornato</th><th>BPM</th><th>Pattern</th><th></th></tr></thead>
-        <tbody id="recentBody"><tr class="empty"><td colspan="7">nessun progetto salvato: usa Salva</td></tr></tbody>
+        <thead><tr><th>Preview</th><th>Name</th><th>Machine</th><th>Updated</th><th>BPM</th><th>Pattern</th><th></th></tr></thead>
+        <tbody id="recentBody"><tr class="empty"><td colspan="7">no saved projects yet: use Save</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -868,128 +861,125 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
   <div class="overlay" id="libOverlay" hidden>
     <div class="modal">
       <div class="modal-head">
-        <h3>Libreria pattern</h3>
+        <h3>Pattern library</h3>
         <span class="tiny" id="libCount"></span>
         <div class="modeswitch lib-tabs" role="tablist">
-          <button type="button" id="libTabAll" class="on" role="tab">Proposte</button>
-          <button type="button" id="libTabFav" role="tab">&#9733; Preferiti <span id="favCount"></span></button>
+          <button type="button" id="libTabAll" class="on" role="tab">Suggestions</button>
+          <button type="button" id="libTabFav" role="tab">★ Favorites <span id="favCount"></span></button>
         </div>
         <button class="x" id="libClose">&times;</button>
       </div>
       <div class="flexline" style="margin-bottom:11px;">
-        <label class="fld">Macchina
-          <select id="libKitSelect" class="library-machine-select" aria-label="Macchina da usare quando si carica un pattern"></select>
+        <label class="fld">Machine
+          <select id="libKitSelect" class="library-machine-select" aria-label="Machine to use when loading a pattern"></select>
         </label>
       </div>
       <div class="flexline" style="margin-bottom:11px;">
-        <label class="fld">Stile
+        <label class="fld">Style
           <select id="genStyle" class="lib-style-select"></select>
         </label>
-        <label class="fld">Sezione
+        <label class="fld">Section
           <select id="genSection">
-            <option value="verse">Strofa</option>
-            <option value="chorus">Ritornello</option>
-            <option value="both">Strofa + rit.</option>
+            <option value="verse">Verse</option>
+            <option value="chorus">Chorus</option>
+            <option value="both">Verse + chorus</option>
           </select>
         </label>
-        <label class="fld">Step
+        <label class="fld">Steps
           <select id="genLen"><option>16</option><option>32</option></select>
         </label>
         <label class="fld"><input type="checkbox" id="genFill"> Fill</label>
-        <button type="button" id="genMore" class="mini primary" title="8 nuove proposte con le stesse scelte">&#8635; Altre proposte</button>
-        <button id="genVar" class="mini">Variazione del pattern corrente</button>
+        <button type="button" id="genMore" class="mini primary" title="8 new suggestions with the same settings">↻ More suggestions</button>
+        <button id="genVar" class="mini">Variation of the current pattern</button>
       </div>
       <form class="flexline" id="codeForm" style="margin:-3px 0 11px;">
-        <label class="fld">Codice
+        <label class="fld">Code
           <input type="text" id="genCode" placeholder="dbeat-16R-7F3A9B" spellcheck="false" autocomplete="off" autocapitalize="characters" style="width:190px">
         </label>
-        <button class="mini" type="submit">Apri</button>
-        <span class="tiny">ogni pattern ha un codice: lo stesso codice rigenera lo stesso pattern</span>
+        <button class="mini" type="submit">Open</button>
+        <span class="tiny">every pattern has a code: the same code regenerates the same pattern</span>
       </form>
       <div class="lib-manage">
         <span class="tiny" id="libManageNote"></span>
-        <button type="button" id="libClear" class="mini danger" hidden>Svuota preferiti</button>
+        <button type="button" id="libClear" class="mini danger" hidden>Clear favorites</button>
       </div>
       <div class="lib-list" id="libList"></div>
     </div>
   </div>
 
   <details class="help" id="helpKeys" open>
-    <summary>Suonare: i tasti e i comandi</summary>
+    <summary>Playing: keys and controls</summary>
     <div class="help-body">
       <section>
-        <h3>Suonare</h3>
+        <h3>Playing</h3>
         <ul>
-          <li><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><kbd>4</kbd> <kbd>Q</kbd><kbd>W</kbd><kbd>E</kbd><kbd>R</kbd>
-            <kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><kbd>F</kbd> <kbd>Z</kbd><kbd>X</kbd><kbd>C</kbd><kbd>V</kbd> suonano le prime 16 righe.</li>
-          <li><kbd>spazio</kbd> play/stop.</li>
-          <li>Con <b>Rec</b> attivo quello che suoni entra nel pattern, quantizzato allo step.</li>
-          <li><kbd>cmd</kbd>+<kbd>Z</kbd> annulla, <kbd>cmd</kbd>+<kbd>shift</kbd>+<kbd>Z</kbd> ripristina.</li>
+          <li><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><kbd>4</kbd> <kbd>Q</kbd><kbd>W</kbd><kbd>E</kbd><kbd>R</kbd> <kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><kbd>F</kbd> <kbd>Z</kbd><kbd>X</kbd><kbd>C</kbd><kbd>V</kbd> play the first 16 rows.</li>
+          <li><kbd>space</kbd> play/stop.</li>
+          <li>With <b>Rec</b> on, whatever you play goes into the pattern, quantized to the step.</li>
+          <li><kbd>cmd</kbd>+<kbd>Z</kbd> undo, <kbd>cmd</kbd>+<kbd>shift</kbd>+<kbd>Z</kbd> redo.</li>
         </ul>
       </section>
       <section>
-        <h3>Step</h3>
+        <h3>Steps</h3>
         <ul>
           <li>Click = on/off.</li>
-          <li>Click destro (o <kbd>alt</kbd>+click) = accento.</li>
-          <li><kbd>shift</kbd>+click = nota fantasma (morbida).</li>
-          <li><b>Probabilit&agrave;</b>, <b>Ripetizioni</b>, <b>Flam</b>, <b>Intonazione</b>, <b>Decay</b> e <b>Filtro</b> (sopra la griglia): con la modalit&agrave; scelta, il click su uno step acceso cambia solo quel colpo.</li>
+          <li>Right-click (or <kbd>alt</kbd>+click) = accent.</li>
+          <li><kbd>shift</kbd>+click = ghost note (soft).</li>
+          <li><b>Probability</b>, <b>Ratchets</b>, <b>Flam</b>, <b>Tuning</b>, <b>Decay</b> and <b>Filter</b> (above the grid): in the selected mode, clicking an active step changes that hit only.</li>
         </ul>
       </section>
       <section>
-        <h3>Righe</h3>
+        <h3>Rows</h3>
         <ul>
-          <li><b>Grp</b> = gruppo esclusivo (gli hi&#8209;hat si troncano tra loro).</li>
-          <li><b>Tune</b> = intonazione della riga, in semitoni.</li>
-          <li><b>Lung.</b> fa girare la riga con meno step (poliritmi).</li>
-          <li><b>⚙</b> apre i parametri della voce: <b>Decay</b> accorcia la coda, <b>Filtro</b>+<b>Reso</b> sono il lowpass a 4 poli
-            come i VCF sulle uscite della macchina, <b>Start</b> sposta l'attacco, <b>Rev</b> suona al contrario.</li>
-          <li><b>Feel</b> (nel pannello ⚙) anticipa o ritarda i colpi della riga, da &minus;30 a +30 ms: rullante &ldquo;in ritardo&rdquo;, cassa &ldquo;in anticipo&rdquo;.</li>
+          <li><b>Grp</b> = choke group (hi‑hats cut each other off).</li>
+          <li><b>Tune</b> = row tuning, in semitones.</li>
+          <li><b>Len.</b> makes the row loop with fewer steps (polyrhythms).</li>
+          <li><b>⚙</b> opens the voice parameters: <b>Decay</b> shortens the tail, <b>Filter</b>+<b>Reso</b> are the 4-pole low-pass like the VCFs on the machine's outputs, <b>Start</b> moves the sample start, <b>Rev</b> plays it reversed.</li>
+          <li><b>Feel</b> (in the ⚙ panel) pushes the row's hits ahead or behind, from −30 to +30 ms: snare “laid back”, kick “pushed”.</li>
         </ul>
       </section>
       <section>
-        <h3>Groove e macchina</h3>
+        <h3>Groove and machine</h3>
         <ul>
-          <li><b>Swing</b> alla MPC (50&ndash;75%) e <b>Umano</b> accanto al BPM.</li>
-          <li><b>Macchina</b> cambia i suoni: E-mu SP-1200 a 16 o 12 bit, Yamaha RX-5, Roland TR-808, TR-909, TR-707, TR-727, TR-606, CR-78, CR-8000, Linn LinnDrum, Oberheim DMX, E-mu Drumulator, Sequential DrumTraks, Simmons SDS-V.
-            Le righe che usano un suono assente sull'altra macchina passano al suono equivalente.</li>
+          <li>MPC-style <b>Swing</b> (50–75%) and <b>Humanize</b> next to the BPM.</li>
+          <li><b>Machine</b> changes the sounds: E-mu SP-1200 at 16 or 12 bit, Yamaha RX-5, Roland TR-808, TR-909, TR-707, TR-727, TR-606, CR-78, CR-8000, Linn LinnDrum, Oberheim DMX, E-mu Drumulator, Sequential DrumTraks, Simmons SDS-V. Rows using a sound the other machine lacks move to the closest equivalent.</li>
         </ul>
       </section>
       <section>
-        <h3>Pattern e generatore</h3>
+        <h3>Patterns and generator</h3>
         <ul>
-          <li><b>&#10022; Varia</b> (pannello Pattern) trasforma il pattern che stai modificando, anche scritto a mano; <kbd>cmd</kbd>+<kbd>Z</kbd> annulla.</li>
-          <li><b>Scegli&hellip;</b> apre libreria e generatore: mostra subito 8 proposte della macchina e dello stile scelti, dalla pi&ugrave; ricca alla pi&ugrave; semplice (i pallini &#9679; indicano l'interesse).</li>
-          <li>Su ogni pattern: <b>Simili</b> ne crea 4 vicini; <b>Varia</b> lo trasforma in 20 modi (scarno, mezzo tempo, hat aperto, nuovo fill, strato percussivo, stacco&hellip; e cinque <b>ibridi</b> con voci di un altro stile).</li>
-          <li><b>Arrangia</b> ricava intro, ritornello, break e outro; <b>Blocca</b> tiene alcune voci e rigenera le altre.</li>
-          <li>Ogni pattern ha un codice: lo stesso codice rigenera lo stesso pattern.</li>
-          <li>Nella libreria: scegliendo stile, sezione o step compaiono subito 8 proposte nuove al posto delle precedenti; <b>&#8635; Altre proposte</b> ne genera altre 8 con le stesse scelte, <b>&times;</b> toglie un pattern dalla lista. Nella scheda Preferiti, <b>Svuota preferiti</b> li toglie tutti.</li>
+          <li><b>✦ Vary</b> (Pattern panel) transforms the pattern you are editing, even one you wrote by hand; <kbd>cmd</kbd>+<kbd>Z</kbd> undoes it.</li>
+          <li><b>Browse…</b> opens the library and generator: it shows 8 suggestions for the selected machine and style right away, from the busiest to the simplest (the ● dots show how interesting each one is).</li>
+          <li>On every pattern: <b>Similar</b> creates 4 close variants; <b>Vary</b> transforms it in 20 ways (sparse, half-time, open hat, new fill, percussion layer, stop… and five <b>hybrids</b> with voices from another style).</li>
+          <li><b>Arrange</b> derives intro, chorus, break and outro; <b>Lock</b> keeps some voices and regenerates the others.</li>
+          <li>Every pattern has a code: the same code regenerates the same pattern.</li>
+          <li>In the library: choosing a style, section or length immediately brings 8 new suggestions in place of the previous ones; <b>↻ More suggestions</b> generates another 8 with the same settings, <b>×</b> removes a pattern from the list. In the Favorites tab, <b>Clear favorites</b> removes them all.</li>
         </ul>
       </section>
     </div>
   </details>
   <dialog class="ask report-dlg" id="reportDialog" aria-labelledby="reportTitle">
     <form method="dialog" id="reportForm">
-      <h3 id="reportTitle">Segnala un problema</h3>
+      <h3 id="reportTitle">Report a problem</h3>
       <div class="rep-done" id="repDone" hidden>
         <div class="rep-check" aria-hidden="true">&#10003;</div>
-        <p class="rep-done-title">Messaggio inviato</p>
-        <p id="repDoneMsg">Grazie!</p>
-        <div class="ask-btns"><button type="submit" value="cancel" class="primary" id="repDoneClose">Chiudi</button></div>
+        <p class="rep-done-title">Message sent</p>
+        <p id="repDoneMsg">Thank you!</p>
+        <div class="ask-btns"><button type="submit" value="cancel" class="primary" id="repDoneClose">Close</button></div>
       </div>
       <div id="repFields">
-      <p>Racconta cosa non va o cosa ti piacerebbe: arriva direttamente a chi fa PATTERN-MACHINE.</p>
-      <label for="repName">Nome</label>
+      <p>Tell us what's wrong or what you'd like: it goes straight to the people who make PATTERN-MACHINE.</p>
+      <label for="repName">Name</label>
       <input type="text" id="repName" maxlength="80" autocomplete="name">
-      <label for="repMail">Mail <span class="opt">(per risponderti, facoltativa)</span></label>
+      <label for="repMail">Email <span class="opt">(optional, so we can reply)</span></label>
       <input type="email" id="repMail" maxlength="200" autocomplete="email">
-      <label for="repMsg">Messaggio</label>
-      <textarea id="repMsg" rows="6" maxlength="3000" required placeholder="Cosa stavi facendo, cosa è successo, cosa ti aspettavi"></textarea>
-      <p class="rep-note">Insieme al messaggio arrivano la pagina, la macchina scelta, la versione del sito e il browser.</p>
+      <label for="repMsg">Message</label>
+      <textarea id="repMsg" rows="6" maxlength="3000" required placeholder="What you were doing, what happened, what you expected"></textarea>
+      <p class="rep-note">Along with your message we receive the page, the selected machine, the site version and your browser.</p>
       <p class="import-msg" id="repStatus" role="status"></p>
       <div class="ask-btns">
-        <button type="submit" value="cancel" formnovalidate>Annulla</button>
-        <button type="button" id="repSend" class="primary">Invia</button>
+        <button type="submit" value="cancel" formnovalidate>Cancel</button>
+        <button type="button" id="repSend" class="primary">Send</button>
       </div>
       </div>
     </form>
@@ -997,28 +987,28 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 
   <dialog class="ask import-dlg" id="importDialog" aria-labelledby="importTitle">
     <form method="dialog">
-      <h3 id="importTitle">Importa</h3>
+      <h3 id="importTitle">Import</h3>
       <label class="import-drop" id="importDrop">
         <input type="file" id="importFile">
-        <b>Trascina qui un file</b> <span>o tocca per sceglierlo</span>
-        <small>MIDI · audio (WAV, AIFF, MP3, M4A, OGG, FLAC) · PatternTXT · drum tab · Hydrogen · REAPER · Ableton Live · MusicXML · progetto JSON</small>
+        <b>Drop a file here</b> <span>or tap to choose one</span>
+        <small>MIDI · audio (WAV, AIFF, MP3, M4A, OGG, FLAC) · PatternTXT · drum tabs · Hydrogen · REAPER · Ableton Live · MusicXML · JSON project</small>
       </label>
-      <textarea id="importText" rows="5" spellcheck="false" placeholder="…oppure incolla qui un PatternTXT, un drum tab (HH|x-x-x-x-|), un progetto JSON, un MusicXML o il codice / link di un pattern"></textarea>
+      <textarea id="importText" rows="5" spellcheck="false" placeholder="…or paste a PatternTXT, a drum tab (HH|x-x-x-x-|), a JSON project, a MusicXML file or a pattern code / link here"></textarea>
       <div class="import-opts">
-        <label>Note MIDI
+        <label>MIDI notes
           <select id="importMap">
-            <option value="auto">riconosci da solo</option>
-            <option value="gm">General MIDI (36 cassa, 38 rullante…)</option>
-            <option value="pm">kit PATTERN-MACHINE (36 + numero dello slot)</option>
+            <option value="auto">detect automatically</option>
+            <option value="gm">General MIDI (36 kick, 38 snare…)</option>
+            <option value="pm">PATTERN-MACHINE kit (36 + slot number)</option>
           </select>
         </label>
-        <label class="chk"><input type="checkbox" id="importAdd"> aggiungi al progetto aperto invece di aprirne uno nuovo</label>
-        <label class="chk"><input type="checkbox" id="importTempo" checked> audio: stima il tempo (altrimenti usa i BPM attuali)</label>
+        <label class="chk"><input type="checkbox" id="importAdd"> add to the open project instead of opening a new one</label>
+        <label class="chk"><input type="checkbox" id="importTempo" checked> audio: detect the tempo (otherwise use the current BPM)</label>
       </div>
       <p class="import-msg" id="importMsg" role="status"></p>
       <div class="ask-btns">
-        <button type="submit" value="cancel">Chiudi</button>
-        <button type="button" id="importGo" class="primary">Importa il testo</button>
+        <button type="submit" value="cancel">Close</button>
+        <button type="button" id="importGo" class="primary">Import text</button>
       </div>
     </form>
   </dialog>
@@ -1029,76 +1019,76 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       <p id="askMsg"></p>
       <input type="text" id="askInput" hidden spellcheck="false" autocomplete="off">
       <div class="ask-btns">
-        <button type="submit" value="cancel" id="askCancel">Annulla</button>
-        <button type="submit" value="ok" id="askOk" class="primary">Ok</button>
+        <button type="submit" value="cancel" id="askCancel">Cancel</button>
+        <button type="submit" value="ok" id="askOk" class="primary">OK</button>
       </div>
     </form>
   </dialog>
   <dialog class="ask app-promo" id="appPromo" aria-labelledby="appPromoTitle">
     <form method="dialog">
-      <h3 id="appPromoTitle">PATTERN-MACHINE anche come app</h3>
-      <p>Per Mac, Windows e Linux. Rispetto al sito nel browser:</p>
+      <h3 id="appPromoTitle">PATTERN-MACHINE as an app too</h3>
+      <p>For Mac, Windows and Linux. Compared with the site in a browser:</p>
       <ul class="promo-list">
-        <li><b>Trascini</b> il pattern o la canzone (MIDI o WAV) direttamente nella timeline della DAW, senza zip da scompattare.</li>
-        <li><b>Uscita MIDI dal vivo</b>: la porta "PatternMachine" suona Drum Kit Designer, Drum Machine Designer o qualsiasi strumento, e si registra.</li>
-        <li><b>Segue il clock della DAW</b>: parte, si ferma, salta e cambia tempo insieme a Logic.</li>
-        <li><b>Progetti come file</b> in Musica › PatternMachine, da copiare o mettere nel backup.</li>
-        <li><b>Funziona offline</b>, senza rete né password.</li>
+        <li><b>Drag</b> the pattern or song (MIDI or WAV) straight onto the DAW timeline, with no zip to unpack.</li>
+        <li><b>Live MIDI output</b>: the "PatternMachine" port plays Drum Kit Designer, Drum Machine Designer or any instrument, and can be recorded.</li>
+        <li><b>Follows the DAW clock</b>: starts, stops, jumps and changes tempo together with Logic.</li>
+        <li><b>Projects as files</b> in Music › PatternMachine, easy to copy or back up.</li>
+        <li><b>Works offline</b>, with no network or password.</li>
       </ul>
       <div class="ask-btns">
-        <button type="submit" value="later">Più tardi</button>
-        <button type="submit" value="go" id="appPromoGo" class="primary">Scarica l'app</button>
+        <button type="submit" value="later">Later</button>
+        <button type="submit" value="go" id="appPromoGo" class="primary">Download the app</button>
       </div>
     </form>
   </dialog>
   <dialog class="ask app-promo" id="liveHelp" aria-labelledby="liveHelpTitle">
     <form method="dialog">
-      <h3 id="liveHelpTitle">Vista Live · tasti</h3>
-      <p>Ogni tasto o tocco suona lo strumento, senza scriverlo nel pattern:</p>
+      <h3 id="liveHelpTitle">Live View · keys</h3>
+      <p>Every key or tap plays the instrument without writing it into the pattern:</p>
       <div class="live-keys" id="liveKeys"></div>
       <ul class="live-help-mods">
-        <li><kbd>spazio</kbd> Play / Stop.</li>
-        <li><kbd>⌥</kbd> + tasto, oppure <kbd>⌘</kbd> + click sul pad: scrive il colpo nello step che sta suonando.</li>
-        <li><kbd>⌘</kbd> + click su uno step: lo accende o lo spegne (con <kbd>⌘⌥</kbd> accento, <kbd>⌘⇧</kbd> nota fantasma).</li>
-        <li><b>Rec</b> acceso durante il Play: anche i tasti normali scrivono i colpi.</li>
+        <li><kbd>space</kbd> Play / Stop.</li>
+        <li><kbd>⌥</kbd> + key, or <kbd>⌘</kbd> + click on the pad: writes the hit into the step that is playing.</li>
+        <li><kbd>⌘</kbd> + click on a step: turns it on or off (<kbd>⌘⌥</kbd> for an accent, <kbd>⌘⇧</kbd> for a ghost note).</li>
+        <li><b>Rec</b> on during playback: plain keys write hits too.</li>
       </ul>
       <div class="ask-btns">
-        <button type="submit" value="never">Non mostrare più</button>
-        <button type="submit" value="close" class="primary">Chiudi</button>
+        <button type="submit" value="never">Don't show again</button>
+        <button type="submit" value="close" class="primary">Close</button>
       </div>
     </form>
   </dialog>
   <dialog class="ask app-promo" id="guestPromo" aria-labelledby="guestPromoTitle">
     <form method="dialog">
-      <h3 id="guestPromoTitle">Perché registrarsi</h3>
-      <p>Stai usando PATTERN-MACHINE senza account. Registrandoti, gratis:</p>
+      <h3 id="guestPromoTitle">Why sign up</h3>
+      <p>You are using PATTERN-MACHINE without an account. Sign up for free and:</p>
       <ul class="promo-list">
-        <li><b>Salvi i tuoi progetti</b> e li ritrovi in "Progetti salvati", insieme ai preferiti.</li>
-        <li><b>Scarichi l'app</b> per macOS, Windows e Linux, con funzioni avanzate: trascinamento di MIDI e WAV nella DAW, uscita MIDI dal vivo, sincronizzazione al clock della DAW, progetti come file e uso offline.</li>
+        <li><b>Save your projects</b> and find them in "Saved projects", together with your favorites.</li>
+        <li><b>Download the app</b> for macOS, Windows and Linux, with advanced features: drag MIDI and WAV into your DAW, live MIDI output, sync to the DAW clock, projects as files and offline use.</li>
       </ul>
       <div class="ask-btns">
-        <button type="submit" value="later">Procedi senza registrarti</button>
-        <button type="submit" value="go" class="primary">Registrati</button>
+        <button type="submit" value="later">Continue without signing up</button>
+        <button type="submit" value="go" class="primary">Sign up</button>
       </div>
     </form>
   </dialog>
-  <footer class="site-footer"><button type="button" class="report-btn" id="reportBtn">Segnala un problema</button><span class="site-version"><!--build-->versione del giorno mese anno HH:MM<!--/build--></span><a class="site-badge" href="https://tongatron.org/"><span class="mark"></span><span>tongatron.org</span></a></footer>
+  <footer class="site-footer"><button type="button" class="report-btn" id="reportBtn">Report a problem</button><span class="site-version"><!--build-->version of day month year HH:MM<!--/build--></span><a class="site-badge" href="https://tongatron.org/"><span class="mark"></span><span>tongatron.org</span></a></footer>
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-28.05"></script>
-<script src="engine/styles-punk.js?v=2026-09-28.05"></script>
-<script src="engine/styles-post.js?v=2026-09-28.05"></script>
-<script src="engine/styles-machines.js?v=2026-09-28.05"></script>
-<script src="engine/styles-alt.js?v=2026-09-28.05"></script>
-<script src="engine/styles-groove.js?v=2026-09-28.05"></script>
-<script src="engine/styles-dub.js?v=2026-09-28.05"></script>
-<script src="engine/styles-break.js?v=2026-09-28.05"></script>
-<script src="engine/styles-soul.js?v=2026-09-28.05"></script>
-<script src="engine/styles-metal.js?v=2026-09-28.05"></script>
-<script src="engine/styles-electro.js?v=2026-09-28.05"></script>
-<script src="engine/variations.js?v=2026-09-28.05"></script>
-<script src="engine/import.js?v=2026-09-28.05"></script>
+<script src="engine/core.js?v=2026-09-28.06"></script>
+<script src="engine/styles-punk.js?v=2026-09-28.06"></script>
+<script src="engine/styles-post.js?v=2026-09-28.06"></script>
+<script src="engine/styles-machines.js?v=2026-09-28.06"></script>
+<script src="engine/styles-alt.js?v=2026-09-28.06"></script>
+<script src="engine/styles-groove.js?v=2026-09-28.06"></script>
+<script src="engine/styles-dub.js?v=2026-09-28.06"></script>
+<script src="engine/styles-break.js?v=2026-09-28.06"></script>
+<script src="engine/styles-soul.js?v=2026-09-28.06"></script>
+<script src="engine/styles-metal.js?v=2026-09-28.06"></script>
+<script src="engine/styles-electro.js?v=2026-09-28.06"></script>
+<script src="engine/variations.js?v=2026-09-28.06"></script>
+<script src="engine/import.js?v=2026-09-28.06"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -1360,22 +1350,22 @@ const KITS={
 };
 // Le altre macchine si costruiscono tutte allo stesso modo dalla loro tabella.
 const MACHINES={
-  sp12b:{label:"E-mu SP-1200", source:"kit Boutique SP12 di Logic", slots:SP12B_SLOTS, extra:SP12B_EXTRA},
+  sp12b:{label:"E-mu SP-1200", source:"Logic's Boutique SP12 kit", slots:SP12B_SLOTS, extra:SP12B_EXTRA},
   rx5:{label:"Yamaha RX-5", slots:RX5_SLOTS, extra:RX5_EXTRA},
-  tr808:{label:"Roland TR-808", source:"kit Boutique 808 di Logic", slots:TR808_SLOTS, extra:TR808_EXTRA},
-  tr808u:{label:"Roland TR-808 · Unprocessed", source:"kit TR-808 Unprocessed di Logic", slots:TR808U_SLOTS, extra:TR808U_EXTRA},
-  tr909:{label:"Roland TR-909", source:"kit Boutique 909 di Logic", slots:TR909_SLOTS, extra:TR909_EXTRA},
-  tr909u:{label:"Roland TR-909 · Unprocessed", source:"kit TR-909 Unprocessed di Logic", slots:TR909U_SLOTS, extra:TR909U_EXTRA},
-  tr707:{label:"Roland TR-707", source:"kit TR-707 di Logic", slots:TR707_SLOTS, extra:TR707_EXTRA},
-  tr727:{label:"Roland TR-727", source:"kit TR-727 di Logic", slots:TR727_SLOTS, extra:TR727_EXTRA},
-  tr606:{label:"Roland TR-606", source:"kit TR-606 di Logic", slots:TR606_SLOTS, extra:TR606_EXTRA},
-  cr78:{label:"Roland CR-78", source:"kit Boutique 78 di Logic", slots:CR78_SLOTS, extra:CR78_EXTRA},
-  cr8000:{label:"Roland CR-8000", source:"kit CR-8000 di Logic", slots:CR8000_SLOTS, extra:CR8000_EXTRA},
-  linn:{label:"Linn LinnDrum", source:"kit LinnDrum di Logic", slots:LINN_SLOTS, extra:LINN_EXTRA},
-  dmx:{label:"Oberheim DMX", source:"kit DMX di Logic (Vintage Machines)", slots:DMX_SLOTS, extra:DMX_EXTRA},
-  drumulator:{label:"E-mu Drumulator", source:"kit Drumulator di Logic (Vintage Machines)", slots:DRUMULATOR_SLOTS, extra:DRUMULATOR_EXTRA},
-  drumtraks:{label:"Sequential DrumTraks", source:"kit DrumTraks di Logic", slots:DRUMTRAKS_SLOTS, extra:DRUMTRAKS_EXTRA},
-  sdsv:{label:"Simmons SDS-V", source:"kit SDS-V di Logic", slots:SDSV_SLOTS, extra:SDSV_EXTRA},
+  tr808:{label:"Roland TR-808", source:"Logic's Boutique 808 kit", slots:TR808_SLOTS, extra:TR808_EXTRA},
+  tr808u:{label:"Roland TR-808 · Unprocessed", source:"Logic's TR-808 Unprocessed kit", slots:TR808U_SLOTS, extra:TR808U_EXTRA},
+  tr909:{label:"Roland TR-909", source:"Logic's Boutique 909 kit", slots:TR909_SLOTS, extra:TR909_EXTRA},
+  tr909u:{label:"Roland TR-909 · Unprocessed", source:"Logic's TR-909 Unprocessed kit", slots:TR909U_SLOTS, extra:TR909U_EXTRA},
+  tr707:{label:"Roland TR-707", source:"Logic's TR-707 kit", slots:TR707_SLOTS, extra:TR707_EXTRA},
+  tr727:{label:"Roland TR-727", source:"Logic's TR-727 kit", slots:TR727_SLOTS, extra:TR727_EXTRA},
+  tr606:{label:"Roland TR-606", source:"Logic's TR-606 kit", slots:TR606_SLOTS, extra:TR606_EXTRA},
+  cr78:{label:"Roland CR-78", source:"Logic's Boutique 78 kit", slots:CR78_SLOTS, extra:CR78_EXTRA},
+  cr8000:{label:"Roland CR-8000", source:"Logic's CR-8000 kit", slots:CR8000_SLOTS, extra:CR8000_EXTRA},
+  linn:{label:"Linn LinnDrum", source:"Logic's LinnDrum kit", slots:LINN_SLOTS, extra:LINN_EXTRA},
+  dmx:{label:"Oberheim DMX", source:"Logic's DMX kit (Vintage Machines)", slots:DMX_SLOTS, extra:DMX_EXTRA},
+  drumulator:{label:"E-mu Drumulator", source:"Logic's Drumulator kit (Vintage Machines)", slots:DRUMULATOR_SLOTS, extra:DRUMULATOR_EXTRA},
+  drumtraks:{label:"Sequential DrumTraks", source:"Logic's DrumTraks kit", slots:DRUMTRAKS_SLOTS, extra:DRUMTRAKS_EXTRA},
+  sdsv:{label:"Simmons SDS-V", source:"Logic's SDS-V kit", slots:SDSV_SLOTS, extra:SDSV_EXTRA},
 };
 Object.entries(MACHINES).forEach(([id,m])=>{
   m.extra.forEach(([name,,,fallback])=>SAMPLES.push({name,bank:"D",extra:true,fallback}));
@@ -1387,20 +1377,20 @@ Object.entries(MACHINES).forEach(([id,m])=>{
 // Dati coerenti con MACHINES di macchine.html; MACHINE_INFO_ALIAS collega gli id
 // di KITS che condividono la stessa macchina reale (unprocessed, kit SP-1200...).
 const MACHINE_INFO={
-  cr78:{maker:"Roland", year:1978, gen:"Analogica", specs:["suoni analogici","ritmi preimpostati"]},
-  tr808:{maker:"Roland", year:1980, gen:"Analogica", specs:["suoni analogici","sequencer a 16 passi"]},
-  tr606:{maker:"Roland", year:1981, gen:"Analogica", specs:["suoni analogici","sequencer a 16 passi"]},
-  cr8000:{maker:"Roland", year:1981, gen:"Analogica", specs:["suoni analogici","ritmi preimpostati + propri"]},
-  dmx:{maker:"Oberheim", year:1981, gen:"Campioni digitali", specs:["campioni a 8 bit","tamburi veri registrati"]},
-  sdsv:{maker:"Simmons", year:1981, gen:"Batteria elettronica", specs:["sintesi analogica","pad esagonali da suonare"]},
-  linn:{maker:"Linn Electronics", year:1982, gen:"Campioni digitali", specs:["campioni a 8 bit","tamburi veri registrati"]},
-  tr909:{maker:"Roland", year:1983, gen:"Ibrida", specs:["cassa/rullante/tom analogici","piatti campionati a 6 bit"]},
-  drumulator:{maker:"E-mu Systems", year:1983, gen:"Campioni digitali", specs:["campioni a 8 bit","prezzo accessibile"]},
-  drumtraks:{maker:"Sequential Circuits", year:1984, gen:"Campioni digitali", specs:["campioni","MIDI tra i primi"]},
-  tr707:{maker:"Roland", year:1985, gen:"Campioni digitali", specs:["tutti i suoni campionati","MIDI"]},
-  tr727:{maker:"Roland", year:1985, gen:"Campioni digitali", specs:["solo percussioni latine","MIDI"]},
-  rx5:{maker:"Yamaha", year:1986, gen:"Campioni digitali", specs:["campioni a 12 bit","cartucce di suoni"]},
-  sp1200:{maker:"E-mu Systems", year:1987, gen:"Campionatore", specs:["campiona a 12 bit, circa 26 kHz","8 cursori"]},
+  cr78:{maker:"Roland", year:1978, gen:"Analog", specs:["analog sounds","preset rhythms"]},
+  tr808:{maker:"Roland", year:1980, gen:"Analog", specs:["analog sounds","16-step sequencer"]},
+  tr606:{maker:"Roland", year:1981, gen:"Analog", specs:["analog sounds","16-step sequencer"]},
+  cr8000:{maker:"Roland", year:1981, gen:"Analog", specs:["analog sounds","preset and user rhythms"]},
+  dmx:{maker:"Oberheim", year:1981, gen:"Digital samples", specs:["8-bit samples","recorded acoustic drums"]},
+  sdsv:{maker:"Simmons", year:1981, gen:"Electronic drum kit", specs:["analog synthesis","playable hexagonal pads"]},
+  linn:{maker:"Linn Electronics", year:1982, gen:"Digital samples", specs:["8-bit samples","recorded acoustic drums"]},
+  tr909:{maker:"Roland", year:1983, gen:"Hybrid", specs:["analog kick/snare/toms","6-bit sampled cymbals"]},
+  drumulator:{maker:"E-mu Systems", year:1983, gen:"Digital samples", specs:["8-bit samples","affordable"]},
+  drumtraks:{maker:"Sequential Circuits", year:1984, gen:"Digital samples", specs:["samples","one of the first with MIDI"]},
+  tr707:{maker:"Roland", year:1985, gen:"Digital samples", specs:["all sounds sampled","MIDI"]},
+  tr727:{maker:"Roland", year:1985, gen:"Digital samples", specs:["Latin percussion only","MIDI"]},
+  rx5:{maker:"Yamaha", year:1986, gen:"Digital samples", specs:["12-bit samples","sound cartridges"]},
+  sp1200:{maker:"E-mu Systems", year:1987, gen:"Sampler", specs:["samples at 12 bit, about 26 kHz","8 faders"]},
 };
 const MACHINE_INFO_ALIAS={std:"sp1200","12bit":"sp1200", sp12b:"sp1200", tr808u:"tr808", tr909u:"tr909"};
 function updateMachineInfo(k){
@@ -1408,7 +1398,7 @@ function updateMachineInfo(k){
   const info=MACHINE_INFO[MACHINE_INFO_ALIAS[k]||k];
   box.textContent=info?`${info.maker} · ${info.year} · ${info.gen} · ${info.specs.join(", ")}`:"";
 }
-const BANK_LABEL={A:"Core kit",B:"Percussioni",C:"Altro",D:"Solo questa macchina"};
+const BANK_LABEL={A:"Core kit",B:"Percussioni",C:"Altro",D:"This machine only"};
 const PATTERN_HUES=[18,42,150,200,265,320,95,0];
 
 // Il kit "SP-1200 Kit" di Logic e' stato creato con Convert Regions to New Sampler
@@ -1441,7 +1431,7 @@ function loadBuffer(i){
 // Cambia macchina. Le righe che usavano un suono che l'altra macchina non ha passano allo slot di riserva.
 function setSampleSet(k,quiet=false){
   if(!KITS[k]) return;
-  if(KITS[k].ok===false){ setStatus(KITS[k].label+": non disponibile su questo server"); const sel=document.getElementById("kitSelect"); if(sel) sel.value=sampleSet; return; }
+  if(KITS[k].ok===false){ setStatus(KITS[k].label+": not available on this server"); const sel=document.getElementById("kitSelect"); if(sel) sel.value=sampleSet; return; }
   sampleSet=k;
   const sel=document.getElementById("kitSelect"); if(sel) sel.value=k;
   updateMachineInfo(k);
@@ -1457,7 +1447,7 @@ function setSampleSet(k,quiet=false){
     loadBuffer(t.sampleIndex);
   });
   if(typeof renderAll==="function" && project.patterns) renderAll();
-  if(!quiet) setStatus(KITS[k].label+(moved?` · ${moved} ${moved===1?"riga passata":"righe passate"} a un suono equivalente`:""));
+  if(!quiet) setStatus(KITS[k].label+(moved?` · ${moved} ${moved===1?"row":"rows"} moved to an equivalent sound`:""));
 }
 
 let idSeq=1;
@@ -1527,7 +1517,7 @@ function starterProject(){
   p.grid[tracks[1].id]=[0,0,0,0, 2,0,0,0, 0,0,0,0, 2,0,0,0];
   p.grid[tracks[2].id]=[2,0,1,0, 1,0,1,0, 2,0,1,0, 1,0,1,0];
   p.grid[tracks[3].id]=[0,0,0,0, 0,0,0,1, 0,0,0,0, 0,0,0,1];
-  return {name:"Senza titolo", bpm:93, swing:0, tracks, patterns:[p],
+  return {name:"Untitled", bpm:93, swing:0, tracks, patterns:[p],
     song:[{id:uid(), patternId:p.id, repeats:4}]};
 }
 
@@ -1748,7 +1738,7 @@ function play(){
   stopAudition();
   const ctx=actx();
   if(ctx.state==="suspended") ctx.resume();
-  if(ui.mode==="song" && !project.song.length){ setStatus("la canzone e' vuota","err"); return; }
+  if(ui.mode==="song" && !project.song.length){ setStatus("the song is empty","err"); return; }
   playing=true;
   cursor={step:0, blockIndex:0, rep:0};
   if(ui.mode==="song"){
@@ -1832,12 +1822,12 @@ function voicePanel(t){
     box.appendChild(w);
   };
   slider("Decay","decay", v=> v>=100 ? "full" : v+"%");
-  slider("Filtro","cutoff", v=> v>=100 ? "off" : Math.round(cutoffHz(v))+" Hz");
+  slider("Filter","cutoff", v=> v>=100 ? "off" : Math.round(cutoffHz(v))+" Hz");
   slider("Reso","reso", v=> v+"%");
   slider("Start","start", v=> v+"%");
 
   const nw=document.createElement("label"); nw.className="vparam";
-  nw.title="micro-timing: negativo = colpo in anticipo, positivo = in ritardo";
+  nw.title="micro-timing: negative = hit ahead of the beat, positive = behind the beat";
   const nval=document.createElement("span"); nval.className="val";
   const nr=document.createElement("input"); nr.type="range"; nr.min=-30; nr.max=30; nr.step=1; nr.value=t.nudge||0;
   const nfmt=v=> v===0 ? "0 ms" : (v>0?"+":"")+v+" ms";
@@ -1849,7 +1839,7 @@ function voicePanel(t){
 
   const rev=document.createElement("button");
   rev.className="chip-btn rev"+(t.reverse?" on s":""); rev.textContent="REV";
-  rev.title="Riproduci il campione al contrario";
+  rev.title="Play the sample reversed";
   rev.onclick=()=>{ pushUndo(); t.reverse=!t.reverse; renderTracks(); };
   box.appendChild(rev);
   return box;
@@ -1859,7 +1849,7 @@ function renderTracks(){
   const pat=curPattern();
   const host=el("rows");
   host.innerHTML=""; stepEls=new Map(); lanePaint.clear();
-  el("gridTitle").textContent = "Griglia — " + pat.name;
+  el("gridTitle").textContent = "Grid — " + pat.name;
 
   project.tracks.forEach((t,idx)=>{
     const wrap=document.createElement("div");
@@ -1869,13 +1859,13 @@ function renderTracks(){
 
     const pad=document.createElement("button");
     pad.className="pad"; pad.textContent=PAD_LABEL[idx]||"•";
-    pad.title="Suona (anteprima)";
+    pad.title="Play (preview)";
     pad.onclick=(ev)=>{ if(isLive() && (ev.metaKey||ev.ctrlKey||ev.altKey)) liveWrite(idx); else hitPad(idx); };
     top.appendChild(pad);
 
     const nm=document.createElement("div");
     nm.className="trk-name"; nm.textContent=sampleLabel(t.sampleIndex);
-    nm.title="click: apre o chiude tutte le opzioni della riga"; nm.onclick=()=>toggleExpand(t.id);
+    nm.title="click: open or close all the row options"; nm.onclick=()=>toggleExpand(t.id);
     top.appendChild(nm);
 
     const smp=document.createElement("select");
@@ -1896,14 +1886,14 @@ function renderTracks(){
     grp.value=t.choke; grp.onchange=()=>{ t.choke=+grp.value; };
     top.appendChild(grp);
 
-    const lenSel=document.createElement("select"); lenSel.className="tune"; lenSel.title="Lunghezza della traccia: con meno step gira per conto suo (poliritmo)";
-    { const o=document.createElement("option"); o.value=0; o.textContent="Lung. –"; lenSel.appendChild(o); }
+    const lenSel=document.createElement("select"); lenSel.className="tune"; lenSel.title="Track length: with fewer steps it loops on its own (polyrhythm)";
+    { const o=document.createElement("option"); o.value=0; o.textContent="Len. –"; lenSel.appendChild(o); }
     for(let n=2;n<pat.len;n++){ const o=document.createElement("option"); o.value=n; o.textContent=n+" step"; lenSel.appendChild(o); }
     lenSel.value=(pat.lens&&pat.lens[t.id])||0;
     lenSel.onchange=()=>{ pushUndo(); pat.lens=pat.lens||{}; if(+lenSel.value) pat.lens[t.id]=+lenSel.value; else delete pat.lens[t.id]; renderTracks(); };
     top.appendChild(lenSel);
 
-    const tune=document.createElement("select"); tune.className="tune"; tune.title="Intonazione (semitoni)";
+    const tune=document.createElement("select"); tune.className="tune"; tune.title="Tuning (semitones)";
     for(let s=-12;s<=12;s++){ const o=document.createElement("option"); o.value=s; o.textContent=(s>0?"+":"")+s+"st"; tune.appendChild(o); }
     tune.value=t.tune||0; tune.onchange=()=>{ t.tune=+tune.value; };
     top.appendChild(tune);
@@ -1914,7 +1904,7 @@ function renderTracks(){
     top.appendChild(vol);
 
     const exp=mk("x",ui.expanded===t.id?"▴":"▾",ui.expanded===t.id,()=>toggleExpand(t.id));
-    exp.title="Tutte le opzioni della riga: suono e, sotto gli step, una corsia per ogni blocco";
+    exp.title="All row options: sound and, below the steps, one lane per parameter";
     exp.setAttribute("aria-expanded",String(ui.expanded===t.id));
     top.appendChild(exp);
 
@@ -1924,7 +1914,7 @@ function renderTracks(){
     }));
 
     const kill=document.createElement("button");
-    kill.className="kill"; kill.textContent="×"; kill.title="Rimuovi riga";
+    kill.className="kill"; kill.textContent="×"; kill.title="Remove row";
     kill.onclick=()=>{ pushUndo(); project.tracks=project.tracks.filter(x=>x.id!==t.id); normalize(); renderTracks(); };
     top.appendChild(kill);
     wrap.appendChild(top);
@@ -1941,12 +1931,12 @@ function renderTracks(){
       const b=document.createElement("button");
       b.className="step"; b.dataset.i=i;
       paintStep(b,arr[i],i,modOf(pat,t.id,i));
-      if(i>=L){ b.disabled=true; b.classList.add("outlen"); b.title="fuori dalla lunghezza della traccia"; }
+      if(i>=L){ b.disabled=true; b.classList.add("outlen"); b.title="beyond the track length"; }
       b.onclick=(ev)=>{
         if(isLive() && !(ev.metaKey||ev.ctrlKey)){ hitPad(project.tracks.indexOf(t)); return; }
         const key=STEP_MODE_KEY[ui.stepMode];
         if(key){
-          if(!arr[i]){ setStatus("prima accendi il colpo (modalita' Colpi)"); return; }
+          if(!arr[i]){ setStatus("turn the hit on first (Hits mode)"); return; }
           pushUndo();
           const list=MOD_LISTS[key], cur=modOf(pat,t.id,i)[key];
           setMod(pat,t.id,i,key,list[(list.indexOf(cur)+1)%list.length]);
@@ -1985,13 +1975,13 @@ function toggleExpand(tid){
   renderTracks();
 }
 const LANES=[
-  {key:"lvl", label:"Livello", show:v=>({1:"",2:"acc",3:"fant"})[v]||""},
-  {key:"p", label:"Probabilità", show:x=>x<100?x+"%":""},
-  {key:"r", label:"Ripetizioni", show:x=>x>1?"×"+x:""},
+  {key:"lvl", label:"Level", show:v=>({1:"",2:"acc",3:"fant"})[v]||""},
+  {key:"p", label:"Probability", show:x=>x<100?x+"%":""},
+  {key:"r", label:"Ratchets", show:x=>x>1?"×"+x:""},
   {key:"f", label:"Flam", show:x=>x?"fl":""},
-  {key:"t", label:"Intonazione", show:x=>x?(x>0?"+":"")+x:""},
+  {key:"t", label:"Tuning", show:x=>x?(x>0?"+":"")+x:""},
   {key:"d", label:"Decay", show:x=>x?String(x):""},
-  {key:"c", label:"Filtro", show:x=>x?String(x):""},
+  {key:"c", label:"Filter", show:x=>x?String(x):""},
 ];
 const LVL_CYCLE={1:2,2:3,3:1};
 function stripLanes(t,pat,arr,els,L){
@@ -2021,7 +2011,7 @@ function stripLanes(t,pat,arr,els,L){
     box.appendChild(lab); box.appendChild(row);
   });
   const hint=document.createElement("div"); hint.className="tiny lane-hint";
-  hint.textContent="click su una cella: valore successivo · alt+click: torna al default · valgono solo sugli step accesi";
+  hint.textContent="click a cell: next value · alt+click: back to default · only affects active steps";
   box.appendChild(hint);
   function paint(){
     cells.forEach(({c,i,ln})=>{
@@ -2102,7 +2092,7 @@ function renderTimeline(){
     seg.style.setProperty("--seg-color",`hsl(${songSectionColor(x.b.section||"verse")} 70% 55%)`);
     seg.style.setProperty("--bar-w",`${16/x.steps*100}%`);
     const name=document.createElement("b"); name.textContent=x.p?x.p.name:"?";
-    const info=document.createElement("span"); info.textContent=`×${x.b.repeats} · ${x.steps/16} batt.`;
+    const info=document.createElement("span"); info.textContent=`×${x.b.repeats} · ${x.steps/16} bar${x.steps/16===1?"":"s"}`;
     seg.append(name,info);
     lane.appendChild(seg);
   });
@@ -2152,9 +2142,9 @@ function paintTimeline(){
   el("tlTime").textContent=`${fmtClock(pos*sps)} / ${fmtClock(L.total*sps)}`;
   const step=Math.floor(pos);
   el("tlPos").textContent=L.total
-    ? `battuta ${Math.floor(step/16)+1} · ${Math.floor((step%16)/4)+1}` + (L.blocks[live?nowIdx:selIdx]?` · blocco ${(live?nowIdx:selIdx)+1}`:"")
-    : "canzone vuota";
-  el("tlNote").textContent = playing?"":"click sulla timeline per scegliere da dove partire";
+    ? `bar ${Math.floor(step/16)+1} · ${Math.floor((step%16)/4)+1}` + (L.blocks[live?nowIdx:selIdx]?` · block ${(live?nowIdx:selIdx)+1}`:"")
+    : "empty song";
+  el("tlNote").textContent = playing?"":"click the timeline to choose the start point";
 }
 
 el("timeline").onclick=e=>{
@@ -2183,7 +2173,7 @@ function renderPatterns(){
   const host=el("patternChips");
   host.innerHTML="";
   const sel=document.createElement("select"); sel.id="patternSelect"; sel.className="pattern-select";
-  sel.setAttribute("aria-label","Pattern da modificare");
+  sel.setAttribute("aria-label","Pattern to edit");
   project.patterns.forEach((p,i)=>{
     const o=document.createElement("option"); o.value=p.id;
     o.textContent=`${i+1}. ${p.name} · ${p.len} step`;
@@ -2240,7 +2230,7 @@ function renderSong(){
   if(!project.song.length){
     const e=document.createElement("div");
     e.className="song-empty";
-    e.textContent="nessun blocco — scegli un pattern e premi Inserisci per costruire la canzone";
+    e.textContent="no blocks — pick a pattern and press Insert to build the song";
     host.appendChild(e);
   }
 
@@ -2252,7 +2242,7 @@ function renderSong(){
     const section=b.section||"verse";
 
     const tick=document.createElement("span");
-    tick.textContent=`batt. ${bar}`;
+    tick.textContent=`bar ${bar}`;
     ruler.appendChild(tick);
 
     const card=document.createElement("div");
@@ -2272,7 +2262,7 @@ function renderSong(){
     card.appendChild(head);
 
     const sectionSel=document.createElement("select"); sectionSel.className="seq-section";
-    sectionSel.setAttribute("aria-label","Sezione della canzone");
+    sectionSel.setAttribute("aria-label","Song section");
     SONG_SECTIONS.forEach(([id,label])=>{
       const o=document.createElement("option"); o.value=id; o.textContent=label; sectionSel.appendChild(o);
     });
@@ -2290,26 +2280,26 @@ function renderSong(){
     psel.onchange=()=>{ pushUndo(); b.patternId=psel.value; renderSong(); };
     card.appendChild(psel);
     const meta=document.createElement("div"); meta.className="seqblock-meta";
-    meta.textContent=`${bars} ${bars===1?"battuta":"battute"} · ×${b.repeats}`;
+    meta.textContent=`${bars} ${bars===1?"bar":"bars"} · ×${b.repeats}`;
     card.appendChild(meta);
     const actions=document.createElement("div"); actions.className="seqblock-actions";
-    const varyBlock=document.createElement("button"); varyBlock.type="button"; varyBlock.textContent="Varia";
-    varyBlock.title="crea una variazione solo per questo blocco";
+    const varyBlock=document.createElement("button"); varyBlock.type="button"; varyBlock.textContent="Vary";
+    varyBlock.title="create a variation for this block only";
     varyBlock.onclick=e=>{ e.stopPropagation(); varySongBlock(b); };
     const fillBlock=document.createElement("button"); fillBlock.type="button";
     fillBlock.textContent=b.fillPatternId?"Fill attivo":"Fill";
     fillBlock.className=b.fillPatternId?"on":"";
-    fillBlock.title=b.fillPatternId?"disattiva il fill finale":"crea un fill nell'ultima ripetizione";
+    fillBlock.title=b.fillPatternId?"remove the ending fill":"create a fill on the last repeat";
     fillBlock.onclick=e=>{ e.stopPropagation(); toggleSongFill(b); };
     const soloBlock=document.createElement("button"); soloBlock.type="button";
-    soloBlock.textContent=ui.songSoloBlockId===b.id?"Solo attivo":"Solo";
+    soloBlock.textContent=ui.songSoloBlockId===b.id?"Solo on":"Solo";
     soloBlock.className=ui.songSoloBlockId===b.id?"on":"";
-    soloBlock.title=ui.songSoloBlockId===b.id?"disattiva il solo":"riproduci solo questo blocco";
+    soloBlock.title=ui.songSoloBlockId===b.id?"turn solo off":"play this block only";
     soloBlock.onclick=e=>{
       e.stopPropagation();
       ui.songSoloBlockId=ui.songSoloBlockId===b.id?null:b.id;
       renderSong();
-      setStatus(ui.songSoloBlockId?"solo attivo: il blocco si ripete":"solo disattivato");
+      setStatus(ui.songSoloBlockId?"solo on: the block loops":"solo off");
     };
     actions.append(varyBlock,fillBlock,soloBlock); card.appendChild(actions);
 
@@ -2325,21 +2315,21 @@ function renderSong(){
     const minus=document.createElement("button"); minus.textContent="−";
     minus.onclick=e=>{ e.stopPropagation(); pushUndo(); b.repeats=Math.max(1,b.repeats-1); renderSong(); };
     const rep=document.createElement("input");
-    rep.type="number"; rep.min=1; rep.max=64; rep.value=b.repeats; rep.title="ripetizioni";
+    rep.type="number"; rep.min=1; rep.max=64; rep.value=b.repeats; rep.title="repeats";
     rep.onclick=e=>e.stopPropagation();
     rep.onchange=()=>{ pushUndo(); b.repeats=Math.min(64,Math.max(1,+rep.value||1)); renderSong(); };
     const plus=document.createElement("button"); plus.textContent="+";
     plus.onclick=e=>{ e.stopPropagation(); pushUndo(); b.repeats=Math.min(64,b.repeats+1); renderSong(); };
     const dup=document.createElement("button");
-    dup.className="sp"; dup.textContent="⧉"; dup.title="duplica";
+    dup.className="sp"; dup.textContent="⧉"; dup.title="duplicate";
     dup.onclick=e=>{ e.stopPropagation(); pushUndo();
         project.song.splice(idx+1,0,{id:uid(),patternId:b.patternId,repeats:b.repeats,section:b.section||"verse",fillPatternId:b.fillPatternId||null});
       ui.blockId=project.song[idx+1].id; renderSong(); };
     const del=document.createElement("button");
-    del.className="danger"; del.textContent="×"; del.title="rimuovi";
+    del.className="danger"; del.textContent="×"; del.title="remove";
     del.onclick=e=>{ e.stopPropagation(); pushUndo(); if(ui.songSoloBlockId===b.id) ui.songSoloBlockId=null; project.song.splice(idx,1);
       ui.blockId=project.song[Math.min(idx,project.song.length-1)]?.id||null; renderSong(); };
-    const repNow=document.createElement("span"); repNow.className="seq-rep"; repNow.title="ripetizione in corso";
+    const repNow=document.createElement("span"); repNow.className="seq-rep"; repNow.title="current repeat";
     foot.append(minus,rep,plus,repNow,dup,del);
     card.appendChild(foot);
     seqCards.push({el:card, prog:progFill, head:phead, rep:repNow});
@@ -2388,7 +2378,7 @@ function renderSong(){
 
   const bars=bar-1;
   el("songInfo").textContent = project.song.length
-    ? `${project.song.length} blocchi · ${bars} battute · ${fmtDuration(bars*4*60/bpm())}` : "";
+    ? `${project.song.length} ${project.song.length===1?"block":"blocks"} · ${bars} ${bars===1?"bar":"bars"} · ${fmtDuration(bars*4*60/bpm())}` : "";
   renderTimeline();
   paintPlayhead();
 }
@@ -2450,7 +2440,7 @@ function liveWrite(idx){
   const t=project.tracks[idx];
   if(!t) return;
   hitPad(idx);
-  if(!playing){ setStatus("premi Play: il colpo si scrive nello step che sta suonando"); return; }
+  if(!playing){ setStatus("press Play: the hit is written into the step that is playing"); return; }
   if(!recording){ pushUndo(); recordHit(t); }
 }
 const LIVE_HELP_KEY="pm.liveHelp.hide";
@@ -2493,15 +2483,15 @@ function recordHit(track){
 
 // ---------- account ----------
 // Nome dell'utente collegato accanto a "Esci"; il link "Utenti" solo per l'admin. Fuori dal server
-// (file locale, app per Mac, offline) /api/me non risponde e resta solo "Esci".
+// (file locale, app per Mac, offline) /api/me non risponde e resta solo "Log out".
 // L'ospite ("Accedi senza registrarti") usa il sito ma non salva: niente Salva, progetti e preferiti.
-// Per gli utenti registrati la scheda si chiama "Progetti salvati".
+// Per gli utenti registrati la scheda si chiama "Saved projects".
 let isGuest=false, isMember=false;   // isMember: utente registrato (user o admin)
 fetch("/api/me",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(me=>{
   if(!me||!me.name) return;
   window.__me=me;
   isGuest=me.role==="guest"; isMember=!isGuest;
-  if(isMember){ el("recentLabel").textContent="Progetti salvati"; el("recentTitle").textContent="Progetti salvati"; }
+  if(isMember){ el("recentLabel").textContent="Saved projects"; el("recentTitle").textContent="Saved projects"; }
   document.body.classList.toggle("guest",isGuest);
   el("whoami").textContent=me.name; el("whoami").hidden=false;
   el("adminLink").hidden=me.role!=="admin";
@@ -2540,7 +2530,7 @@ for(const id of ["appPromo","guestPromo"])
 // ---------- finestra di conferma ----------
 // Sostituisce confirm() e prompt() del browser con una finestra del sito.
 // ask({title, message, ok, danger, input}) -> Promise: true/false, oppure il testo (null se annullato) con `input`.
-function ask({title, message="", ok="Ok", cancel="Annulla", danger=false, input=null}){
+function ask({title, message="", ok="OK", cancel="Cancel", danger=false, input=null}){
   const d=el("askDialog"), f=el("askInput"), okB=el("askOk");
   el("askTitle").textContent=title; el("askMsg").textContent=message;
   okB.textContent=ok; el("askCancel").textContent=cancel;
@@ -2557,7 +2547,7 @@ const desktopAppLink=el("desktopAppLink");
 if(desktopAppLink) desktopAppLink.addEventListener("click",async e=>{
   if(!isGuest) return;
   e.preventDefault();
-  const go=await ask({title:"Download riservato", message:"Per scaricare l'app devi avere un account registrato.", ok:"Registrati", cancel:"Chiudi"});
+  const go=await ask({title:"Members-only download", message:"You need a registered account to download the app.", ok:"Sign up", cancel:"Close"});
   if(go) location.href="/register?next=/app.html";
 });
 // Invio nel campo di testo conferma (l'invio implicito del form userebbe il primo pulsante, Annulla).
@@ -2591,7 +2581,7 @@ el("metronomeBtn").onclick=()=>{
   const b=el("metronomeBtn");
   b.classList.toggle("on",ui.metronome);
   b.setAttribute("aria-pressed",String(ui.metronome));
-  b.title=ui.metronome?"Disattiva il metronomo":"Attiva il metronomo";
+  b.title=ui.metronome?"Metronome off":"Metronome on";
   if(!ui.metronome){ metroSide="l"; delete b.dataset.side; const rod=b.querySelector(".rod"); if(rod) rod.style.transitionDuration=""; }
   if(ui.metronome){ const ctx=actx(); if(ctx.state==="suspended") ctx.resume(); }
 };
@@ -2615,14 +2605,14 @@ el("viewSeq").onclick=()=>setView("seq");
 el("viewSound").onclick=()=>setView("sound");
 el("seqClear").onclick=async()=>{
   if(!project.song.length) return;
-  if(!await ask({title:"Svuota arrangiamento", message:"Togliere tutti i blocchi della canzone? I pattern restano.", ok:"Svuota", danger:true})) return;
-  pushUndo(); project.song=[]; ui.blockId=null; ui.songSoloBlockId=null; renderSong(); setStatus("canzone svuotata");
+  if(!await ask({title:"Clear arrangement", message:"Remove all the blocks from the song? The patterns stay.", ok:"Clear", danger:true})) return;
+  pushUndo(); project.song=[]; ui.blockId=null; ui.songSoloBlockId=null; renderSong(); setStatus("song cleared");
 };
 // La macchina si sceglie dal menu (che resta lo stato: le macchine non raggiungibili ne vengono tolte);
 // qui si aggiorna solo il suggerimento con l'origine dei suoni.
 function paintKitButtons(){
   const sel=el("kitSelect"), k=KITS[sel.value];
-  if(k) sel.title=k.label+(k.source?" · "+k.source+" (ricreazione Apple)":"");
+  if(k) sel.title=k.label+(k.source?" · "+k.source+" (Apple recreation)":"");
 }
 const KIT_KEY="pm.kit";
 const KIT_MENU_HIDDEN=new Set(["sp12b","tr808u","tr909u"]);
@@ -2712,13 +2702,13 @@ el("pDup").onclick=()=>{
   project.patterns.push(p); normalize(); selectPattern(p.id);
 };
 async function renamePattern(p){
-  const n=await ask({title:"Rinomina pattern", ok:"Rinomina", input:p.name});
+  const n=await ask({title:"Rename pattern", ok:"Rename", input:p.name});
   if(n===null) return;
   const clean=n.trim()||p.name;
   if(clean===p.name) return;
   pushUndo();
   p.name=clean;
-  renderPatterns(); renderSong(); el("gridTitle").textContent="Griglia — "+p.name;
+  renderPatterns(); renderSong(); el("gridTitle").textContent="Grid — "+p.name;
 }
 el("pRename").onclick=()=>renamePattern(curPattern());
 el("pClear").onclick=()=>{
@@ -2729,9 +2719,9 @@ el("pClear").onclick=()=>{
   renderTracks();
 };
 el("pDel").onclick=async()=>{
-  if(project.patterns.length<=1){ setStatus("serve almeno un pattern","err"); return; }
+  if(project.patterns.length<=1){ setStatus("at least one pattern is needed","err"); return; }
   const p=curPattern();
-  if(!await ask({title:"Elimina pattern", message:`Eliminare "${p.name}"? Anche i blocchi della canzone che lo usano vengono tolti. Si può annullare con cmd+Z.`, ok:"Elimina", danger:true})) return;
+  if(!await ask({title:"Delete pattern", message:`Delete "${p.name}"? Song blocks that use it are removed too. You can undo with cmd+Z.`, ok:"Delete", danger:true})) return;
   pushUndo();
   project.patterns=project.patterns.filter(x=>x.id!==p.id);
   project.song=project.song.filter(b=>b.patternId!==p.id);
@@ -2759,13 +2749,13 @@ el("pLen").onchange=()=>{
 el("pruneRowsBtn").onclick=()=>{
   const used=t=>project.patterns.some(p=>(p.grid[t.id]||[]).some(Boolean));
   const empty=project.tracks.filter(t=>!used(t));
-  if(!empty.length) return setStatus("nessuna riga vuota in tutti i pattern");
-  if(empty.length===project.tracks.length) return setStatus("il progetto non ha colpi: le righe restano");
+  if(!empty.length) return setStatus("no empty rows in any pattern");
+  if(empty.length===project.tracks.length) return setStatus("the project has no hits: the rows stay");
   pushUndo();
   project.tracks=project.tracks.filter(used);
   project.patterns.forEach(p=>empty.forEach(t=>{ delete p.grid[t.id]; if(p.mods) delete p.mods[t.id]; if(p.lens) delete p.lens[t.id]; }));
   normalize(); renderTracks();
-  setStatus(`${empty.length} ${empty.length===1?"riga tolta":"righe tolte"} (cmd+Z per annullare)`);
+  setStatus(`${empty.length} ${empty.length===1?"row":"rows"} removed (cmd+Z to undo)`);
 };
 
 el("addRowBtn").onclick=()=>{
@@ -2776,10 +2766,10 @@ el("addRowBtn").onclick=()=>{
 
 // ---------- song ops ----------
 const SONG_SECTIONS=[
-  ["intro","Intro"], ["verse","Strofa"], ["chorus","Ritornello"],
+  ["intro","Intro"], ["verse","Verse"], ["chorus","Chorus"],
   ["break","Break"], ["outro","Outro"]
 ];
-const songSectionLabel=section=>SONG_SECTIONS.find(([id])=>id===section)?.[1]||"Strofa";
+const songSectionLabel=section=>SONG_SECTIONS.find(([id])=>id===section)?.[1]||"Verse";
 const songSectionColor=section=>({intro:18,verse:42,chorus:150,break:265,outro:320}[section]||42);
 const blockIndex = ()=> project.song.findIndex(b=>b.id===ui.blockId);
 el("sAdd").onclick=()=>{
@@ -2791,7 +2781,7 @@ el("sAdd").onclick=()=>{
   ui.blockId=b.id; renderSong();
 };
 el("sPlay").onclick=()=>{
-  if(!project.song.length) return setStatus("la canzone e' vuota","err");
+  if(!project.song.length) return setStatus("the song is empty","err");
   if(playing) stop();
   ui.blockId=project.song[0].id;
   ui.songStartPos=0;
@@ -2799,12 +2789,12 @@ el("sPlay").onclick=()=>{
 };
 el("seqRename").onclick=async()=>{
   const i=blockIndex();
-  if(i<0) return setStatus("seleziona un blocco","err");
+  if(i<0) return setStatus("select a block","err");
   const p=patternById(project.song[i].patternId);
   if(p) await renamePattern(p);
 };
 el("sDup").onclick=()=>{
-  const i=blockIndex(); if(i<0) return setStatus("seleziona un blocco","err");
+  const i=blockIndex(); if(i<0) return setStatus("select a block","err");
   pushUndo();
   const src=project.song[i];
   const b={id:uid(), patternId:src.patternId, repeats:src.repeats, section:src.section||"verse", fillPatternId:src.fillPatternId||null};
@@ -2821,7 +2811,7 @@ el("sRight").onclick=()=>{
   [project.song[i+1],project.song[i]]=[project.song[i],project.song[i+1]]; renderSong();
 };
 el("sDel").onclick=()=>{
-  const i=blockIndex(); if(i<0) return setStatus("seleziona un blocco","err");
+  const i=blockIndex(); if(i<0) return setStatus("select a block","err");
   pushUndo();
   if(ui.songSoloBlockId===project.song[i].id) ui.songSoloBlockId=null;
   project.song.splice(i,1); ui.blockId=project.song[Math.min(i,project.song.length-1)]?.id||null; renderSong();
@@ -2835,7 +2825,7 @@ const lsWrite=o=>{ try{ localStorage.setItem(LS_KEY,JSON.stringify(o)); }catch(e
 
 function serialize(){
   return {
-    name: nameIn(el("projectName").value.trim())||"Senza titolo",
+    name: el("projectName").value.trim()||"Untitled",
     bpm: bpm(), swing: +el("swingRange").value||0, human: +el("humanRange").value||0,
     sampleSet,
     tracks: project.tracks.map(t=>({id:t.id, sampleIndex:t.sampleIndex, vol:t.vol, tune:t.tune||0, choke:t.choke||0,
@@ -2851,7 +2841,7 @@ function serialize(){
 function deserialize(d,keepSel){
   const prevPattern=ui.patternId, prevBlock=ui.blockId;
   project={
-    name:d.name||"Senza titolo", bpm:d.bpm||93, swing:d.swing||0, human:d.human||0,
+    name:d.name||"Untitled", bpm:d.bpm||93, swing:d.swing||0, human:d.human||0,
     tracks:(d.tracks||[]).map(t=>({id:t.id, sampleIndex:t.sampleIndex, vol:t.vol??0.8,
       tune:t.tune||0, choke:t.choke||0, mute:false, solo:false, ...voiceDefaults(t)})),
     patterns:(d.patterns||[]).map(p=>({id:p.id, name:p.name, len:p.len||16,
@@ -2864,7 +2854,7 @@ function deserialize(d,keepSel){
   ui.patternId=(keepSel && project.patterns.some(p=>p.id===prevPattern)) ? prevPattern : project.patterns[0].id;
   ui.blockId=(keepSel && project.song.some(b=>b.id===prevBlock)) ? prevBlock : (project.song[0]?.id||null);
   if(KITS[d.sampleSet] && d.sampleSet!==sampleSet) setSampleSet(d.sampleSet);
-  el("projectName").value=nameOut(project.name);
+  el("projectName").value=project.name;
   el("bpmNum").value=project.bpm; el("bpmRange").value=Math.min(180,Math.max(60,project.bpm));
   el("swingRange").value=project.swing; el("humanRange").value=project.human||0; paintSwing();
   el("pLen").value=curPattern().len;
@@ -2880,16 +2870,16 @@ function pushUndo(){
   redoStack.length=0;
 }
 function undo(){
-  if(!undoStack.length) return setStatus("niente da annullare");
+  if(!undoStack.length) return setStatus("nothing to undo");
   redoStack.push(JSON.stringify(serialize()));
   deserialize(JSON.parse(undoStack.pop()),true);
-  setStatus("annullato");
+  setStatus("cancelled");
 }
 function redo(){
-  if(!redoStack.length) return setStatus("niente da ripristinare");
+  if(!redoStack.length) return setStatus("nothing to redo");
   undoStack.push(JSON.stringify(serialize()));
   deserialize(JSON.parse(redoStack.pop()),true);
-  setStatus("ripristinato");
+  setStatus("restored");
 }
 
 // Istantanea del progetto com'era all'ultimo salvataggio (o apertura): serve a Nuovo per sapere se c'e' qualcosa da perdere.
@@ -2900,11 +2890,11 @@ const markSaved=()=>{ savedSnap=projectSnap(); };
 // per gli altri solo se ci sono modifiche non salvate.
 async function okToDiscard(title){
   if(isGuest || projectSnap()===savedSnap) return true;
-  return ask({title, message:"L'attuale progetto non verrà salvato.", ok:title, danger:true});
+  return ask({title, message:"The current project will not be saved.", ok:title, danger:true});
 }
 
 async function saveProject(asNew){
-  if(isGuest){ setStatus("da ospite non puoi salvare: registrati","err"); return; }
+  if(isGuest){ setStatus("guests can't save: sign up","err"); return; }
   const data=serialize();
   project.name=data.name;
   try{
@@ -2918,26 +2908,26 @@ async function saveProject(asNew){
     }
     markSaved();
     setStatus(db?"salvato · cloud":isMember?"salvato":"salvato · locale");
-  }catch(e){ setStatus("errore salvataggio","err"); }
+  }catch(e){ setStatus("error while saving","err"); }
 }
 async function loadProject(id){
   try{
     let d=null;
     if(db){ const s=await db.doc("projects/"+id).get(); d=s.exists?s.data():null; }
     else d=lsAll()[id]||null;
-    if(!d) return setStatus("progetto non trovato","err");
+    if(!d) return setStatus("project not found","err");
     if(playing) stop();
-    currentProjectId=id; deserialize(d); markSaved(); markCurrentRecent(); setStatus("caricato: "+(d.name||""));
-  }catch(e){ setStatus("errore caricamento","err"); }
+    currentProjectId=id; deserialize(d); markSaved(); markCurrentRecent(); setStatus("loaded: "+(d.name||""));
+  }catch(e){ setStatus("loading error","err"); }
 }
 async function removeProject(id,name){
-  if(!await ask({title:"Rimuovi progetto", message:`Rimuovere "${name}" dai progetti salvati? Non si può annullare.`, ok:"Rimuovi", danger:true})) return;
+  if(!await ask({title:"Remove project", message:`Remove "${name}" from saved projects? This can't be undone.`, ok:"Remove", danger:true})) return;
   try{
     if(db) await db.doc("projects/"+id).delete();
     else { const all=lsAll(); delete all[id]; lsWrite(all); refreshRecent(); }
     if(currentProjectId===id) currentProjectId=null;
-    setStatus("rimosso");
-  }catch(e){ setStatus("errore rimozione","err"); }
+    setStatus("removed");
+  }catch(e){ setStatus("error while removing","err"); }
 }
 async function refreshRecent(){
   let list=[];
@@ -2959,16 +2949,16 @@ function fmtDate(ts){
 }
 // Rinomina un progetto salvato (e il campo del nome, se e' quello aperto).
 async function renameProject(id,name){
-  const nm=await ask({title:"Rinomina progetto", ok:"Rinomina", input:name});
+  const nm=await ask({title:"Rename project", ok:"Rename", input:name});
   if(nm===null) return;
-  const clean=nm.trim()||"Senza titolo";
+  const clean=nm.trim()||"Untitled";
   if(clean===name) return;
   try{
     if(db){ const s=await db.doc("projects/"+id).get(); if(!s.exists) return; await db.doc("projects/"+id).set({...s.data(), name:clean}); }
     else { const all=lsAll(); if(!all[id]) return; all[id].name=clean; lsWrite(all); refreshRecent(); }
     if(id===currentProjectId){ el("projectName").value=clean; project.name=clean; }
-    setStatus("rinominato: "+clean);
-  }catch(e){ setStatus("errore rinomina","err"); }
+    setStatus("renamed: "+clean);
+  }catch(e){ setStatus("error while renaming","err"); }
 }
 
 // Anteprima di un progetto salvato: la canzone (o il primo pattern) messa in fila, colpo per colpo,
@@ -3021,7 +3011,7 @@ function renderRecent(list){
   if(audition.item&&audition.item.projectId) stopAudition();
   body.innerHTML="";
   if(!list.length){
-    body.innerHTML='<tr class="empty"><td colspan="7">nessun progetto salvato: usa Salva</td></tr>';
+    body.innerHTML='<tr class="empty"><td colspan="7">no saved projects yet: use Save</td></tr>';
     el("recentCount").textContent="";
     return;
   }
@@ -3030,7 +3020,7 @@ function renderRecent(list){
     const tr=document.createElement("tr");
     tr.className="rec-row"+(p.id===currentProjectId?" current":"");
     tr.dataset.id=p.id;
-    tr.title="clic per aprire il progetto";
+    tr.title="click to open the project";
     const td=(txt,cls)=>{ const c=document.createElement("td"); if(cls)c.className=cls; c.textContent=txt; return c; };
     const btn=(txt,cls,title,fn)=>{ const b=document.createElement("button"); b.className=cls; b.textContent=txt; if(title) b.title=title;
       b.onclick=e=>{ e.stopPropagation(); fn(); }; return b; };
@@ -3038,15 +3028,15 @@ function renderRecent(list){
     const item=previewItem(p);
     tr.__item=item;
     const prev=document.createElement("td"), pw=document.createElement("div"); pw.className="rec-prev";
-    const play=btn("▶","mini rec-play","Ascolta il pezzo (in loop, con la macchina scelta adesso)",()=>{
+    const play=btn("▶","mini rec-play","Listen to the track (looped, with the currently selected machine)",()=>{
       if(item && audition.item===item) stopAudition(); else if(item) startAudition(item);
     });
-    play.setAttribute("aria-label","Ascolta"); play.disabled=!item;
+    play.setAttribute("aria-label","Listen"); play.disabled=!item;
     const cv=document.createElement("canvas"); cv.className="rec-thumb"; cv.setAttribute("aria-hidden","true");
     pw.appendChild(play); pw.appendChild(cv); prev.appendChild(pw); tr.appendChild(prev);
     drawThumb(cv,p);
 
-    tr.appendChild(td(p.name||"Senza titolo","nm"));
+    tr.appendChild(td(p.name||"Untitled","nm"));
     tr.appendChild(td((KITS[p.sampleSet]||KITS.std).label));
     tr.appendChild(td(fmtDate(p.updatedAt)));
     tr.appendChild(td(p.bpm||"–"));
@@ -3054,9 +3044,9 @@ function renderRecent(list){
     const acts=document.createElement("td");
     const wrap=document.createElement("div"); wrap.className="acts";
     const open=async()=>{ stopAudition(); await loadProject(p.id); setView("grid"); };
-    wrap.appendChild(btn("Apri","mini primary","apre il progetto nella griglia, pronto da modificare",open));
-    wrap.appendChild(btn("Rinomina","mini","",()=>renameProject(p.id,p.name||"Senza titolo")));
-    wrap.appendChild(btn("Rimuovi","mini danger","",()=>removeProject(p.id,p.name||"Senza titolo")));
+    wrap.appendChild(btn("Open","mini primary","opens the project in the grid, ready to edit",open));
+    wrap.appendChild(btn("Rename","mini","",()=>renameProject(p.id,p.name||"Untitled")));
+    wrap.appendChild(btn("Remove","mini danger","",()=>removeProject(p.id,p.name||"Untitled")));
     acts.appendChild(wrap); tr.appendChild(acts);
     tr.onclick=open;
     body.appendChild(tr);
@@ -3064,33 +3054,24 @@ function renderRecent(list){
   paintAudition();
 }
 
-// Nome predefinito del progetto: nei dati resta "Senza titolo", in inglese il campo mostra "Untitled".
-const nameOut = n => (n==="Senza titolo" && window.PMI18N && PMI18N.lang==="en") ? "Untitled" : n;
-const nameIn = n => n==="Untitled" ? "Senza titolo" : n;
-const syncNameField = ()=>{ const f=el("projectName"); f.value=nameOut(nameIn(f.value)); };
-document.addEventListener("pm-lang",syncNameField);
-document.addEventListener("DOMContentLoaded",syncNameField);
-
 let statusTimer=null;
 function setStatus(msg,kind){
   const s=el("status");
   s.textContent=msg; s.className="status"+(kind==="err"?" err":"");
   clearTimeout(statusTimer);
-  // si confronta un contrassegno e non il testo: in inglese i18n.js traduce il messaggio sulla pagina
-  const mark=s.dataset.msg=String(Math.random());
-  statusTimer=setTimeout(()=>{ if(s.dataset.msg===mark) s.textContent=""; },3000);
+  statusTimer=setTimeout(()=>{ if(s.textContent===msg) s.textContent=""; },3000);
 }
 
 el("saveBtn").onclick=()=>saveProject(false);
 el("newBtn").onclick=async()=>{
-  if(!await okToDiscard("Nuovo progetto")) return;
+  if(!await okToDiscard("New project")) return;
   if(playing) stop();
   currentProjectId=null; markCurrentRecent(); project=starterProject(); ui.patternId=project.patterns[0].id;
   ui.blockId=project.song[0].id;
-  el("projectName").value=nameOut(project.name); el("bpmNum").value=project.bpm;
+  el("projectName").value=project.name; el("bpmNum").value=project.bpm;
   el("bpmRange").value=project.bpm; el("swingRange").value=0; el("humanRange").value=0; paintSwing(); el("pLen").value=16;
   project.tracks.forEach(t=>loadBuffer(t.sampleIndex));
-  renderAll(); markSaved(); setStatus("nuovo progetto");
+  renderAll(); markSaved(); setStatus("new project");
 };
 
 // ---------- MIDI ----------
@@ -3158,7 +3139,7 @@ function buildMidi(which){
 }
 const safeName = s => (s||"pattern").replace(/[^\w\s\-()]+/g,"").trim()||"pattern";
 
-const exportBase = which => safeName(el("projectName").value)+(which==="song"?" - canzone":" - "+safeName(curPattern().name));
+const exportBase = which => safeName(el("projectName").value)+(which==="song"?" - song":" - "+safeName(curPattern().name));
 
 async function saveBlob(blob, filename, label){
   if(!downloadsCap){
@@ -3167,19 +3148,19 @@ async function saveBlob(blob, filename, label){
     a.href=url; a.download=filename;
     document.body.appendChild(a); a.click();
     setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); },800);
-    setStatus(label+" esportato");
+    setStatus(label+" exported");
     return;
   }
   try{
     await downloadsCap.save({filename, data:blob});
-    setStatus(label+" esportato");
+    setStatus(label+" exported");
   }catch(e){
     if(e&&e.code==="declined") return;
     if(e&&e.code==="rejected_extension"){
-      setStatus(`qui il file ${label} non e' scaricabile — usa SP-1200.html in locale`,"err");
+      setStatus(`the ${label} file can't be downloaded here — use SP-1200.html locally`,"err");
       return;
     }
-    setStatus("esportazione non riuscita","err");
+    setStatus("export failed","err");
   }
 }
 
@@ -3254,18 +3235,18 @@ function encodeWav(buf){
 let wavBusy=false;
 async function exportWav(which){
   if(wavBusy) return;
-  if(which==="song" && !project.song.length){ setStatus("la canzone e' vuota","err"); return; }
+  if(which==="song" && !project.song.length){ setStatus("the song is empty","err"); return; }
   wavBusy=true;
   const btns=[el("wavPatternBtn"),el("wavSongBtn")];
   btns.forEach(b=>b.disabled=true);
-  setStatus("render WAV in corso…");
+  setStatus("rendering WAV…");
   try{
     const {buf, seconds}=await renderWav(which);
     const {blob, gain}=encodeWav(buf);
     await saveBlob(blob, exportBase(which)+".wav", "WAV");
-    if(gain<1) setStatus(`WAV esportato (${fmtClock(seconds)}, livello ridotto di ${(-20*Math.log10(gain)).toFixed(1)} dB per non clippare)`);
+    if(gain<1) setStatus(`WAV exported (${fmtClock(seconds)}, level lowered by ${(-20*Math.log10(gain)).toFixed(1)} dB to avoid clipping)`);
   }catch(e){
-    setStatus(e&&e.message==="vuoto"?"niente da esportare: il pattern e' vuoto o tutto in mute":"render WAV non riuscito","err");
+    setStatus(e&&e.message==="vuoto"?"nothing to export: the pattern is empty or fully muted":"WAV render failed","err");
   }finally{
     wavBusy=false;
     btns.forEach(b=>b.disabled=false);
@@ -3281,8 +3262,8 @@ function loadLame(){
   return lameLoading ||= new Promise((resolve,reject)=>{
     const s=document.createElement("script");
     s.src="engine/lame.min.js?v="+SW_VERSION;
-    s.onload=()=>window.lamejs?resolve(window.lamejs):reject(new Error("encoder MP3 non caricato"));
-    s.onerror=()=>{ lameLoading=null; s.remove(); reject(new Error("encoder MP3 non caricato")); };
+    s.onload=()=>window.lamejs?resolve(window.lamejs):reject(new Error("MP3 encoder not loaded"));
+    s.onerror=()=>{ lameLoading=null; s.remove(); reject(new Error("MP3 encoder not loaded")); };
     document.head.appendChild(s);
   });
 }
@@ -3345,21 +3326,21 @@ async function encodeMp3(buf, gain){
 let mp3Busy=false;
 async function exportMp3(which){
   if(mp3Busy) return;
-  if(which==="song" && !project.song.length){ setStatus("la canzone e' vuota","err"); return; }
+  if(which==="song" && !project.song.length){ setStatus("the song is empty","err"); return; }
   mp3Busy=true;
   const btns=[el("mp3PatternBtn"),el("mp3SongBtn")];
   btns.forEach(b=>b.disabled=true);
-  setStatus("render MP3 in corso…");
+  setStatus("rendering MP3…");
   try{
     const {buf, seconds}=await renderWav(which);
     const {peak}=encodeWav(buf);
     const gain=peak>0.989?0.989/peak:1;
     const blob=await encodeMp3(buf,gain);
     await saveBlob(blob,exportBase(which)+".mp3","MP3");
-    setStatus(`MP3 esportato (${fmtClock(seconds)}, 192 kbps)`);
+    setStatus(`MP3 exported (${fmtClock(seconds)}, 192 kbps)`);
   }catch(e){
-    setStatus(e?.message==="vuoto"?"niente da esportare: il pattern e' vuoto o tutto in mute":
-      e?.message==="encoder MP3 non caricato"?"encoder MP3 non caricato: controlla la connessione e riprova, oppure usa WAV":"render MP3 non riuscito","err");
+    setStatus(e?.message==="vuoto"?"nothing to export: the pattern is empty or fully muted":
+      e?.message==="MP3 encoder not loaded"?"MP3 encoder not loaded: check your connection and try again, or use WAV":"MP3 render failed","err");
   }finally{
     mp3Busy=false;
     btns.forEach(b=>b.disabled=false);
@@ -3548,61 +3529,61 @@ function buildReaperProject(which, stemFiles, stemSeconds){
 // Pacchetti per DAW: stessi contenuti (MIDI GM, stem, campioni), cambiano nome e istruzioni;
 // REAPER riceve in piu' un progetto .rpp gia' montato.
 const DAWS={
-  logic:  {name:"Logic Pro",   file:"Logic",   what:"pacchetto Logic"},
-  ableton:{name:"Ableton Live", file:"Ableton", what:"pacchetto Ableton"},
-  reaper: {name:"REAPER",      file:"REAPER",  what:"progetto REAPER"},
-  altre:  {name:"altre DAW",   file:"DAW",     what:"pacchetto DAW"},
+  logic:  {name:"Logic Pro",   file:"Logic",   what:"Logic package"},
+  ableton:{name:"Ableton Live", file:"Ableton", what:"Ableton package"},
+  reaper: {name:"REAPER",      file:"REAPER",  what:"REAPER project"},
+  altre:  {name:"other DAWs",   file:"DAW",     what:"DAW package"},
 };
 
 function dawSteps(daw, base, tempo, stemInfo){
   const mid=`"${base} - GM.mid"`;
-  const stems=`   24 bit, 44,1 kHz, con volumi ed effetti delle righe${stemInfo}.`;
+  const stems=`   24 bit, 44.1 kHz, with row levels and effects${stemInfo}.`;
   if(daw==="logic") return [
-    `COME PORTARLO IN LOGIC PRO`,
-    `1. Imposta il tempo del progetto a ${tempo} BPM (File > Importa > MIDI sul file .mid importa anche il tempo).`,
-    `2. MIDI: trascina ${mid} su una traccia Drummer / Drum Kit Designer / Drum Machine Designer.`,
-    `   Le note seguono la mappa General MIDI (36 cassa, 38 rullante, 42 hat chiuso, 46 hat aperto...).`,
-    `   Per canali separati importa anche "${base} - multitraccia.mid": contiene una traccia per strumento.`,
-    `3. Stem: seleziona tutti i file della cartella Stem e trascinali insieme nell'area tracce, alla battuta 1,`,
-    `   scegliendo "tracce separate": partono tutti da zero e restano allineati.`, stems,
-    `4. Campioni: i singoli colpi della macchina, col numero di nota GM davanti al nome.`,
-    `   Per rifare il kit: nuova traccia Drum Machine Designer, trascina ogni file sul pad con quella nota.`,
-    ``, `Swing e micro-timing sono gia' nelle posizioni delle note: in Logic lascia la quantizzazione spenta.`];
+    `HOW TO BRING IT INTO LOGIC PRO`,
+    `1. Set the project tempo to ${tempo} BPM (File > Import > MIDI on the .mid file also imports the tempo).`,
+    `2. MIDI: drag ${mid} onto a Drummer / Drum Kit Designer / Drum Machine Designer track.`,
+    `   The notes follow the General MIDI map (36 kick, 38 snare, 42 closed hat, 46 open hat...).`,
+    `   For separate channels also import "${base} - multitrack.mid": it has one track per instrument.`,
+    `3. Stems: select all the files in the Stems folder and drag them together into the tracks area, at bar 1,`,
+    `   choosing "separate tracks": they all start at zero and stay aligned.`, stems,
+    `4. Samples: the machine's individual hits, with the GM note number before the name.`,
+    `   To rebuild the kit: new Drum Machine Designer track, drag each file onto the pad with that note.`,
+    ``, `Swing and micro-timing are already in the note positions: leave quantize off in Logic.`];
   if(daw==="ableton") return [
-    `COME PORTARLO IN ABLETON LIVE`,
-    `1. Imposta il tempo del Live Set a ${tempo} BPM (il tempo del .mid non viene letto da Live).`,
-    `2. MIDI: trascina ${mid} su una traccia MIDI con un Drum Rack (per esempio uno dei "Kit" della libreria):`,
-    `   i pad del Drum Rack partono da C1 = nota 36, come la mappa General MIDI.`,
-    `   In alternativa importa "${base} - multitraccia.mid" per ottenere una traccia per strumento.`,
-    `3. Stem: seleziona tutti i file della cartella Stem e trascinali insieme nella vista Arrangement, alla battuta 1:`,
-    `   Live crea una traccia per file, tutte allineate. Nelle clip lascia il Warp spento o in modalita' Beats.`, stems,
-    `4. Campioni: per rifare il kit, trascina ogni file della cartella Campioni sul pad del Drum Rack`,
-    `   con la nota indicata davanti al nome (36 = C1, 38 = D1, 42 = F#1...).`,
-    ``, `Swing e micro-timing sono gia' nelle posizioni delle note: non quantizzare la clip MIDI.`];
+    `HOW TO BRING IT INTO ABLETON LIVE`,
+    `1. Set the Live Set tempo to ${tempo} BPM (Live doesn't read the tempo from the .mid).`,
+    `2. MIDI: drag ${mid} onto a MIDI track with a Drum Rack (for example one of the library "Kits"):`,
+    `   the Drum Rack pads start at C1 = note 36, like the General MIDI map.`,
+    `   Alternatively import "${base} - multitrack.mid" to get one track per instrument.`,
+    `3. Stems: select all the files in the Stems folder and drag them together into Arrangement view, at bar 1:`,
+    `   Live creates one track per file, all aligned. In the clips leave Warp off or in Beats mode.`, stems,
+    `4. Samples: to rebuild the kit, drag each file from the Samples folder onto the Drum Rack pad`,
+    `   with the note shown before the name (36 = C1, 38 = D1, 42 = F#1...).`,
+    ``, `Swing and micro-timing are already in the note positions: don't quantize the MIDI clip.`];
   if(daw==="reaper") return [
-    `COME APRIRLO IN REAPER`,
-    `1. Estrai lo zip e apri "${base}.rpp": tempo (${tempo} BPM), stem e traccia MIDI sono gia' al loro posto.`,
-    `   Il progetto cerca i file nella cartella Stem accanto a lui: non spostare il .rpp da solo.`,
-    `2. Le tracce audio sono gli stem, tutti da zero e allineati.`, stems,
-    `   Il file "${base} - multitraccia.mid" contiene una traccia MIDI per strumento.`,
-    `3. La traccia "Drums (MIDI GM)" e' muta finche' non le dai uno strumento: mettici un campionatore di batteria`,
-    `   in General MIDI (per esempio ReaSamplOmatic5000 con i file di Campioni, o un plugin di batteria).`,
-    `4. Campioni: i singoli colpi della macchina, col numero di nota GM davanti al nome.`,
-    ``, `Swing e micro-timing sono gia' nelle posizioni delle note: non quantizzare.`];
+    `HOW TO OPEN IT IN REAPER`,
+    `1. Unzip and open "${base}.rpp": tempo (${tempo} BPM), stems and MIDI track are already in place.`,
+    `   The project looks for the files in the Stems folder next to it: don't move the .rpp on its own.`,
+    `2. The audio tracks are the stems, all starting at zero and aligned.`, stems,
+    `   The file "${base} - multitrack.mid" has one MIDI track per instrument.`,
+    `3. The "Drums (MIDI GM)" track is silent until you give it an instrument: load a General MIDI drum sampler`,
+    `   on it (for example ReaSamplOmatic5000 with the files in Samples, or a drum plug-in).`,
+    `4. Samples: the machine's individual hits, with the GM note number before the name.`,
+    ``, `Swing and micro-timing are already in the note positions: don't quantize.`];
   return [
-    `COME PORTARLO NELLA TUA DAW (FL Studio, Cubase, Studio One, Bitwig, GarageBand...)`,
-    `1. Imposta il tempo del progetto a ${tempo} BPM.`,
-    `2. MIDI: ${mid} e' in General MIDI (36 cassa, 38 rullante, 42 hat chiuso, 46 hat aperto...) sul canale 10.`,
-    `   Per il mixer separato importa "${base} - multitraccia.mid": contiene una traccia per strumento.`,
-    `   - FL Studio: File > Import > MIDI file, poi assegna la traccia a FPC o a un altro strumento di batteria.`,
-    `   - Cubase / Nuendo: trascina il file su una traccia con Groove Agent SE (mappa GM).`,
-    `   - Studio One: trascina il file su una traccia con Impact XT.`,
-    `   - Bitwig: trascina il file su una traccia con un Drum Machine.`,
-    `   - GarageBand: trascina il file nell'area tracce e scegli un kit di batteria.`,
-    `3. Stem: trascina insieme tutti i file della cartella Stem alla battuta 1, su tracce separate: sono allineati.`, stems,
-    `4. Campioni: i singoli colpi della macchina, col numero di nota GM davanti al nome, per rifare il kit`,
-    `   in un campionatore di batteria.`,
-    ``, `Swing e micro-timing sono gia' nelle posizioni delle note: non quantizzare.`];
+    `HOW TO BRING IT INTO YOUR DAW (FL Studio, Cubase, Studio One, Bitwig, GarageBand...)`,
+    `1. Set the project tempo to ${tempo} BPM.`,
+    `2. MIDI: ${mid} is General MIDI (36 kick, 38 snare, 42 closed hat, 46 open hat...) on channel 10.`,
+    `   For separate mixer channels import "${base} - multitrack.mid": it has one track per instrument.`,
+    `   - FL Studio: File > Import > MIDI file, then assign the track to FPC or another drum instrument.`,
+    `   - Cubase / Nuendo: drag the file onto a track with Groove Agent SE (GM map).`,
+    `   - Studio One: drag the file onto a track with Impact XT.`,
+    `   - Bitwig: drag the file onto a track with a Drum Machine.`,
+    `   - GarageBand: drag the file into the tracks area and choose a drum kit.`,
+    `3. Stems: drag all the files in the Stems folder together to bar 1, on separate tracks: they are aligned.`, stems,
+    `4. Samples: the machine's individual hits, with the GM note number before the name, to rebuild the kit`,
+    `   in a drum sampler.`,
+    ``, `Swing and micro-timing are already in the note positions: don't quantize.`];
 }
 
 async function buildDawZip(which, daw="logic"){
@@ -3610,7 +3591,7 @@ async function buildDawZip(which, daw="logic"){
   const dir=`${base} - ${tempo} BPM/`;
   const files=[
     {name:dir+`${base} - GM.mid`, data:buildLogicMidi(which)},
-    {name:dir+`${base} - multitraccia.mid`, data:buildMultiMidi(which)},
+    {name:dir+`${base} - multitrack.mid`, data:buildMultiMidi(which)},
   ];
 
   const {stems, seconds}=await renderStems(which);
@@ -3621,7 +3602,7 @@ async function buildDawZip(which, daw="logic"){
   stems.forEach(({track,buf},n)=>{
     let nm=safeName(sampleLabel(track.sampleIndex));
     const k=(used.get(nm)||0)+1; used.set(nm,k); if(k>1) nm+=" "+k;
-    const path=`Stem/${String(n+1).padStart(2,"0")} ${nm}.wav`;
+    const path=`Stems/${String(n+1).padStart(2,"0")} ${nm}.wav`;
     stemFiles.push({label:nm, path});
     files.push({name:dir+path, data:encodeWav24(buf,gain)});
   });
@@ -3632,21 +3613,21 @@ async function buildDawZip(which, daw="logic"){
   for(const i of new Set(project.tracks.map(t=>t.sampleIndex))){
     try{
       const r=await fetch(sampleUrl(i)); if(!r.ok) continue;
-      files.push({name:dir+`Campioni/${gmNoteFor(i)} ${safeName(sampleLabel(i))}.wav`, data:new Uint8Array(await r.arrayBuffer())});
+      files.push({name:dir+`Samples/${gmNoteFor(i)} ${safeName(sampleLabel(i))}.wav`, data:new Uint8Array(await r.arrayBuffer())});
       samples++;
     }catch(e){}
   }
 
-  const mode=which==="song"?"canzone intera":`pattern "${curPattern().name}" (MIDI: 1 giro; stem: ${WAV_PATTERN_LOOPS} giri)`;
-  const stemInfo=gain<1?`; livello ridotto di ${(-20*Math.log10(gain)).toFixed(1)} dB (uguale per tutti) per non clippare`:"";
+  const mode=which==="song"?"whole song":`pattern "${curPattern().name}" (MIDI: 1 loop; stems: ${WAV_PATTERN_LOOPS} loops)`;
+  const stemInfo=gain<1?`; level lowered by ${(-20*Math.log10(gain)).toFixed(1)} dB (same for all) to avoid clipping`:"";
   const readme=[
     base,
-    `Macchina: ${KITS[sampleSet].label} · ${tempo} BPM · 4/4 · swing ${swingPct()}% · ${mode}`,
+    `Machine: ${KITS[sampleSet].label} · ${tempo} BPM · 4/4 · swing ${swingPct()}% · ${mode}`,
     ``,
     ...dawSteps(daw, base, tempo, stemInfo),
     ``,
   ].join("\n");
-  files.push({name:dir+"Leggimi.txt", data:new TextEncoder().encode(readme)});
+  files.push({name:dir+"ReadMe.txt", data:new TextEncoder().encode(readme)});
   return {zip:makeZip(files), base, stems:stems.length, samples, seconds};
 }
 
@@ -3654,16 +3635,16 @@ let logicBusy=false;
 async function exportDaw(daw="logic"){
   if(logicBusy) return;
   const which=ui.mode==="song"?"song":"pattern", d=DAWS[daw];
-  if(which==="song" && !project.song.length){ setStatus("la canzone e' vuota","err"); return; }
+  if(which==="song" && !project.song.length){ setStatus("the song is empty","err"); return; }
   logicBusy=true;
   const btns=[...document.querySelectorAll(".daw-btn")]; btns.forEach(b=>b.disabled=true);
-  setStatus(`preparo il ${d.what}…`);
+  setStatus(`preparing the ${d.what}…`);
   try{
     const r=await buildDawZip(which, daw);
     await saveBlob(r.zip, `${r.base} - ${d.file}.zip`, d.what);
-    setStatus(`${d.what} esportato (${which==="song"?"canzone":"pattern"}): ${daw==="reaper"?"progetto .rpp, ":""}MIDI GM, ${r.stems} stem, ${r.samples} campioni`);
+    setStatus(`${d.what} exported (${which==="song"?"song":"pattern"}): ${daw==="reaper"?".rpp project, ":""}GM MIDI, ${r.stems} stems, ${r.samples} samples`);
   }catch(e){
-    setStatus(e&&e.message==="vuoto"?"niente da esportare: il pattern e' vuoto o tutto in mute":`${d.what} non riuscito`,"err");
+    setStatus(e&&e.message==="vuoto"?"nothing to export: the pattern is empty or fully muted":`${d.what} failed`,"err");
   }finally{
     logicBusy=false; btns.forEach(b=>b.disabled=false);
   }
@@ -3672,13 +3653,13 @@ document.querySelectorAll(".daw-btn").forEach(b=>{ b.onclick=()=>exportDaw(b.dat
 
 el("gmMidiBtn").onclick=()=>{
   const which=ui.mode==="song"?"song":"pattern";
-  if(which==="song" && !project.song.length){ setStatus("la canzone e' vuota","err"); return; }
-  return saveBlob(new Blob([buildLogicMidi(which)],{type:"audio/midi"}), exportBase(which)+" - GM.mid", "MIDI General MIDI");
+  if(which==="song" && !project.song.length){ setStatus("the song is empty","err"); return; }
+  return saveBlob(new Blob([buildLogicMidi(which)],{type:"audio/midi"}), exportBase(which)+" - GM.mid", "MIDI (General MIDI)");
 };
 el("multiMidiBtn").onclick=()=>{
   const which=ui.mode==="song"?"song":"pattern";
-  if(which==="song" && !project.song.length){ setStatus("la canzone e' vuota","err"); return; }
-  return saveBlob(new Blob([buildMultiMidi(which)],{type:"audio/midi"}), exportBase(which)+" - multitraccia.mid", "MIDI multitraccia");
+  if(which==="song" && !project.song.length){ setStatus("the song is empty","err"); return; }
+  return saveBlob(new Blob([buildMultiMidi(which)],{type:"audio/midi"}), exportBase(which)+" - multitrack.mid", "Multitrack MIDI");
 };
 
 // Il menu Export si chiude dopo una scelta, al click fuori e con Esc.
@@ -3720,7 +3701,7 @@ function openReport(){
 }
 async function sendReport(){
   const msg=el("repMsg").value.trim(), st=el("repStatus");
-  if(!msg){ st.textContent="scrivi il messaggio"; st.className="import-msg err"; el("repMsg").focus(); return; }
+  if(!msg){ st.textContent="write your message"; st.className="import-msg err"; el("repMsg").focus(); return; }
   const info=[`versione ${SW_VERSION}`, `macchina ${KITS[sampleSet]?.label||sampleSet}`, `tema ${document.documentElement.dataset.theme||"?"}`,
     `schermo ${innerWidth}x${innerHeight}`, navigator.userAgent].join(" · ");
   el("repSend").disabled=true; st.textContent="invio…"; st.className="import-msg";
@@ -3728,18 +3709,18 @@ async function sendReport(){
     const r=await fetch("/api/report",{method:"POST", headers:{"Content-Type":"application/json"},
       body:JSON.stringify({name:el("repName").value, email:el("repMail").value, message:msg, page:location.pathname+location.search, info})});
     const j=await r.json().catch(()=>({}));
-    if(!r.ok) throw new Error(j.error||"invio non riuscito");
+    if(!r.ok) throw new Error(j.error||"sending failed");
     // conferma ben visibile nella finestra (poi si chiude da sola) e sul pulsante in fondo alla pagina
     const mail=el("repMail").value.trim();
     el("repMsg").value=""; st.textContent="";
-    el("repDoneMsg").textContent=mail?`Grazie! Se serve, la risposta arriva a ${mail}.`:"Grazie per la segnalazione!";
+    el("repDoneMsg").textContent=mail?`Thank you! If needed, we'll reply to ${mail}.`:"Thanks for the report!";
     el("repFields").hidden=true; el("repDone").hidden=false; el("repDoneClose").focus();
-    setStatus("messaggio inviato, grazie!");
-    const btn=el("reportBtn"); btn.textContent="✓ Messaggio inviato"; btn.classList.add("sent");
-    clearTimeout(sendReport.t); sendReport.t=setTimeout(()=>{ btn.textContent="Segnala un problema"; btn.classList.remove("sent"); },8000);
+    setStatus("message sent, thank you!");
+    const btn=el("reportBtn"); btn.textContent="✓ Message sent"; btn.classList.add("sent");
+    clearTimeout(sendReport.t); sendReport.t=setTimeout(()=>{ btn.textContent="Report a problem"; btn.classList.remove("sent"); },8000);
     setTimeout(()=>{ if(el("reportDialog").open && !el("repDone").hidden) el("reportDialog").close(); },4000);
   }catch(e){
-    st.textContent=(e.message||"invio non riuscito")+(navigator.onLine?"":" (sei offline)"); st.className="import-msg err";
+    st.textContent=(e.message||"sending failed")+(navigator.onLine?"":" (sei offline)"); st.className="import-msg err";
   }finally{ el("repSend").disabled=false; }
 }
 el("reportBtn").onclick=openReport;
@@ -3823,7 +3804,7 @@ function buildImport(res, {add, map}){
   }));
   song.forEach(b=>{ b.id=uid(); });
   data.song.push(...song);
-  if(!made || !hitsIn) throw new Error("nessun colpo da importare");
+  if(!made || !hitsIn) throw new Error("no hits to import");
   return {data, made, map:useMap};
 }
 
@@ -3836,21 +3817,21 @@ function importMsg(msg,err){ const m=el("importMsg"); m.textContent=msg; m.class
 async function applyImport(res){
   const add=el("importAdd").checked, map=el("importMap").value;
   if(res.project){
-    if(!await okToDiscard("Importa progetto")) return false;
+    if(!await okToDiscard("Import project")) return false;
     if(playing) stop();
     currentProjectId=null; deserialize(res.project); remapUnavailable(); renderAll(); markCurrentRecent();
-    setStatus(`progetto importato: ${project.patterns.length} pattern`);
+    setStatus(`project imported: ${project.patterns.length} ${project.patterns.length===1?"pattern":"patterns"}`);
     return true;
   }
   const out=buildImport(res,{add, map});
-  if(!add && !await okToDiscard("Importa")) return false;
+  if(!add && !await okToDiscard("Import")) return false;
   if(playing) stop();
   if(add) pushUndo(); else currentProjectId=null;
   deserialize(out.data, add);
   remapUnavailable(); renderAll(); markCurrentRecent();
-  const n=project.song.length, what=`${out.made} pattern${out.made===1?"":" diversi"}, ${n} ${n===1?"blocco":"blocchi"} in Canzone`;
-  setStatus(res.audio ? `importato dall'audio a ${project.bpm} BPM: ${what} — è una stima, controlla la griglia`
-                      : `importato: ${what}${out.map==="pm"?" · note del kit PATTERN-MACHINE":""}`);
+  const n=project.song.length, what=`${out.made} ${out.made===1?"pattern":"different patterns"}, ${n} ${n===1?"block":"blocks"} in the Song`;
+  setStatus(res.audio ? `imported from audio at ${project.bpm} BPM: ${what} — it's an estimate, check the grid`
+                      : `imported: ${what}${out.map==="pm"?" · PATTERN-MACHINE kit notes":""}`);
   return true;
 }
 
@@ -3862,21 +3843,21 @@ async function importFile(file){
     if(await applyImport(res)){ if(el("importDialog").open) el("importDialog").close(); }
     importMsg("");
   }catch(e){
-    const msg=`${file.name}: ${e.message||"formato non riconosciuto"}`;
+    const msg=`${file.name}: ${e.message||"unrecognized format"}`;
     importMsg(msg,true);
     if(!el("importDialog").open) setStatus(msg,"err");
   }
 }
 async function importText(){
   const t=el("importText").value.trim();
-  if(!t) return importMsg("incolla prima qualcosa, o scegli un file",true);
+  if(!t) return importMsg("paste something first, or choose a file",true);
   // codice o link di un pattern condiviso: apre la libreria, come il link
   const link=t.match(/[?&]p=([^&\s#]+)/), code=link?decodeURIComponent(link[1]):(!/\s/.test(t)?t:null);
   if(code && SPEngine.fromCode(code)){ el("importDialog").close(); openLib(); openCode(code); return; }
   try{
     const res=await PMImport.fromText(t,"Import");
     if(await applyImport(res)){ el("importDialog").close(); el("importText").value=""; importMsg(""); }
-  }catch(e){ importMsg(e.message||"testo non riconosciuto",true); }
+  }catch(e){ importMsg(e.message||"unrecognized text",true); }
 }
 
 el("importFile").accept=PMImport.ACCEPT;
@@ -3902,7 +3883,7 @@ el("importGo").onclick=importText;
 })();
 
 el("projJsonBtn").onclick=()=>saveBlob(new Blob([JSON.stringify(serialize(),null,1)],{type:"application/json"}),
-  safeName(el("projectName").value)+".json", "progetto");
+  safeName(el("projectName").value)+".json", "project");
 
 
 // ---------- libreria pattern + motore ritmico ----------
@@ -3932,7 +3913,7 @@ function fillStyleSelect(){
     sel.appendChild(og);
   });
   const og=document.createElement("optgroup"); og.label="A caso";
-  opt(og,"any","A caso (tutti)");
+  opt(og,"any","Random (all)");
   SPEngine.groups.forEach(g=>opt(og,"group:"+g.id,"A caso: "+g.label));
   sel.appendChild(og);
 }
@@ -3984,7 +3965,7 @@ function paintAudition(){
     row.classList.toggle("playing",on);
     const b=row.querySelector(".lib-play, .rec-play"); if(!b) return;
     b.textContent=on?"■":"▶";
-    b.setAttribute("aria-label",on?"Ferma ascolto":"Ascolta");
+    b.setAttribute("aria-label",on?"Stop listening":"Listen");
   });
 }
 
@@ -3992,8 +3973,8 @@ function paintAudition(){
 const shareUrl=code=>`${location.origin}${location.pathname}?p=${encodeURIComponent(code)}`;
 async function copyLink(item){
   const url=shareUrl(item.code);
-  try{ await navigator.clipboard.writeText(url); libNote("link copiato"); }
-  catch(e){ await ask({title:"Link del pattern", message:"Copia il link (cmd+C):", ok:"Fatto", cancel:"Chiudi", input:url}); }
+  try{ await navigator.clipboard.writeText(url); libNote("link copied"); }
+  catch(e){ await ask({title:"Pattern link", message:"Copy the link (cmd+C):", ok:"Done", cancel:"Close", input:url}); }
 }
 let libNoteTimer=null;
 function libNote(msg){
@@ -4023,10 +4004,10 @@ function toggleFav(item){
   const codes=favCodes(), i=codes.indexOf(item.code);
   if(i>=0) codes.splice(i,1); else codes.unshift(item.code);
   try{ localStorage.setItem(FAV_KEY,JSON.stringify(codes)); }
-  catch(e){ libNote("questo browser non permette di salvare i preferiti"); return; }
+  catch(e){ libNote("this browser can't save favorites"); return; }
   const host=el("libList"), top=host.scrollTop;
   renderLibrary(); host.scrollTop=top;
-  libNote(i>=0?"tolto dai preferiti":"salvato nei preferiti");
+  libNote(i>=0?"removed from favorites":"added to favorites");
 }
 function favItems(){
   return favCodes().map(code=>{
@@ -4046,11 +4027,11 @@ function setLibView(v){
 function paintLibCount(){
   const n=favCodes().length;
   el("favCount").textContent=n?`(${n})`:"";
-  el("libCount").textContent=libView==="fav"?`${n} preferiti`:`${library.length} pattern`;
+  el("libCount").textContent=libView==="fav"?`${n} favorites`:`${library.length} patterns`;
 }
 
 // ---------- blocca voce ----------
-const ROLE_LABEL={kick:"Cassa", kick2:"Cassa 2", snare:"Rullante", snare2:"Rullante 2", snare3:"Rull. secco",
+const ROLE_LABEL={kick:"Kick", kick2:"Cassa 2", snare:"Snare", snare2:"Rullante 2", snare3:"Rull. secco",
   clap:"Clap", rim:"Rim", chh:"HH chiuso", chh2:"HH 2", ohh:"HH aperto", ride:"Ride", crash:"Crash",
   china:"China", tom:"Tom", tom2:"Floor tom", cow:"Campanaccio", conga:"Conga", conga2:"Conga 2",
   clave:"Clave", tamb:"Tamburello", shaker:"Shaker", perc:"Perc"};
@@ -4064,7 +4045,7 @@ function toggleVaryPanel(item){
 function varyPanel(item){
   const box=document.createElement("div"); box.className="lib-locks";
   const hint=document.createElement("span"); hint.className="tiny";
-  hint.textContent="una variazione dello stesso pattern: ogni click ne crea una nuova sotto questo";
+  hint.textContent="a variation of the same pattern: every click adds a new one below it";
   box.appendChild(hint);
   SPEngine.variationTypes.forEach(t=>{
     const b=document.createElement("button"); b.type="button"; b.className="mini";
@@ -4093,7 +4074,7 @@ function regenerate(item){
   const kept=locks.get(item)||new Set();
   const child=SPEngine.relock(item,SPEngine.lockMask([...kept]),SPEngine.randomSeed(16));
   const same=ROLE_ORDER.every(r=>String(child.roles[r]||"")===String(item.roles[r]||""));
-  if(same){ libNote("nessuna variazione possibile: sblocca un'altra voce"); return; }
+  if(same){ libNote("no variation possible: unlock another voice"); return; }
   locks.set(child,new Set(kept));
   lockOpen.add(child);
   const wasPlaying=audition.item===item;
@@ -4104,7 +4085,7 @@ function lockPanel(item){
   const box=document.createElement("div"); box.className="lib-locks";
   const kept=locks.get(item);
   const hint=document.createElement("span"); hint.className="tiny";
-  hint.textContent="le voci bloccate restano identiche, le altre si rigenerano nello stesso stile";
+  hint.textContent="locked voices stay the same, the others are regenerated in the same style";
   box.appendChild(hint);
   ROLE_ORDER.filter(r=>item.roles[r]).forEach(role=>{
     const b=document.createElement("button"); b.type="button";
@@ -4116,13 +4097,13 @@ function lockPanel(item){
     box.appendChild(b);
   });
   const go=document.createElement("button"); go.type="button"; go.className="mini primary";
-  go.textContent="↻ Rigenera le altre"; go.onclick=()=>regenerate(item);
+  go.textContent="↻ Regenerate the others"; go.onclick=()=>regenerate(item);
   box.appendChild(go);
   return box;
 }
 function openCode(code){
   const it=SPEngine.fromCode(code);
-  if(!it){ libNote("codice non valido"); return false; }
+  if(!it){ libNote("invalid code"); return false; }
   pushToLibrary([it]);
   return true;
 }
@@ -4188,21 +4169,21 @@ function varySongBlock(b){
   b.patternId=p.id;
   b.fillPatternId=null;
   renderSong();
-  setStatus(`variazione applicata a “${src.name}” nel blocco`);
+  setStatus(`variation applied to “${src.name}” in the block`);
 }
 
 function toggleSongFill(b){
   if(b.fillPatternId){
-    pushUndo(); b.fillPatternId=null; renderSong(); setStatus("fill finale disattivato"); return;
+    pushUndo(); b.fillPatternId=null; renderSong(); setStatus("ending fill off"); return;
   }
   const src=patternById(b.patternId);
   if(!src) return;
   pushUndo();
   const out=makeFillVariant(src);
-  if(!out){ setStatus("pattern vuoto: impossibile creare il fill","err"); return; }
+  if(!out){ setStatus("empty pattern: cannot create a fill","err"); return; }
   b.fillPatternId=out.pattern.id;
   renderSong();
-  setStatus("fill finale attivato sull'ultima ripetizione");
+  setStatus("ending fill on the last repeat");
 }
 
 let library=[];   // le proposte: si riempie all'apertura della libreria
@@ -4214,10 +4195,10 @@ async function applyLibrary(item, asNew){
     const originalKit=libraryOriginalKit||sampleSet;
     if(requestedKit!==originalKit){
       const useLibraryKit=await ask({
-        title:"Scegli la macchina",
-        message:`La canzone usa “${KITS[originalKit].label}”, mentre nella libreria hai selezionato “${KITS[requestedKit].label}”.\nQuale macchina vuoi usare per il pattern?`,
-        ok:"Usa quella selezionata",
-        cancel:"Usa quella originale"
+        title:"Choose the machine",
+        message:`The song uses “${KITS[originalKit].label}”, while in the library you selected “${KITS[requestedKit].label}”.\nWhich machine do you want to use for the pattern?`,
+        ok:"Use the selected one",
+        cancel:"Use the original"
       });
       setSampleSet(useLibraryKit?requestedKit:originalKit);
     }
@@ -4245,7 +4226,7 @@ async function applyLibrary(item, asNew){
   }
   ui.patternId=pat.id; el("pLen").value=pat.len;
   renderAll(); closeLib();
-  setStatus((asNew?"aggiunto: ":"caricato: ")+item.name);
+  setStatus((asNew?"aggiunto: ":"loaded: ")+item.name);
 }
 
 function renderLibrary(){
@@ -4258,8 +4239,8 @@ function renderLibrary(){
   if(!list.length){
     const e=document.createElement("div"); e.className="lib-empty";
     e.textContent=libView==="fav"
-      ? "nessun preferito: tocca ☆ accanto al nome di un pattern per salvarlo qui"
-      : "nessuna proposta: scegli uno stile o premi ↻ Altre proposte";
+      ? "no favorites: tap ☆ next to a pattern name to save it here"
+      : "no suggestions: choose a style or press ↻ More suggestions";
     host.appendChild(e);
   }
   list.forEach(item=>{
@@ -4273,7 +4254,7 @@ function renderLibrary(){
       const star=document.createElement("button"); star.type="button";
       star.className="lib-star"+(fav?" on":"");
       star.textContent=fav?"★":"☆";
-      star.title=fav?"togli dai preferiti":"salva nei preferiti";
+      star.title=fav?"remove from favorites":"add to favorites";
       star.setAttribute("aria-pressed",String(fav));
       star.onclick=()=>toggleFav(item);
       nm.appendChild(star);
@@ -4282,7 +4263,7 @@ function renderLibrary(){
     const tg=document.createElement("div"); tg.className="lib-tag"; tg.textContent=`${item.tag} · ${item.len} step`+(item.code?"":" · preset");
     meta.appendChild(nm); meta.appendChild(tg);
     if(item.ref){ const rf=document.createElement("div"); rf.className="lib-ref"; rf.textContent=item.ref; meta.appendChild(rf); }
-    if(item.code){ const cd=document.createElement("div"); cd.className="lib-code"; cd.textContent=item.code; cd.title="codice del pattern"; meta.appendChild(cd); }
+    if(item.code){ const cd=document.createElement("div"); cd.className="lib-code"; cd.textContent=item.code; cd.title="pattern code"; meta.appendChild(cd); }
     row.__item=item;
     const play=document.createElement("button"); play.className="lib-play"; play.type="button";
     play.onclick=()=>audition.item===item?stopAudition():startAudition(item);
@@ -4306,25 +4287,25 @@ function renderLibrary(){
     row.appendChild(mini);
 
     const acts=document.createElement("div"); acts.className="lib-acts";
-    const load=document.createElement("button"); load.className="mini primary"; load.textContent="Carica";
+    const load=document.createElement("button"); load.className="mini primary"; load.textContent="Load";
     load.onclick=()=>applyLibrary(item,false);
-    const add=document.createElement("button"); add.className="mini"; add.textContent="+ Aggiungi";
+    const add=document.createElement("button"); add.className="mini"; add.textContent="+ Add";
     add.onclick=()=>applyLibrary(item,true);
     acts.appendChild(load); acts.appendChild(add);
     if(item.code){
-      const sim=document.createElement("button"); sim.className="mini"; sim.textContent="≈ Simili";
-      sim.title="4 variazioni vicine a questo pattern"; sim.onclick=()=>similar(item);
+      const sim=document.createElement("button"); sim.className="mini"; sim.textContent="≈ Similar";
+      sim.title="4 close variations of this pattern"; sim.onclick=()=>similar(item);
       const link=document.createElement("button"); link.className="mini"; link.textContent="Link";
-      link.title="copia il link per condividere questo pattern"; link.onclick=()=>copyLink(item);
+      link.title="copy the link to share this pattern"; link.onclick=()=>copyLink(item);
       const lock=document.createElement("button"); lock.className="mini"+(lockOpen.has(item)?" on":"");
-      lock.textContent="\u{1F512} Blocca"; lock.title="tieni alcune voci e rigenera le altre";
+      lock.textContent="\u{1F512} Lock"; lock.title="keep some voices and regenerate the others";
       lock.setAttribute("aria-expanded",String(lockOpen.has(item)));
       lock.onclick=()=>toggleLockPanel(item);
-      const arr=document.createElement("button"); arr.className="mini"; arr.textContent="\u2630 Arrangia";
-      arr.title="ricava intro, ritornello, break e outro da questo pattern";
+      const arr=document.createElement("button"); arr.className="mini"; arr.textContent="\u2630 Arrange";
+      arr.title="derive intro, chorus, break and outro from this pattern";
       arr.onclick=()=>pushToLibrary(SPEngine.arrange(item),item);
       const vary=document.createElement("button"); vary.className="mini"+(varyOpen.has(item)?" on":"");
-      vary.textContent="\u2726 Varia"; vary.title="scarno, mezzo tempo, hat aperto, nuovo fill...";
+      vary.textContent="\u2726 Vary"; vary.title="sparse, half-time, open hat, new fill...";
       vary.setAttribute("aria-expanded",String(varyOpen.has(item)));
       vary.onclick=()=>toggleVaryPanel(item);
       acts.appendChild(sim); acts.appendChild(vary); acts.appendChild(arr); acts.appendChild(link); acts.appendChild(lock);
@@ -4332,7 +4313,7 @@ function renderLibrary(){
     row.appendChild(acts);
     if(libView==="all"){
       const del=document.createElement("button"); del.type="button"; del.className="lib-del";
-      del.textContent="×"; del.title="togli dalla lista"; del.setAttribute("aria-label","Togli "+item.name+" dalla lista");
+      del.textContent="×"; del.title="remove from the list"; del.setAttribute("aria-label","Togli "+item.name+" dalla lista");
       del.onclick=()=>removeFromLibrary(item);
       row.appendChild(del);
     }
@@ -4351,22 +4332,22 @@ function removeFromLibrary(item){
   const host=el("libList"), top=host.scrollTop;
   library=library.filter(i=>i!==item);
   renderLibrary(); host.scrollTop=top;
-  libNote("tolto dalla lista: "+item.name);
+  libNote("removed from the list: "+item.name);
 }
 async function clearFavorites(){
   const n=favCodes().length;
   if(!n) return;
-  if(!await ask({title:"Svuota preferiti", message:`Togliere tutti i ${n} preferiti? Non si può annullare.`, ok:"Svuota", danger:true})) return;
-  try{ localStorage.setItem(FAV_KEY,"[]"); }catch(e){ libNote("questo browser non permette di modificare i preferiti"); return; }
-  stopAudition(); renderLibrary(); libNote("preferiti svuotati");
+  if(!await ask({title:"Clear favorites", message:`Remove all ${n} favorites? This can't be undone.`, ok:"Clear", danger:true})) return;
+  try{ localStorage.setItem(FAV_KEY,"[]"); }catch(e){ libNote("this browser can't change favorites"); return; }
+  stopAudition(); renderLibrary(); libNote("favorites cleared");
 }
 function paintLibManage(){
   const fav=libView==="fav";
   el("libClear").hidden=!fav;
   el("libClear").disabled=!favCodes().length;
   el("libManageNote").innerHTML=fav
-    ? "i preferiti restano salvati in questo browser"
-    : "le proposte cambiano con stile, sezione e step: tieni quelle che ti piacciono nei &#9733; preferiti";
+    ? "favorites stay saved in this browser"
+    : "suggestions change with style, section and steps: keep the ones you like in &#9733; favorites";
 }
 el("libClear").onclick=clearFavorites;
 
@@ -4384,9 +4365,9 @@ el("libOverlay").onclick=(e)=>{ if(e.target===el("libOverlay")) closeLib(); };
 // ---------- modalita' del click sugli step ----------
 ui.stepMode="hit";
 (function initStepMode(){
-  const hints={hit:"", prob:"click su uno step acceso: 100 > 75 > 50 > 25%", rat:"click su uno step acceso: 1 > 2 > 3 > 4 colpi",
-    flam:"click su uno step acceso: flam si / no", tune:"click su uno step acceso: +2 > +5 > +7 > +12 > -12 > -7 > -5 > 0 semitoni",
-    dec:"click su uno step acceso: decay 70 > 40 > 15 > come la traccia", cut:"click su uno step acceso: filtro 70 > 50 > 30 > come la traccia"};
+  const hints={hit:"", prob:"click an active step: 100 > 75 > 50 > 25%", rat:"click an active step: 1 > 2 > 3 > 4 hits",
+    flam:"click an active step: flam on / off", tune:"click an active step: +2 > +5 > +7 > +12 > -12 > -7 > -5 > 0 semitones",
+    dec:"click an active step: decay 70 > 40 > 15 > same as the track", cut:"click an active step: filter 70 > 50 > 30 > same as the track"};
   const btns=[...document.querySelectorAll("#stepMode button")];
   btns.forEach(b=>b.onclick=()=>{
     ui.stepMode=b.dataset.mode;
@@ -4436,7 +4417,7 @@ function disableGridVariation(){
   normalize();
   paintGridVariationState();
   renderAll();
-  setStatus("variazione disattivata");
+  setStatus("variation off");
 }
 
 function varyCurrent(type){
@@ -4448,7 +4429,7 @@ function varyCurrent(type){
     const g=pat.grid[t.id];
     if(g && g.some(v=>v)) roles[role]=g.slice(0,pat.len);
   });
-  if(!Object.keys(roles).length){ setStatus("pattern vuoto: niente da variare","err"); return; }
+  if(!Object.keys(roles).length){ setStatus("empty pattern: nothing to vary","err"); return; }
   if(activeGridVariationId===type){ disableGridVariation(); return; }
   if(!gridVariationBase){
     gridVariationBase={
@@ -4467,15 +4448,15 @@ function varyCurrent(type){
   normalize(); renderAll();
   paintGridVariationState();
   const meta=SPEngine.variationTypes.find(x=>x.id===type), note=(/\(([^)]+)\)$/.exec(out.tag)||[])[1];
-  setStatus(`${meta.label}${note?` (${note})`:""} · cmd+Z per annullare`);
+  setStatus(`${meta.label}${note?` (${note})`:""} · cmd+Z to undo`);
 }
 (function initGridVary(){
   const box=el("pVaryPanel"), btn=el("pVary");
   const hint=document.createElement("span"); hint.className="tiny";
-  hint.textContent="trasforma il pattern che stai modificando; seleziona di nuovo la variazione per disattivarla";
+  hint.textContent="transforms the pattern you are editing; select the variation again to turn it off";
   box.appendChild(hint);
   const off=document.createElement("button"); off.type="button"; off.id="pVaryOff"; off.className="mini";
-  off.textContent="Disattiva variazione"; off.hidden=true; off.onclick=disableGridVariation;
+  off.textContent="Turn variation off"; off.hidden=true; off.onclick=disableGridVariation;
   box.appendChild(off);
   SPEngine.variationTypes.forEach(t=>{
     const b=document.createElement("button"); b.type="button"; b.className="mini";
@@ -4534,7 +4515,7 @@ function refreshProposals(){
   setLibView("all");
   el("libList").scrollTop=0;
   const label=el("genStyle").selectedOptions[0]?.textContent||"";
-  libNote(`${PROPOSALS} proposte · ${label}`);
+  libNote(`${PROPOSALS} suggestions · ${label}`);
 }
 ["genStyle","genSection","genLen","genFill"].forEach(id=>el(id).addEventListener("change",refreshProposals));
 el("genMore").onclick=refreshProposals;
@@ -4560,7 +4541,7 @@ project.tracks.forEach(t=>loadBuffer(t.sampleIndex));
 renderAll();
 setView("grid");
 markSaved();
-try{ if(sessionStorage.getItem("traslocoFatto")){ sessionStorage.removeItem("traslocoFatto"); setStatus("progetti e preferiti trasferiti dal vecchio indirizzo"); } }catch(e){}
+try{ if(sessionStorage.getItem("traslocoFatto")){ sessionStorage.removeItem("traslocoFatto"); setStatus("projects and favorites moved over from the old address"); } }catch(e){}
 refreshRecent();
 
 // Link condiviso (?p=<codice>): apre la libreria con quel pattern in cima, pronto da ascoltare.
@@ -4609,21 +4590,21 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-28.05";
+const SW_VERSION="2026-09-28.06";
 (function pwa(){
   const netBadge=el("netBadge");
 
   const syncNet=()=>{ netBadge.hidden=navigator.onLine; };
   addEventListener("online",syncNet); addEventListener("offline",syncNet); syncNet();
 
-  addEventListener("appinstalled",()=>setStatus("app installata"));
+  addEventListener("appinstalled",()=>setStatus("app installed"));
 
   if(!("serviceWorker" in navigator)||!isSecureContext) return;
   addEventListener("load",async()=>{
     try{
       const first=!navigator.serviceWorker.controller;
       await navigator.serviceWorker.register(`/sw.js?v=${SW_VERSION}`);
-      if(first) navigator.serviceWorker.ready.then(()=>setStatus("pronta anche offline"));
+      if(first) navigator.serviceWorker.ready.then(()=>setStatus("ready offline too"));
     }catch(e){}
   });
 })();

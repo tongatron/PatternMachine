@@ -1,7 +1,7 @@
 // Schede: electro, techno, gabber, footwork. Formato dei campi in styles-punk.js.
 (function (E) {
   const { euclid, hits, cells, backbeat, cymbal, openHat } = E.h;
-  E.defineGroup({ id: "electro", label: "Elettronica / Club" });
+  E.defineGroup({ id: "electro", label: "Electronic / Club" });
 
   E.defineStyles("electro", [
     {
@@ -13,7 +13,7 @@
         backbeat(c, "snare", [4, 12]);
         cymbal(c, "chh", 2);
         if (c.rnd(0.6)) euclid(c.pick([3, 5]), c.len, c.pick([1, 2])).forEach((v, i) => { if (v) c.put("cow", i, 1); });
-        if (c.chorus) { c.perBar(o => openHat(c, o + 14)); c.note = "hat aperto"; }
+        if (c.chorus) { c.perBar(o => openHat(c, o + 14)); c.note = "open hat"; }
       },
     },
     {
@@ -41,7 +41,7 @@
       fills: ["roll", "unison", "claps"],
       variants: [
         { id: "std", label: "", w: 3, must: { kick: [0, 4, 8, 12], clap: [4, 12] } },
-        { id: "roll", label: "con rullata", w: 2, must: { kick: [0, 4, 8, 12], clap: [4, 12] } },
+        { id: "roll", label: "with snare roll", w: 2, must: { kick: [0, 4, 8, 12], clap: [4, 12] } },
       ],
       gen(c) {
         c.each(0, 4, i => c.put("kick", i, 2));

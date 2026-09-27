@@ -1,12 +1,10 @@
 <!doctype html>
-<html lang="it">
+<html lang="en">
 <head>
 <meta charset="utf-8">
-<script src="engine/lang-en.js?v=2026-09-28.05"></script>
-<script src="engine/i18n.js?v=2026-09-28.05"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
-<title>Istruzioni e funzioni · PATTERN-MACHINE</title>
+<title>Guide and features · PATTERN-MACHINE</title>
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
 <style>
 /* Pagina di consultazione: stessi colori e materiali del tema chiaro della home
@@ -70,297 +68,293 @@ th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-sp
 <body>
 <div class="wrap">
 <header>
-  <h1>Istruzioni e funzioni</h1>
+  <h1>Guide and features</h1>
   <span class="muted">PATTERN-MACHINE · <span id="ver"></span></span>
-  <a class="back" href="./">&larr; Torna alla drum machine</a>
-  <span class="lang-switch"></span>
+  <a class="back" href="./">← Back to the drum machine</a>
 </header>
 
 <nav>
-  <a href="#inizio">Primi passi</a><a href="#tasti">Tastiera e mouse</a>
-  <a href="#daw-midi">DAW, MIDI e clock</a>
-  <a href="#numeri">In breve</a><a href="#macchine">Macchine</a><a href="#griglia">Griglia e step</a><a href="#canzone">Canzone</a>
-  <a href="#motore">Motore dei pattern</a><a href="#variazioni">Variazioni</a><a href="#stili">Stili</a>
-  <a href="#export">Export per Logic</a><a href="#import">Import</a><a href="#progetti">Progetti e link</a><a href="#limiti">Limiti</a>
+  <a href="#inizio">Getting started</a><a href="#tasti">Keyboard and mouse</a>
+  <a href="#daw-midi">DAW, MIDI and clock</a>
+  <a href="#numeri">At a glance</a><a href="#macchine">Machines</a><a href="#griglia">Grid and steps</a><a href="#canzone">Song</a>
+  <a href="#motore">Pattern engine</a><a href="#variazioni">Variations</a><a href="#stili">Styles</a>
+  <a href="#export">Export for Logic</a><a href="#import">Import</a><a href="#progetti">Projects and links</a><a href="#limiti">Limitations</a>
 </nav>
 
 <section id="inizio">
-  <h2>Primi passi</h2>
+  <h2>Getting started</h2>
   <ol>
-    <li><b>Scegli la macchina</b> dal menu <b>Macchina</b> sotto la barra Salva (SP-1200, RX-5, TR-808, TR-909, TR-707, TR-727, TR-606, CR-78, CR-8000, LinnDrum, DMX, Drumulator, DrumTraks, SDS-V): cambia il suono di tutte le righe. Di partenza &egrave; la TR-808; la macchina che scegli resta anche la volta dopo. <b>Approfondisci</b> porta alla storia delle macchine.</li>
-    <li><b>Carica un ritmo</b>: nel pannello Pattern premi <b>Scegli…</b>, filtra per stile e premi Carica. Oppure parti da una griglia vuota con <b>+ Nuovo</b>.</li>
-    <li><b>Play</b> (o barra spaziatrice). Mentre suona puoi accendere e spegnere gli step: il cambio si sente dal giro successivo.</li>
-    <li><b>Modifica</b>: click su uno step lo accende o lo spegne. Sopra la griglia, "Click sugli step" cambia cosa fa il click (Probabilit&agrave;, Ripetizioni, Flam, Intonazione, Decay, Filtro).</li>
-    <li><b>Tutte le opzioni di una riga</b>: click sul nome della traccia. Sotto gli step si apre una corsia per ogni blocco (Livello, Probabilit&agrave;, Ripetizioni, Flam, Intonazione, Decay, Filtro); click su una cella = valore successivo, alt+click = torna al default. Si apre una riga alla volta.</li>
-    <li><b>Canzone</b>: nella scheda Sequencer metti in fila i pattern, ognuno con le sue ripetizioni, e premi <b>Canzone</b> accanto a Play.</li>
-    <li><b>Salva</b> il progetto; dal menu <b>Export</b> scarichi MIDI, WAV o un pacchetto per <b>Logic</b>, <b>Ableton Live</b>, <b>REAPER</b> o altre DAW.</li>
+    <li><b>Choose the machine</b> from the <b>Machine</b> menu below the Save bar (SP-1200, RX-5, TR-808, TR-909, TR-707, TR-727, TR-606, CR-78, CR-8000, LinnDrum, DMX, Drumulator, DrumTraks, SDS-V): it changes the sound of every row. The default is the TR-808; the machine you choose is remembered next time. <b>About the machines</b> leads to their history.</li>
+    <li><b>Load a beat</b>: in the Pattern panel press <b>Browse…</b>, filter by style and press Load. Or start from an empty grid with <b>+ New</b>.</li>
+    <li><b>Play</b> (or the space bar). While it plays you can turn steps on and off: you hear the change on the next pass.</li>
+    <li><b>Edit</b>: clicking a step turns it on or off. Above the grid, "Step click" sets what a click does (Probability, Ratchets, Flam, Tuning, Decay, Filter).</li>
+    <li><b>All the options of a row</b>: click the track name. Below the steps a lane opens for each parameter (Level, Probability, Ratchets, Flam, Tuning, Decay, Filter); click a cell = next value, alt+click = back to default. One row opens at a time.</li>
+    <li><b>Song</b>: in the Sequencer tab, chain the patterns, each with its own repeats, and press <b>Song</b> next to Play.</li>
+    <li><b>Save</b> the project; from the <b>Export</b> menu download MIDI, WAV or a package for <b>Logic</b>, <b>Ableton Live</b>, <b>REAPER</b> or other DAWs.</li>
   </ol>
 </section>
 
 <section id="daw-midi">
-  <h2>Collegamento alle DAW, MIDI e clock</h2>
-  <p>La versione macOS di PATTERN-MACHINE crea la porta MIDI virtuale <b>PatternMachine</b>. La porta funziona con Logic Pro, Ableton Live, REAPER, FL Studio, Cubase, Bitwig, Studio One e con le altre DAW che gestiscono MIDI.</p>
-  <h3>Suonare gli strumenti della DAW con PATTERN-MACHINE</h3>
+  <h2>Connecting to DAWs, MIDI and clock</h2>
+  <p>The macOS version of PATTERN-MACHINE creates the virtual MIDI port <b>PatternMachine</b>. The port works with Logic Pro, Ableton Live, REAPER, FL Studio, Cubase, Bitwig, Studio One and any other DAW that handles MIDI.</p>
+  <h3>Playing your DAW's instruments with PATTERN-MACHINE</h3>
   <ol>
-    <li>Apri nella DAW una traccia con uno strumento di batteria e attiva monitoraggio o registrazione.</li>
-    <li>Nell'app macOS attiva <b>Uscita MIDI</b>. Per i drum rack puoi lasciare <b>Canale 10</b>; con <b>Canali separati</b> ogni riga esce su un canale MIDI distinto dalla porta virtuale <b>PatternMachine</b>.</li>
-    <li>Scegli <b>General MIDI</b> per i drum rack e gli strumenti compatibili (36 cassa, 38 rullante, 42 hi-hat chiuso, 46 hi-hat aperto). <b>Kit SP-1200 (36+)</b> serve per il kit SP-1200 creato appositamente in Logic.</li>
-    <li>Suona il pattern o la canzone. I pad e i tasti dell'app possono essere registrati nella DAW come note MIDI.</li>
+    <li>In your DAW, open a track with a drum instrument and enable monitoring or record.</li>
+    <li>In the macOS app turn on <b>MIDI output</b>. For drum racks you can keep <b>Channel 10</b>; with <b>Separate channels</b> each row goes out on its own MIDI channel from the <b>PatternMachine</b> virtual port.</li>
+    <li>Choose <b>General MIDI</b> for drum racks and compatible instruments (36 kick, 38 snare, 42 closed hi-hat, 46 open hi-hat). <b>SP-1200 kit (36+)</b> is for the SP-1200 kit built specifically in Logic.</li>
+    <li>Play the pattern or the song. The app's pads and keys can be recorded in the DAW as MIDI notes.</li>
   </ol>
-  <h3>Far seguire all'app il tempo e il trasporto della DAW</h3>
+  <h3>Making the app follow the DAW's tempo and transport</h3>
   <ol>
-    <li>Nella DAW abilita l'invio di <b>MIDI Clock</b> verso la porta MIDI <b>PatternMachine</b>. Se disponibile, abilita anche <b>Start/Stop/Continue</b> e <b>Song Position Pointer</b>.</li>
-    <li>Nel pannello DAW dell'app scegli la DAW che sta inviando il clock e attiva <b>Segui il clock della DAW</b>. La scelta serve a rendere leggibile lo stato del collegamento: il protocollo ricevuto è MIDI Clock standard per tutte le DAW.</li>
-    <li>Avvia Play nella DAW. L'app segue Play, Stop, Continua, posizione nei cicli e tempo; ogni sedicesimo viene ricavato dal clock MIDI, senza deriva tra i due programmi.</li>
+    <li>In the DAW, enable sending <b>MIDI Clock</b> to the <b>PatternMachine</b> MIDI port. If available, also enable <b>Start/Stop/Continue</b> and <b>Song Position Pointer</b>.</li>
+    <li>In the app's DAW panel, choose the DAW that is sending clock and turn on <b>Follow DAW clock</b>. The choice only makes the connection status easier to read: the protocol received is standard MIDI Clock for every DAW.</li>
+    <li>Press Play in the DAW. The app follows Play, Stop, Continue, cycle position and tempo; every sixteenth note is derived from the MIDI clock, so the two programs never drift apart.</li>
   </ol>
-  <p class="muted">Se il clock è presente ma l'app non parte, controlla che la DAW stia inviando anche il trasporto e che la destinazione sia proprio <b>PatternMachine</b>. È consigliabile inviare il clock da una sola DAW alla volta.</p>
-  <h3>Impostazioni rapide per le DAW più comuni</h3>
+  <p class="muted">If clock is arriving but the app doesn't start, check that the DAW is also sending transport messages and that the destination really is <b>PatternMachine</b>. It's best to send clock from one DAW at a time.</p>
+  <h3>Quick settings for the most common DAWs</h3>
   <div class="table-wrap"><table>
-    <tr><th>DAW</th><th>Impostazione</th></tr>
-    <tr><td><b>Logic Pro</b></td><td>Impostazioni progetto &rarr; Sincronizzazione &rarr; MIDI: in Clock MIDI scegli <b>PatternMachine</b> come destinazione e abilita la trasmissione.</td></tr>
-    <tr><td><b>Ableton Live</b></td><td>Preferenze &rarr; Link/Tempo/MIDI: nella porta di uscita <b>PatternMachine</b> attiva <b>Sync</b>. Avvia Play nella Session o nell'Arrangement.</td></tr>
-    <tr><td><b>REAPER</b></td><td>Abilita <b>PatternMachine</b> nei dispositivi MIDI e, nelle impostazioni di sincronizzazione del progetto, selezionala come uscita MIDI Clock.</td></tr>
-    <tr><td><b>Cubase</b></td><td>Impostazioni di sincronizzazione del progetto &rarr; destinazioni MIDI Clock: abilita <b>PatternMachine</b>.</td></tr>
-    <tr><td><b>FL Studio</b></td><td>Impostazioni MIDI: abilita l'uscita <b>PatternMachine</b> e l'invio del MIDI Clock, poi avvia il trasporto.</td></tr>
-    <tr><td><b>Bitwig / Studio One</b></td><td>Nelle impostazioni di sincronizzazione abilita <b>PatternMachine</b> come destinazione MIDI Clock e Start/Stop.</td></tr>
-    <tr><td><b>GarageBand</b></td><td>Le funzioni MIDI Clock disponibili dipendono dalla versione; se non è possibile inviare clock, usa l'export MIDI o WAV e importa il file nella DAW.</td></tr>
+    <tr><th>DAW</th><th>Setting</th></tr>
+    <tr><td><b>Logic Pro</b></td><td>Project Settings → Synchronization → MIDI: under MIDI Clock choose <b>PatternMachine</b> as the destination and enable transmission.</td></tr>
+    <tr><td><b>Ableton Live</b></td><td>Preferences → Link/Tempo/MIDI: on the <b>PatternMachine</b> output port enable <b>Sync</b>. Press Play in Session or Arrangement view.</td></tr>
+    <tr><td><b>REAPER</b></td><td>Enable <b>PatternMachine</b> among the MIDI devices and, in the project sync settings, select it as the MIDI Clock output.</td></tr>
+    <tr><td><b>Cubase</b></td><td>Project Synchronization Setup → MIDI Clock destinations: enable <b>PatternMachine</b>.</td></tr>
+    <tr><td><b>FL Studio</b></td><td>MIDI settings: enable the <b>PatternMachine</b> output and MIDI Clock sending, then start the transport.</td></tr>
+    <tr><td><b>Bitwig / Studio One</b></td><td>In the sync settings, enable <b>PatternMachine</b> as a MIDI Clock and Start/Stop destination.</td></tr>
+    <tr><td><b>GarageBand</b></td><td>MIDI Clock support depends on the version; if it can't send clock, use the MIDI or WAV export and import the file into the DAW.</td></tr>
   </table></div>
-  <h3>Esportazione e collegamento offline</h3>
+  <h3>Export and offline workflow</h3>
   <ul>
-    <li><b>MIDI General MIDI</b> è la scelta più compatibile tra DAW diverse. Il MIDI include tempo, posizione, swing, feel e ripetizioni.</li>
-    <li><b>WAV</b> e gli stem sono già allineati dall'inizio: trascinali insieme alla battuta 1 della DAW.</li>
-    <li>Il MIDI Clock serve per suonare l'app in tempo reale con la DAW; non serve per importare un file MIDI già esportato.</li>
+    <li><b>MIDI (General MIDI)</b> is the most compatible choice across DAWs. The MIDI file includes tempo, position, swing, feel and ratchets.</li>
+    <li><b>WAV</b> files and stems are aligned from the start: drag them in together at bar 1 of the DAW.</li>
+    <li>MIDI Clock is for playing the app in real time with the DAW; you don't need it to import an exported MIDI file.</li>
   </ul>
 </section>
 
 <section id="tasti">
-  <h2>Tastiera e mouse</h2>
+  <h2>Keyboard and mouse</h2>
   <div class="table-wrap"><table>
-    <tr><th>Comando</th><th>Cosa fa</th></tr>
-    <tr><td><code>spazio</code></td><td>Play / Stop</td></tr>
-    <tr><td><code>1 2 3 4</code> <code>Q W E R</code> <code>A S D F</code> <code>Z X C V</code></td><td>suonano le righe 1&ndash;16 (come il pad col numero a sinistra di ogni riga)</td></tr>
-    <tr><td><b>Rec</b> + Play + pad o tasti</td><td>registra i colpi nella griglia, allineati allo step pi&ugrave; vicino</td></tr>
-    <tr><td>click / alt+click / shift+click</td><td>step normale / accento / nota fantasma</td></tr>
-    <tr><td>click destro</td><td>accento</td></tr>
-    <tr><td>click sul nome della riga</td><td>apre o chiude tutte le opzioni della riga</td></tr>
-    <tr><td><code>cmd+Z</code> / <code>cmd+shift+Z</code></td><td>annulla / ripristina (fino a 80 passi)</td></tr>
+    <tr><th>Command</th><th>What it does</th></tr>
+    <tr><td><code>space</code></td><td>Play / Stop</td></tr>
+    <tr><td><code>1 2 3 4</code> <code>Q W E R</code> <code>A S D F</code> <code>Z X C V</code></td><td>play rows 1–16 (like the numbered pad on the left of each row)</td></tr>
+    <tr><td><b>Rec</b> + Play + pads or keys</td><td>records hits into the grid, quantized to the nearest step</td></tr>
+    <tr><td>click / alt+click / shift+click</td><td>normal step / accent / ghost note</td></tr>
+    <tr><td>right-click</td><td>accent</td></tr>
+    <tr><td>click the row name</td><td>opens or closes all the row options</td></tr>
+    <tr><td><code>cmd+Z</code> / <code>cmd+shift+Z</code></td><td>undo / redo (up to 80 steps)</td></tr>
   </table></div>
-  <p class="muted">Colori degli step: arancione = colpo normale, rosso = accento, arancione pi&ugrave; tenue = nota fantasma, bordo evidenziato = step che sta suonando. I pattern generati mettono spesso l'accento sui tempi forti.</p>
+  <p class="muted">Step colors: orange = normal hit, red = accent, pale orange = ghost note, highlighted border = the step that is playing. Generated patterns often put accents on the strong beats.</p>
 </section>
 
 <section id="numeri">
-  <h2>In breve</h2>
+  <h2>At a glance</h2>
   <div class="stats">
-    <div class="stat"><span>Stili</span><div class="num" id="nStyles">–</div></div>
-    <div class="stat"><span>Gruppi</span><div class="num" id="nGroups">–</div></div>
-    <div class="stat"><span>Variazioni</span><div class="num" id="nVars">–</div></div>
-    <div class="stat"><span>Macchine</span><div class="num">5</div></div>
-    <div class="stat"><span>Step</span><div class="num">8·16·32</div></div>
+    <div class="stat"><span>Styles</span><div class="num" id="nStyles">–</div></div>
+    <div class="stat"><span>Groups</span><div class="num" id="nGroups">–</div></div>
+    <div class="stat"><span>Variations</span><div class="num" id="nVars">–</div></div>
+    <div class="stat"><span>Machines</span><div class="num">5</div></div>
+    <div class="stat"><span>Steps</span><div class="num">8·16·32</div></div>
     <div class="stat"><span>BPM</span><div class="num">40–240</div></div>
   </div>
-  <p class="muted">Stili, gruppi e variazioni sono letti dal motore caricato in questa pagina: i numeri sono sempre quelli in uso.</p>
+  <p class="muted">Styles, groups and variations are read from the engine loaded on this page, so the numbers are always current.</p>
 </section>
 
 <section id="macchine">
-  <h2>Macchine (kit di suoni)</h2>
+  <h2>Machines (sound kits)</h2>
   <div class="table-wrap"><table>
-    <tr><th>Macchina</th><th>Suoni</th><th>Origine</th></tr>
-    <tr><td>SP-1200</td><td>42</td><td>campioni originali E-mu SP-1200</td></tr>
-    <tr><td>Yamaha RX-5</td><td>51</td><td>campioni RX-5, tutti raggiungibili (10 in "Solo questa macchina")</td></tr>
-    <tr><td>Roland TR-808</td><td>25</td><td>kit "Boutique 808" di Logic Pro (ricreazione Apple, non campioni Roland)</td></tr>
-    <tr><td>Roland TR-909</td><td>24</td><td>kit "Boutique 909" di Logic Pro (ricreazione Apple, non campioni Roland)</td></tr>
-    <tr><td>Roland TR-707</td><td>16</td><td>kit "TR-707 Processed" del Sampler di Logic Pro</td></tr>
-    <tr><td>Roland CR-78</td><td>24</td><td>kit "Boutique 78" di Logic Pro (ricreazione Apple); niente tom n&eacute; clap: li sostituiscono conga e rim</td></tr>
-    <tr><td>Linn LinnDrum</td><td>20</td><td>kit "Cory's LinnDrum" del Sampler di Logic Pro</td></tr>
-    <tr><td>Roland TR-727</td><td>16</td><td>kit "TR-727 Processed" del Sampler di Logic Pro; solo percussioni latine: cassa, rullante e hat sono conga, timbales e maracas</td></tr>
-    <tr><td>Roland TR-606</td><td>20</td><td>kit "TR-606 Processed" del Sampler di Logic Pro</td></tr>
-    <tr><td>Roland CR-8000</td><td>16</td><td>kit "CR-8000 Processed" del Sampler di Logic Pro</td></tr>
-    <tr><td>Oberheim DMX</td><td>13</td><td>kit Ultrabeat "Vintage Machines" di Logic Pro (ricreazione Apple); niente clap n&eacute; rim: li sostituisce il rullante</td></tr>
-    <tr><td>E-mu Drumulator</td><td>10</td><td>kit Ultrabeat "Vintage Machines" di Logic Pro (ricreazione Apple); niente hi-hat: li sostituisce il ride</td></tr>
-    <tr><td>Sequential DrumTraks</td><td>16</td><td>kit "DrumTraks Processed" del Sampler di Logic Pro</td></tr>
-    <tr><td>Simmons SDS-V</td><td>18</td><td>kit "SDS-V Processed" del Sampler di Logic Pro</td></tr>
+    <tr><th>Machine</th><th>Sounds</th><th>Source</th></tr>
+    <tr><td>SP-1200</td><td>42</td><td>original E-mu SP-1200 samples</td></tr>
+    <tr><td>Yamaha RX-5</td><td>51</td><td>RX-5 samples, all available (10 in "This machine only")</td></tr>
+    <tr><td>Roland TR-808</td><td>25</td><td>Logic Pro "Boutique 808" kit (Apple recreation, not Roland samples)</td></tr>
+    <tr><td>Roland TR-909</td><td>24</td><td>Logic Pro "Boutique 909" kit (Apple recreation, not Roland samples)</td></tr>
+    <tr><td>Roland TR-707</td><td>16</td><td>Logic Pro Sampler "TR-707 Processed" kit</td></tr>
+    <tr><td>Roland CR-78</td><td>24</td><td>Logic Pro "Boutique 78" kit (Apple recreation); no toms or clap: congas and rimshot stand in</td></tr>
+    <tr><td>Linn LinnDrum</td><td>20</td><td>Logic Pro Sampler "Cory's LinnDrum" kit</td></tr>
+    <tr><td>Roland TR-727</td><td>16</td><td>Logic Pro Sampler "TR-727 Processed" kit; Latin percussion only: kick, snare and hats are congas, timbales and maracas</td></tr>
+    <tr><td>Roland TR-606</td><td>20</td><td>Logic Pro Sampler "TR-606 Processed" kit</td></tr>
+    <tr><td>Roland CR-8000</td><td>16</td><td>Logic Pro Sampler "CR-8000 Processed" kit</td></tr>
+    <tr><td>Oberheim DMX</td><td>13</td><td>Logic Pro Ultrabeat "Vintage Machines" kit (Apple recreation); no clap or rimshot: the snare stands in</td></tr>
+    <tr><td>E-mu Drumulator</td><td>10</td><td>Logic Pro Ultrabeat "Vintage Machines" kit (Apple recreation); no hi-hats: the ride stands in</td></tr>
+    <tr><td>Sequential DrumTraks</td><td>16</td><td>Logic Pro Sampler "DrumTraks Processed" kit</td></tr>
+    <tr><td>Simmons SDS-V</td><td>18</td><td>Logic Pro Sampler "SDS-V Processed" kit</td></tr>
   </table></div>
   <ul>
-    <li>Il generatore ragiona per <b>slot</b> (i 42 pad dell'SP-1200): ogni macchina assegna a ogni slot il suo suono pi&ugrave; vicino.</li>
-    <li>Cambiando macchina, una riga che usava un suono assente passa al suono equivalente; la barra di stato lo dice.</li>
-    <li>Tutti i campioni sono WAV mono 16 bit / 44,1 kHz, normalizzati a &minus;0,1 dB.</li>
-    <li>Una macchina i cui file il server non serve sparisce dal selettore invece di restare muta.</li>
+    <li>The generator works with <b>slots</b> (the SP-1200's 42 pads): each machine assigns its closest sound to every slot.</li>
+    <li>When you switch machine, a row using a sound the new machine lacks moves to the closest equivalent; the status bar tells you.</li>
+    <li>All samples are mono 16-bit / 44.1 kHz WAV files, normalized to −0.1 dB.</li>
+    <li>A machine whose files the server doesn't provide disappears from the menu instead of staying silent.</li>
   </ul>
-  <h3>Importa Drum Machine — app macOS</h3>
-  <p>Nel pannello <b>Macchina</b> dell'app macOS trovi <b>Importa Drum Machine</b>. Scegli una cartella o un archivio <b>.zip</b> con i campioni audio (WAV, AIFF, MP3, OGG, FLAC o M4A), assegna un nome alla nuova macchina e conferma.</p>
+  <h3>Import Drum Machine — macOS app</h3>
+  <p>In the <b>Machine</b> panel of the macOS app you'll find <b>Import Drum Machine</b>. Choose a folder or a <b>.zip</b> archive of audio samples (WAV, AIFF, MP3, OGG, FLAC or M4A), name the new machine and confirm.</p>
   <ul>
-    <li>I campioni vengono assegnati ai pad in ordine alfabetico, fino a 42 strumenti. Il nome iniziale di ogni strumento deriva dal nome del file.</li>
-    <li>Con <b>Modifica macchina</b> puoi cambiare il nome della macchina e rinominare ogni strumento. I kit personali restano salvati nell'app.</li>
-    <li>Le macchine importate compaiono nella sezione <b>Macchine importate</b> del menu. Se ne selezioni una puoi usare <b>Elimina macchina</b>; l'app chiede conferma prima di rimuovere i file.</li>
-    <li>Un kit personale può essere scelto come qualsiasi altra macchina; i pattern già aperti passano al primo campione disponibile quando uno slot non esiste nel nuovo kit.</li>
-    <li>La funzione importa campioni nell'app macOS: il sito web continua a usare i kit pubblicati sul server.</li>
+    <li>Samples are assigned to the pads in alphabetical order, up to 42 instruments. Each instrument's initial name comes from the file name.</li>
+    <li>With <b>Edit machine</b> you can change the machine's name and rename each instrument. Custom kits stay saved in the app.</li>
+    <li>Imported machines appear in the <b>Imported machines</b> section of the menu. With one selected you can use <b>Delete machine</b>; the app asks for confirmation before removing the files.</li>
+    <li>A custom kit can be chosen like any other machine; open patterns switch to the first available sample when a slot doesn't exist in the new kit.</li>
+    <li>This feature imports samples into the macOS app: the website keeps using the kits published on the server.</li>
   </ul>
 </section>
 
 <section id="griglia">
-  <h2>Griglia e step</h2>
-  <h3>Livelli di uno step</h3>
+  <h2>Grid and steps</h2>
+  <h3>Step levels</h3>
   <div class="table-wrap"><table>
-    <tr><th>Livello</th><th>Come si mette</th><th>Volume</th></tr>
-    <tr><td><span class="tag">normale</span></td><td>click</td><td>76%</td></tr>
-    <tr><td><span class="tag red">accento</span></td><td>click destro o alt+click</td><td>100%</td></tr>
-    <tr><td><span class="tag">nota fantasma</span></td><td>shift+click</td><td>42%</td></tr>
+    <tr><th>Level</th><th>How to enter it</th><th>Volume</th></tr>
+    <tr><td><span class="tag">normal</span></td><td>click</td><td>76%</td></tr>
+    <tr><td><span class="tag red">accent</span></td><td>right-click or alt+click</td><td>100%</td></tr>
+    <tr><td><span class="tag">ghost note</span></td><td>shift+click</td><td>42%</td></tr>
   </table></div>
-  <h3>Blocchi per step</h3>
+  <h3>Per-step parameters</h3>
   <ul>
-    <li><b>Probabilit&agrave;</b>: uno step acceso suona il 100, 75, 50 o 25% delle volte (modalit&agrave; "Probabilit&agrave;" sopra la griglia).</li>
-    <li><b>Ripetizioni</b> (ratchet): 1, 2, 3 o 4 colpi rapidi dentro lo step; quelli dopo il primo all'82%.</li>
-    <li><b>Flam</b>: un colpo al 50% 24 ms prima di quello vero.</li>
-    <li><b>Intonazione</b> (+2, +5, +7, +12, &minus;12, &minus;7, &minus;5 semitoni), <b>Decay</b> (70, 40, 15) e <b>Filtro</b> (70, 50, 30): valgono solo per quel colpo e si sommano o sostituiscono le impostazioni della riga. In Colpi un pallino in alto a destra segnala lo step che li ha.</li>
-    <li>Valgono in riproduzione, nell'export WAV e negli stem; il MIDI porta probabilit&agrave;, ripetizioni e flam (intonazione, decay e filtro sono suono, non note).</li>
-    <li><b>Lunghezza per riga</b> (menu "Lung."): con meno step della battuta la riga gira per conto suo e non si riallinea a fine pattern (in Canzone riparte a ogni blocco). Gli step oltre la lunghezza restano spenti.</li>
+    <li><b>Probability</b>: an active step plays 100, 75, 50 or 25% of the time ("Probability" mode above the grid).</li>
+    <li><b>Ratchets</b>: 1, 2, 3 or 4 rapid hits inside the step; the ones after the first at 82%.</li>
+    <li><b>Flam</b>: a grace note at 50% velocity, 24 ms before the main hit.</li>
+    <li><b>Tuning</b> (+2, +5, +7, +12, −12, −7, −5 semitones), <b>Decay</b> (70, 40, 15) and <b>Filter</b> (70, 50, 30): they apply to that hit only and add to or replace the row settings. In Hits mode a dot in the top-right corner marks steps that have them.</li>
+    <li>They apply on playback, in the WAV export and in the stems; MIDI carries probability, ratchets and flams (tuning, decay and filter are sound, not notes).</li>
+    <li><b>Per-row length</b> ("Len." menu): with fewer steps than the bar, the row loops on its own and doesn't realign at the end of the pattern (in the Song it restarts on every block). Steps beyond the length stay off.</li>
   </ul>
-  <h3>Tempo e feel</h3>
+  <h3>Tempo and feel</h3>
   <ul>
-    <li><b>Swing</b> alla MPC, dal 50% (dritto) al 75%: 66% &egrave; il terzinato. Allunga i sedicesimi pari e accorcia i dispari.</li>
-    <li><b>Umano</b>: piccole differenze a caso a ogni colpo, fino a &plusmn;10 ms e &plusmn;15% di forza; vale anche per WAV, stem e MIDI.</li>
-    <li><b>Feel</b> per riga, da &minus;30 a +30 ms: anticipa o ritarda i colpi (rullante "in ritardo", cassa "in anticipo"). Caricando un pattern generato, il feel suggerito dallo stile si applica da solo.</li>
-    <li>Allungando un pattern (8&rarr;16&rarr;32) il ritmo si ripete nelle battute nuove; accorciando si taglia la coda.</li>
+    <li>MPC-style <b>Swing</b>, from 50% (straight) to 75%: 66% is the triplet feel. It lengthens the even sixteenths and shortens the odd ones.</li>
+    <li><b>Humanize</b>: small random variations on every hit, up to ±10 ms and ±15% velocity; it also applies to WAV, stems and MIDI.</li>
+    <li>Per-row <b>Feel</b>, from −30 to +30 ms: pushes hits ahead or lays them back (snare “laid back”, kick “pushed”). When you load a generated pattern, the style's suggested feel is applied automatically.</li>
+    <li>Lengthening a pattern (8→16→32) repeats the rhythm in the new bars; shortening it cuts off the end.</li>
   </ul>
-  <h3>Per ogni riga</h3>
-  <p>Mute, solo, gruppo esclusivo (gli hi-hat si troncano), intonazione &plusmn;12 semitoni, volume; nel pannello &#9881;: decay, filtro passa-basso a 4 poli con risonanza, punto d'attacco, reverse, feel.</p>
-  <p>Le righe sono <b>in comune a tutti i pattern</b> del progetto: una riga vuota nel pattern che vedi pu&ograve; avere colpi in un altro, e scegliere o generare un pattern aggiunge le righe dei suoni che gli servono. <b>Togli righe vuote</b> (accanto a + Riga) toglie solo quelle senza colpi in nessun pattern; cmd+Z annulla.</p>
+  <h3>Per row</h3>
+  <p>Mute, solo, choke group (hi-hats cut each other off), tuning ±12 semitones, volume; in the ⚙ panel: decay, 4-pole low-pass filter with resonance, sample start, reverse, feel.</p>
+  <p>Rows are <b>shared by all the patterns</b> in the project: a row that's empty in the pattern you see can have hits in another, and choosing or generating a pattern adds rows for the sounds it needs. <b>Remove empty rows</b> (next to + Row) only removes rows with no hits in any pattern; cmd+Z undoes it.</p>
 </section>
 
 <section id="canzone">
-  <h2>Canzone e sequencer</h2>
+  <h2>Song and sequencer</h2>
   <ul>
-    <li>Ogni blocco della canzone &egrave; un pattern ripetuto da 1 a 64 volte (&minus; / + sul blocco). I blocchi si trascinano per riordinarli; Duplica, &larr; &rarr; ed Elimina agiscono sul blocco scelto.</li>
-    <li>Doppio click su un blocco: apre quel pattern nella Griglia per modificarlo.</li>
-    <li>Click sulla timeline: la canzone parte (o salta, se sta gi&agrave; suonando) dall'inizio della ripetizione cliccata.</li>
-    <li>Il selettore <b>Pattern / Canzone</b> accanto a Play decide cosa suona e cosa esportano MIDI General MIDI, WAV e i pacchetti per DAW.</li>
+    <li>Each song block is a pattern repeated 1 to 64 times (− / + on the block). Drag blocks to reorder them; Duplicate, ← → and Delete act on the selected block.</li>
+    <li>Double-click a block: opens that pattern in the Grid for editing.</li>
+    <li>Click the timeline: the song starts (or jumps, if already playing) from the beginning of the clicked repeat.</li>
+    <li>The <b>Pattern / Song</b> switch next to Play decides what plays and what General MIDI, WAV and DAW packages export.</li>
   </ul>
-  <h3>Tema</h3>
-  <p>In alto, l&apos;interruttore <b>Chiaro / Scuro</b> (di partenza Chiaro). La scelta resta memorizzata nel browser.</p>
-  <h3>Segnala un problema</h3>
-  <p>In fondo alla pagina: nome, mail (facoltativa, per ricevere una risposta) e messaggio. Chi ha un account li trova gi&agrave; compilati. Il messaggio arriva a chi fa PATTERN-MACHINE insieme alla pagina, alla macchina scelta, alla versione del sito e al browser.</p>
+  <h3>Theme</h3>
+  <p>At the top, the <b>Light / Dark</b> switch (Light by default). Your choice is remembered in the browser.</p>
+  <h3>Report a problem</h3>
+  <p>At the bottom of the page: name, email (optional, if you'd like a reply) and message. If you have an account they are already filled in. The message reaches the people who make PATTERN-MACHINE along with the page, the selected machine, the site version and your browser.</p>
 </section>
 
 <section id="motore">
-  <h2>Motore dei pattern</h2>
+  <h2>Pattern engine</h2>
   <ul>
-    <li>Ogni stile &egrave; una "scheda": gamma di BPM, swing, varianti pesate, fill ammessi, colpi obbligatori (verificati dai test) e un generatore.</li>
-    <li>Tutto il caso passa da un generatore con <b>seed</b>: lo stesso codice rigenera sempre lo stesso pattern.</li>
-    <li>Sezioni <b>strofa</b> e <b>ritornello</b>, lunghezza 16 o 32 step, <b>fill</b> finale facoltativo.</li>
-    <li><b>Proposte</b>: appena scegli stile (o "a caso" da un gruppo o da tutti), sezione, step o fill, la libreria mostra 8 pattern diversi tra loro al posto di quelli di prima, in ordine di interesse: sincopi, accenti e note fantasma, numero di voci, variet&agrave; nella battuta, densit&agrave; equilibrata. I pallini &#9679; mostrano il livello. <b>&#8635; Altre proposte</b> ne genera altre 8 con le stesse scelte; i preferiti restano.</li>
-    <li><b>Simili</b>: quattro pattern vicini (incrocio con un pattern dello stesso stile e piccole mutazioni).</li>
-    <li><b>Blocca</b>: tieni alcune voci (per esempio cassa e rullante) e rigenera le altre.</li>
-    <li><b>Arrangia</b>: da un pattern ricava intro, ritornello, break e outro.</li>
-    <li><b>Varia</b>: nella libreria su un pattern generato, e nel pannello Pattern su quello che stai modificando (anche scritto a mano).</li>
+    <li>Each style is a "profile": BPM range, swing, weighted variants, allowed fills, required hits (checked by the tests) and a generator.</li>
+    <li>All randomness goes through a <b>seeded</b> generator: the same code always regenerates the same pattern.</li>
+    <li><b>Verse</b> and <b>chorus</b> sections, 16 or 32 steps long, optional ending <b>fill</b>.</li>
+    <li><b>Suggestions</b>: as soon as you choose a style (or "random" from a group or from all), section, length or fill, the library shows 8 patterns that differ from one another in place of the previous ones, ranked by interest: syncopation, accents and ghost notes, number of voices, variety within the bar, balanced density. The ● dots show the level. <b>↻ More suggestions</b> generates another 8 with the same settings; favorites stay.</li>
+    <li><b>Similar</b>: four close patterns (crossed with a pattern of the same style, plus small mutations).</li>
+    <li><b>Lock</b>: keep some voices (for example kick and snare) and regenerate the others.</li>
+    <li><b>Arrange</b>: derives intro, chorus, break and outro from a pattern.</li>
+    <li><b>Vary</b>: in the library on a generated pattern, and in the Pattern panel on the one you are editing (even one written by hand).</li>
   </ul>
 </section>
 
 <section id="variazioni">
-  <h2>Variazioni</h2>
-  <p class="muted">Ognuna ha una lettera che finisce nel codice del pattern (<code>~V&lt;lettera&gt;&lt;seed&gt;</code>). Gli ibridi innestano voci prese da un altro stile.</p>
-  <div class="table-wrap"><table id="varTable"><tr><th>Codice</th><th>Nome</th><th>Cosa fa</th></tr></table></div>
+  <h2>Variations</h2>
+  <p class="muted">Each one has a letter that goes into the pattern code (<code>~V&lt;letter&gt;&lt;seed&gt;</code>). Hybrids graft in voices taken from another style.</p>
+  <div class="table-wrap"><table id="varTable"><tr><th>Code</th><th>Name</th><th>What it does</th></tr></table></div>
 </section>
 
 <section id="stili">
-  <h2>Stili</h2>
+  <h2>Styles</h2>
   <div class="groups" id="groups"></div>
 </section>
 
 <section id="export">
-  <h2>Export per Logic</h2>
-  <h3>MIDI (pattern o canzone)</h3>
+  <h2>Export for Logic</h2>
+  <h3>MIDI (pattern or song)</h3>
   <ul>
-    <li>File MIDI tipo 0, <b>96 PPQ</b> (24 tick per sedicesimo), canale 10, tempo del progetto incluso.</li>
-    <li>Note: <b>36 + numero dello slot</b> (C1 in su, in ordine cromatico), cio&egrave; la mappa del kit "SP-1200 Kit" di Logic.
-      Con altri kit di Logic (Drum Machine Designer) le note vanno rimappate.</li>
-    <li>Velocity: accento 100%, normale 78%, fantasma 40%, moltiplicate per il volume della riga.</li>
-    <li>Swing, feel e ripetizioni diventano posizioni e note vere; la probabilit&agrave; si decide a ogni giro, quindi ogni ripetizione della canzone &egrave; un po' diversa.</li>
+    <li>Type 0 MIDI file, <b>96 PPQ</b> (24 ticks per sixteenth), channel 10, project tempo included.</li>
+    <li>Notes: <b>36 + slot number</b> (C1 upwards, chromatically), i.e. the map of Logic's "SP-1200 Kit". With other Logic kits (Drum Machine Designer) the notes need remapping.</li>
+    <li>Velocity: accent 100%, normal 78%, ghost 40%, multiplied by the row volume.</li>
+    <li>Swing, feel and ratchets become real positions and notes; probability is decided on every pass, so each repeat of the song is a little different.</li>
   </ul>
-  <h3>Pacchetti per DAW (Logic, Ableton Live, REAPER, altre DAW)</h3>
+  <h3>DAW packages (Logic, Ableton Live, REAPER, other DAWs)</h3>
   <ul>
-    <li>Un unico file zip con: MIDI sulla mappa <b>General MIDI</b> (36 cassa, 38 rullante, 42 hat chiuso, 46 hat aperto&hellip;), che Drummer, Drum Kit Designer e Drum Machine Designer capiscono senza rimappare.</li>
-    <li>Uno <b>stem WAV</b> per strumento (24 bit, 44,1 kHz, con volumi ed effetti delle righe), tutti della stessa durata e da zero: trascinati insieme alla battuta 1 restano allineati.</li>
-    <li>I <b>campioni</b> della macchina, col numero di nota GM davanti al nome, per rifare il kit in Drum Machine Designer.</li>
-    <li>Un <b>Leggimi.txt</b> con tempo, swing e i passi per importarlo nella DAW scelta. Swing e feel sono gi&agrave; nelle note: lascia la quantizzazione spenta.</li>
-    <li>Il contenuto &egrave; lo stesso per tutte le DAW; cambiano le istruzioni. <b>REAPER</b> riceve in pi&ugrave; un progetto <b>.rpp</b> gi&agrave; pronto: tempo, uno stem per traccia e una traccia MIDI General MIDI.</li>
-    <li><b>Altre DAW</b>: istruzioni per FL Studio, Cubase, Studio One, Bitwig e GarageBand.</li>
-    <li><b>MIDI General MIDI</b> scarica solo il file MIDI in mappa GM, senza audio.</li>
+    <li>A single zip file with: MIDI on the <b>General MIDI</b> map (36 kick, 38 snare, 42 closed hat, 46 open hat…), which Drummer, Drum Kit Designer and Drum Machine Designer understand without remapping.</li>
+    <li>One <b>WAV stem</b> per instrument (24 bit, 44.1 kHz, with row levels and effects), all the same length and starting from zero: dragged in together at bar 1 they stay aligned.</li>
+    <li>The machine's <b>samples</b>, with the GM note number before the name, to rebuild the kit in Drum Machine Designer.</li>
+    <li>A <b>Leggimi.txt</b> (read-me) with tempo, swing and the steps to import it into the chosen DAW. Swing and feel are already in the notes: leave quantize off.</li>
+    <li>The content is the same for every DAW; only the instructions change. <b>REAPER</b> also gets a ready-made <b>.rpp</b> project: tempo, one stem per track and a General MIDI track.</li>
+    <li><b>Other DAWs</b>: instructions for FL Studio, Cubase, Studio One, Bitwig and GarageBand.</li>
+    <li><b>MIDI (General MIDI)</b> downloads only the MIDI file on the GM map, without audio.</li>
   </ul>
   <h3>WAV</h3>
   <ul>
-    <li>44,1 kHz stereo, reso offline con gli stessi suoni, filtri, volumi e macchina scelta.</li>
-    <li>"WAV pattern" = 4 giri del pattern; "WAV canzone" = tutta la canzone; pi&ugrave; 2 secondi di coda.</li>
+    <li>44.1 kHz stereo, rendered offline with the same sounds, filters, levels and selected machine.</li>
+    <li>"WAV pattern" = 4 loops of the pattern; "WAV song" = the whole song; plus a 2-second tail.</li>
   </ul>
   <h3>MP3</h3>
   <ul>
-    <li>Export stereo a 192 kbps, con gli stessi suoni, filtri, volumi e macchina del WAV.</li>
-    <li>"MP3 pattern" = 4 giri del pattern; "MP3 canzone" = tutta la canzone; pi&ugrave; 2 secondi di coda.</li>
-    <li>Funziona in ogni browser, anche offline, e nell'app: la codifica la fa <a href="https://github.com/zhuker/lamejs">lamejs</a>, port JavaScript di <a href="https://lame.sourceforge.io/">LAME</a> (licenza LGPL).</li>
+    <li>Stereo export at 192 kbps, with the same sounds, filters, levels and machine as the WAV.</li>
+    <li>"MP3 pattern" = 4 loops of the pattern; "MP3 song" = the whole song; plus a 2-second tail.</li>
+    <li>Works in every browser, offline too, and in the app: the encoding is done by <a href="https://github.com/zhuker/lamejs">lamejs</a>, a JavaScript port of <a href="https://lame.sourceforge.io/">LAME</a> (LGPL license).</li>
   </ul>
 </section>
 
 <section id="import">
   <h2>Import</h2>
-  <p>Il pulsante <b>Import</b> (accanto a Export) apre una finestra: trascina un file o sceglilo, oppure incolla del testo. Un file si pu&ograve; anche trascinare direttamente sulla pagina.
-    Di norma l'import apre un progetto nuovo (se quello aperto ha modifiche non salvate lo chiede); con <b>aggiungi al progetto aperto</b> pattern e blocchi si aggiungono in fondo.</p>
+  <p>The <b>Import</b> button (next to Export) opens a dialog: drop a file or choose one, or paste some text. You can also drop a file straight onto the page. By default import opens a new project (if the open one has unsaved changes it asks first); with <b>add to the open project</b> the patterns and blocks are appended at the end.</p>
   <div class="table-wrap"><table>
-    <tr><th>Formato</th><th>Estensioni</th><th>Cosa entra</th></tr>
-    <tr><td>MIDI</td><td>.mid .midi .kar .smf .rmi</td><td>note (solo il canale 10 se c'&egrave;), tempo e titolo. Mappa General MIDI o del kit di PATTERN-MACHINE (36 + slot), riconosciuta da sola o scelta nella finestra</td></tr>
-    <tr><td>Audio (loop di batteria)</td><td>.wav .aif .aiff .mp3 .m4a .aac .ogg .opus .flac .caf</td><td><b>stima</b>: cassa, rullante e hi-hat dagli attacchi in tre bande, tempo stimato o quello attuale. Va bene su loop puliti; controlla sempre la griglia</td></tr>
-    <tr><td>PatternTXT</td><td>.ptxt .pattern.txt .txt</td><td>tutti i PATTERN e le BAR, mappa, tempo, accenti (<code>&gt;</code>, <code>X</code>, <code>x</code>)</td></tr>
-    <tr><td>Drum tab</td><td>.txt .tab o testo incollato</td><td>righe tipo <code>HH|x-x-x-x-|</code>: BD, SD, HH, OH, CC, RC, tom&hellip;; <code>o</code> sull'hi-hat = aperto, <code>g</code> = fantasma, <code>X</code>/<code>O</code> = accento</td></tr>
-    <tr><td>Hydrogen</td><td>.h2song .h2pattern</td><td>pattern, strumenti per nome, tempo e ordine della canzone</td></tr>
-    <tr><td>REAPER</td><td>.rpp</td><td>le note MIDI di tutti gli item, al loro posto, e il tempo</td></tr>
-    <tr><td>Ableton Live</td><td>.als</td><td>clip MIDI: quelle nell'arrangiamento come una canzone, altrimenti un pattern per clip; tempo</td></tr>
-    <tr><td>MusicXML</td><td>.musicxml .xml .mxl</td><td>la parte di batteria: strumenti dalla partitura o dalla posizione sul rigo, accenti, tempo</td></tr>
-    <tr><td>Progetto PATTERN-MACHINE</td><td>.json</td><td>tutto il progetto, come esce da Export &rsaquo; Progetto PATTERN-MACHINE (.json)</td></tr>
-    <tr><td>Codice o link</td><td>testo incollato</td><td>apre il pattern condiviso nella libreria</td></tr>
+    <tr><th>Format</th><th>Extensions</th><th>What gets in</th></tr>
+    <tr><td>MIDI</td><td>.mid .midi .kar .smf .rmi</td><td>notes (channel 10 only, if present), tempo and title. General MIDI or PATTERN-MACHINE kit map (36 + slot), detected automatically or chosen in the dialog</td></tr>
+    <tr><td>Audio (drum loops)</td><td>.wav .aif .aiff .mp3 .m4a .aac .ogg .opus .flac .caf</td><td><b>detection</b>: kick, snare and hi-hat from transients in three bands, detected or current tempo. Works well on clean loops; always check the grid</td></tr>
+    <tr><td>PatternTXT</td><td>.ptxt .pattern.txt .txt</td><td>all PATTERNs and BARs, map, tempo, accents (<code>&gt;</code>, <code>X</code>, <code>x</code>)</td></tr>
+    <tr><td>Drum tab</td><td>.txt .tab or pasted text</td><td>lines like <code>HH|x-x-x-x-|</code>: BD, SD, HH, OH, CC, RC, toms…; <code>o</code> on the hi-hat = open, <code>g</code> = ghost, <code>X</code>/<code>O</code> = accent</td></tr>
+    <tr><td>Hydrogen</td><td>.h2song .h2pattern</td><td>patterns, instruments by name, tempo and song order</td></tr>
+    <tr><td>REAPER</td><td>.rpp</td><td>the MIDI notes of every item, in place, and the tempo</td></tr>
+    <tr><td>Ableton Live</td><td>.als</td><td>MIDI clips: those in the arrangement as a song, otherwise one pattern per clip; tempo</td></tr>
+    <tr><td>MusicXML</td><td>.musicxml .xml .mxl</td><td>the drum part: instruments from the score or from staff position, accents, tempo</td></tr>
+    <tr><td>PATTERN-MACHINE project</td><td>.json</td><td>the whole project, as produced by Export › PATTERN-MACHINE project (.json)</td></tr>
+    <tr><td>Code or link</td><td>pasted text</td><td>opens the shared pattern in the library</td></tr>
   </table></div>
   <ul>
-    <li>Le note diventano righe (una per suono), i colpi step a sedicesimi, la velocity il livello (forte = accento, piano = fantasma). Le battute uguali diventano un solo pattern ripetuto in Canzone.</li>
-    <li>Pattern di 8, 16 o 32 step restano interi; brani pi&ugrave; lunghi si dividono in battute da 16.</li>
-    <li>Formati chiusi o binari (Logic, FL Studio, Cubase, Guitar Pro) non si leggono: esportali prima in MIDI.</li>
+    <li>Notes become rows (one per sound), hits become sixteenth-note steps, velocity becomes level (loud = accent, soft = ghost). Identical bars become a single pattern repeated in the Song.</li>
+    <li>8, 16 or 32-step patterns stay whole; longer pieces are split into 16-step bars.</li>
+    <li>Closed or binary formats (Logic, FL Studio, Cubase, Guitar Pro) can't be read: export them to MIDI first.</li>
   </ul>
 </section>
 
 <section id="progetti">
-  <h2>Progetti, codici e link</h2>
+  <h2>Projects, codes and links</h2>
   <ul>
-    <li>I progetti si salvano con <b>Salva</b> e si riaprono dalla scheda <b>Progetti salvati</b> (<b>Progetti recenti</b> senza account) con un clic sulla riga o su <b>Accedi</b>. Da l&igrave; si possono anche <b>rinominare</b> e <b>ascoltare</b> col tasto &#9654;, che suona la canzone (o il primo pattern) in loop senza aprirla.</li>
-    <li>Annulla e ripristina: cmd+Z / cmd+shift+Z, fino a 80 passi.</li>
-    <li>I preferiti della libreria salvano solo il <b>codice</b> del pattern: pochi byte, rigenera sempre lo stesso pattern.</li>
-    <li>Formato del codice: <code>stile-16S-7F3A9B</code> (stile, step, S strofa / R ritornello, F fill, seed), seguito dai passi di trasformazione:
-      <code>~4C21</code> simili, <code>~R000005BEEF</code> blocca e rigenera, <code>~VP00A1</code> variazione.</li>
-    <li>Il pulsante <b>Link</b> copia un indirizzo che riapre quel pattern.</li>
-    <li>Il sito &egrave; una PWA: si installa come app e funziona anche offline.</li>
+    <li>Projects are saved with <b>Save</b> and reopened from the <b>Saved projects</b> tab (<b>Recent projects</b> without an account) by clicking the row or <b>Open</b>. From there you can also <b>rename</b> them and <b>listen</b> with the ▶ button, which loops the song (or the first pattern) without opening it.</li>
+    <li>Undo and redo: cmd+Z / cmd+shift+Z, up to 80 steps.</li>
+    <li>Library favorites store only the pattern <b>code</b>: a few bytes that always regenerate the same pattern.</li>
+    <li>Code format: <code>stile-16S-7F3A9B</code> (style, steps, S verse / R chorus, F fill, seed), followed by the transformation steps: <code>~4C21</code> similar, <code>~R000005BEEF</code> lock and regenerate, <code>~VP00A1</code> variation.</li>
+    <li>The <b>Link</b> button copies an address that reopens that pattern.</li>
+    <li>The site is a PWA: it installs as an app and also works offline.</li>
   </ul>
 </section>
 
 <section id="limiti">
-  <h2>Limiti noti</h2>
+  <h2>Known limitations</h2>
   <ul>
-    <li>Griglia a sedicesimi: niente terzine vere, quindi niente shuffle jazz o 6/8. Lo swing sposta solo i sedicesimi dispari.</li>
-    <li>BPM da 40 a 240: il blast beat pi&ugrave; veloce resta sotto questo tetto.</li>
-    <li>Le variazioni agiscono solo sulle righe con un suono di batteria riconosciuto (gli slot del generatore).</li>
-    <li>L'export "MIDI pattern/canzone" usa la mappa del kit SP-1200: con altri kit usa invece <b>MIDI General MIDI</b> o un pacchetto per DAW.</li>
-    <li>Tutti i kit tranne SP-1200 (16 e 12 bit) e RX-5 vengono dalla libreria di Logic Pro (ricreazioni e campioni Apple), non dalle macchine originali.</li>
+    <li>Sixteenth-note grid: no true triplets, so no jazz shuffle or 6/8. Swing only shifts the odd sixteenths.</li>
+    <li>BPM from 40 to 240: even the fastest blast beat stays below this ceiling.</li>
+    <li>Variations only act on rows with a recognized drum sound (the generator slots).</li>
+    <li>The "MIDI pattern/song" export uses the SP-1200 kit map: with other kits use <b>MIDI (General MIDI)</b> or a DAW package instead.</li>
+    <li>All kits except the SP-1200 (16 and 12 bit) and RX-5 come from the Logic Pro library (Apple recreations and samples), not from the original machines.</li>
   </ul>
 </section>
-<footer class="site-footer"><a class="report-link" href="./#segnala">Segnala un problema</a><span class="site-version"><!--build-->versione del giorno mese anno HH:MM<!--/build--></span><a class="site-badge" href="https://tongatron.org/"><span class="mark"></span><span>tongatron.org</span></a></footer>
+<footer class="site-footer"><a class="report-link" href="./#segnala">Report a problem</a><span class="site-version"><!--build-->version of day month year HH:MM<!--/build--></span><a class="site-badge" href="https://tongatron.org/"><span class="mark"></span><span>tongatron.org</span></a></footer>
 </div>
 
-<script src="engine/core.js?v=2026-09-28.05"></script>
-<script src="engine/styles-punk.js?v=2026-09-28.05"></script>
-<script src="engine/styles-post.js?v=2026-09-28.05"></script>
-<script src="engine/styles-machines.js?v=2026-09-28.05"></script>
-<script src="engine/styles-alt.js?v=2026-09-28.05"></script>
-<script src="engine/styles-groove.js?v=2026-09-28.05"></script>
-<script src="engine/styles-dub.js?v=2026-09-28.05"></script>
-<script src="engine/styles-break.js?v=2026-09-28.05"></script>
-<script src="engine/styles-soul.js?v=2026-09-28.05"></script>
-<script src="engine/styles-metal.js?v=2026-09-28.05"></script>
-<script src="engine/styles-electro.js?v=2026-09-28.05"></script>
-<script src="engine/variations.js?v=2026-09-28.05"></script>
+<script src="engine/core.js?v=2026-09-28.06"></script>
+<script src="engine/styles-punk.js?v=2026-09-28.06"></script>
+<script src="engine/styles-post.js?v=2026-09-28.06"></script>
+<script src="engine/styles-machines.js?v=2026-09-28.06"></script>
+<script src="engine/styles-alt.js?v=2026-09-28.06"></script>
+<script src="engine/styles-groove.js?v=2026-09-28.06"></script>
+<script src="engine/styles-dub.js?v=2026-09-28.06"></script>
+<script src="engine/styles-break.js?v=2026-09-28.06"></script>
+<script src="engine/styles-soul.js?v=2026-09-28.06"></script>
+<script src="engine/styles-metal.js?v=2026-09-28.06"></script>
+<script src="engine/styles-electro.js?v=2026-09-28.06"></script>
+<script src="engine/variations.js?v=2026-09-28.06"></script>
 <script>
 // Stili, gruppi e variazioni vengono dal motore: questa pagina non va aggiornata a mano quando se ne aggiungono.
 (function(){

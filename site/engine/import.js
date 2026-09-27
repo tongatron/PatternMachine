@@ -42,9 +42,9 @@ function nameToNote(name){
 function parseMidi(buf, name){
   const d=new DataView(buf), u8=new Uint8Array(buf);
   const str=(o,n)=>String.fromCharCode(...u8.slice(o,o+n));
-  if(str(0,4)!=="MThd") throw new Error("non è un file MIDI");
+  if(str(0,4)!=="MThd") throw new Error("not a MIDI file");
   const ntr=d.getUint16(10), div=d.getUint16(12);
-  if(div&0x8000) throw new Error("MIDI a tempo SMPTE non supportato");
+  if(div&0x8000) throw new Error("SMPTE-timed MIDI isn't supported");
   let o=8+d.getUint32(4), bpm=null, title=null, num=4, den=4, endTick=0;
   const notes=[];
   for(let t=0;t<ntr && o+8<=u8.length;t++){
@@ -71,7 +71,7 @@ function parseMidi(buf, name){
     endTick=Math.max(endTick,tick);
     o=end;
   }
-  if(!notes.length) throw new Error("nel file MIDI non ci sono note");
+  if(!notes.length) throw new Error("the MIDI file has no notes");
   // se c'e' il canale 10 (batteria General MIDI) si prende solo quello
   const drums=notes.filter(n=>n.ch===9), use=drums.length?drums:notes;
   const per16=div/4, barLen=Math.round(num*16/den)||16;
@@ -111,7 +111,7 @@ function parsePatternTxt(text, name){
     }
   });
   const used=sections.filter(s=>s.hits.length);
-  if(!used.length) throw new Error("nessun colpo trovato nel PatternTXT");
+  if(!used.length) throw new Error("no hits found in the PatternTXT");
   return {name, bpm, sections:used};
 }
 
@@ -151,7 +151,7 @@ function parseDrumTab(text, name){
     else flush();
   });
   flush();
-  if(!hits.length) throw new Error("nessun colpo riconosciuto nel drum tab");
+  if(!hits.length) throw new Error("no hits recognized in the drum tab");
   return {name, bpm:null, sections:[{name, len:barBase*16, hits}]};
 }
 
@@ -180,7 +180,7 @@ function parseHydrogen(doc, name){
   });
   const byName=Object.fromEntries(sections.map((s,i)=>[s.name,i]));
   const order=[...doc.getElementsByTagName("group")].map(g=>byName[txt(g,"patternID")]).filter(i=>i!=null);
-  if(!sections.some(s=>s.hits.length)) throw new Error("nessuna nota nel file di Hydrogen");
+  if(!sections.some(s=>s.hits.length)) throw new Error("no notes in the Hydrogen file");
   return {name:doc.documentElement.nodeName==="song"?(txt(doc,"name")||name):name, bpm, sections, order:order.length?order:null};
 }
 
@@ -202,7 +202,7 @@ function parseReaper(text, name){
     }
     else if(inMidi && t===">") inMidi=false;
   });
-  if(!hits.length) throw new Error("nel progetto REAPER non ci sono note MIDI");
+  if(!hits.length) throw new Error("the REAPER project has no MIDI notes");
   const last=Math.max(...hits.map(h=>h.pos));
   return {name, bpm, sections:[{name, len:Math.ceil((last+0.5)/16)*16, hits}]};
 }
@@ -229,7 +229,7 @@ function parseAbleton(doc, name){
     return {name:nm, time:parseFloat(clip.getAttribute("Time"))||0, len:isNaN(endV)?null:(endV-start)*4, hits, arranged:clip.parentNode?.nodeName==="Events"};
   };
   const all=clips.map(read).filter(c=>c.hits.length);
-  if(!all.length) throw new Error("nel Live Set non ci sono clip MIDI con note");
+  if(!all.length) throw new Error("the Live Set has no MIDI clips with notes");
   // clip nell'arrangiamento: una canzone sola in ordine di tempo; clip di sessione: un pattern per clip
   const arranged=all.filter(c=>c.arranged);
   if(arranged.length){
@@ -245,7 +245,7 @@ function parseAbleton(doc, name){
 // Notazione per batteria: senza indicazioni di strumento si usano le posizioni sul rigo.
 const STAFF_NOTE={"F4":36,"E4":36,"C5":38,"G5":42,"A5":49,"F5":51,"E5":47,"D5":48,"A4":43,"B4":45,"D4":44};
 function parseMusicXml(doc, name){
-  if(!doc.getElementsByTagName("score-partwise").length) throw new Error("serve un MusicXML partwise");
+  if(!doc.getElementsByTagName("score-partwise").length) throw new Error("a partwise MusicXML file is required");
   const txt=(el,tag)=>el.getElementsByTagName(tag)[0]?.textContent?.trim();
   const instNote={};
   [...doc.getElementsByTagName("score-part")].forEach(sp=>{
@@ -290,7 +290,7 @@ function parseMusicXml(doc, name){
     });
     barStart+=num*16/den;
   });
-  if(!hits.length) throw new Error("nessuna nota di batteria nel MusicXML");
+  if(!hits.length) throw new Error("no drum notes in the MusicXML");
   const title=txt(doc,"work-title")||txt(doc,"movement-title")||name;
   return {name:title, bpm, sections:[{name:title, len:Math.round(barStart), hits}]};
 }
@@ -299,7 +299,7 @@ function parseMusicXml(doc, name){
 async function unzip(buf){
   const d=new DataView(buf), u8=new Uint8Array(buf);
   let e=u8.length-22; while(e>=0 && d.getUint32(e,true)!==0x06054b50) e--;
-  if(e<0) throw new Error("zip non valido");
+  if(e<0) throw new Error("invalid zip");
   let p=d.getUint32(e+16,true); const n=d.getUint16(e+10,true), files={};
   for(let i=0;i<n;i++){
     const method=d.getUint16(p+10,true), csize=d.getUint32(p+20,true), nl=d.getUint16(p+28,true),
@@ -311,7 +311,7 @@ async function unzip(buf){
   }
   const read=async f=>{
     if(f.method===0) return f.data;
-    if(f.method!==8) throw new Error("compressione zip non supportata");
+    if(f.method!==8) throw new Error("unsupported zip compression");
     return new Uint8Array(await new Response(new Blob([f.data]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).arrayBuffer());
   };
   return {names:Object.keys(files), read:async nm=>new TextDecoder().decode(await read(files[nm]))};
@@ -321,7 +321,7 @@ async function gunzip(buf){
 }
 const xml=text=>{
   const doc=new DOMParser().parseFromString(text,"application/xml");
-  if(doc.getElementsByTagName("parsererror").length) throw new Error("XML non valido");
+  if(doc.getElementsByTagName("parsererror").length) throw new Error("invalid XML");
   return doc;
 };
 
@@ -369,7 +369,7 @@ async function analyzeAudio(buffer, opts={}){
   }));
   const kickOnly=kicks.filter(o=>!drop.has(o)), snareOnly=snares.filter(o=>!drop.has(o));
   const all=[...kickOnly,...snareOnly,...hats].sort((a,b)=>a.t-b.t);
-  if(all.length<3) throw new Error("nel file audio non si sentono colpi chiari");
+  if(all.length<3) throw new Error("no clear hits can be heard in the audio file");
   let bpm=opts.bpm;
   if(!bpm){
     // autocorrelazione della somma degli inviluppi di attacco (continua, non solo i picchi) tra 60 e 200 BPM,
@@ -418,9 +418,9 @@ async function fromText(text, name="Import"){
   const t=text.replace(/^﻿/,"").trim();
   if(!t) throw new Error("testo vuoto");
   if(t[0]==="{"){
-    let j; try{ j=JSON.parse(t); }catch(e){ throw new Error("JSON non valido"); }
+    let j; try{ j=JSON.parse(t); }catch(e){ throw new Error("invalid JSON"); }
     if(Array.isArray(j.patterns) && Array.isArray(j.tracks)) return {project:j};
-    throw new Error("questo JSON non è un progetto PATTERN-MACHINE");
+    throw new Error("this JSON isn't a PATTERN-MACHINE project");
   }
   if(/^<REAPER_PROJECT/.test(t)) return parseReaper(t,name);
   if(t[0]==="<"){
@@ -428,11 +428,11 @@ async function fromText(text, name="Import"){
     if(doc.getElementsByTagName("score-partwise").length) return parseMusicXml(doc,name);
     if(doc.getElementsByTagName("noteList").length) return parseHydrogen(doc,name);
     if(doc.getElementsByTagName("Ableton").length) return parseAbleton(doc,name);
-    throw new Error("XML di un formato che non conosco");
+    throw new Error("XML in an unknown format");
   }
   if(/^PATTERNTXT/i.test(t) || (/^\s*PATTERN\s+\S/im.test(t) && /^\s*BAR\s+\d/im.test(t))) return parsePatternTxt(t,name);
   if(looksLikeTab(t)) return parseDrumTab(t,name);
-  throw new Error("testo non riconosciuto (PatternTXT, drum tab, JSON, MusicXML, Hydrogen, REAPER)");
+  throw new Error("unrecognized text (PatternTXT, drum tab, JSON, MusicXML, Hydrogen, REAPER)");
 }
 
 // File scelto o trascinato. decodeAudio(arrayBuffer) -> AudioBuffer lo passa la pagina (serve il suo AudioContext).
@@ -453,13 +453,13 @@ async function fromFile(file, {decodeAudio, audioBpm}={}){
       const c=xml(await z.read("META-INF/container.xml")).getElementsByTagName("rootfile")[0]?.getAttribute("full-path");
       if(c) root=c;
     }
-    if(!root) throw new Error("nello zip non c'è un MusicXML");
+    if(!root) throw new Error("the zip has no MusicXML file");
     return parseMusicXml(xml(await z.read(root)),name);
   }
   if(AUDIO_EXT.test(file.name) || /^audio\//.test(file.type) || ["RIFF","FORM","fLaC","OggS"].includes(head) || head.startsWith("ID3")){
-    if(!decodeAudio) throw new Error("audio non supportato qui");
+    if(!decodeAudio) throw new Error("audio not supported here");
     let ab;
-    try{ ab=await decodeAudio(buf); }catch(e){ throw new Error("questo browser non sa leggere questo file audio"); }
+    try{ ab=await decodeAudio(buf); }catch(e){ throw new Error("this browser can't read this audio file"); }
     return {name, audio:true, ...(await analyzeAudio(ab,{bpm:audioBpm, name}))};
   }
   return fromText(new TextDecoder().decode(buf), name);

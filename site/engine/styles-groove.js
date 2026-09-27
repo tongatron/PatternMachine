@@ -20,12 +20,12 @@
   }
 
   E.defineStyles("groove", [
-    { id: "boombap", label: "Boom bap", ref: "hip hop anni '90", bpm: [88, 96], swing: 18,
+    { id: "boombap", label: "Boom bap", ref: "'90s hip hop", bpm: [88, 96], swing: 18,
       fills: ["roll", "down"], must: { kick: [0], snare: [4] }, gen(c) { boomFunk(c, false); } },
     { id: "funk", label: "Funk", ref: "James Brown, The Meters", bpm: [98, 110], swing: 8,
       fills: ["roll", "down"], must: { kick: [0], snare: [4] }, gen(c) { boomFunk(c, true); } },
     {
-      id: "trap", label: "Trap", ref: "trap half time", bpm: [136, 148], fills: ["hats"], must: { kick: [0], clap: [8] },
+      id: "trap", label: "Trap", ref: "trap half-time", bpm: [136, 148], fills: ["hats"], must: { kick: [0], clap: [8] },
       gen(c) {
         const { len, bars, put } = c;
         for (let b = 0; b < bars; b++) {
@@ -67,7 +67,7 @@
       },
     },
     {
-      id: "euclid", label: "Euclideo", ref: "ritmi euclidei (Toussaint)", bpm: [96, 104], fills: ["toms"], must: { kick: [0] },
+      id: "euclid", label: "Euclidean", ref: "Euclidean rhythms (Toussaint)", bpm: [96, 104], fills: ["toms"], must: { kick: [0] },
       gen(c) {
         const { len, put } = c;
         put("kick", 0, 2);

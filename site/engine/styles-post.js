@@ -4,7 +4,7 @@
   E.defineGroup({ id: "post", label: "Post-punk / New wave" });
   E.defineStyles("post", [
     {
-      id: "postpunk", label: "Post-punk tribale", ref: "Siouxsie (Budgie), Killing Joke, Bauhaus", bpm: [118, 145],
+      id: "postpunk", label: "Tribal post-punk", ref: "Siouxsie (Budgie), Killing Joke, Bauhaus", bpm: [118, 145],
       fills: ["toms", "down"], must: { kick: [0] },
       gen(c) {
         euclidBars(c, "tom2", c.pick([7, 9]), c.pick([0, 2, 3]));
@@ -18,10 +18,10 @@
     },
     {
       // Stephen Morris: rullante secco e preciso, hi-hat a 16esimi o tom che spingono.
-      id: "morris", label: "Cold drums", ref: "Joy Division, primi New Order, The Chameleons", bpm: [122, 150],
+      id: "morris", label: "Cold drums", ref: "Joy Division, early New Order, The Chameleons", bpm: [122, 150],
       fills: ["toms", "down"], must: { kick: [0], snare3: [4] },
       variants: [
-        { id: "sixteen", label: "hi-hat a 16esimi", w: 4 },
+        { id: "sixteen", label: "hi-hat sixteenths", w: 4 },
         { id: "toms", label: "tom drive", w: 3 },
         { id: "syndrum", label: "syndrum", w: 2 },
       ],
@@ -109,12 +109,12 @@
     },
     {
       // Minimalismo alla Pink Flag: ottavi senza accenti, e il vuoto come parte del pezzo.
-      id: "wire", label: "Minimale", ref: "Wire, Mission of Burma, The Feelies", bpm: [132, 176],
+      id: "wire", label: "Minimal", ref: "Wire, Mission of Burma, The Feelies", bpm: [132, 176],
       fills: ["roll", "unison"], must: { kick: [0], snare: [4] },
       variants: [
         { id: "straight", label: "", w: 4 },
         { id: "stop", label: "stop", w: 2 },
-        { id: "feelies", label: "tom e 16esimi", w: 2 },
+        { id: "feelies", label: "toms and sixteenths", w: 2 },
       ],
       gen(c) {
         hits(c, "kick", [0, 8], [0, 8]);

@@ -18,26 +18,26 @@
   const hex = E.h.hex;
 
   const TYPES = [
-    { id: "G", label: "note fantasma", hint: "aggiunge colpi leggeri di rullante tra i colpi forti" },
-    { id: "O", label: "hat aperto", hint: "apre l'hi-hat in qualche punto" },
-    { id: "S", label: "cassa sincopata", hint: "aggiunge colpi di cassa fuori tempo" },
-    { id: "H", label: "mezzo tempo", hint: "rullante solo sul terzo tempo" },
-    { id: "D", label: "doppio tempo hat", hint: "hi-hat a sedicesimi" },
-    { id: "P", label: "scarno", hint: "toglie colpi: adatto a intro e break" },
-    { id: "F", label: "spinto", hint: "crash sull'1, piu' cassa e hat: adatto al ritornello" },
-    { id: "R", label: "sul ride", hint: "sposta l'hi-hat sul ride" },
-    { id: "W", label: "rullante alternativo", hint: "cambia il suono del backbeat" },
-    { id: "L", label: "nuovo fill", hint: "riscrive la chiusura della battuta" },
-    { id: "M", label: "dinamica", hint: "hat e percussioni con accenti e colpi morbidi, piu' umano" },
-    { id: "X", label: "ibrido", hint: "sostituisce cassa, rullante, piatti o percussioni con quelli di un altro stile" },
-    { id: "Y", label: "strato percussivo", hint: "aggiunge shaker, tamburello, clave, cowbell, conga o percussioni su un ritmo euclideo" },
-    { id: "T", label: "groove di tom", hint: "porta l'hi-hat sui tom" },
-    { id: "N", label: "sfasato", hint: "sposta una voce di uno step: sincope" },
-    { id: "B", label: "stacco", hint: "un buco nel groove: cassa, rullante e hat tacciono per un beat" },
-    { id: "C", label: "ritmo d'altro stile", hint: "cassa e rullante di un altro stile, con i tuoi piatti e le tue percussioni" },
-    { id: "J", label: "metà e metà", hint: "la prima metà è la tua, la seconda arriva da un altro stile" },
-    { id: "E", label: "mix di voci", hint: "ogni voce arriva a caso dal tuo pattern o da un altro stile" },
-    { id: "U", label: "doppio ibrido", hint: "due famiglie di voci prese da due stili diversi" },
+    { id: "G", label: "ghost notes", hint: "adds soft snare hits between the backbeats" },
+    { id: "O", label: "open hat", hint: "opens the hi-hat here and there" },
+    { id: "S", label: "syncopated kick", hint: "adds off-beat kick hits" },
+    { id: "H", label: "half-time", hint: "snare on beat 3 only" },
+    { id: "D", label: "double-time hats", hint: "sixteenth-note hi-hats" },
+    { id: "P", label: "sparse", hint: "removes hits: good for intros and breaks" },
+    { id: "F", label: "driving", hint: "crash on the one, more kick and hats: good for the chorus" },
+    { id: "R", label: "on the ride", hint: "moves the hi-hat to the ride" },
+    { id: "W", label: "alternate snare", hint: "changes the backbeat sound" },
+    { id: "L", label: "new fill", hint: "rewrites the end of the bar" },
+    { id: "M", label: "dynamics", hint: "hats and percussion with accents and soft hits, more human" },
+    { id: "X", label: "hybrid", hint: "swaps kick, snare, cymbals or percussion with those of another style" },
+    { id: "Y", label: "percussion layer", hint: "adds shaker, tambourine, claves, cowbell, congas or percussion on a Euclidean rhythm" },
+    { id: "T", label: "tom groove", hint: "moves the hi-hat onto the toms" },
+    { id: "N", label: "displaced", hint: "shifts one voice by a step: syncopation" },
+    { id: "B", label: "stop", hint: "a hole in the groove: kick, snare and hats drop out for one beat" },
+    { id: "C", label: "cross-style rhythm", hint: "kick and snare from another style, with your cymbals and percussion" },
+    { id: "J", label: "half and half", hint: "the first half is yours, the second comes from another style" },
+    { id: "E", label: "voice mix", hint: "each voice comes at random from your pattern or another style" },
+    { id: "U", label: "double hybrid", hint: "two groups of voices taken from two different styles" },
   ];
 
   // Stili che l'ibrido (~VX) puo' pescare. Lista FISSA: l'indice e' scritto nel codice, quindi non si tocca
@@ -272,7 +272,7 @@
     // Un pattern gia' pieno o senza le voci giuste puo' non cambiare: si ripiega su piccoli ritocchi.
     if (did === false || snapshot(w.roles) === before) {
       if (type === "P") {
-        // "scarno" non deve mai aggiungere: se non ha tolto nulla, toglie uno o due colpi non accentati.
+        // "sparse" non deve mai aggiungere: se non ha tolto nulla, toglie uno o due colpi non accentati.
         const cands = [];
         Object.keys(w.roles).forEach(role => { if (role !== "crash") for (let i = 0; i < w.safe; i++) if (w.roles[role][i] === 1 || w.roles[role][i] === 3) cands.push([role, i]); });
         r.some(cands, 1, 2).forEach(([role, i]) => { w.roles[role][i] = 0; });
@@ -299,7 +299,7 @@
     const named = (p, label) => Object.assign({}, p, { name: `${parent.name} · ${label}`, tag: `${parent.tag} · ${label}` });
     return [
       named(vary(vary(parent, "P", seed()), "P", seed()), "intro"),
-      named(vary(parent, "F", seed()), "ritornello"),
+      named(vary(parent, "F", seed()), "chorus"),
       named(vary(vary(parent, "P", seed()), "H", seed()), "break"),
       named(vary(vary(parent, "P", seed()), "L", seed()), "outro"),
     ];

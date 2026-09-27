@@ -30,7 +30,7 @@
         backbeat(c);
         cymbal(c, "tamb", 2);
         if (c.rnd(0.5)) c.perBar(o => c.put("snare", o + 14, 1));
-        if (c.chorus) { c.put("crash", 0, 2); c.perBar(o => { c.put("snare", o, 1); c.put("snare", o + 8, 1); }); c.note = "rullante sui quattro"; }
+        if (c.chorus) { c.put("crash", 0, 2); c.perBar(o => { c.put("snare", o, 1); c.put("snare", o + 8, 1); }); c.note = "snare on all four"; }
       },
     },
     {

@@ -1,5 +1,5 @@
 // Schede: breakbeat, jungle, drum'n'bass, garage, trip hop. Formato dei campi in styles-punk.js.
-// Il colpo di rullante fantasma qui e' a livello 1: il livello 3 (morbido) lo aggiunge la variazione "dinamica".
+// Il colpo di rullante fantasma qui e' a livello 1: il livello 3 (morbido) lo aggiunge la variazione "dynamics".
 (function (E) {
   const { hits, cells, backbeat, cymbal, ghosts, openHat } = E.h;
   E.defineGroup({ id: "break", label: "Breakbeat / DnB" });
@@ -11,7 +11,7 @@
       variants: [
         { id: "amen", label: "amen", w: 4, must: { kick: [0, 2, 10], snare: [4, 12] } },
         { id: "choppy", label: "ragga", w: 3, must: { kick: [0, 10], snare: [4, 12] } },
-        { id: "roll", label: "con rullata", w: 2, must: { kick: [0, 10], snare: [4, 12] } },
+        { id: "roll", label: "with snare roll", w: 2, must: { kick: [0, 10], snare: [4, 12] } },
       ],
       gen(c) {
         if (c.variant === "choppy") {
@@ -86,7 +86,7 @@
         backbeat(c);
         cymbal(c, "chh", 2);
         if (c.rnd(0.6)) c.perBar(o => openHat(c, o + 14));
-        if (c.chorus) { c.each(1, 2, i => c.put("tamb", i, 1)); c.put("crash", 0, 2); c.note = "tamburello"; }
+        if (c.chorus) { c.each(1, 2, i => c.put("tamb", i, 1)); c.put("crash", 0, 2); c.note = "tambourine"; }
       },
     },
     {

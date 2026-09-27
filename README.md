@@ -18,8 +18,6 @@ Runs in the browser, as a desktop app for macOS, Windows and Linux, and as a plu
 
 ![PATTERN-MACHINE step grid with a TR-808](docs/screenshots/griglia.jpg)
 
-> The interface is in Italian and English: use the ITA / ENG switch at the top right.
-
 ## Contents
 
 - [Overview](#overview)

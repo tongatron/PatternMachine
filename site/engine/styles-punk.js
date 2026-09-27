@@ -41,7 +41,7 @@
       },
     },
     {
-      id: "skank", label: "Skank beat", ref: "hardcore '80: Minor Threat, Bad Brains, D.R.I.", bpm: [176, 215],
+      id: "skank", label: "Skank beat", ref: "'80s hardcore: Minor Threat, Bad Brains, D.R.I.", bpm: [176, 215],
       fills: ["roll", "unison"],
       variants: [
         { id: "std", label: "", w: 7, must: { kick: [0, 4, 8], snare: [2, 6, 10] } },
@@ -76,7 +76,7 @@
       variants: [
         { id: "std", label: "", w: 4, must: { kick: [0, 8], snare: [4, 12] } },
         { id: "double", label: "doppia cassa", w: 3, must: { kick: [0, 2, 8, 10], snare: [4, 12] } },
-        { id: "toms", label: "tom nel ritornello", w: 2, sections: ["chorus"], must: { kick: [0, 8], snare: [4, 12] } },
+        { id: "toms", label: "toms in the chorus", w: 2, sections: ["chorus"], must: { kick: [0, 8], snare: [4, 12] } },
       ],
       gen(c) {
         if (c.variant === "double") hits(c, "kick", [0, 2, 8, 10], [0, 8]);
@@ -95,7 +95,7 @@
         cells(c, "kick", [[0, 8], [0, 6, 8], [0, 8, 10], [0, 3, 8, 10, 14]], [0, 8]);
         backbeat(c);
         if (c.verse) cymbal(c, "chh", 2);
-        else { cymbal(c, "ohh", 2); c.put("crash", 0, 2); c.note = "hat aperti"; }
+        else { cymbal(c, "ohh", 2); c.put("crash", 0, 2); c.note = "open hats"; }
         if (c.rnd(0.5)) c.perBar(o => { c.put("snare", o + 14, 1); if (c.rnd(0.5)) c.put("snare", o + 15, 1); });
       },
     },

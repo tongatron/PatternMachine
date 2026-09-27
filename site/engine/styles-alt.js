@@ -119,7 +119,7 @@
           c.put("crash", 0, 2);
         }
         ghosts(c, "snare", [1, 7, 10, 15], 1, 2);
-        c.note = `gruppi da ${g}`;
+        c.note = `groups of ${g}`;
       },
     },
   ]);

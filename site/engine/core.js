@@ -208,7 +208,7 @@
     return R;
   }
   function describe(section, fill, variant, note) {
-    return [(section === "chorus" ? "ritornello" : "strofa") + (fill ? " + fill" : ""),
+    return [(section === "chorus" ? "chorus" : "verse") + (fill ? " + fill" : ""),
       variant && variant.label, note].filter(Boolean).join(" · ");
   }
 
@@ -280,7 +280,7 @@
     const variant = (st.variants || []).find(v => v.id === parent.variant);
     return Object.assign({}, parent, {
       code: parent.code + "~" + suffix, name: `${st.label} ~${suffix}`, bpm, roles: clean(roles),
-      tag: `${bpm} bpm · ` + describe(parent.section, parent.fill, variant, "simile"),
+      tag: `${bpm} bpm · ` + describe(parent.section, parent.fill, variant, "similar"),
     });
   }
 
@@ -319,7 +319,7 @@
     const variant = (st.variants || []).find(v => v.id === parent.variant);
     return Object.assign({}, parent, {
       code: parent.code + "~" + suffix, name: `${st.label} ↻${hex(s16, 4)}`, roles: clean(roles),
-      tag: `${parent.bpm} bpm · ` + describe(parent.section, parent.fill, variant, "rigenerato"),
+      tag: `${parent.bpm} bpm · ` + describe(parent.section, parent.fill, variant, "regenerated"),
     });
   }
 

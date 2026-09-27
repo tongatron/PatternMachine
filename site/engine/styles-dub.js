@@ -23,7 +23,7 @@
         else skankHat(c);
         if (c.variant === "ghost") c.perBar(o => { c.put("rim", o + 14, 1); if (c.rnd(0.5)) c.put("rim", o + 11, 1); });
         if (c.rnd(0.5)) c.perBar(o => openHat(c, o + 14));
-        if (c.chorus) { c.perBar(o => openHat(c, o + 6)); c.note = "hat aperti"; }
+        if (c.chorus) { c.perBar(o => openHat(c, o + 6)); c.note = "open hats"; }
       },
     },
     {
@@ -121,7 +121,7 @@
       fills: ["claps", "roll"],
       variants: [
         { id: "snare", label: "", w: 3, must: { kick: [0, 4, 8, 12], snare: [3, 6, 11, 14] } },
-        { id: "clap", label: "con clap", w: 2, must: { kick: [0, 4, 8, 12], clap: [3, 6, 11, 14] } },
+        { id: "clap", label: "with clap", w: 2, must: { kick: [0, 4, 8, 12], clap: [3, 6, 11, 14] } },
       ],
       gen(c) {
         const hit = c.variant === "clap" ? "clap" : "snare";

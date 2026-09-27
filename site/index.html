@@ -532,7 +532,7 @@ button.danger-fill{background:var(--danger); border-color:var(--danger); color:#
    dall'altra parte in una battuta, cosi' arriva in fondo proprio sul click successivo. */
 #metronomeBtn{display:inline-flex; align-items:center; gap:8px;}
 .metro-ico{width:20px; height:20px; flex-shrink:0; overflow:visible;}
-.metro-ico .rod{transform-box:view-box; transform-origin:12px 19px; transform:rotate(0deg); transition:transform .25s ease;}
+.metro-ico .rod{transform-box:view-box; transform-origin:12px 19px; transform:rotate(-24deg); transition:transform .25s ease;}
 #metronomeBtn[data-side="l"] .rod{transform:rotate(-24deg);}
 #metronomeBtn[data-side="r"] .rod{transform:rotate(24deg);}
 @media (prefers-reduced-motion:reduce){ .metro-ico .rod{transition:none !important;} }
@@ -1055,19 +1055,19 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-28.02"></script>
-<script src="engine/styles-punk.js?v=2026-09-28.02"></script>
-<script src="engine/styles-post.js?v=2026-09-28.02"></script>
-<script src="engine/styles-machines.js?v=2026-09-28.02"></script>
-<script src="engine/styles-alt.js?v=2026-09-28.02"></script>
-<script src="engine/styles-groove.js?v=2026-09-28.02"></script>
-<script src="engine/styles-dub.js?v=2026-09-28.02"></script>
-<script src="engine/styles-break.js?v=2026-09-28.02"></script>
-<script src="engine/styles-soul.js?v=2026-09-28.02"></script>
-<script src="engine/styles-metal.js?v=2026-09-28.02"></script>
-<script src="engine/styles-electro.js?v=2026-09-28.02"></script>
-<script src="engine/variations.js?v=2026-09-28.02"></script>
-<script src="engine/import.js?v=2026-09-28.02"></script>
+<script src="engine/core.js?v=2026-09-28.03"></script>
+<script src="engine/styles-punk.js?v=2026-09-28.03"></script>
+<script src="engine/styles-post.js?v=2026-09-28.03"></script>
+<script src="engine/styles-machines.js?v=2026-09-28.03"></script>
+<script src="engine/styles-alt.js?v=2026-09-28.03"></script>
+<script src="engine/styles-groove.js?v=2026-09-28.03"></script>
+<script src="engine/styles-dub.js?v=2026-09-28.03"></script>
+<script src="engine/styles-break.js?v=2026-09-28.03"></script>
+<script src="engine/styles-soul.js?v=2026-09-28.03"></script>
+<script src="engine/styles-metal.js?v=2026-09-28.03"></script>
+<script src="engine/styles-electro.js?v=2026-09-28.03"></script>
+<script src="engine/variations.js?v=2026-09-28.03"></script>
+<script src="engine/import.js?v=2026-09-28.03"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -2519,7 +2519,7 @@ el("metronomeBtn").onclick=()=>{
   b.classList.toggle("on",ui.metronome);
   b.setAttribute("aria-pressed",String(ui.metronome));
   b.title=ui.metronome?"Disattiva il metronomo":"Attiva il metronomo";
-  if(!ui.metronome){ delete b.dataset.side; const rod=b.querySelector(".rod"); if(rod) rod.style.transitionDuration=""; }
+  if(!ui.metronome){ metroSide="l"; delete b.dataset.side; const rod=b.querySelector(".rod"); if(rod) rod.style.transitionDuration=""; }
   if(ui.metronome){ const ctx=actx(); if(ctx.state==="suspended") ctx.resume(); }
 };
 // Metronomo a trasporto fermo: batte i quarti (accento sull'1) per suonare senza base.
@@ -4527,7 +4527,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-28.02";
+const SW_VERSION="2026-09-28.03";
 (function pwa(){
   const netBadge=el("netBadge");
 

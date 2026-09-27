@@ -2,6 +2,8 @@
 <html lang="it">
 <head>
 <meta charset="utf-8">
+<script src="engine/lang-en.js?v=2026-09-28.05"></script>
+<script src="engine/i18n.js?v=2026-09-28.05"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
 <title>PATTERN-MACHINE — drum machine e pattern</title>
@@ -157,6 +159,8 @@ body.guest #saveBtn, body.guest #viewRecent, body.guest #libTabFav, body.guest .
 .wrap{max-width:1100px; margin:0 auto;}
 
 .topbar{display:flex; flex-wrap:wrap; align-items:baseline; gap:10px 16px; margin-bottom:12px;}
+/* i pulsanti vanno sempre sulla seconda riga, qualunque sia la lunghezza del sottotitolo (ITA/ENG) */
+.topbar-break{flex-basis:100%; height:0;}
 h1{font-size:26px; letter-spacing:0.18em; text-transform:uppercase; margin:0; line-height:1.15;}
 .tagline{font-size:13px; color:var(--text-faint); letter-spacing:0.03em;}
 .topbar .linkbtn{font-size:12.5px; padding:8px 14px;}
@@ -681,6 +685,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
   <div class="topbar">
     <h1>PATTERN-MACHINE</h1>
     <span class="tagline">Drum machine a step, generatore di pattern e canzone, export MIDI, WAV e MP3</span>
+    <span class="topbar-break" aria-hidden="true"></span>
     <a class="linkbtn help-link" href="funzioni.html" title="come si usa e cosa fa ogni funzione">Istruzioni e funzioni</a>
     <a class="linkbtn" id="desktopAppLink" href="app.html" title="PATTERN-MACHINE come app per macOS, Windows e Linux: MIDI, sync al clock e trascinamento">App per Mac, Win, Linux</a>
     <a class="linkbtn" id="pluginLink" href="plugin.html" title="PATTERN-MACHINE come plug-in Audio Unit dentro Logic, agganciato al trasporto">Plugin Logic</a>
@@ -694,6 +699,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       <a class="logout" id="registerLink" href="/register" title="Crea un account per salvare progetti e preferiti" hidden>Registrati</a>
       <a class="logout" href="/logout" title="Esci dal tuo account">Esci</a>
     </span>
+    <span class="lang-switch"></span>
   </div>
 
   <div class="panel project-panel">
@@ -1080,19 +1086,19 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-28.04"></script>
-<script src="engine/styles-punk.js?v=2026-09-28.04"></script>
-<script src="engine/styles-post.js?v=2026-09-28.04"></script>
-<script src="engine/styles-machines.js?v=2026-09-28.04"></script>
-<script src="engine/styles-alt.js?v=2026-09-28.04"></script>
-<script src="engine/styles-groove.js?v=2026-09-28.04"></script>
-<script src="engine/styles-dub.js?v=2026-09-28.04"></script>
-<script src="engine/styles-break.js?v=2026-09-28.04"></script>
-<script src="engine/styles-soul.js?v=2026-09-28.04"></script>
-<script src="engine/styles-metal.js?v=2026-09-28.04"></script>
-<script src="engine/styles-electro.js?v=2026-09-28.04"></script>
-<script src="engine/variations.js?v=2026-09-28.04"></script>
-<script src="engine/import.js?v=2026-09-28.04"></script>
+<script src="engine/core.js?v=2026-09-28.05"></script>
+<script src="engine/styles-punk.js?v=2026-09-28.05"></script>
+<script src="engine/styles-post.js?v=2026-09-28.05"></script>
+<script src="engine/styles-machines.js?v=2026-09-28.05"></script>
+<script src="engine/styles-alt.js?v=2026-09-28.05"></script>
+<script src="engine/styles-groove.js?v=2026-09-28.05"></script>
+<script src="engine/styles-dub.js?v=2026-09-28.05"></script>
+<script src="engine/styles-break.js?v=2026-09-28.05"></script>
+<script src="engine/styles-soul.js?v=2026-09-28.05"></script>
+<script src="engine/styles-metal.js?v=2026-09-28.05"></script>
+<script src="engine/styles-electro.js?v=2026-09-28.05"></script>
+<script src="engine/variations.js?v=2026-09-28.05"></script>
+<script src="engine/import.js?v=2026-09-28.05"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -2829,7 +2835,7 @@ const lsWrite=o=>{ try{ localStorage.setItem(LS_KEY,JSON.stringify(o)); }catch(e
 
 function serialize(){
   return {
-    name: el("projectName").value.trim()||"Senza titolo",
+    name: nameIn(el("projectName").value.trim())||"Senza titolo",
     bpm: bpm(), swing: +el("swingRange").value||0, human: +el("humanRange").value||0,
     sampleSet,
     tracks: project.tracks.map(t=>({id:t.id, sampleIndex:t.sampleIndex, vol:t.vol, tune:t.tune||0, choke:t.choke||0,
@@ -2858,7 +2864,7 @@ function deserialize(d,keepSel){
   ui.patternId=(keepSel && project.patterns.some(p=>p.id===prevPattern)) ? prevPattern : project.patterns[0].id;
   ui.blockId=(keepSel && project.song.some(b=>b.id===prevBlock)) ? prevBlock : (project.song[0]?.id||null);
   if(KITS[d.sampleSet] && d.sampleSet!==sampleSet) setSampleSet(d.sampleSet);
-  el("projectName").value=project.name;
+  el("projectName").value=nameOut(project.name);
   el("bpmNum").value=project.bpm; el("bpmRange").value=Math.min(180,Math.max(60,project.bpm));
   el("swingRange").value=project.swing; el("humanRange").value=project.human||0; paintSwing();
   el("pLen").value=curPattern().len;
@@ -3058,12 +3064,21 @@ function renderRecent(list){
   paintAudition();
 }
 
+// Nome predefinito del progetto: nei dati resta "Senza titolo", in inglese il campo mostra "Untitled".
+const nameOut = n => (n==="Senza titolo" && window.PMI18N && PMI18N.lang==="en") ? "Untitled" : n;
+const nameIn = n => n==="Untitled" ? "Senza titolo" : n;
+const syncNameField = ()=>{ const f=el("projectName"); f.value=nameOut(nameIn(f.value)); };
+document.addEventListener("pm-lang",syncNameField);
+document.addEventListener("DOMContentLoaded",syncNameField);
+
 let statusTimer=null;
 function setStatus(msg,kind){
   const s=el("status");
   s.textContent=msg; s.className="status"+(kind==="err"?" err":"");
   clearTimeout(statusTimer);
-  statusTimer=setTimeout(()=>{ if(s.textContent===msg) s.textContent=""; },3000);
+  // si confronta un contrassegno e non il testo: in inglese i18n.js traduce il messaggio sulla pagina
+  const mark=s.dataset.msg=String(Math.random());
+  statusTimer=setTimeout(()=>{ if(s.dataset.msg===mark) s.textContent=""; },3000);
 }
 
 el("saveBtn").onclick=()=>saveProject(false);
@@ -3072,7 +3087,7 @@ el("newBtn").onclick=async()=>{
   if(playing) stop();
   currentProjectId=null; markCurrentRecent(); project=starterProject(); ui.patternId=project.patterns[0].id;
   ui.blockId=project.song[0].id;
-  el("projectName").value=project.name; el("bpmNum").value=project.bpm;
+  el("projectName").value=nameOut(project.name); el("bpmNum").value=project.bpm;
   el("bpmRange").value=project.bpm; el("swingRange").value=0; el("humanRange").value=0; paintSwing(); el("pLen").value=16;
   project.tracks.forEach(t=>loadBuffer(t.sampleIndex));
   renderAll(); markSaved(); setStatus("nuovo progetto");
@@ -4594,7 +4609,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-28.04";
+const SW_VERSION="2026-09-28.05";
 (function pwa(){
   const netBadge=el("netBadge");
 

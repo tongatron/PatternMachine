@@ -7,8 +7,11 @@ In ordine consigliato.
 - [x] **Plug-in Audio Unit** (fatto, prototipo in `plugin/`): JUCE 8 con il sito in un WebView, motore C++ agganciato al
   PPQ di Logic (play, tempo, cicli, bounce), progetto salvato dentro il progetto di Logic. Da fare: uscite separate
   per voce, kit personali, firma per distribuirlo.
-- [ ] **Uscita multi-canale**: una traccia MIDI o un canale per strumento, per il mixer di Logic e delle DAW in
-  generale. Se possibile anche nel plug-in di Logic.
+- [x] **Uscita multi-canale**: export MIDI multitraccia e uscita MIDI live con canali separati.
+- [x] **Modalità Logic a istanze separate**: ogni istanza del plug-in può filtrare una singola riga/strumento,
+  con assegnazione salvata nello stato del progetto e un canale separato nel mixer.
+- [ ] **Multi-output audio AU diretto**: Logic continua a esporre PatternMachine solo come Mono/Stereo anche
+  dopo la registrazione dei bus; tenere come sperimentale/futura compatibilità con host AU diversi.
 - [ ] **Export per Scripter**: pattern/canzone come script per il plug-in Scripter (MIDI FX, JavaScript) sulla
   traccia di batteria. Suona agganciato al trasporto di Logic senza browser aperto; probabilita', flam e
   umanizza decisi da Logic a ogni giro. Note sulla mappa General MIDI. La strada piu' solida.
@@ -23,7 +26,9 @@ In ordine consigliato.
 - [x] **Mappa MIDI a scelta** (fatto: pacchetto "Logic (zip)"): oltre a "Kit SP-1200" (nota 36 + slot, in ordine cromatico) aggiungere
   "General MIDI" (cassa 36, rullante 38, clap 39, hi-hat chiuso 42, aperto 46, tom e piatti ai loro posti),
   così i pattern fatti con 808, 909 e RX-5 suonano subito con Drum Machine Designer / Drum Kit Designer.
-- [ ] **Una traccia per voce** nel MIDI (cassa, rullante, hat... su tracce separate).
+- [x] **Una traccia per voce** nel MIDI (cassa, rullante, hat... su tracce separate): export MIDI formato 1,
+  con traccia tempo, canali distinti e incluso nei pacchetti per DAW. Restano da fare l’uscita MIDI live e il
+  routing audio multi-output del plug-in.
 - [ ] **Marker delle sezioni** nell'export della canzone (nomi dei blocchi nella timeline di Logic).
 - [ ] **Un solo file** con tutto il progetto: pattern come regioni separate più la canzone.
 - [x] **Stems WAV** (fatto: nel pacchetto "Logic (zip)"): un file audio per voce.

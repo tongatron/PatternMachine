@@ -13,8 +13,21 @@ static juce::File findResources (const char* name)
     return inBundle;
 }
 
+PatternMachineProcessor::BusesProperties PatternMachineProcessor::makeBuses()
+{
+    auto buses = BusesProperties()
+        .withOutput ("Output", juce::AudioChannelSet::stereo(), true);
+    // Logic supports up to 16 output buses for an instrument, including the
+    // main bus. The first instrument uses the main bus, so add 15 aux buses.
+    for (int i = 0; i < 15; ++i)
+        // Logic only exposes the AU as a multi-output instrument when the
+        // auxiliary output buses are active in the initial layout.
+        buses = buses.withOutput ("Instrument " + juce::String (i + 1), juce::AudioChannelSet::stereo(), true);
+    return buses;
+}
+
 PatternMachineProcessor::PatternMachineProcessor()
-    : AudioProcessor (BusesProperties().withOutput ("Output", juce::AudioChannelSet::stereo(), true)),
+    : AudioProcessor (makeBuses()),
       samples (findResources ("site"))
 {
 }
@@ -26,7 +39,13 @@ juce::File PatternMachineProcessor::bridgeDir() const { return findResources ("b
 bool PatternMachineProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
     const auto out = layouts.getMainOutputChannelSet();
-    return out == juce::AudioChannelSet::stereo() || out == juce::AudioChannelSet::mono();
+    if (out != juce::AudioChannelSet::stereo() && out != juce::AudioChannelSet::mono()) return false;
+    for (int i = 1; i < layouts.outputBuses.size(); ++i)
+    {
+        const auto aux = layouts.getChannelSet (false, i);
+        if (! aux.isDisabled() && aux != juce::AudioChannelSet::stereo()) return false;
+    }
+    return true;
 }
 
 void PatternMachineProcessor::prepareToPlay (double sampleRate, int)
@@ -72,7 +91,14 @@ void PatternMachineProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
         internalPpq += buffer.getNumSamples() * hostBpm / 60.0 / sr;
     }
 
-    engine.process (buffer, midi, snap, t);
+    std::array<juce::AudioBuffer<float>, 16> auxViews;
+    std::array<juce::AudioBuffer<float>*, 16> aux {};
+    for (int i = 0; i < (int) aux.size() && i + 1 < getBusCount (false); ++i)
+    {
+        auxViews[(size_t) i] = getBusBuffer (buffer, false, i + 1);
+        aux[(size_t) i] = &auxViews[(size_t) i];
+    }
+    engine.process (buffer, midi, snap, t, aux, instanceTrack.load());
     buffer.applyGain (outputGain);
     midi.clear();
 
@@ -130,6 +156,7 @@ juce::var PatternMachineProcessor::getSavedState() const
 void PatternMachineProcessor::hit (const juce::var& v, double velocity, double delaySec)
 {
     pm::VoiceParams p;
+    p.output = juce::jmax (0, (int) v["output"]);
     p.sample = samples.get (v["file"].toString());
     if (p.sample == nullptr) return;
     auto num = [] (const juce::var& x, double def) { return x.isVoid() ? def : (double) x; };
@@ -142,6 +169,13 @@ void PatternMachineProcessor::hit (const juce::var& v, double velocity, double d
     p.reverse = (bool) v["reverse"];
     p.choke = juce::jlimit (0, 16, (int) num (v["choke"], 0));
     engine.pushHit (p, (float) velocity, num (v["master"], 85) / 100.0, delaySec);
+}
+
+void PatternMachineProcessor::setInstanceTrack (int track)
+{
+    const auto next = juce::jlimit (-1, 63, track);
+    if (instanceTrack.exchange (next) != next)
+        updateHostDisplay (ChangeDetails().withNonParameterStateChanged (true));
 }
 
 void PatternMachineProcessor::setInternalPlay (bool play, double startStep)
@@ -184,6 +218,7 @@ void PatternMachineProcessor::getStateInformation (juce::MemoryBlock& dest)
         obj->setProperty ("state", stateJson);
         obj->setProperty ("engine", engineJson);
     }
+    obj->setProperty ("instanceTrack", instanceTrack.load());
     obj->setProperty ("w", editorW);
     obj->setProperty ("h", editorH);
     juce::MemoryOutputStream out (dest, false);
@@ -197,6 +232,7 @@ void PatternMachineProcessor::setStateInformation (const void* data, int size)
     if (! root.isObject()) return;
     editorW = juce::jlimit (720, 4000, (int) root.getProperty ("w", editorW));
     editorH = juce::jlimit (480, 3000, (int) root.getProperty ("h", editorH));
+    instanceTrack = juce::jlimit (-1, 63, (int) root.getProperty ("instanceTrack", -1));
     auto st = root["state"].toString(), en = root["engine"].toString();
     {
         const juce::ScopedLock sl (stateLock);

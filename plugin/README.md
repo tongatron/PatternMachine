@@ -42,6 +42,13 @@ Ogni build copia di nuovo `site/` (senza `site/download`) e `bridge/` nei bundle
 In Logic: nuova traccia **Strumento software** › slot Strumento › **AU Instruments › Tongatron › PatternMachine**.
 Se Logic non lo vede: *Logic Pro › Impostazioni › Plug-in Manager › Reimposta e ripeti la scansione*.
 
+### Più canali in Logic
+
+Logic può usare più istanze stereo del plug-in anche quando il menu AU non offre Multi-Output.
+Duplica la traccia PatternMachine, apri ogni istanza e usa il selettore **Istanza** accanto al badge Logic:
+scegli **Tutti** per l'istanza completa oppure una singola riga (BD, SD, HH, ecc.). Ogni istanza suona solo
+quella riga e resta su un canale separato del mixer; l'assegnazione viene salvata nel progetto di Logic.
+
 ## Se cambia il sito
 
 - `scheduler()`, `trigger()`, `stepHits()`, `stepIdx()` o il formato di `mods` in `site/index.html`: vanno allineati in `Source/Engine.cpp`.
@@ -53,5 +60,7 @@ Se Logic non lo vede: *Logic Pro › Impostazioni › Plug-in Manager › Reimpo
 - Il plug-in non è firmato con un certificato Apple Developer: va bene sul proprio Mac, non per distribuirlo.
 - I kit personali importati nell'app per Mac (`__kits/`) non ci sono: il plug-in suona i kit del sito.
 - La testina e il contatore nella finestra si aggiornano 30 volte al secondo (l'audio invece è al campione).
-- Una sola uscita stereo: niente uscite separate per voce (le stems restano nell'export).
+- In Logic il menu AU può esporre soltanto Mono/Stereo: per i canali separati usare la modalità a istanze,
+  duplicando la traccia e assegnando una riga diversa dal selettore Istanza. Il routing AU multi-output diretto
+  resta sperimentale e dipende dall'host.
 - Le modifiche arrivano al motore entro circa 0,1 s: un colpo scritto proprio sullo step che sta per suonare può saltare quel giro.

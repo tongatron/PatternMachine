@@ -29,6 +29,8 @@ Installare
 Usare
 Nuova traccia Strumento software > slot Strumento > AU Instruments > Tongatron > PatternMachine > Stereo.
 Premi Play in Logic: PatternMachine suona a tempo dalla battuta 1.
+Per avere un canale per strumento in Logic duplica la traccia, apri ogni istanza e scegli
+la riga dal selettore Istanza accanto al badge Logic. Ogni istanza suona solo quella riga.
 TXT
 rm -f "$OUT/$ZIP"
 (cd "$STAGE" && ditto -c -k --keepParent "PatternMachine Plug-in" "$OLDPWD/$OUT/$ZIP")

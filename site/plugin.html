@@ -101,6 +101,8 @@ th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-sp
     <li><b>Sync automatico</b>: Play, Stop, tempo e cambi di tempo arrivano da Logic. Lo step 1 cade sulla battuta 1; segue anche i cicli e i salti sul righello.</li>
     <li><b>Pattern o Canzone</b>: in Griglia gira il pattern scelto, allineato alle battute; in Sequencer la canzone parte dalla battuta 1 di Logic (nel pre-roll tace) e ricomincia alla fine.</li>
     <li><b>Audio nel mixer di Logic</b>: effetti, fader, automazione e bounce (anche offline) come per qualsiasi strumento.</li>
+    <li><b>Canale separato per strumento in Logic</b>: duplica l'istanza del plug-in e assegna a ciascuna una riga dal selettore <b>Istanza</b>, così kick, snare, hi-hat e percussioni hanno canali indipendenti nel mixer.</li>
+    <li><b>Più canali in Logic</b>: duplica l'istanza del plug-in e assegna a ciascuna una singola riga dal selettore <b>Istanza</b>; ogni strumento finisce così su un canale separato del mixer.</li>
     <li><b>Il progetto si salva dentro il progetto di Logic</b> e suona anche senza aprire la finestra.</li>
     <li><b>Pad e tastiera MIDI</b>: la nota C1 (36) suona la riga 1, C#1 la riga 2 e così via: i pad di un controller funzionano subito.</li>
     <li>Tutti i kit, i blocchi per step, la libreria e gli export del sito. Progetti in Musica › PatternMachine › Progetti (gli stessi dell'app), export in Musica › PatternMachine › Export: il pulsante <b>Export ↗</b> accanto al Play apre la cartella.</li>
@@ -117,11 +119,12 @@ th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-sp
   <ol>
     <li><b>Track › New Software Instrument Track</b>.</li>
     <li>Nel channel strip fai clic sullo slot <b>Instrument</b> e scegli <b>AU Instruments › Tongatron › PatternMachine › Stereo</b>. Conviene rinominare la traccia "PatternMachine".</li>
+    <li>Per separare gli strumenti in Logic duplica la traccia, apri PatternMachine in ogni istanza e scegli la riga dal selettore <b>Istanza</b> accanto al badge Logic.</li>
     <li>Scrivi il pattern nella finestra del plug-in e premi <b>Play in Logic</b>. Il campo BPM mostra il tempo di Logic; il badge accanto al Play dice <b>Logic ▶ pattern</b> o <b>Logic ▶ canzone</b>.</li>
     <li>A Logic fermo, il Play della finestra fa un'anteprima al tempo del progetto. Per registrare in audio usa il bounce di Logic; per il MIDI usa Export › MIDI e trascina il file in Logic.</li>
     <li>Per riaprire la finestra: seleziona la traccia e fai clic sullo slot <b>PatternMac</b>.</li>
   </ol>
-  <p class="muted">Solo Mac con Apple Silicon (macOS 12 o successivo). Uscita stereo unica, 6 dB sotto il volume del sito per lasciare margine nel mixer. I kit personali importati nell'app non ci sono.</p>
+  <p class="muted">Solo Mac con Apple Silicon (macOS 12 o successivo). La modalità a istanze usa un'uscita stereo per ogni canale Logic, 6 dB sotto il volume del sito per lasciare margine nel mixer. I kit personali importati nell'app non ci sono.</p>
 </section>
 
 <footer class="site-footer">PATTERN-MACHINE è un progetto di <a class="site-badge" href="https://tongatron.org/"><span class="mark"></span><span>tongatron.org</span></a></footer>

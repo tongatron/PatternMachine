@@ -37,6 +37,8 @@ public:
     juce::var getSavedState() const;                                     // per riaprire la pagina com'era
     void hit (const juce::var& voice, double velocity, double delaySec);
     void setInternalPlay (bool play, double startStep);
+    void setInstanceTrack (int track);
+    int getInstanceTrack() const noexcept { return instanceTrack.load(); }
 
     // Per la pagina: posizione attuale del trasporto
     struct Position
@@ -53,6 +55,7 @@ public:
     int editorW = 1280, editorH = 860;
 
 private:
+    static BusesProperties makeBuses();
     void installSnapshot (std::unique_ptr<pm::Snapshot>);
     void collectGarbage();
 
@@ -74,6 +77,7 @@ private:
     std::atomic<bool> internalPlay { false };
     std::atomic<double> internalStart { 0 };
     std::atomic<int> internalRestart { 0 };
+    std::atomic<int> instanceTrack { -1 }; // -1 = tutti, altrimenti indice della riga assegnata
     int internalSeen = 0;
     double internalPpq = 0;
 

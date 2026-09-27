@@ -699,6 +699,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
             <button id="expPatternBtn" title="Note del kit SP-1200 di Logic (36 + slot)">MIDI pattern</button>
             <button id="expSongBtn" title="Note del kit SP-1200 di Logic (36 + slot)">MIDI canzone</button>
             <button id="gmMidiBtn" title="Mappa General MIDI (36 cassa, 38 rullante, 42 hat chiuso…): va bene in qualsiasi DAW. Segue Pattern/Canzone">MIDI General MIDI</button>
+            <button id="multiMidiBtn" title="Mappa General MIDI, una traccia MIDI per ogni strumento: importandolo nella DAW crea canali separati">MIDI multitraccia</button>
             <div class="export-head">Audio</div>
             <button id="wavPatternBtn" title="Audio del pattern ripetuto 4 volte, con volumi ed effetti delle righe">WAV pattern</button>
             <button id="wavSongBtn" title="Audio dell'intera canzone, con volumi ed effetti delle righe">WAV canzone</button>
@@ -2999,8 +3000,8 @@ function patternEvents(pat, startTick, events, cycle=0){
       const sub=dur/m.r;
       stepHits(m,dur,Math.round(FLAM_SEC*perSec)).forEach(([at,f])=>{
         const on=Math.max(0,tick+shift+Math.round(at));
-        events.push({tick:on, order:1, note, vel:Math.max(1,Math.min(127,Math.round(vel*f)))});
-        events.push({tick:on+Math.max(1,Math.floor(sub*0.9)), order:0, note, vel:64});
+        events.push({tick:on, order:1, trackIndex:project.tracks.indexOf(t), note, vel:Math.max(1,Math.min(127,Math.round(vel*f)))});
+        events.push({tick:on+Math.max(1,Math.floor(sub*0.9)), order:0, trackIndex:project.tracks.indexOf(t), note, vel:64});
       });
     });
     tick+=dur;
@@ -3296,6 +3297,40 @@ function buildLogicMidi(which){
   return new Uint8Array([0x4D,0x54,0x68,0x64, 0,0,0,6, 0,1, 0,2, (MIDI_PPQ>>8)&0xff,MIDI_PPQ&0xff, ...chunk(tempo), ...chunk(drums)]);
 }
 
+// MIDI formato 1: una traccia tempo e una traccia per ogni strumento usato.
+// I canali distinti facilitano il routing verso il mixer della DAW; le note
+// restano sulla mappa General MIDI per conservare la compatibilita'.
+function buildMultiMidi(which){
+  const {events, tick}=gmEvents(which);
+  const byTrack=new Map();
+  events.forEach(e=>{
+    let list=byTrack.get(e.trackIndex);
+    if(!list){ list=[]; byTrack.set(e.trackIndex,list); }
+    list.push(e);
+  });
+  const used=[...byTrack.keys()].sort((a,b)=>a-b);
+  const channelFor=n=>[0,1,2,3,4,5,6,7,8,10,11,12,13,14,15,9][n%16];
+  const text=(type,s)=>{ const b=[...new TextEncoder().encode(s)]; return [0xFF,type,...varLen(b.length),...b]; };
+  const chunk=bytes=>[0x4D,0x54,0x72,0x6B,(bytes.length>>>24)&0xff,(bytes.length>>>16)&0xff,(bytes.length>>>8)&0xff,bytes.length&0xff,...bytes];
+  const mpq=Math.round(60000000/bpm());
+  const tempo=[0,...text(0x03,safeName(el("projectName").value)),
+    0,0xFF,0x51,0x03,(mpq>>16)&0xff,(mpq>>8)&0xff,mpq&0xff,
+    0,0xFF,0x58,0x04,4,2,24,8,
+    ...varLen(tick),0xFF,0x2F,0x00];
+  const tracks=[chunk(tempo)];
+  used.forEach((trackIndex,order)=>{
+    const track=project.tracks[trackIndex], channel=channelFor(order), bytes=[0,...text(0x03,safeName(sampleLabel(track.sampleIndex)))];
+    let last=0;
+    byTrack.get(trackIndex).sort((a,b)=>(a.tick-b.tick)||(a.order-b.order)).forEach(e=>{
+      bytes.push(...varLen(e.tick-last)); last=e.tick;
+      bytes.push((e.order===1?0x90:0x80)|channel,e.note,e.order===1?e.vel:0x40);
+    });
+    bytes.push(...varLen(Math.max(0,tick-last)),0xFF,0x2F,0x00);
+    tracks.push(chunk(bytes));
+  });
+  return new Uint8Array([0x4D,0x54,0x68,0x64,0,0,0,6,0,1,(tracks.length>>>8)&0xff,tracks.length&0xff,(MIDI_PPQ>>8)&0xff,MIDI_PPQ&0xff,...tracks.flat()]);
+}
+
 // Uno stem per traccia udibile, con gli effetti delle righe come nel WAV normale. Per non perdere il choke
 // (l'hat chiuso che taglia quello aperto) le altre tracce dello stesso gruppo suonano a volume zero.
 async function renderStems(which){
@@ -3408,6 +3443,7 @@ function dawSteps(daw, base, tempo, stemInfo){
     `1. Imposta il tempo del progetto a ${tempo} BPM (File > Importa > MIDI sul file .mid importa anche il tempo).`,
     `2. MIDI: trascina ${mid} su una traccia Drummer / Drum Kit Designer / Drum Machine Designer.`,
     `   Le note seguono la mappa General MIDI (36 cassa, 38 rullante, 42 hat chiuso, 46 hat aperto...).`,
+    `   Per canali separati importa anche "${base} - multitraccia.mid": contiene una traccia per strumento.`,
     `3. Stem: seleziona tutti i file della cartella Stem e trascinali insieme nell'area tracce, alla battuta 1,`,
     `   scegliendo "tracce separate": partono tutti da zero e restano allineati.`, stems,
     `4. Campioni: i singoli colpi della macchina, col numero di nota GM davanti al nome.`,
@@ -3418,6 +3454,7 @@ function dawSteps(daw, base, tempo, stemInfo){
     `1. Imposta il tempo del Live Set a ${tempo} BPM (il tempo del .mid non viene letto da Live).`,
     `2. MIDI: trascina ${mid} su una traccia MIDI con un Drum Rack (per esempio uno dei "Kit" della libreria):`,
     `   i pad del Drum Rack partono da C1 = nota 36, come la mappa General MIDI.`,
+    `   In alternativa importa "${base} - multitraccia.mid" per ottenere una traccia per strumento.`,
     `3. Stem: seleziona tutti i file della cartella Stem e trascinali insieme nella vista Arrangement, alla battuta 1:`,
     `   Live crea una traccia per file, tutte allineate. Nelle clip lascia il Warp spento o in modalita' Beats.`, stems,
     `4. Campioni: per rifare il kit, trascina ogni file della cartella Campioni sul pad del Drum Rack`,
@@ -3428,6 +3465,7 @@ function dawSteps(daw, base, tempo, stemInfo){
     `1. Estrai lo zip e apri "${base}.rpp": tempo (${tempo} BPM), stem e traccia MIDI sono gia' al loro posto.`,
     `   Il progetto cerca i file nella cartella Stem accanto a lui: non spostare il .rpp da solo.`,
     `2. Le tracce audio sono gli stem, tutti da zero e allineati.`, stems,
+    `   Il file "${base} - multitraccia.mid" contiene una traccia MIDI per strumento.`,
     `3. La traccia "Drums (MIDI GM)" e' muta finche' non le dai uno strumento: mettici un campionatore di batteria`,
     `   in General MIDI (per esempio ReaSamplOmatic5000 con i file di Campioni, o un plugin di batteria).`,
     `4. Campioni: i singoli colpi della macchina, col numero di nota GM davanti al nome.`,
@@ -3436,6 +3474,7 @@ function dawSteps(daw, base, tempo, stemInfo){
     `COME PORTARLO NELLA TUA DAW (FL Studio, Cubase, Studio One, Bitwig, GarageBand...)`,
     `1. Imposta il tempo del progetto a ${tempo} BPM.`,
     `2. MIDI: ${mid} e' in General MIDI (36 cassa, 38 rullante, 42 hat chiuso, 46 hat aperto...) sul canale 10.`,
+    `   Per il mixer separato importa "${base} - multitraccia.mid": contiene una traccia per strumento.`,
     `   - FL Studio: File > Import > MIDI file, poi assegna la traccia a FPC o a un altro strumento di batteria.`,
     `   - Cubase / Nuendo: trascina il file su una traccia con Groove Agent SE (mappa GM).`,
     `   - Studio One: trascina il file su una traccia con Impact XT.`,
@@ -3450,7 +3489,10 @@ function dawSteps(daw, base, tempo, stemInfo){
 async function buildDawZip(which, daw="logic"){
   const base=exportBase(which), tempo=bpm();
   const dir=`${base} - ${tempo} BPM/`;
-  const files=[{name:dir+`${base} - GM.mid`, data:buildLogicMidi(which)}];
+  const files=[
+    {name:dir+`${base} - GM.mid`, data:buildLogicMidi(which)},
+    {name:dir+`${base} - multitraccia.mid`, data:buildMultiMidi(which)},
+  ];
 
   const {stems, seconds}=await renderStems(which);
   let peak=0;
@@ -3513,6 +3555,11 @@ el("gmMidiBtn").onclick=()=>{
   const which=ui.mode==="song"?"song":"pattern";
   if(which==="song" && !project.song.length){ setStatus("la canzone e' vuota","err"); return; }
   return saveBlob(new Blob([buildLogicMidi(which)],{type:"audio/midi"}), exportBase(which)+" - GM.mid", "MIDI General MIDI");
+};
+el("multiMidiBtn").onclick=()=>{
+  const which=ui.mode==="song"?"song":"pattern";
+  if(which==="song" && !project.song.length){ setStatus("la canzone e' vuota","err"); return; }
+  return saveBlob(new Blob([buildMultiMidi(which)],{type:"audio/midi"}), exportBase(which)+" - multitraccia.mid", "MIDI multitraccia");
 };
 
 // Il menu Export si chiude dopo una scelta, al click fuori e con Esc.

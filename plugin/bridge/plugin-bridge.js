@@ -16,6 +16,8 @@
 
   let reqSeq=0;
   const waiting=new Map();
+  let instanceTrack=-1;
+  let instanceSelect=null;
   const call=(type,payload)=>new Promise((ok,ko)=>{
     const req=++reqSeq;
     waiting.set(req,{ok,ko});
@@ -24,7 +26,7 @@
 
   // ---------- stato mandato al motore ----------
   // engine: solo cio' che serve per suonare (vedi Snapshot::fromVar). state: per riaprire la pagina.
-  const voiceOf=t=>({file:sampleFile(t.sampleIndex), vol:t.vol, tune:t.tune||0, choke:t.choke||0,
+  const voiceOf=t=>({output:Math.max(0,project.tracks.indexOf(t)), file:sampleFile(t.sampleIndex), vol:t.vol, tune:t.tune||0, choke:t.choke||0,
     decay:t.decay, cutoff:t.cutoff, reso:t.reso, start:t.start, reverse:!!t.reverse});
   function engineState(){
     const solo=project.tracks.some(t=>t.solo);
@@ -166,6 +168,31 @@
   }
   paintBadge();
 
+  // Modalità Logic: ogni istanza può suonare una sola riga del progetto.
+  const instanceBox=document.createElement("label");
+  instanceBox.className="pm-instance-track";
+  instanceBox.title="In Logic questa istanza suona solo lo strumento scelto";
+  instanceBox.append("Istanza ");
+  instanceSelect=document.createElement("select");
+  instanceBox.appendChild(instanceSelect);
+  badge.insertAdjacentElement("afterend",instanceBox);
+  instanceSelect.onchange=()=>{
+    instanceTrack=+instanceSelect.value;
+    send({type:"instance-track", track:instanceTrack});
+  };
+  function renderInstanceTrack(){
+    if(!instanceSelect || !project) return;
+    instanceSelect.innerHTML="";
+    const all=document.createElement("option"); all.value=-1; all.textContent="Tutti"; instanceSelect.appendChild(all);
+    project.tracks.forEach((t,i)=>{
+      const o=document.createElement("option");
+      o.value=i; o.textContent=`${i+1}. ${t.name||t.id||`Strumento ${i+1}`}`;
+      instanceSelect.appendChild(o);
+    });
+    instanceSelect.value=String(instanceTrack);
+  }
+  renderInstanceTrack();
+
   // ---------- progetti come file in ~/Music/PatternMachine/Progetti (come l'app per Mac) ----------
   const listeners=new Set();
   const snapshot=async()=>{
@@ -224,10 +251,12 @@
     }
     else if(m.type==="init"){
       restore(m.state);
+      instanceTrack=Number.isInteger(+m.instanceTrack)?+m.instanceTrack:-1;
+      renderInstanceTrack();
       ready=true; lastSync="";
       pushSync(true);             // anche un progetto nuovo suona subito, senza toccare niente
     }
-    else if(m.type==="load"){ restore(m.state); lastSync=""; pushSync(true); }
+    else if(m.type==="load"){ restore(m.state); renderInstanceTrack(); lastSync=""; pushSync(true); }
   });
   send({type:"hello"});
 })();

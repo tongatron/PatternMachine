@@ -124,12 +124,14 @@ void PatternMachineEditor::onMessage (const juce::var& msg)
         o->setProperty ("state", proc.getSavedState());
         o->setProperty ("version", JucePlugin_VersionString);
         o->setProperty ("host", juce::PluginHostType().getHostDescription());
+        o->setProperty ("instanceTrack", proc.getInstanceTrack());
         send (juce::var (o.release()));
         lastPos = {};
     }
     else if (type == "sync")      proc.setProject (msg["state"], msg["engine"]);
     else if (type == "hit")       proc.hit (msg["voice"], (double) msg["vel"], (double) msg["delay"]);
     else if (type == "transport") proc.setInternalPlay ((bool) msg["play"], (double) msg["start"]);
+    else if (type == "instance-track") proc.setInstanceTrack ((int) msg["track"]);
     else if (type == "projects")
     {
         try { reply (msg["req"], projects (msg)); }

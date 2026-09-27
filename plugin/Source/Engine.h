@@ -13,6 +13,7 @@ namespace pm
 struct VoiceParams
 {
     const SampleData* sample = nullptr;
+    int output = 0;                     // 0 = uscita principale, 1..16 = aux dello strumento
     float vol = 0.8f;
     double tune = 0;                    // semitoni
     float decay = 100, cutoff = 100, reso = 0, start = 0;
@@ -94,7 +95,8 @@ public:
     void reset();
 
     // Thread audio. snapshot puo' essere nullptr (niente progetto ancora arrivato dalla pagina).
-    void process (juce::AudioBuffer<float>& out, const juce::MidiBuffer& midi, const Snapshot* snapshot, Transport t);
+    void process (juce::AudioBuffer<float>& out, const juce::MidiBuffer& midi, const Snapshot* snapshot, Transport t,
+                  const std::array<juce::AudioBuffer<float>*, 16>& aux, int trackFilter = -1);
 
     // Thread dei messaggi: un colpo da suonare subito (pad, ascolto, libreria), con un ritardo opzionale.
     void pushHit (const VoiceParams& v, float velocity, double master, double delaySec);
@@ -125,6 +127,7 @@ private:
         bool active = false;
         juce::uint32 serial = 0;
         const SampleData* s = nullptr;
+        int output = 0;
         bool rev = false, filt = false;
         double pos = 0, inc = 1;
         float gain = 0;
@@ -134,10 +137,11 @@ private:
         double phase = 0;
     };
 
-    void emitStep (const Snapshot& s, const StepPos& p, double ppqStart, double ppqPerSample);
+    void emitStep (const Snapshot& s, const StepPos& p, double ppqStart, double ppqPerSample, int trackFilter);
     void schedule (const Event& e);
     void startVoice (const Event& e);
-    void render (juce::AudioBuffer<float>& out, int from, int to);
+    void render (juce::AudioBuffer<float>& out, int from, int to,
+                 const std::array<juce::AudioBuffer<float>*, 16>& aux, int trackFilter);
 
     double sr = 44100;
     juce::int64 clock = 0;

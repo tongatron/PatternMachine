@@ -28,7 +28,8 @@ static std::vector<int> run (SampleCache& cache, const juce::String& engineJson,
     while (done < (int) (seconds * sr))
     {
         if (jumpAtSec >= 0 && ! jumped && done >= jumpAtSec * sr) { ppq = jumpToPpq; jumped = true; }
-        engine.process (buf, midi, snap.get(), { true, ppq, bpm });
+        std::array<juce::AudioBuffer<float>*, 16> aux {};
+        engine.process (buf, midi, snap.get(), { true, ppq, bpm }, aux);
         for (int i = 0; i < 512; ++i)
             if (std::abs (buf.getSample (0, i)) > 0.3f) onsets.push_back (done + i);
         done += 512;

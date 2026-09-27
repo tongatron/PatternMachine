@@ -128,7 +128,7 @@
   }).catch(()=>{});
 
   const SETTINGS_KEY="pm.desktop";
-  const settings=Object.assign({midiOut:true, noteMap:"gm", internalAudio:true, follow:false, daw:"logic"},
+  const settings=Object.assign({midiOut:true, midiRouting:"drums", noteMap:"gm", internalAudio:true, follow:false, daw:"logic"},
     (()=>{ try{ return JSON.parse(localStorage.getItem(SETTINGS_KEY)||"{}"); }catch(e){ return {}; } })());
   const saveSettings=()=>{ try{ localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings)); }catch(e){} };
 
@@ -189,13 +189,19 @@
   // Ogni colpo suonato dal vivo (Play, pad, ascolto) diventa una nota sulla porta virtuale "PatternMachine".
   // L'audio e' programmato in anticipo sul tempo di audioCtx: la nota parte con lo stesso anticipo.
   const MIDI_CH=9, NOTE_MS=90;
+  const MIDI_TRACK_CHANNELS=[0,1,2,3,4,5,6,7,8,10,11,12,13,14,15,9];
   let outBox=[];
   const noteOf=i=>settings.noteMap==="sp"?midiNoteFor(i):gmNoteFor(i);
+  const channelOf=track=>{
+    if(settings.midiRouting!=="multi") return MIDI_CH;
+    const i=Math.max(0,project.tracks.indexOf(track));
+    return MIDI_TRACK_CHANNELS[i%MIDI_TRACK_CHANNELS.length];
+  };
   function queueNote(track,time,velocity){
     const vel=Math.max(1,Math.min(127,Math.round(velocity*(track.vol??0.8)*127)));
     const delay=Math.max(0,(time-audioCtx.currentTime)*1000);
     if(!outBox.length) queueMicrotask(()=>{ D.midi.notes(outBox); outBox=[]; });
-    outBox.push({ch:MIDI_CH, note:noteOf(track.sampleIndex), vel, delay, dur:NOTE_MS});
+    outBox.push({ch:channelOf(track), note:noteOf(track.sampleIndex), vel, delay, dur:NOTE_MS});
   }
   const siteTrigger=trigger;
   trigger=function(track,time,velocity,ctx){
@@ -322,7 +328,8 @@
     const w=which();
     if(w==="song" && !project.song.length) return setStatus("la canzone e' vuota","err");
     if(kind==="midi"){
-      D.startDrag(exportBase(w)+".mid", settings.noteMap==="sp"?buildMidi(w):buildLogicMidi(w));
+      const multi=settings.midiRouting==="multi" && settings.noteMap!=="sp";
+      D.startDrag(exportBase(w)+(multi?" - multitraccia.mid":".mid"), multi?buildMultiMidi(w):(settings.noteMap==="sp"?buildMidi(w):buildLogicMidi(w)));
     } else {
       const r=await wavJob;
       if(!r) return setStatus("niente da trascinare: il pattern e' vuoto o tutto in mute","err");
@@ -344,6 +351,7 @@
         <option value="logic">Logic Pro</option><option value="ableton">Ableton Live</option><option value="reaper">REAPER</option><option value="fl">FL Studio</option><option value="cubase">Cubase</option><option value="bitwig">Bitwig</option><option value="studioone">Studio One</option><option value="garageband">GarageBand</option><option value="other">Altra DAW</option>
       </select></label>
       <label class="fld" title="Le note escono sulla porta MIDI virtuale PatternMachine: nella DAW arrivano come da una tastiera"><input type="checkbox" data-set="midiOut"> Uscita MIDI</label>
+      <label class="fld" title="Canale 10 mantiene la compatibilita' con i drum rack; Canali separati assegna un canale a ogni riga"><select data-set="midiRouting"><option value="drums">Canale 10</option><option value="multi">Canali separati</option></select></label>
       <label class="fld" title="General MIDI per i drum rack e gli strumenti compatibili, oppure il kit SP-1200 di PatternMachine (36 + numero del campione)">Note
         <select data-set="noteMap"><option value="gm">General MIDI</option><option value="sp">Kit SP-1200 (36+)</option></select></label>
       <label class="fld" title="Spegni per sentire solo gli strumenti della DAW"><input type="checkbox" data-set="internalAudio"> Suono interno</label>

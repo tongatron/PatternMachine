@@ -34,6 +34,7 @@ std::unique_ptr<Snapshot> Snapshot::fromVar (const juce::var& e, SampleCache& sa
             d.id = t["id"].toString();
             d.file = t["file"].toString();
             d.voice.sample = samples.get (d.file);
+            d.voice.output = (int) s->tracks.size();
             d.voice.vol = (float) num (t["vol"], 0.8);
             d.voice.tune = num (t["tune"], 0);
             d.voice.decay = (float) num (t["decay"], 100);
@@ -214,7 +215,7 @@ void Engine::pushHit (const VoiceParams& v, float velocity, double master, doubl
 }
 
 // Uno step come in scheduler(): probabilita', blocchi, umanizza, ripetizioni e flam, nudge per traccia.
-void Engine::emitStep (const Snapshot& s, const StepPos& p, double ppqStart, double ppqPerSample)
+void Engine::emitStep (const Snapshot& s, const StepPos& p, double ppqStart, double ppqPerSample, int trackFilter)
 {
     const double at = s.stepPpq (p);
     const double secToPpq = s.bpm / 60.0;
@@ -236,6 +237,7 @@ void Engine::emitStep (const Snapshot& s, const StepPos& p, double ppqStart, dou
 
     for (size_t ti = 0; ti < s.tracks.size(); ++ti)
     {
+        if (trackFilter >= 0 && (int) ti != trackFilter) continue;
         const auto& t = s.tracks[ti];
         if (! t.on || ti >= pat.grid.size()) continue;
         const int i = s.stepIdx (pat, ti, p);
@@ -281,6 +283,7 @@ void Engine::startVoice (const Event& e)
     auto& v = voices[(size_t) idx];
     v = Voice {};
     v.serial = ++serials;
+    v.output = e.v.output;
     v.gain = e.gain;
 
     if (e.metro)
@@ -328,17 +331,32 @@ void Engine::startVoice (const Event& e)
     v.active = true;
 }
 
-void Engine::render (juce::AudioBuffer<float>& out, int from, int to)
+void Engine::render (juce::AudioBuffer<float>& out, int from, int to,
+                     const std::array<juce::AudioBuffer<float>*, 16>& aux, int trackFilter)
 {
     const int outCh = out.getNumChannels();
     if (outCh == 0 || to <= from) return;
-    auto* L = out.getWritePointer (0);
-    auto* R = outCh > 1 ? out.getWritePointer (1) : nullptr;
     const double fade = 0.012 * sr;
+
+    auto renderTarget = [&] (const Voice& v) -> juce::AudioBuffer<float>*
+    {
+        if (trackFilter >= 0) return &out;
+        if (v.output <= 0) return &out;
+        const auto i = v.output - 1;
+        if (i >= 0 && i < (int) aux.size() && aux[(size_t) i] != nullptr
+            && aux[(size_t) i]->getNumChannels() > 0)
+            return aux[(size_t) i];
+        return &out; // piu' di 16 righe o aux non attivo: resta udibile nel mix principale
+    };
 
     for (auto& v : voices)
     {
         if (! v.active) continue;
+        auto* target = renderTarget (v);
+        const int targetCh = target->getNumChannels();
+        if (targetCh == 0) continue;
+        auto* L = target->getWritePointer (0);
+        auto* R = targetCh > 1 ? target->getWritePointer (1) : nullptr;
         for (int i = from; i < to; ++i)
         {
             if (v.metro)
@@ -386,10 +404,12 @@ void Engine::render (juce::AudioBuffer<float>& out, int from, int to)
     }
 }
 
-void Engine::process (juce::AudioBuffer<float>& out, const juce::MidiBuffer& midi, const Snapshot* s, Transport t)
+void Engine::process (juce::AudioBuffer<float>& out, const juce::MidiBuffer& midi, const Snapshot* s, Transport t,
+                      const std::array<juce::AudioBuffer<float>*, 16>& aux, int trackFilter)
 {
     const int n = out.getNumSamples();
     out.clear();
+    for (auto* a : aux) if (a != nullptr) a->clear();
 
     // colpi dal thread dei messaggi
     {
@@ -399,6 +419,7 @@ void Engine::process (juce::AudioBuffer<float>& out, const juce::MidiBuffer& mid
             for (int i = start; i < start + size; ++i)
             {
                 auto e = hitBuf[(size_t) i];
+                if (trackFilter >= 0 && e.v.output != trackFilter) continue;
                 e.time = clock + (juce::int64) (hitDelay[i] * sr);
                 schedule (e);
             }
@@ -415,6 +436,7 @@ void Engine::process (juce::AudioBuffer<float>& out, const juce::MidiBuffer& mid
             if (! msg.isNoteOn()) continue;
             const int row = msg.getNoteNumber() - 36;
             if (row < 0 || row >= (int) s->tracks.size()) continue;
+            if (trackFilter >= 0 && row != trackFilter) continue;
             Event e;
             e.time = clock + meta.samplePosition;
             e.v = s->tracks[(size_t) row].voice;
@@ -440,7 +462,7 @@ void Engine::process (juce::AudioBuffer<float>& out, const juce::MidiBuffer& mid
             const auto pos = s->locate (nextN);
             const double at = pos.valid ? s->stepPpq (pos) : (double) nextN * 0.25;
             if (at >= horizon) break;
-            if (pos.valid) emitStep (*s, pos, t.ppq, pps);
+            if (pos.valid) emitStep (*s, pos, t.ppq, pps, trackFilter);
             ++nextN;
         }
         expectedPpq = t.ppq + n * pps;
@@ -471,11 +493,11 @@ void Engine::process (juce::AudioBuffer<float>& out, const juce::MidiBuffer& mid
     for (const auto& e : due)
     {
         const int at = (int) juce::jlimit<juce::int64> (0, n - 1, e.time - clock);
-        render (out, cursor, at);
+        render (out, cursor, at, aux, trackFilter);
         cursor = at;
         startVoice (e);
     }
-    render (out, cursor, n);
+    render (out, cursor, n, aux, trackFilter);
     clock = end;
 }
 

@@ -83,7 +83,7 @@ th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-sp
 <div class="wrap">
 <header>
   <h1>PATTERN-MACHINE per Mac, Win, Linux</h1>
-  <span class="muted">app desktop · prototipo</span>
+  <span class="muted">app desktop e plug-in per Logic · prototipo</span>
   <a class="back" href="./">&larr; Torna alla drum machine</a>
 </header>
 
@@ -98,8 +98,45 @@ th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-sp
   <p class="muted">La build macOS è per Apple Silicon; Windows e Linux sono build x64. Le tre versioni funzionano offline e includono MIDI virtuale dove il sistema lo supporta.</p>
 </section>
 
+<section id="plugin">
+  <h2>Plug-in per Logic (Audio Unit)</h2>
+  <p>PatternMachine <b>dentro Logic</b>, su una traccia strumento: si apre la finestra del plug-in e c'è la drum machine completa. Premi Play in Logic e i pattern suonano a tempo, dalla battuta giusta, senza clock MIDI da configurare.</p>
+  <div class="get">
+    <span class="tag tested">testato in Logic</span>
+    <a class="dl" id="pluginDl" href="#" download aria-disabled="true">Scarica il plug-in</a>
+    <div class="facts" id="pluginFacts"><span>in preparazione…</span></div>
+  </div>
+
+  <h3>Cosa fa</h3>
+  <ul>
+    <li><b>Sync automatico</b>: Play, Stop, tempo e cambi di tempo arrivano da Logic. Lo step 1 cade sulla battuta 1; segue anche i cicli e i salti sul righello.</li>
+    <li><b>Pattern o Canzone</b>: in Griglia gira il pattern scelto, allineato alle battute; in Sequencer la canzone parte dalla battuta 1 di Logic (nel pre-roll tace) e ricomincia alla fine.</li>
+    <li><b>Audio nel mixer di Logic</b>: effetti, fader, automazione e bounce (anche offline) come per qualsiasi strumento.</li>
+    <li><b>Il progetto si salva dentro il progetto di Logic</b> e suona anche senza aprire la finestra.</li>
+    <li><b>Pad e tastiera MIDI</b>: la nota C1 (36) suona la riga 1, C#1 la riga 2 e così via: i pad di un controller funzionano subito.</li>
+    <li>Tutti i kit, i blocchi per step, la libreria e gli export del sito. Progetti in Musica › PatternMachine › Progetti (gli stessi dell'app), export in Musica › PatternMachine › Export: il pulsante <b>Export ↗</b> accanto al Play apre la cartella.</li>
+  </ul>
+
+  <h3>Installare</h3>
+  <ol>
+    <li>Apri lo zip e copia <b>PatternMachine.component</b> in <code>~/Library/Audio/Plug-Ins/Components</code> (nel Finder: Vai › Vai alla cartella…). Per altre DAW c'è anche <b>PatternMachine.vst3</b>, da copiare in <code>~/Library/Audio/Plug-Ins/VST3</code>.</li>
+    <li>Il plug-in non è notarizzato da Apple: in Terminale esegui <code>xattr -dr com.apple.quarantine ~/Library/Audio/Plug-Ins/Components/PatternMachine.component</code></li>
+    <li>Riapri Logic. Se non lo trovi: <b>Logic Pro › Settings › Plug-in Manager › Reset &amp; Rescan Selection</b>.</li>
+  </ol>
+
+  <h3>Usarlo</h3>
+  <ol>
+    <li><b>Track › New Software Instrument Track</b>.</li>
+    <li>Nel channel strip fai clic sullo slot <b>Instrument</b> e scegli <b>AU Instruments › Tongatron › PatternMachine › Stereo</b>. Conviene rinominare la traccia "PatternMachine".</li>
+    <li>Scrivi il pattern nella finestra del plug-in e premi <b>Play in Logic</b>. Il campo BPM mostra il tempo di Logic; il badge accanto al Play dice <b>Logic ▶ pattern</b> o <b>Logic ▶ canzone</b>.</li>
+    <li>A Logic fermo, il Play della finestra fa un'anteprima al tempo del progetto. Per registrare in audio usa il bounce di Logic; per il MIDI usa Export › MIDI e trascina il file in Logic.</li>
+    <li>Per riaprire la finestra: seleziona la traccia e fai clic sullo slot <b>PatternMac</b>.</li>
+  </ol>
+  <p class="muted">Solo Mac con Apple Silicon (macOS 12 o successivo). Uscita stereo unica, 6 dB sotto il volume del sito per lasciare margine nel mixer. I kit personali importati nell'app non ci sono.</p>
+</section>
+
 <section>
-  <h2>Cosa fa in più del sito</h2>
+  <h2>Cosa fa l'app in più del sito</h2>
   <div class="table-wrap"><table>
     <tr><th>Nel browser</th><th>Nell'app</th></tr>
     <tr><td>Esporti uno zip, lo scompatti, lo importi nella DAW</td><td><b>Trascini</b> il pattern (MIDI o WAV) dall'app direttamente nella timeline della DAW</td></tr>
@@ -154,6 +191,19 @@ th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-sp
   }catch(e){
     links.forEach(link=>{ document.querySelector(`[data-facts="${link.dataset.platform}"]`).replaceChildren(span("app non ancora pubblicata")); });
   }
+})();
+// Plug-in per Logic: la scheda download/plugin.json la scrive plugin/scripts/release.sh.
+(async function(){
+  const link=document.getElementById("pluginDl"), box=document.getElementById("pluginFacts");
+  const span=t=>{ const s=document.createElement("span"); s.textContent=t; return s; };
+  try{
+    const r=await fetch("download/plugin.json",{cache:"no-store"});
+    if(!r.ok) throw new Error(r.status);
+    const p=await r.json();
+    const date=new Date(p.date+"T12:00:00").toLocaleDateString("it-IT",{day:"numeric",month:"long",year:"numeric"});
+    link.href="download/"+encodeURIComponent(p.file)+"?v="+p.sha256.slice(0,12); link.removeAttribute("aria-disabled");
+    box.replaceChildren(span("versione "+p.version),span(Math.round(p.bytes/1048576)+" MB"),span(date),span("AU + VST3 · Apple Silicon"));
+  }catch(e){ box.replaceChildren(span("plug-in non ancora pubblicato")); }
 })();
 </script>
 </body>

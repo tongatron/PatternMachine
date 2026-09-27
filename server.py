@@ -23,6 +23,7 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(ROOT, "data")
 DATA_FILE = os.path.join(DATA_DIR, "patterns.json")
 USERS_FILE = os.environ.get("PATTERNMACHINE_USERS") or os.path.join(DATA_DIR, "users.json")
+APP_MESSAGE_FILE = os.environ.get("PATTERNMACHINE_APP_MESSAGE") or os.path.join(DATA_DIR, "app-message.json")
 MAIL_FILE = os.environ.get("PATTERNMACHINE_MAIL") or os.path.join(ROOT, "mail.json")
 TELEGRAM_FILE = os.environ.get("PATTERNMACHINE_TELEGRAM") or os.path.join(ROOT, "telegram.json")
 
@@ -37,12 +38,17 @@ PATTERN_ID_RE = re.compile(r"^/api/patterns/([A-Za-z0-9\-]+)$")
 
 # Si serve solo cio' che fa parte del sito: server.py, mail.json, data/ e qualunque altro
 # file lasciato nella cartella (backup, appunti) restano fuori.
-STATIC_FILES = {"index.html", "toolkit.html", "funzioni.html", "macchine.html", "app.html", "manifest.json", "sw.js"}
+STATIC_FILES = {"index.html", "funzioni.html", "macchine.html", "app.html", "manifest.json", "sw.js"}
 # download/: l'app per macOS (zip da ~100 MB) e app.json con versione e dimensione, scritti da desktop/scripts/release.sh.
 STATIC_DIRS = ("engine/", "icons/", "samples/", "samples12/", "machines/", "assets/", "download/")
+DOWNLOAD_PLATFORMS = {
+    "PatternMachine-macOS.zip": "macOS",
+    "PatternMachine-Windows.exe": "Windows",
+    "PatternMachine-Linux.AppImage": "Linux",
+}
 
 # Visibili senza password: servono al browser per installare la PWA e alle anteprime dei link.
-OPEN_PATHS = {"/login", "/logout", "/register", "/forgot", "/reset", "/manifest.json", "/assets/og-sp1200.png", "/assets/og-drum-machine-lab.jpg", "/assets/patternmachine-preview.jpg"}
+OPEN_PATHS = {"/login", "/logout", "/register", "/forgot", "/reset", "/manifest.json", "/api/app-message", "/assets/og-sp1200.png", "/assets/og-drum-machine-lab.jpg", "/assets/patternmachine-preview.jpg"}
 OPEN_DIRS = ("/icons/",)
 
 # Dietro la password niente cache condivise (Cloudflare): "private" tiene la copia solo nel
@@ -67,6 +73,8 @@ CONTENT_TYPES = {
     ".json": "application/json; charset=utf-8",
     ".md": "text/markdown; charset=utf-8",
     ".zip": "application/zip",
+    ".exe": "application/vnd.microsoft.portable-executable",
+    ".appimage": "application/octet-stream",
     ".wav": "audio/wav",
     ".mid": "audio/midi",
     ".png": "image/png",
@@ -87,6 +95,47 @@ def load_patterns():
         return []
     with open(DATA_FILE, "r", encoding="utf-8") as f:
         return json.load(f)
+
+
+def load_app_message():
+    """Legge il messaggio breve mostrato dall'app macOS, senza esporre il file sorgente."""
+    try:
+        with open(APP_MESSAGE_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except (OSError, ValueError):
+        return {"show": False}
+    if not isinstance(data, dict):
+        return {"show": False}
+    msg_id = str(data.get("id") or "").strip()[:120]
+    title = str(data.get("title") or "").strip()[:160]
+    message = str(data.get("message") or "").strip()[:2000]
+    target = str(data.get("url") or (SITE_URL + "/app.html")).strip()
+    if data.get("enabled") is False:
+        return {"show": False}
+    base = urlparse(SITE_URL)
+    link = urlparse(target)
+    if not msg_id or not title or not message or link.scheme not in ("http", "https") or link.netloc != base.netloc:
+        return {"show": False}
+    expires = data.get("expires")
+    if expires:
+        try:
+            deadline = datetime.fromisoformat(str(expires).replace("Z", "+00:00"))
+            if deadline.tzinfo is None:
+                deadline = deadline.replace(tzinfo=timezone.utc)
+            if deadline <= datetime.now(timezone.utc):
+                return {"show": False}
+        except ValueError:
+            return {"show": False}
+    return {"show": True, "id": msg_id, "title": title, "message": message, "url": target}
+
+
+def load_app_message_admin():
+    try:
+        with open(APP_MESSAGE_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return data if isinstance(data, dict) else {}
+    except (OSError, ValueError):
+        return {}
 
 
 def save_patterns(patterns):
@@ -132,6 +181,23 @@ def save_users(db):
     with os.fdopen(fd, "w", encoding="utf-8") as f:
         json.dump(db, f, ensure_ascii=False, indent=2)
     os.replace(tmp, USERS_FILE)
+
+
+def record_download(user_id, filename):
+    """Registra un pacchetto scaricato da un utente registrato."""
+    platform = DOWNLOAD_PLATFORMS.get(filename)
+    if not platform:
+        return
+    with USERS_LOCK:
+        db = load_users()
+        user = find_user(db, uid=user_id)
+        if not user or user.get("role") == "guest":
+            return
+        downloads = user.setdefault("downloads", [])
+        downloads.append({"file": filename, "platform": platform, "at": now_iso()})
+        # Mantiene il file utenti compatto anche dopo molti test o reinstallazioni.
+        user["downloads"] = downloads[-200:]
+        save_users(db)
 
 
 def users_secret(db):
@@ -380,6 +446,14 @@ def report_text(fields, account):
     return "\n".join(lines)
 
 
+def registration_text(user):
+    lines = ["Nuovo utente registrato su PatternMachine", f"Nome: {user['name']}"]
+    if user.get("email"):
+        lines.append(f"Email: {user['email']}")
+    lines.append(f"Data: {user.get('created_at', now_iso())}")
+    return "\n".join(lines)
+
+
 def send_report_mail(text):
     admins = [u["email"] for u in load_users().get("users", []) if u.get("role") == "admin" and u.get("email")]
     if not admins or not mail_config():
@@ -388,11 +462,12 @@ def send_report_mail(text):
     return all(send_mail(a, "PatternMachine: segnalazione", text, body) for a in admins)
 
 
-# Pulsante di tongatron.org (tongatron.org/pulsanti, variante E2) con stili in linea, per mail e pagine di accesso.
-TONGATRON_BADGE = ('<a href="https://tongatron.org/" style="display:inline-block;border:1px solid #333;border-radius:6px;'
-                   'padding:6px 10px;color:#111;text-decoration:none;font:14px system-ui,-apple-system,\'Segoe UI\',Helvetica,Arial,sans-serif;">'
-                   '<span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:#ffcc00;'
-                   'vertical-align:-1px;margin-right:10px;"></span>tongatron.org</a>')
+# Logo di tongatron.org in linea, uguale alla pillola gialla della pagina app.
+TONGATRON_BADGE = ('<a href="https://tongatron.org/" style="display:inline-flex;align-items:center;gap:10px;'
+                   'background:#ffcc00;color:#000;padding:5px 12px;border-radius:999px;text-decoration:none;'
+                   'font:700 14px/1.2 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;">'
+                   '<span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:#000;'
+                   'flex-shrink:0;"></span>tongatron.org</a>')
 
 
 def mail_html(title, intro, button_text, button_url, rows=(), outro=""):
@@ -442,7 +517,7 @@ PAGE_SHELL = """<!doctype html>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#e4e2dc">
-<title>PatternMachine — {title}</title>
+<title>PATTERN-MACHINE — {title}</title>
 <meta name="description" content="Drum machine a step con SP-1200, RX-5, 808, 909, 707, 606, CR-78, LinnDrum, DMX e altre: generatore di pattern in decine di stili, variazioni, arrangiamento della canzone ed export MIDI.">
 <!-- Anteprima dei link: chi condivide un link arriva qui (il sito e' dietro accesso), quindi i tag stanno in questa pagina. -->
 <meta property="og:type" content="website">
@@ -478,7 +553,10 @@ label{display:block;font-size:10px;letter-spacing:.08em;text-transform:uppercase
 label .opt{text-transform:none;letter-spacing:0;}
 input{width:100%;font:inherit;font-size:16px;padding:11px 12px;border-radius:8px;border:1px solid var(--edge);
   background:var(--panel-2);color:var(--text);}
+textarea{width:100%;min-height:100px;resize:vertical;font:inherit;font-size:14px;line-height:1.45;padding:11px 12px;border-radius:8px;border:1px solid var(--edge);
+  background:var(--panel-2);color:var(--text);}
 input:focus{outline:2px solid var(--accent);outline-offset:1px;}
+textarea:focus{outline:2px solid var(--accent);outline-offset:1px;}
 button,.btn{display:inline-block;width:100%;margin-top:16px;font:inherit;font-size:14px;font-weight:800;letter-spacing:.12em;
   text-transform:uppercase;padding:12px;border-radius:9px;border:0;background:var(--ok);color:var(--on-ok);cursor:pointer;
   text-align:center;text-decoration:none;}
@@ -675,6 +753,14 @@ class Handler(BaseHTTPRequestHandler):
         """True se la richiesta puo' proseguire; altrimenti ha gia' risposto."""
         if path in OPEN_PATHS or path.startswith(OPEN_DIRS) or self._authorized():
             return True
+        if self.command == "GET" and path.startswith("/download/"):
+            self._page(401, "Download riservato", """<div class="card">
+  <h1>Download riservato</h1>
+  <div class="line"></div>
+  <p>Per scaricare le app devi prima registrarti o accedere al tuo account.</p>
+  <div class="links"><a class="btn" href="/register?next=/app.html">Registrati</a><a class="btn ghost" href="/login?next=/app.html">Accedi</a></div>
+</div>""")
+            return False
         wants_page = self.command == "GET" and (path == "/" or path.endswith(".html")
                                                  or "text/html" in (self.headers.get("Accept") or ""))
         if wants_page:
@@ -737,7 +823,7 @@ class Handler(BaseHTTPRequestHandler):
         nxt = e(safe_next(next_path), quote=True)
         q = "" if safe_next(next_path) == "/" else "?next=" + quote(safe_next(next_path), safe="")
         self._page(status, "Accesso", f"""<form class="card" method="post" action="/login">
-  <h1>PatternMachine</h1>
+  <h1>PATTERN-MACHINE</h1>
   <div class="line"></div>
   {f'<p class="ok">{e(note)}</p>' if note else '<p>Entra con il tuo nome (o la tua email) e la tua password.</p>'}
   <label for="nm">Nome o email</label>
@@ -795,15 +881,15 @@ class Handler(BaseHTTPRequestHandler):
     def _register_page(self, status=200, error="", next_path="/", name="", email=""):
         e = html.escape
         self._page(status, "Registrazione", f"""<form class="card" method="post" action="/register">
-  <h1>PatternMachine</h1>
+  <h1>PATTERN-MACHINE</h1>
   <div class="line"></div>
-  <p>Crea il tuo account. Con la mail ricevi le credenziali e puoi recuperare la password.</p>
   <label for="nm">Nome</label>
   <input id="nm" name="name" autocomplete="username" maxlength="{MAX_USERNAME}" placeholder="Steve" value="{e(name, quote=True)}" autofocus required>
+  <label for="em">Email</label>
+  <input id="em" name="email" type="email" autocomplete="email" placeholder="steve@example.com" value="{e(email, quote=True)}" required>
+  <p style="margin:6px 0 0;font-size:11px;">Con la mail ricevi le credenziali e puoi recuperare la password.</p>
   <label for="pw">Password</label>
   <input id="pw" name="password" type="password" autocomplete="new-password" required>
-  <label for="em">Email <span class="opt">(facoltativa, per il recupero della password)</span></label>
-  <input id="em" name="email" type="email" autocomplete="email" placeholder="steve@example.com" value="{e(email, quote=True)}">
   <input type="hidden" name="next" value="{e(safe_next(next_path), quote=True)}">
   <button type="submit">Registrati</button>
   <div class="err" role="alert">{e(error)}</div>
@@ -820,8 +906,9 @@ class Handler(BaseHTTPRequestHandler):
         name = clean_name(raw_name)
         err = ("Troppe registrazioni da questa rete. Riprova tra qualche minuto." if too_many(ip, "register")
                else f"Il nome deve avere da 1 a {MAX_USERNAME} caratteri." if not name
-               else "Scegli una password." if not password
-               else "Email non valida." if email and not EMAIL_RE.match(email) else "")
+               else "Scrivi la tua email." if not email
+               else "Email non valida." if not EMAIL_RE.match(email)
+               else "Scegli una password." if not password else "")
         if not err:
             with USERS_LOCK:
                 db = load_users()
@@ -837,8 +924,8 @@ class Handler(BaseHTTPRequestHandler):
             self._register_page(400, err, next_path, raw_name.strip(), email)
             return
         note(ip, "register")
-        if email:
-            send_welcome(user, password)
+        send_welcome(user, password)
+        threading.Thread(target=send_telegram, args=(registration_text(user),), daemon=True).start()
         self._redirect(next_path, [self._session_cookie(cookie, SESSION_DAYS * 86400)])
 
     def _forgot_page(self, status=200, error="", done=False):
@@ -852,7 +939,7 @@ class Handler(BaseHTTPRequestHandler):
   <div class="err" role="alert">{e(error)}</div>
   <div class="links"><a href="/login">Torna all'accesso</a></div>""")
         self._page(status, "Password dimenticata", f"""<form class="card" method="post" action="/forgot">
-  <h1>PatternMachine</h1>
+  <h1>PATTERN-MACHINE</h1>
   <div class="line"></div>
   {body}
 </form>""")
@@ -886,14 +973,14 @@ class Handler(BaseHTTPRequestHandler):
         e = html.escape
         if not name:
             self._page(status, "Nuova password", """<div class="card">
-  <h1>PatternMachine</h1>
+  <h1>PATTERN-MACHINE</h1>
   <div class="line"></div>
   <p>Il link non è valido o è scaduto (vale un'ora e si usa una volta sola).</p>
   <a class="btn" href="/forgot">Chiedi un nuovo link</a>
 </div>""")
             return
         self._page(status, "Nuova password", f"""<form class="card" method="post" action="/reset">
-  <h1>PatternMachine</h1>
+  <h1>PATTERN-MACHINE</h1>
   <div class="line"></div>
   <p>Ciao <b>{e(name)}</b>, scegli la nuova password.</p>
   <label for="pw">Nuova password</label>
@@ -930,6 +1017,30 @@ class Handler(BaseHTTPRequestHandler):
         me = self._user()
         with USERS_LOCK:
             users = sorted(load_users()["users"], key=lambda u: u["created_at"])
+        app_msg = load_app_message_admin()
+        app_expires = str(app_msg.get("expires") or "")
+        if app_expires.endswith("Z"):
+            app_expires = app_expires[:-1]
+        app_expires = app_expires[:16] if len(app_expires) >= 16 else app_expires
+        app_status = "attivo" if load_app_message().get("show") else "non attivo"
+        app_section = f"""<div class="card wide" style="margin:0 0 16px;">
+  <h2 style="margin:0 0 4px;font-size:16px;">Messaggio nell'app</h2>
+  <p>Pubblica un avviso che apparirà all'avvio dell'app macOS. Stato attuale: <b>{app_status}</b>.</p>
+  <form method="post" action="/admin/app-message">
+    <label for="app-title">Titolo</label>
+    <input id="app-title" name="title" maxlength="160" value="{e(str(app_msg.get('title') or ''), quote=True)}" required>
+    <label for="app-message">Messaggio</label>
+    <textarea id="app-message" name="message" maxlength="2000" required>{e(str(app_msg.get('message') or ''))}</textarea>
+    <label for="app-url">Link</label>
+    <input id="app-url" name="url" type="url" value="{e(str(app_msg.get('url') or (SITE_URL + '/app.html')), quote=True)}" required>
+    <label for="app-expires">Scadenza <span class="opt">(facoltativa)</span></label>
+    <input id="app-expires" name="expires" type="datetime-local" value="{e(app_expires, quote=True)}">
+    <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;">
+      <input name="enabled" type="checkbox" style="width:auto;margin:0;" {'checked' if app_msg.get('enabled', False) else ''}> Mostra il messaggio nell'app
+    </label>
+    <button type="submit">Pubblica messaggio</button>
+  </form>
+</div>"""
         top = ""
         if confirm:
             top = f"""<div class="card" style="width:100%;margin:0 0 16px;box-shadow:none;">
@@ -946,9 +1057,14 @@ class Handler(BaseHTTPRequestHandler):
                 acts.append(f'<form method="post" action="/admin/reset"><input type="hidden" name="id" value="{e(u["id"], quote=True)}">'
                             f'<button class="ghost small" type="submit">{"Manda reset" if u.get("email") else "Link reset"}</button></form>')
                 acts.append(f'<a class="btn ghost small" href="/admin?elimina={e(u["id"], quote=True)}">Elimina</a>')
+            downloads = u.get("downloads") or []
+            download_html = "<br>".join(
+                f"{e(d.get('platform') or d.get('file') or 'app')} · {e(str(d.get('at') or '')[:16].replace('T', ' '))}"
+                for d in reversed(downloads[-20:])
+            ) or "—"
             rows.append(f"""<tr><td><b>{e(u['name'])}</b> {'<span class="tag">admin</span>' if u.get('role') == 'admin' else ''}</td>
 <td>{e(u.get('email') or '—')}</td><td>{e(u['created_at'][:10])}</td><td>{e((u.get('last_login') or '—')[:10])}</td>
-<td><div class="row-acts">{''.join(acts)}</div></td></tr>""")
+<td style="font-size:12px;line-height:1.5;">{download_html}</td><td><div class="row-acts">{''.join(acts)}</div></td></tr>""")
         msg_html = f'<p class="ok">{e(message)}</p>' if message else ""
         link_html = ("<p>Link per la nuova password (vale un&apos;ora, mandalo tu all&apos;utente):</p>"
                      f"<code>{e(link)}</code>") if link else ""
@@ -957,11 +1073,12 @@ class Handler(BaseHTTPRequestHandler):
   <div class="line"></div>
   {msg_html}{link_html}{top}
   <div class="table-wrap"><table>
-    <tr><th>Nome</th><th>Email</th><th>Registrato</th><th>Ultimo accesso</th><th></th></tr>
+    <tr><th>Nome</th><th>Email</th><th>Registrato</th><th>Ultimo accesso</th><th>App scaricate</th><th></th></tr>
     {''.join(rows)}
   </table></div>
   <div class="links"><a href="/">&larr; Torna a PatternMachine</a><a href="/logout">Esci</a></div>
-</div>""", badge=False)
+</div>
+{app_section}""", badge=False)
 
     def _admin_only(self):
         user = self._user()
@@ -996,6 +1113,46 @@ class Handler(BaseHTTPRequestHandler):
         else:
             self._admin_page(link=f"{SITE_URL}/reset?token={token}")
 
+    def _do_app_message(self):
+        form = self._form()
+        if form is None:
+            return
+        title = " ".join(form.get("title", "").split())[:160]
+        message = form.get("message", "").strip()[:2000]
+        target = form.get("url", "").strip()
+        expires = form.get("expires", "").strip()
+        if not title or not message:
+            self._admin_page(400, "Scrivi un titolo e un messaggio.")
+            return
+        base = urlparse(SITE_URL)
+        link = urlparse(target)
+        if link.scheme not in ("http", "https") or link.netloc != base.netloc:
+            self._admin_page(400, "Il link deve appartenere al sito PatternMachine.")
+            return
+        expires_out = ""
+        if expires:
+            try:
+                deadline = datetime.fromisoformat(expires.replace("Z", "+00:00"))
+                if deadline.tzinfo is None:
+                    deadline = deadline.replace(tzinfo=timezone.utc)
+                expires_out = deadline.astimezone(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
+            except ValueError:
+                self._admin_page(400, "La scadenza non è valida.")
+                return
+        data = {"id": "admin-" + uuid.uuid4().hex, "title": title, "message": message, "url": target,
+                "expires": expires_out, "enabled": form.get("enabled") == "on"}
+        try:
+            os.makedirs(os.path.dirname(APP_MESSAGE_FILE) or ".", exist_ok=True)
+            tmp = APP_MESSAGE_FILE + ".tmp"
+            fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+            with os.fdopen(fd, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+            os.replace(tmp, APP_MESSAGE_FILE)
+        except OSError:
+            self._admin_page(500, "Non riesco a salvare il messaggio sul server.")
+            return
+        self._admin_page(message="Messaggio pubblicato nell'app." if data["enabled"] else "Messaggio disattivato.")
+
     # ---------- file statici ----------
     def _serve_static(self):
         path = unquote(urlparse(self.path).path)
@@ -1007,6 +1164,17 @@ class Handler(BaseHTTPRequestHandler):
                 or not os.path.isfile(full_path)):
             self.send_error(404, "Not found")
             return
+        if rel.startswith("download/") and os.path.basename(rel) in DOWNLOAD_PLATFORMS:
+            user = self._user()
+            if not user or user.get("role") == "guest":
+                self._page(403, "Download riservato", """<div class="card">
+  <h1>Download riservato</h1>
+  <div class="line"></div>
+  <p>Per scaricare le app devi avere un account registrato.</p>
+  <div class="links"><a class="btn" href="/register?next=/app.html">Registrati</a><a class="btn ghost" href="/login?next=/app.html">Accedi</a></div>
+</div>""")
+                return
+            record_download(user["id"], os.path.basename(rel))
         ext = os.path.splitext(full_path)[1].lower()
         size = os.path.getsize(full_path)
         self.send_response(200)
@@ -1057,6 +1225,9 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/api/me":
             u = self._user()
             self._send_json(200, {"name": u["name"], "role": u.get("role", "user"), "email": u.get("email", "")})
+            return
+        if path == "/api/app-message":
+            self._send_json(200, load_app_message())
             return
         if path == "/admin":
             if not self._admin_only():
@@ -1112,6 +1283,10 @@ class Handler(BaseHTTPRequestHandler):
             routes[path]()
             return
         if not self._gate(path):
+            return
+        if path == "/admin/app-message":
+            if self._admin_only():
+                self._do_app_message()
             return
         if path in ("/admin/delete", "/admin/reset"):
             if self._admin_only():

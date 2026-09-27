@@ -1,6 +1,6 @@
 """Test di server.py: python3 tests/server_test.py
 
-Costruisce in una cartella temporanea la stessa struttura del server (site/ + toolkit + server.py,
+Costruisce in una cartella temporanea la stessa struttura del server (site/ + server.py,
 dati di prova, un backup e un file nascosto), crea l'admin di prova con scripts/add-user.py, avvia
 il server in un thread e verifica accesso, registrazione, mail (scritte in una cartella invece che
 spedite), reset della password, pannello admin, file pubblici, cache e protezioni dell'API.
@@ -35,18 +35,21 @@ def build_stage():
     (stage / "download").mkdir()
     (stage / "download" / "PatternMachine-macOS.zip").write_bytes(FAKE_ZIP)
     (stage / "download" / "app.json").write_text(json.dumps({"file": "PatternMachine-macOS.zip", "bytes": len(FAKE_ZIP)}))
-    shutil.copy(HERE / "index.html", stage / "toolkit.html")
     shutil.copy(HERE / "server.py", stage / "server.py")
     shutil.copy(HERE / "scripts" / "add-user.py", stage / "add-user.py")
     (stage / "data").mkdir()
     (stage / "data" / "patterns.json").write_text(json.dumps([{
         "id": "abc", "name": "prova", "text": "PATTERNTXT 1.0",
         "created_at": "2026-01-01T00:00:00+00:00", "updated_at": "2026-01-01T00:00:00+00:00"}]))
+    (stage / "data" / "app-message.json").write_text(json.dumps({
+        "id": "test-message", "title": "Nuova versione", "message": "Scarica la nuova app.",
+        "url": "https://patternmachine.tongatron.org/app.html", "expires": "2099-01-01T00:00:00Z"}))
     (stage / "backup-index-x.html").write_text("backup")
     (stage / ".env").write_text("x")
     os.environ.update({"PATTERNMACHINE_USERS": str(stage / "data" / "users.json"),
                        "PATTERNMACHINE_MAIL": str(stage / "mail.json"),
                        "PATTERNMACHINE_MAIL_OUTBOX": str(stage / "outbox"),
+                       "PATTERNMACHINE_TELEGRAM_OUTBOX": str(stage / "telegram-outbox"),
                        "PATTERNMACHINE_PBKDF2_ITER": "2000"})
     subprocess.run([sys.executable, str(stage / "add-user.py"), ADMIN, "--admin", "--stdin"], input=TEST_PASSWORD,
                    text=True, check=True, capture_output=True, env=os.environ)
@@ -61,6 +64,11 @@ def outbox(stage):
         m = message_from_bytes(f.read_bytes(), policy=policy.default)
         out.append((m["To"], m["Subject"], m.get_body(("plain",)).get_content(), m.get_body(("html",)).get_content()))
     return out
+
+
+def telegram_outbox(stage):
+    time.sleep(0.2)
+    return [f.read_text() for f in sorted((stage / "telegram-outbox").glob("*.txt"))]
 
 
 def start(stage):
@@ -136,6 +144,9 @@ def main():
         check("pagina di accesso con og:image", 'property="og:image" content="https://patternmachine.tongatron.org/assets/og-drum-machine-lab.jpg"' in login_html, True)
         check("pagina di accesso con og:title", 'property="og:title"' in login_html, True)
         check("anonimo /api/me", anon.call("/api/me")[0], 401)
+        s, _, body = anon.call("/api/app-message")
+        app_message = json.loads(body)
+        check("messaggio app pubblico", (s, app_message.get("show"), app_message.get("id")), (200, True, "test-message"))
         check("anonimo /admin -> login", anon.call("/admin", headers={"Accept": "text/html"})[0], 303)
         check("anonimo POST api", anon.call("/api/patterns", "POST", {"text": "t"}, same)[0], 401)
         check("anonimo DELETE api", anon.call("/api/patterns/abc", "DELETE", None, same)[0], 401)
@@ -181,11 +192,24 @@ def main():
         check("mail di benvenuto", [(m[0], m[1]) for m in mails], [("mario@example.com", "Benvenuto su PatternMachine")])
         check("benvenuto con credenziali e pulsante", ("Mario Rossi" in mails[0][3], "Password" in mails[0][3], ">x<" in mails[0][3],
               'href="https://patternmachine.tongatron.org/login"' in mails[0][3]), (True, True, True, True))
-        check("nome doppio (maiuscole diverse)", anon.call("/register", "POST", form={"name": "mario rossi", "password": "y"}, headers=same)[0], 400)
+        telegrams = telegram_outbox(stage)
+        check("notifica Telegram nuova registrazione", len(telegrams), 1)
+        check("contenuto notifica Telegram", ("Nuovo utente registrato" in telegrams[0], "Mario Rossi" in telegrams[0],
+              "mario@example.com" in telegrams[0], "Password" not in telegrams[0]), (True, True, True, True))
+        check("nome doppio (maiuscole diverse)", anon.call("/register", "POST", form={"name": "mario rossi", "password": "y", "email": "m2@example.com"}, headers=same)[0], 400)
         check("email non valida", anon.call("/register", "POST", form={"name": "Luca", "password": "y", "email": "no"}, headers=same)[0], 400)
-        check("password vuota", anon.call("/register", "POST", form={"name": "Luca", "password": ""}, headers=same)[0], 400)
+        check("password vuota", anon.call("/register", "POST", form={"name": "Luca", "password": "", "email": "luca@example.com"}, headers=same)[0], 400)
         s, h, _ = Client(port).call("/register", "POST", form={"name": "Senza Mail", "password": "z"}, headers=same)
-        check("registrazione senza mail: nessuna mail", (s, len(outbox(stage))), (303, 1))
+        check("registrazione senza mail rifiutata", (s, "set-cookie" in h, len(outbox(stage))), (400, False, 1))
+        reg = anon.call("/register")[2].decode()
+        check("modulo: nome, poi email obbligatoria, poi password", (reg.index('id="nm"') < reg.index('id="em"') < reg.index('id="pw"'),
+              'type="email" autocomplete="email" placeholder="steve@example.com" value="" required' in reg, "Crea il tuo account" not in reg,
+              "<h1>PATTERN-MACHINE</h1>" in reg), (True, True, True, True))
+        # account creato prima che la mail fosse obbligatoria: si registra e poi si toglie la mail
+        Client(port).call("/register", "POST", form={"name": "Senza Mail", "password": "z", "email": "vecchio@example.com"}, headers=same)
+        db = json.loads(users_file.read_text())
+        next(u for u in db["users"] if u["name"] == "Senza Mail")["email"] = ""
+        users_file.write_text(json.dumps(db))
         check("utente normale: niente /admin", mario.call("/admin")[0], 403)
         check("utente normale: niente azioni admin", mario.call("/admin/delete", "POST", form={"id": "x"}, headers=same)[0], 403)
         check("registrazione da altro sito", anon.call("/register", "POST", form={"name": "Z", "password": "z"},
@@ -202,6 +226,7 @@ def main():
         check("ospite -> dentro", (s, h.get("location"), "set-cookie" in h), (303, "/toolkit.html", True))
         guest.cookie = h["set-cookie"].split(";")[0]
         check("ospite vede il sito", guest.call("/")[0], 200)
+        check("ospite non scarica app", guest.call("/download/PatternMachine-macOS.zip")[0], 403)
         check("/api/me ospite", json.loads(guest.call("/api/me")[2])["role"], "guest")
         check("ospite non salva pattern", guest.call("/api/patterns", "POST", {"name": "n", "text": "t"}, same)[0], 403)
         check("ospite non entra in /admin", guest.call("/admin")[0], 403)
@@ -213,10 +238,10 @@ def main():
 
         # --- password dimenticata e reset ---
         check("forgot: stessa risposta per chi non esiste", anon.call("/forgot", "POST", form={"who": "fantasma"}, headers={**same, "CF-Connecting-IP": "198.51.100.1"})[0], 200)
-        check("forgot senza mail nell'account: nessuna mail", (anon.call("/forgot", "POST", form={"who": "Senza Mail"}, headers={**same, "CF-Connecting-IP": "198.51.100.1"})[0], len(outbox(stage))), (200, 1))
+        check("forgot senza mail nell'account: nessuna mail", (anon.call("/forgot", "POST", form={"who": "Senza Mail"}, headers={**same, "CF-Connecting-IP": "198.51.100.1"})[0], len(outbox(stage))), (200, 2))
         anon.call("/forgot", "POST", form={"who": "MARIO@example.com"}, headers={**same, "CF-Connecting-IP": "198.51.100.1"})
         mails = outbox(stage)
-        check("mail di reset", (len(mails), mails[-1][0], mails[-1][1]), (2, "mario@example.com", "PatternMachine: nuova password"))
+        check("mail di reset", (len(mails), mails[-1][0], mails[-1][1]), (3, "mario@example.com", "PatternMachine: nuova password"))
         link = next(w for w in mails[-1][2].split() if "/reset?token=" in w)
         path = link.replace("https://patternmachine.tongatron.org", "")
         token = path.split("token=")[1]
@@ -238,6 +263,15 @@ def main():
         # --- pannello admin ---
         s, _, body = user.call("/admin")
         check("admin vede gli utenti", (s, b"Mario Rossi" in body, b"Senza Mail" in body), (200, True, True))
+        check("admin vede editor messaggio app", b"Messaggio nell'app" in body and b"Pubblica messaggio" in body, True)
+        message_form = {"title": "Aggiornamento PatternMachine", "message": "Scarica la nuova versione.",
+                        "url": "https://patternmachine.tongatron.org/app.html", "expires": "2099-01-01T12:00", "enabled": "on"}
+        s, _, body = user.call("/admin/app-message", "POST", form=message_form, headers=same)
+        saved_message = json.loads((stage / "data" / "app-message.json").read_text())
+        check("admin pubblica messaggio app", (s, b"Messaggio pubblicato" in body, saved_message["title"], saved_message["enabled"]),
+              (200, True, "Aggiornamento PatternMachine", True))
+        check("messaggio app aggiornato", json.loads(anon.call("/api/app-message")[2])["title"], "Aggiornamento PatternMachine")
+        check("utente normale: niente messaggi app", mario.call("/admin/app-message", "POST", form=message_form, headers=same)[0], 403)
         db = json.loads(users_file.read_text())
         uid = {u["name"]: u["id"] for u in db["users"]}
         before = len(outbox(stage))
@@ -255,15 +289,21 @@ def main():
                                                  headers={"Sec-Fetch-Site": "cross-site"})[0], 403)
 
         # --- con sessione ---
-        for path in ["/", "/toolkit.html", "/engine/core.js?v=1", "/samples/Kick%201%20SP-1200.wav",
+        for path in ["/", "/engine/core.js?v=1", "/samples/Kick%201%20SP-1200.wav",
                      "/icons/icon-192.png", "/sw.js", "/manifest.json", "/api/patterns", "/machines/rx5/BDrum1-RX5.wav"]:
             check("loggato " + path, user.call(path)[0], 200)
+        check("pagina toolkit rimossa", user.call("/toolkit.html")[0], 404)
         for path in ["/server.py", "/mail.json", "/add-user.py", "/data/users.json", "/data/patterns.json", "/backup-index-x.html",
                      "/.env", "/engine/../server.py", "/samples/../data/patterns.json", "/nope.html"]:
             check("nascosto anche da loggato " + path, user.call(path)[0], 404)
         s, h, body = user.call("/download/PatternMachine-macOS.zip?v=abc")
         check("zip app: intero, a pezzi", (s, h.get("content-length"), body == FAKE_ZIP), (200, str(len(FAKE_ZIP)), True))
         check("zip app: tipo", h.get("content-type"), "application/zip")
+        db_after_download = json.loads(users_file.read_text())
+        admin_downloads = next(u for u in db_after_download["users"] if u["name"] == ADMIN).get("downloads", [])
+        check("download registrato per utente", (admin_downloads[-1]["platform"], admin_downloads[-1]["file"]),
+              ("macOS", "PatternMachine-macOS.zip"))
+        check("admin vede app scaricate", b"App scaricate" in user.call("/admin")[2] and b"macOS" in user.call("/admin")[2], True)
         check("pagina app", user.call("/app.html")[0], 200)
         check("scheda app non in cache", user.call("/download/app.json")[1].get("cache-control"), "private, no-cache")
         check("cache html privata", user.call("/")[1].get("cache-control"), "private, no-cache")
@@ -286,6 +326,7 @@ def main():
         check("dati integri", [p["id"] for p in json.loads(user.call("/api/patterns")[2])], ["abc"])
 
         # --- segnalazioni ("Segnala un problema"): Telegram, altrimenti 503 se non c'e' niente di configurato ---
+        del os.environ["PATTERNMACHINE_TELEGRAM_OUTBOX"]
         rep = {**same, "CF-Connecting-IP": "203.0.113.20"}
         msg = {"name": "Steve", "email": "steve@example.com", "message": "il play non parte", "page": "/", "info": "Chrome"}
         check("segnalazione senza bot ne' mail dell'admin", user.call("/api/report", "POST", msg, rep)[0], 503)

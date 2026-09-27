@@ -1043,19 +1043,19 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-27.05"></script>
-<script src="engine/styles-punk.js?v=2026-09-27.05"></script>
-<script src="engine/styles-post.js?v=2026-09-27.05"></script>
-<script src="engine/styles-machines.js?v=2026-09-27.05"></script>
-<script src="engine/styles-alt.js?v=2026-09-27.05"></script>
-<script src="engine/styles-groove.js?v=2026-09-27.05"></script>
-<script src="engine/styles-dub.js?v=2026-09-27.05"></script>
-<script src="engine/styles-break.js?v=2026-09-27.05"></script>
-<script src="engine/styles-soul.js?v=2026-09-27.05"></script>
-<script src="engine/styles-metal.js?v=2026-09-27.05"></script>
-<script src="engine/styles-electro.js?v=2026-09-27.05"></script>
-<script src="engine/variations.js?v=2026-09-27.05"></script>
-<script src="engine/import.js?v=2026-09-27.05"></script>
+<script src="engine/core.js?v=2026-09-27.06"></script>
+<script src="engine/styles-punk.js?v=2026-09-27.06"></script>
+<script src="engine/styles-post.js?v=2026-09-27.06"></script>
+<script src="engine/styles-machines.js?v=2026-09-27.06"></script>
+<script src="engine/styles-alt.js?v=2026-09-27.06"></script>
+<script src="engine/styles-groove.js?v=2026-09-27.06"></script>
+<script src="engine/styles-dub.js?v=2026-09-27.06"></script>
+<script src="engine/styles-break.js?v=2026-09-27.06"></script>
+<script src="engine/styles-soul.js?v=2026-09-27.06"></script>
+<script src="engine/styles-metal.js?v=2026-09-27.06"></script>
+<script src="engine/styles-electro.js?v=2026-09-27.06"></script>
+<script src="engine/variations.js?v=2026-09-27.06"></script>
+<script src="engine/import.js?v=2026-09-27.06"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -3119,8 +3119,39 @@ async function exportWav(which){
   }
 }
 
-// MP3: preferisce WebCodecs (disponibile nei browser che espongono il codec MP3);
-// come fallback usa MediaRecorder quando il browser dichiara di saper produrre audio/mpeg.
+// MP3: WebCodecs se il browser espone l'encoder MP3 (oggi quasi nessuno), altrimenti lamejs
+// (engine/lame.min.js, port di LAME), caricato al primo export: funziona in ogni browser,
+// offline e nell'app per Mac, senza aspettare la durata del brano.
+let lameLoading=null;
+function loadLame(){
+  if(window.lamejs) return Promise.resolve(window.lamejs);
+  return lameLoading ||= new Promise((resolve,reject)=>{
+    const s=document.createElement("script");
+    s.src="engine/lame.min.js?v="+SW_VERSION;
+    s.onload=()=>window.lamejs?resolve(window.lamejs):reject(new Error("encoder MP3 non caricato"));
+    s.onerror=()=>{ lameLoading=null; s.remove(); reject(new Error("encoder MP3 non caricato")); };
+    document.head.appendChild(s);
+  });
+}
+async function encodeMp3Lame(chans, frames, rate, gain){
+  const lame=await loadLame();
+  const enc=new lame.Mp3Encoder(2, rate, 192), parts=[], block=1152*20;
+  const toPcm=(src,start,n)=>{
+    const out=new Int16Array(n);
+    for(let i=0;i<n;i++){ const v=Math.max(-1,Math.min(1,src[start+i]*gain)); out[i]=v<0?v*0x8000:v*0x7fff; }
+    return out;
+  };
+  for(let start=0;start<frames;start+=block){
+    const n=Math.min(block,frames-start);
+    const out=enc.encodeBuffer(toPcm(chans[0],start,n), toPcm(chans[1],start,n));
+    if(out.length) parts.push(out);
+    // una canzone lunga richiede qualche secondo: si lascia respirare l'interfaccia
+    if(start%(block*20)===0) await new Promise(r=>setTimeout(r,0));
+  }
+  const end=enc.flush();
+  if(end.length) parts.push(end);
+  return new Blob(parts,{type:"audio/mpeg"});
+}
 async function encodeMp3(buf, gain){
   const chans=[0,1].map(c=>buf.getChannelData(Math.min(c,buf.numberOfChannels-1)));
   const frames=buf.length, rate=buf.sampleRate, chunks=[];
@@ -3153,25 +3184,9 @@ async function encodeMp3(buf, gain){
         await encoder.flush(); encoder.close();
         if(chunks.length) return new Blob(chunks,{type:"audio/mpeg"});
       }
-    }catch(e){ /* passa al fallback del browser */ }
+    }catch(e){ /* passa a lamejs */ }
   }
-  const mime=["audio/mpeg","audio/mp3"].find(x=>window.MediaRecorder?.isTypeSupported?.(x));
-  if(!mime) throw new Error("mp3 non supportato da questo browser");
-  const ctx=actx(), dest=ctx.createMediaStreamDestination(), source=ctx.createBufferSource();
-  const level=ctx.createGain(); level.gain.value=gain;
-  source.buffer=buf; source.connect(level).connect(dest);
-  const parts=[];
-  const recorder=new MediaRecorder(dest.stream,{mimeType:mime,audioBitsPerSecond:192000});
-  const done=new Promise((resolve,reject)=>{
-    recorder.ondataavailable=e=>{ if(e.data.size) parts.push(e.data); };
-    recorder.onerror=()=>reject(new Error("encoder MP3 non riuscito"));
-    recorder.onstop=()=>resolve();
-  });
-  recorder.start(); source.start();
-  await new Promise(resolve=>setTimeout(resolve,Math.ceil(buf.duration*1000)+150));
-  recorder.stop();
-  await done;
-  return new Blob(parts,{type:mime});
+  return encodeMp3Lame(chans, frames, rate, gain);
 }
 
 let mp3Busy=false;
@@ -3191,7 +3206,7 @@ async function exportMp3(which){
     setStatus(`MP3 esportato (${fmtClock(seconds)}, 192 kbps)`);
   }catch(e){
     setStatus(e?.message==="vuoto"?"niente da esportare: il pattern e' vuoto o tutto in mute":
-      e?.message==="mp3 non supportato da questo browser"?"questo browser non supporta l'export MP3: usa WAV o un browser Chromium aggiornato":"render MP3 non riuscito","err");
+      e?.message==="encoder MP3 non caricato"?"encoder MP3 non caricato: controlla la connessione e riprova, oppure usa WAV":"render MP3 non riuscito","err");
   }finally{
     mp3Busy=false;
     btns.forEach(b=>b.disabled=false);
@@ -4395,7 +4410,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-27.05";
+const SW_VERSION="2026-09-27.06";
 (function pwa(){
   const standalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
   const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);

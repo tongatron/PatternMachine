@@ -1,211 +1,184 @@
-<div align="center">
+# PATTERN-MACHINE
 
-# P A T T E R N — M A C H I N E
+**A step drum machine with classic vintage machines, a pattern generator, a song arranger and export to any DAW.**
+Runs in the browser, as a desktop app for macOS, Windows and Linux, and as a plug-in inside Logic Pro.
 
-**Drum machine a step con le macchine storiche, generatore di pattern e canzoni, export per ogni DAW.**
-Nel browser, come app per macOS / Windows / Linux e come plug-in dentro Logic Pro.
-
-[**▶ Apri il sito**](https://patternmachine.tongatron.org) ·
-[App desktop](https://patternmachine.tongatron.org/app.html) ·
-[Plug-in Logic](https://patternmachine.tongatron.org/plugin.html) ·
-[Istruzioni](https://patternmachine.tongatron.org/funzioni.html) ·
-[Le macchine](https://patternmachine.tongatron.org/macchine.html)
+**Website:** [patternmachine.tongatron.org](https://patternmachine.tongatron.org) ·
+[Desktop app](https://patternmachine.tongatron.org/app.html) ·
+[Logic plug-in](https://patternmachine.tongatron.org/plugin.html) ·
+[Guide](https://patternmachine.tongatron.org/funzioni.html) ·
+[The machines](https://patternmachine.tongatron.org/macchine.html)
 
 ![Web](https://img.shields.io/badge/web-PWA-c8471f)
 ![macOS](https://img.shields.io/badge/macOS-Apple%20Silicon-1c1b19)
 ![Windows](https://img.shields.io/badge/Windows-x64-1c1b19)
 ![Linux](https://img.shields.io/badge/Linux-AppImage-1c1b19)
 ![Logic Pro](https://img.shields.io/badge/Logic%20Pro-AU%20%2F%20VST3-c8471f)
-![MIDI](https://img.shields.io/badge/MIDI-porta%20virtuale%20%2B%20clock-3a3833)
+![MIDI](https://img.shields.io/badge/MIDI-virtual%20port%20%2B%20clock-3a3833)
 
-![PATTERN-MACHINE, griglia con la TR-808](docs/screenshots/griglia.jpg)
+![PATTERN-MACHINE step grid with a TR-808](docs/screenshots/griglia.jpg)
 
-</div>
+> The interface is in Italian.
 
----
+## Contents
 
-## Cos'è
+- [Overview](#overview)
+- [Features](#features)
+- [Desktop app](#desktop-app-macos-windows-linux)
+- [Logic Pro plug-in](#logic-pro-plug-in-au--vst3)
+- [MIDI and DAW integration](#midi-and-daw-integration)
+- [Screenshots](#screenshots)
+- [Repository layout](#repository-layout)
+- [Credits](#credits)
 
-PATTERN-MACHINE è una drum machine a step ispirata al pannello della **E-mu SP-1200**. Scegli una macchina, fai generare un
-ritmo nello stile che vuoi, modificalo step per step, mettilo in fila in una canzone e portalo nella tua DAW come MIDI, WAV,
-MP3 o pacchetto pronto per Logic, Ableton Live o REAPER.
+## Overview
 
-Esiste in tre forme, con la stessa interfaccia:
+PATTERN-MACHINE is a step drum machine styled after the front panel of the **E-mu SP-1200**. Pick a machine, generate a
+beat in the style you want, edit it step by step, chain patterns into a song and take it to your DAW as MIDI, WAV, MP3
+or a ready-made project folder.
 
-| | Dove gira | Cosa aggiunge |
+It comes in three forms that share the same interface:
+
+| | Runs on | Adds |
 |---|---|---|
-| 🌐 **Sito / PWA** | qualsiasi browser, anche su telefono | nessuna installazione, si installa come web app |
-| 🖥️ **App desktop** | macOS, Windows, Linux (Electron) | porta MIDI virtuale, sync al MIDI Clock della DAW, drag & drop di MIDI/WAV nella timeline, progetti su file, offline |
-| 🎛️ **Plug-in Logic** | Logic Pro (AU) e altre DAW (VST3) | suona dentro la traccia, a tempo e al campione con il trasporto della DAW, stato salvato nel progetto |
+| 🌐 **Website / PWA** | any modern browser, including phones | nothing to install; can be installed as a web app |
+| 🖥️ **Desktop app** | macOS, Windows, Linux | virtual MIDI port, sync to the DAW's MIDI Clock, drag-and-drop into the DAW timeline, projects as files, offline use, custom sample kits |
+| 🎛️ **Logic plug-in** | Logic Pro (AU) and other hosts (VST3) | plays inside an instrument track, sample-accurate with the host transport, state saved with the Logic project |
 
-## Funzioni
+## Features
 
-### 🥁 Macchine storiche
-E-mu **SP-1200** (16 bit e **12 bit** originali), Yamaha **RX-5**, Roland **TR-808**, **TR-909**, **TR-707**, **TR-727**,
-**TR-606**, **CR-78**, **CR-8000**, Linn **LinnDrum**, Oberheim **DMX**, E-mu **Drumulator**, Sequential **DrumTraks**,
-Simmons **SDS-V**. Cambiando macchina ogni riga passa al suono equivalente. Accanto al selettore ci sono anno, costruttore e dati
-tecnici, e la pagina [Le macchine](https://patternmachine.tongatron.org/macchine.html) racconta la storia di ognuna con foto e link a Wikipedia.
+### Classic machines
+E-mu **SP-1200** (16-bit and the original **12-bit** samples), Yamaha **RX-5**, Roland **TR-808**, **TR-909**, **TR-707**,
+**TR-727**, **TR-606**, **CR-78**, **CR-8000**, Linn **LinnDrum**, Oberheim **DMX**, E-mu **Drumulator**, Sequential
+**DrumTraks** and Simmons **SDS-V**.
+Switching machine maps every row to the closest sound. Each machine shows its maker, year and specs, and the
+[machines page](https://patternmachine.tongatron.org/macchine.html) covers the history of each one with photos and Wikipedia links.
 
-### 🧠 Generatore di pattern
-- **67 stili** in dieci famiglie: punk, post-punk, drum machine classiche, alternative, hip hop / dance / latin, reggae / dub, breakbeat / DnB, soul / disco / afro, rock pesante / metal, elettronica / club.
-- **Variazioni** di un pattern con un click, **fill** automatici e una libreria che propone 8 pattern a ogni cambio di stile.
-- Import di pattern da testo ([PatternTXT](PATTERNTXT-SPEC.md)) e da MIDI.
+### Pattern generator
+- **67 styles** in 10 families: punk, post-punk, classic drum machines, alternative, hip hop / dance / latin, reggae / dub, breakbeat / DnB, soul / disco / afro, heavy rock / metal, electronic / club.
+- One-click **variations**, automatic **fills** and a library that suggests 8 patterns whenever you change style.
+- Import patterns from text ([PatternTXT format](PATTERNTXT-SPEC.md)) or MIDI.
 
-### 🎚️ Griglia e step
-- 8, 16 o 32 step, BPM 40–240, **swing**, **umanizza**, nudge per traccia, poliritmi, gruppi choke.
-- Ogni colpo può essere normale, **accento** o **nota fantasma**.
-- Per singolo step: **probabilità**, **ripetizioni** (ratchet), **flam**, **intonazione**, **decay** e **filtro**.
-- **Rec** dal vivo con i pad o la tastiera (`1 2 3 4 · Q W E R · A S D F · Z X C V`), annulla / ripristina fino a 80 passi.
-- **Metronomo** attivabile anche a trasporto fermo, per suonare sopra al click senza una base.
+### Step grid
+- 8, 16 or 32 steps, 40–240 BPM, **swing**, **humanize**, per-track nudge, polyrhythms, choke groups.
+- Every hit can be normal, **accent** or **ghost note**.
+- Per-step **probability**, **ratchets**, **flam**, **pitch**, **decay** and **filter**.
+- Live **recording** from the pads or the keyboard (`1 2 3 4 · Q W E R · A S D F · Z X C V`), 80 levels of undo.
+- **Metronome** that also runs with the transport stopped, so you can play along to a click without a beat.
 
-### 🎼 Canzone
-Il sequencer mette in fila i pattern come blocchi (strofa, ritornello, fill…), ognuno con le sue ripetizioni. Si trascinano per
-riordinarli, si parte da un punto qualsiasi della timeline e si può mettere un blocco in solo.
+### Song mode
+Chain patterns into blocks (verse, chorus, fill…), each with its own repeats. Drag blocks to reorder them, start playback
+from any point on the timeline or solo a single block.
 
-### 🔈 Vista "Solo suono"
-Solo la griglia dei beat e Play / Stop, senza il resto dell'interfaccia. Pensata per suonare, provare e registrare.
+### "Solo suono" (sound only) view
+Just the beat grid and Play / Stop, nothing else: made for playing, rehearsing and recording.
 
-<p align="center"><img src="docs/screenshots/solo-suono.jpg" alt="Vista Solo suono" width="49%"> <img src="docs/screenshots/sequencer.jpg" alt="Sequencer della canzone" width="49%"></p>
-
-### 📦 Export
-| Formato | Contenuto |
+### Export
+| Format | What you get |
 |---|---|
-| **MIDI** pattern / canzone | General MIDI (36 cassa, 38 rullante, 42/46 hi-hat) oppure mappa del kit SP-1200 di Logic; include tempo, swing e ripetizioni |
-| **WAV** e **stem** | mix e tracce separate, già allineate alla battuta 1 |
-| **MP3** | per ascoltare e condividere, in ogni browser |
-| **Pacchetto DAW** | cartella pronta per Logic Pro, Ableton Live, REAPER e altre DAW |
-| **Progetto / link** | JSON del progetto e link condivisibile |
+| **MIDI** (pattern or song) | General MIDI (36 kick, 38 snare, 42/46 hi-hats) or the Logic SP-1200 kit mapping; tempo, swing and ratchets included |
+| **WAV** and **stems** | full mix and separate tracks, aligned to bar 1 |
+| **MP3** | for listening and sharing, works in every browser |
+| **DAW package** | a folder ready for Logic Pro, Ableton Live, REAPER and other DAWs |
+| **Project / link** | project JSON and a shareable link |
 
-### 🌗 Tema chiaro e scuro, telefono e desktop
-<p align="center"><img src="docs/screenshots/tema-scuro.jpg" alt="Tema scuro" width="72%"> <img src="docs/screenshots/mobile.jpg" alt="Su telefono" width="22%"></p>
+## Desktop app (macOS, Windows, Linux)
 
----
+Download it from the [app page](https://patternmachine.tongatron.org/app.html) (requires a site account).
 
-## 🖥️ App per macOS, Windows e Linux
-
-Scaricabile dalla pagina [App per Mac, Win, Linux](https://patternmachine.tongatron.org/app.html) (dietro l'accesso al sito).
-
-| Nel browser | Nell'app |
+| In the browser | In the app |
 |---|---|
-| Esporti uno zip e lo importi nella DAW | **Trascini** `⠿ MIDI` o `⠿ WAV` direttamente nella timeline |
-| Niente MIDI dal vivo | **Porta MIDI virtuale "PatternMachine"**: i pattern suonano Drum Kit Designer, Drum Machine Designer o qualsiasi strumento; i pad si registrano nella DAW |
-| Play e BPM a mano | **Segue il MIDI Clock della DAW**: Play, Stop, Continua, cicli e tempo |
-| Progetti nel browser | Progetti come **file** in `~/Music/PatternMachine/Progetti`, export in `~/Music/PatternMachine/Export` |
-| Serve la rete | Tutto in locale, anche offline, con **tutti** i suoni (anche i kit estratti da Logic) |
+| Export a zip, unzip it, import it into the DAW | **Drag** `⠿ MIDI` or `⠿ WAV` straight onto the DAW timeline |
+| No live MIDI output | **Virtual MIDI port "PatternMachine"**: patterns play Drum Kit Designer, Drum Machine Designer or any instrument, and pad hits can be recorded in the DAW |
+| Play and tempo set by hand | **Follows the DAW's MIDI Clock**: play, stop, continue, cycles and tempo |
+| Projects stored in the browser | Projects as **files** in `~/Music/PatternMachine/Progetti`, exports in `~/Music/PatternMachine/Export` |
+| Needs a network connection | Works fully offline, with **all** the sounds |
 
-Si possono anche **importare drum machine proprie** da una cartella o da uno zip di campioni (WAV, AIFF, MP3, OGG, FLAC, M4A).
+You can also **import your own drum machines** from a folder or zip of samples (WAV, AIFF, MP3, OGG, FLAC, M4A).
 
-<p align="center"><img src="docs/screenshots/app.jpg" alt="Pagina di download dell'app" width="80%"></p>
-
-## 🎛️ Plug-in per Logic Pro (AU / VST3)
-
-PATTERN-MACHINE dentro Logic, su una traccia strumento: si preme Play in Logic e i pattern suonano a tempo, dalla battuta
-giusta, senza clock MIDI da configurare. Motore in C++ (JUCE 8) sincronizzato al campione con il PPQ della DAW, interfaccia
-web nel plug-in, stato salvato nel progetto di Logic, bounce offline, note MIDI in ingresso sui pad e **più istanze con una
-riga ciascuna** per avere cassa, rullante e hi-hat su canali separati del mixer.
-
-Dettagli e build: [`plugin/README.md`](plugin/README.md).
-
-<p align="center"><img src="docs/screenshots/plugin-logic.jpg" alt="Pagina del plug-in Logic" width="80%"></p>
-
-## 🎹 MIDI e DAW
-
-La porta virtuale **PatternMachine** dell'app funziona con Logic Pro, Ableton Live, REAPER, FL Studio, Cubase, Bitwig,
-Studio One e con le altre DAW che gestiscono le porte MIDI del sistema.
-
-| Per… | Usa |
-|---|---|
-| suonare gli strumenti della DAW | app → **Uscita MIDI** (canale 10 o un canale per riga) |
-| seguire tempo e trasporto della DAW | DAW → invio **MIDI Clock** (+ Start/Stop, Song Position) verso *PatternMachine*, app → **Segui il clock della DAW** |
-| suonare dentro la traccia, al campione | **plug-in** AU / VST3 |
-| lavorare offline | export **MIDI General MIDI**, **WAV** o **stem** |
-
-Le impostazioni passo per passo per ogni DAW sono nella pagina [Istruzioni](https://patternmachine.tongatron.org/funzioni.html).
-
-<p align="center"><img src="docs/screenshots/macchine.jpg" alt="La pagina Le macchine" width="80%"></p>
-
----
-
-## Per sviluppatori
-
-### Struttura
-
-| Percorso | Cosa contiene |
-|---|---|
-| `site/` | il sito: `index.html`, motore ritmico in `site/engine/` (core, variazioni e arrangiamento, schede degli stili), PWA (`sw.js`, `manifest.json`, `icons/`), campioni (`samples`, `samples12`) e macchine in `machines/` |
-| `desktop/` | app Electron per macOS, Windows e Linux ([README](desktop/README.md)) |
-| `plugin/` | plug-in AU / VST3 in JUCE 8 ([README](plugin/README.md)) |
-| `server.py` | server statico + API (account, pattern) |
-| `scripts/` | deploy ed estrazione dei kit da Logic |
-| `tests/` | test del motore, del sito e del server |
-| `SP 1200/` | campioni originali, remap dei pad MPK |
-| `PATTERNTXT-SPEC.md` | formato testuale dei pattern |
-| `TODO.md` | idee e lavori rimandati |
-
-In origine il progetto si chiamava Drum Machine Lab (drummachine.tongatron.org): quell'indirizzo ora trasferisce i dati salvati nel browser e rimanda al nuovo.
-
-### Macchine (kit di campioni)
-
-Una macchina è una cartella di WAV in `site/machines/<id>/` più una tabella in `site/index.html` (`*_SLOTS`, che deve coprire
-gli slot del generatore: lo verifica `tests/site_test.py`). Tutti i kit tranne **SP-1200 e RX-5** vengono da Logic Pro (kit
-"Boutique" e kit del Sampler, ricreazioni di Apple): si estraggono con `scripts/extract-logic-kits.sh`, non stanno in git e
-`deploy.sh` li pubblica solo con `--con-kit-logic`. Un kit i cui file il server non serve sparisce dal selettore.
-
-| Cartella | Macchina | Da Logic Pro |
+| Platform | Build | Status |
 |---|---|---|
-| `samples`, `samples12` | SP-1200 16 bit / 12 bit | — (campioni originali, in git) |
-| `rx5` | Yamaha RX-5 | — (campioni RX-5, in git) |
-| `tr808`, `tr909`, `cr78` | TR-808, TR-909, CR-78 | Ultrabeat "Boutique 808/909/78" |
-| `sp12b` | SP-1200 · Boutique | Ultrabeat "Boutique SP12" |
-| `dmx`, `drumulator` | Oberheim DMX, E-mu Drumulator | Ultrabeat "Vintage Machines" (DMX senza clap/rim, Drumulator senza hi-hat) |
-| `linn` | LinnDrum | Sampler "Cory's LinnDrum Kit" |
-| `tr707`, `tr727`, `tr606`, `cr8000`, `drumtraks`, `sdsv` | TR-707, TR-727, TR-606, CR-8000, DrumTraks, Simmons SDS-V | Sampler, kit "… Processed" (la 727 ha solo percussioni latine) |
-| `tr808u`, `tr909u` | TR-808 / TR-909 · campioni | Sampler, kit "… Unprocessed" |
+| macOS | Apple Silicon, macOS 12+ | tested |
+| Windows | x64 installer | untested |
+| Linux | x64 AppImage | untested |
 
-Per aggiungere un kit: una riga in `scripts/extract-logic-kits.sh`, la tabella `*_SLOTS` in `site/index.html`, l'id in
-`KIT_MENU_FIRST` (altrimenti finisce in fondo al menu), la cartella in `.gitignore` e in `LOGIC_KITS` di `scripts/deploy.sh`;
-la scheda storica (facoltativa) va in `site/macchine.html`.
+The builds are not signed with a commercial certificate, so the first launch needs the usual confirmation
+(right-click › Open on macOS, "More info › Run anyway" on Windows, `chmod +x` on Linux).
 
-### Test
+## Logic Pro plug-in (AU / VST3)
+
+PATTERN-MACHINE on a Logic instrument track: press Play in Logic and the patterns play in time from the right bar, with no
+MIDI clock to set up.
+
+- Sample-accurate sync with Logic's transport, tempo changes, cycles and jumps.
+- Audio goes through the Logic channel strip, so effects, mixer and automation work, as do real-time and offline bounces.
+- The project is saved **inside the Logic project** and plays even with the plug-in window closed.
+- Incoming MIDI notes on the track trigger the rows (C1 = row 1, as on MPK pads).
+- **Several instances, one row each**: duplicate the track and pick a single row (BD, SD, HH…) per instance to get each drum on its own mixer channel.
+
+Download it from the [plug-in page](https://patternmachine.tongatron.org/plugin.html). To add it in Logic: new **Software
+Instrument** track › Instrument slot › **AU Instruments › Tongatron › PatternMachine**.
+
+## MIDI and DAW integration
+
+The desktop app's **PatternMachine** virtual port works with Logic Pro, Ableton Live, REAPER, FL Studio, Cubase, Bitwig,
+Studio One and any DAW that sees system MIDI ports.
+
+| To… | Use |
+|---|---|
+| play the DAW's drum instruments | app › **MIDI output** (channel 10, or one channel per row) |
+| follow the DAW's tempo and transport | DAW › send **MIDI Clock** (+ Start/Stop, Song Position) to *PatternMachine*, app › **Follow DAW clock** |
+| play inside a track, sample-accurate | the **AU / VST3 plug-in** |
+| work offline | export **General MIDI**, **WAV** or **stems** |
+
+Quick settings for the most common DAWs:
+
+| DAW | Setting |
+|---|---|
+| Logic Pro | Project Settings › Synchronization › MIDI: send MIDI Clock to *PatternMachine* |
+| Ableton Live | Preferences › Link/Tempo/MIDI: enable **Sync** on the *PatternMachine* output |
+| REAPER | enable *PatternMachine* as a MIDI device and select it as the MIDI Clock output |
+| Cubase | Project Synchronization Setup › MIDI Clock destinations: enable *PatternMachine* |
+| FL Studio | MIDI settings: enable the *PatternMachine* output and send master sync |
+| Bitwig / Studio One | enable *PatternMachine* as a MIDI Clock and Start/Stop destination |
+
+Step-by-step instructions are in the [guide](https://patternmachine.tongatron.org/funzioni.html).
+
+## Screenshots
+
+| Sound-only view | Song arranger |
+|---|---|
+| ![Sound-only view](docs/screenshots/solo-suono.jpg) | ![Song arranger](docs/screenshots/sequencer.jpg) |
+
+| Dark theme | Mobile |
+|---|---|
+| ![Dark theme](docs/screenshots/tema-scuro.jpg) | <img src="docs/screenshots/mobile.jpg" alt="Mobile" width="260"> |
+
+| The machines | Desktop app downloads |
+|---|---|
+| ![The machines page](docs/screenshots/macchine.jpg) | ![Desktop app page](docs/screenshots/app.jpg) |
+
+![Logic plug-in page](docs/screenshots/plugin-logic.jpg)
+
+## Repository layout
+
+| Path | Contents |
+|---|---|
+| [`site/`](site) | the website: drum machine, pattern engine, guide, machines page, PWA, samples |
+| [`desktop/`](desktop) | desktop app for macOS, Windows and Linux ([notes](desktop/README.md)) |
+| [`plugin/`](plugin) | Logic Pro plug-in, AU / VST3 ([notes](plugin/README.md)) |
+| [`SP 1200/`](<SP 1200>) | original SP-1200 samples and pad mappings |
+| [`PATTERNTXT-SPEC.md`](PATTERNTXT-SPEC.md) | text format for patterns |
+| `tests/` | engine and site checks |
+
+To try the site locally, serve the `site` folder with any static server:
 
 ```bash
-node tests/engine.test.js
+python3 -m http.server 8765 --directory site
 ```
 
-```bash
-python3 tests/site_test.py
-```
+## Credits
 
-```bash
-python3 tests/server_test.py
-```
-
-### Pubblicazione
-
-```bash
-scripts/deploy.sh
-```
-
-```bash
-scripts/deploy.sh --yes
-```
-
-Il primo comando è una prova a secco, il secondo pubblica (con backup sul server).
-Quando cambiano `site/sw.js` o `site/engine/*.js` va aumentata la versione in tre punti che lo script controlla: `VERSION`
-in `sw.js`, `SW_VERSION` e i `?v=` degli script del motore in `site/index.html`. Se cambia `server.py` va riavviato il
-servizio `patternmachine` sul server.
-
-### Account
-
-Ognuno entra con il proprio nome e la propria password.
-- Dal sito ci si registra come **utente** (nome, email obbligatoria, password). Arriva una mail di benvenuto e si può chiedere un link per una nuova password (vale un'ora, si usa una volta).
-- L'**admin** si crea sul server con `python3 add-user.py <nome> --admin` (lo stesso script cambia password e ruolo). La pagina `/admin` elenca gli utenti, manda link di reset ed elimina account.
-- Utenti in `data/users.json`, mail via Gmail con `mail.json` (`python3 set-mail.py`): stanno solo sul server e non vengono mai serviti.
-
----
-
-<div align="center">
-
-Fatto da [tongatron.org](https://tongatron.org) · i kit ricavati da Logic Pro sono ricreazioni di Apple, non campioni originali dei costruttori.
-
-</div>
+Made by [tongatron.org](https://tongatron.org).
+Apart from the SP-1200 and RX-5 samples, the machine kits are Apple's recreations shipped with Logic Pro, not original
+manufacturer samples. The machine names are trademarks of their respective owners.

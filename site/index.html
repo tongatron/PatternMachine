@@ -288,7 +288,8 @@ label.fld input[type=number]{width:54px;}
 .machine-buttons{display:flex; flex-wrap:wrap; gap:6px;}
 .machine-more{margin-left:auto;}
 .machine-select{font-size:14px; font-weight:700; padding:8px 12px; min-width:220px; max-width:100%;}
-.library-machine-select{min-width:220px;}
+.library-machine-select{min-width:220px; max-width:100%;}
+.lib-style-select{font-weight:700;}
 #machinePanel{padding-top:9px; padding-bottom:9px;}
 .chip{
   display:flex; align-items:center; gap:6px; padding:5px 10px; border-radius:6px;
@@ -474,9 +475,6 @@ button.danger-fill{background:var(--danger); border-color:var(--danger); color:#
 .lib-del{flex:0 0 auto; align-self:flex-start; margin-left:-4px; padding:0 6px; border:none; background:transparent;
   font-size:15px; line-height:1.4; color:var(--text-faint);}
 .lib-del:hover{color:var(--danger);}
-.gen-count{display:flex; align-items:center; gap:4px;}
-.gen-count .fld{font-size:10.5px; color:var(--text-dim); margin-right:2px; text-transform:uppercase; letter-spacing:0.08em;}
-.gen-count button{min-width:34px;}
 .lib-empty{padding:18px 6px; font-size:11px; color:var(--text-faint); font-style:italic; text-align:center;}
 .lib-code{font-size:9px; color:var(--text-dim); margin-top:3px; letter-spacing:0.02em; -webkit-user-select:all; user-select:all;}
 .lib-play{
@@ -853,8 +851,13 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
         <button class="x" id="libClose">&times;</button>
       </div>
       <div class="flexline" style="margin-bottom:11px;">
+        <label class="fld">Macchina
+          <select id="libKitSelect" class="library-machine-select" aria-label="Macchina da usare quando si carica un pattern"></select>
+        </label>
+      </div>
+      <div class="flexline" style="margin-bottom:11px;">
         <label class="fld">Stile
-          <select id="genStyle"></select>
+          <select id="genStyle" class="lib-style-select"></select>
         </label>
         <label class="fld">Sezione
           <select id="genSection">
@@ -866,17 +869,8 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
         <label class="fld">Step
           <select id="genLen"><option>16</option><option>32</option></select>
         </label>
-        <label class="fld">Macchina
-          <select id="libKitSelect" class="machine-select library-machine-select" aria-label="Macchina da usare quando si carica un pattern"></select>
-        </label>
         <label class="fld"><input type="checkbox" id="genFill"> Fill</label>
-        <div class="gen-count" id="genCount" role="group" aria-label="Quanti pattern generare">
-          <span class="fld">Genera</span>
-          <button type="button" class="mini primary" data-n="4">4</button>
-          <button type="button" class="mini primary" data-n="6">6</button>
-          <button type="button" class="mini primary" data-n="8">8</button>
-          <button type="button" class="mini primary" data-n="12">12</button>
-        </div>
+        <button type="button" id="genMore" class="mini primary" title="8 nuove proposte con le stesse scelte">&#8635; Altre proposte</button>
         <button id="genVar" class="mini">Variazione del pattern corrente</button>
       </div>
       <form class="flexline" id="codeForm" style="margin:-3px 0 11px;">
@@ -887,9 +881,8 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
         <span class="tiny">ogni pattern ha un codice: lo stesso codice rigenera lo stesso pattern</span>
       </form>
       <div class="lib-manage">
-        <span class="tiny" id="libManageNote">si azzera ricaricando la pagina: tieni i pattern nei &#9733; preferiti</span>
-        <button type="button" id="libBase" class="mini" title="rimette in lista i pattern di partenza (Boom bap, Funk 16, Trap, House, Son clave, Half time)">+ Pattern base</button>
-        <button type="button" id="libClear" class="mini danger">Svuota lista</button>
+        <span class="tiny" id="libManageNote"></span>
+        <button type="button" id="libClear" class="mini danger" hidden>Svuota preferiti</button>
       </div>
       <div class="lib-list" id="libList"></div>
     </div>
@@ -940,11 +933,11 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
         <h3>Pattern e generatore</h3>
         <ul>
           <li><b>&#10022; Varia</b> (pannello Pattern) trasforma il pattern che stai modificando, anche scritto a mano; <kbd>cmd</kbd>+<kbd>Z</kbd> annulla.</li>
-          <li><b>Scegli&hellip;</b> apre libreria e generatore: <b>Genera 4 · 6 · 8 · 12</b> crea quel numero di pattern dello stile scelto, dal pi&ugrave; semplice al pi&ugrave; ricco (i pallini &#9679; indicano l'interesse), e toglie dalla lista quelli degli altri stili.</li>
+          <li><b>Scegli&hellip;</b> apre libreria e generatore: mostra subito 8 proposte della macchina e dello stile scelti, dalla pi&ugrave; ricca alla pi&ugrave; semplice (i pallini &#9679; indicano l'interesse).</li>
           <li>Su ogni pattern: <b>Simili</b> ne crea 4 vicini; <b>Varia</b> lo trasforma in 20 modi (scarno, mezzo tempo, hat aperto, nuovo fill, strato percussivo, stacco&hellip; e cinque <b>ibridi</b> con voci di un altro stile).</li>
           <li><b>Arrangia</b> ricava intro, ritornello, break e outro; <b>Blocca</b> tiene alcune voci e rigenera le altre.</li>
           <li>Ogni pattern ha un codice: lo stesso codice rigenera lo stesso pattern.</li>
-          <li>Nella libreria: <b>&times;</b> toglie un pattern dalla lista, <b>Svuota lista</b> la azzera, <b>+ Pattern base</b> rimette i pattern di partenza. Nella scheda Preferiti, <b>Svuota preferiti</b> li toglie tutti.</li>
+          <li>Nella libreria: scegliendo stile, sezione o step compaiono subito 8 proposte nuove al posto delle precedenti; <b>&#8635; Altre proposte</b> ne genera altre 8 con le stesse scelte, <b>&times;</b> toglie un pattern dalla lista. Nella scheda Preferiti, <b>Svuota preferiti</b> li toglie tutti.</li>
         </ul>
       </section>
     </div>
@@ -1050,19 +1043,19 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-27.04"></script>
-<script src="engine/styles-punk.js?v=2026-09-27.04"></script>
-<script src="engine/styles-post.js?v=2026-09-27.04"></script>
-<script src="engine/styles-machines.js?v=2026-09-27.04"></script>
-<script src="engine/styles-alt.js?v=2026-09-27.04"></script>
-<script src="engine/styles-groove.js?v=2026-09-27.04"></script>
-<script src="engine/styles-dub.js?v=2026-09-27.04"></script>
-<script src="engine/styles-break.js?v=2026-09-27.04"></script>
-<script src="engine/styles-soul.js?v=2026-09-27.04"></script>
-<script src="engine/styles-metal.js?v=2026-09-27.04"></script>
-<script src="engine/styles-electro.js?v=2026-09-27.04"></script>
-<script src="engine/variations.js?v=2026-09-27.04"></script>
-<script src="engine/import.js?v=2026-09-27.04"></script>
+<script src="engine/core.js?v=2026-09-27.05"></script>
+<script src="engine/styles-punk.js?v=2026-09-27.05"></script>
+<script src="engine/styles-post.js?v=2026-09-27.05"></script>
+<script src="engine/styles-machines.js?v=2026-09-27.05"></script>
+<script src="engine/styles-alt.js?v=2026-09-27.05"></script>
+<script src="engine/styles-groove.js?v=2026-09-27.05"></script>
+<script src="engine/styles-dub.js?v=2026-09-27.05"></script>
+<script src="engine/styles-break.js?v=2026-09-27.05"></script>
+<script src="engine/styles-soul.js?v=2026-09-27.05"></script>
+<script src="engine/styles-metal.js?v=2026-09-27.05"></script>
+<script src="engine/styles-electro.js?v=2026-09-27.05"></script>
+<script src="engine/variations.js?v=2026-09-27.05"></script>
+<script src="engine/import.js?v=2026-09-27.05"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -3709,41 +3702,6 @@ function trackForRole(role){
   return t;
 }
 
-const P = s => s.replace(/[\s|]/g,"").split("").map(c=> c==="X"?2 : (c==="x"?1:0));
-
-const PRESETS=[
-  {name:"Boom bap", tag:"hip hop · 93", bpm:93, swing:20, len:16, roles:{
-    kick: P("X... ..x. ..x. ...."),
-    snare:P(".... X... ...x X..."),
-    chh:  P("X.x. x.x. X.x. x.x."),
-    ohh:  P(".... .... .... ...x")}},
-  {name:"Funk 16", tag:"funk · 104", bpm:104, swing:8, len:16, roles:{
-    kick: P("X..x ..x. .... x..."),
-    snare:P(".... X..x .... X.x."),
-    chh:  P("X.x. X.xx X.x. X.xx"),
-    ohh:  P(".... .... ..x. ....")}},
-  {name:"Trap half time", tag:"trap · 140", bpm:140, swing:0, len:32, roles:{
-    kick: P("X... ..x. .... x... .... ..x. x... ...."),
-    clap: P(".... .... X... .... .... .... X... ...."),
-    chh:  P("X.x. x.x. X.x. xxxx X.x. x.x. X.xx x.x."),
-    ohh:  P(".... .... .... ..x. .... .... .... ....")}},
-  {name:"Four on the floor", tag:"house · 124", bpm:124, swing:0, len:16, roles:{
-    kick: P("X... X... X... X..."),
-    clap: P(".... X... .... X..."),
-    ohh:  P("..x. ..x. ..x. ..x."),
-    shaker:P(".x.x .x.x .x.x .x.x")}},
-  {name:"Son clave", tag:"latin · 96", bpm:96, swing:0, len:16, roles:{
-    clave:P("X..x ..X. ..X. X..."),
-    conga:P("..x. x.xx ..x. x.x."),
-    kick: P("X... .... ..x. ...."),
-    shaker:P("x.x. x.x. x.x. x.x.")}},
-  {name:"Half time pesante", tag:"downtempo · 82", bpm:82, swing:12, len:16, roles:{
-    kick: P("X..x .... ..x. ...."),
-    snare:P(".... .... X... ...."),
-    chh:  P("x.x. x.x. x.x. x.x."),
-    crash:P("X... .... .... ....")}},
-];
-
 // Il motore vive in engine/*.js (SPEngine); qui c'e' solo l'interfaccia della libreria.
 const rnd=p=>Math.random()<p;
 const pick=a=>a[Math.floor(Math.random()*a.length)];
@@ -4033,7 +3991,7 @@ function toggleSongFill(b){
   setStatus("fill finale attivato sull'ultima ripetizione");
 }
 
-let library=PRESETS.slice();
+let library=[];   // le proposte: si riempie all'apertura della libreria
 let libraryOriginalKit=null;
 
 async function applyLibrary(item, asNew){
@@ -4087,7 +4045,7 @@ function renderLibrary(){
     const e=document.createElement("div"); e.className="lib-empty";
     e.textContent=libView==="fav"
       ? "nessun preferito: tocca ☆ accanto al nome di un pattern per salvarlo qui"
-      : "lista vuota: usa Genera (4, 6, 8 o 12) oppure + Pattern base";
+      : "nessuna proposta: scegli uno stile o premi ↻ Altre proposte";
     host.appendChild(e);
   }
   list.forEach(item=>{
@@ -4172,7 +4130,7 @@ function renderLibrary(){
 }
 
 // ---------- gestione della lista ----------
-// Proposte: la lista in memoria (si puo' svuotare e ripopolare con i pattern base).
+// Proposte: 8 pattern dello stile scelto, rigenerati a ogni cambio di stile, sezione, step o fill.
 // Preferiti: i codici salvati nel browser (svuotarli chiede conferma, non si torna indietro).
 function removeFromLibrary(item){
   if(audition.item===item) stopAudition();
@@ -4181,39 +4139,28 @@ function removeFromLibrary(item){
   renderLibrary(); host.scrollTop=top;
   libNote("tolto dalla lista: "+item.name);
 }
-function addBasePatterns(){
-  const missing=PRESETS.filter(p=>!library.some(i=>!i.code && i.name===p.name)).map(p=>({...p}));
-  if(!missing.length){ libNote("i pattern base sono gia' tutti in lista"); return; }
-  pushToLibrary(missing);
-  libNote(`${missing.length} ${missing.length===1?"pattern base aggiunto":"pattern base aggiunti"}`);
-}
-async function clearLibraryView(){
-  if(libView==="fav"){
-    const n=favCodes().length;
-    if(!n) return;
-    if(!await ask({title:"Svuota preferiti", message:`Togliere tutti i ${n} preferiti? Non si può annullare.`, ok:"Svuota", danger:true})) return;
-    try{ localStorage.setItem(FAV_KEY,"[]"); }catch(e){ libNote("questo browser non permette di modificare i preferiti"); return; }
-    stopAudition(); renderLibrary(); libNote("preferiti svuotati");
-    return;
-  }
-  if(!library.length) return;
-  const n=library.length;
-  stopAudition(); library=[]; renderLibrary();
-  libNote(`lista svuotata (${n} pattern): i preferiti restano`);
+async function clearFavorites(){
+  const n=favCodes().length;
+  if(!n) return;
+  if(!await ask({title:"Svuota preferiti", message:`Togliere tutti i ${n} preferiti? Non si può annullare.`, ok:"Svuota", danger:true})) return;
+  try{ localStorage.setItem(FAV_KEY,"[]"); }catch(e){ libNote("questo browser non permette di modificare i preferiti"); return; }
+  stopAudition(); renderLibrary(); libNote("preferiti svuotati");
 }
 function paintLibManage(){
   const fav=libView==="fav";
-  el("libBase").hidden=fav;
-  el("libClear").textContent=fav?"Svuota preferiti":"Svuota lista";
-  el("libClear").disabled=fav?!favCodes().length:!library.length;
+  el("libClear").hidden=!fav;
+  el("libClear").disabled=!favCodes().length;
   el("libManageNote").innerHTML=fav
     ? "i preferiti restano salvati in questo browser"
-    : "si azzera ricaricando la pagina: tieni i pattern nei &#9733; preferiti";
+    : "le proposte cambiano con stile, sezione e step: tieni quelle che ti piacciono nei &#9733; preferiti";
 }
-el("libBase").onclick=addBasePatterns;
-el("libClear").onclick=clearLibraryView;
+el("libClear").onclick=clearFavorites;
 
-function openLib(){ libraryOriginalKit=sampleSet; el("libKitSelect").value=sampleSet; el("libOverlay").hidden=false; renderLibrary(); }
+// Alla prima apertura la libreria propone subito 8 pattern dello stile scelto.
+function openLib(){
+  libraryOriginalKit=sampleSet; el("libKitSelect").value=sampleSet; el("libOverlay").hidden=false;
+  if(!library.length) refreshProposals(); else renderLibrary();
+}
 function closeLib(){ stopAudition(); el("libOverlay").hidden=true; }
 el("libTabAll").onclick=()=>setLibView("all");
 el("libTabFav").onclick=()=>setLibView("fav");
@@ -4352,31 +4299,31 @@ function interestScore(item){
   return sync/hits*4 + Math.min(dyn,6)*0.35 + Math.min(voices,7)*0.45 + varied*0.3 + balance*1.5;
 }
 function libraryInterest(item){ return Number.isFinite(item.interest) ? item.interest : interestScore(item); }
-// Genera N pattern dello stile scelto: prima toglie dalla lista quelli degli altri stili (anche i base),
-// poi li mette in cima in ordine decrescente di interesse.
-function generateBatch(n){
+// Proposte: 8 pattern diversi tra loro con stile, sezione, step e fill scelti. Sostituiscono tutta la
+// lista precedente (anche i pattern aperti da codice, le variazioni e i simili); i preferiti restano.
+const PROPOSALS=8;
+function refreshProposals(){
   const style=el("genStyle").value, len=+el("genLen").value;
   const section=el("genSection").value, fill=el("genFill").checked;
   const made=[];
   const sig=p=>JSON.stringify(p.roles);
-  for(let i=0;i<n;i++){
+  for(let i=0;i<PROPOSALS;i++){
     const sec=section==="both"?(i%2?"chorus":"verse"):section;
     let p=genPattern(style,len,{section:sec, fill});
     // negli stili rigidi due seed possono dare lo stesso ritmo: si riprova qualche volta
     for(let t=0;t<8 && made.some(q=>sig(q)===sig(p));t++) p=genPattern(style,len,{section:sec, fill});
     made.push(p);
   }
-  made.forEach(p=>{ p.interest=interestScore(p); });
-  made.sort((a,b)=>b.interest-a.interest);
-  const styles=new Set(made.map(p=>p.style));
-  const before=library.length;
-  if(audition.item && !styles.has(audition.item.style)) stopAudition();
-  library=library.filter(i=>i.style && styles.has(i.style));
-  const removed=before-library.length;
-  pushToLibrary(made);
-  libNote(`${n} nuovi`+(removed?` · tolti ${removed} di altri stili`:""));
+  made.forEach(p=>{ p.interest=interestScore(p); p.fresh=false; });
+  if(audition.item) stopAudition();
+  library=made;
+  setLibView("all");
+  el("libList").scrollTop=0;
+  const label=el("genStyle").selectedOptions[0]?.textContent||"";
+  libNote(`${PROPOSALS} proposte · ${label}`);
 }
-document.querySelectorAll("#genCount button").forEach(b=>b.onclick=()=>generateBatch(+b.dataset.n));
+["genStyle","genSection","genLen","genFill"].forEach(id=>el(id).addEventListener("change",refreshProposals));
+el("genMore").onclick=refreshProposals;
 el("codeForm").onsubmit=e=>{
   e.preventDefault();
   if(openCode(el("genCode").value)) el("genCode").value="";
@@ -4448,7 +4395,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-27.04";
+const SW_VERSION="2026-09-27.05";
 (function pwa(){
   const standalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
   const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);

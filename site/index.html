@@ -528,6 +528,14 @@ button.danger-fill{background:var(--danger); border-color:var(--danger); color:#
 .seqblock-actions button.on{background:var(--key-primary,var(--accent)); color:var(--on-accent); border-color:var(--accent-dim); font-weight:700;}
 #metronomeBtn{min-height:44px; padding:11px 18px; font-size:13.5px;}
 #metronomeBtn.on{background:var(--key-primary,var(--accent)); color:var(--on-accent); border-color:var(--accent-dim);}
+/* Icona metronomo: cassa a piramide e asticella che oscilla. Quando suona, ogni click manda l'asticella
+   dall'altra parte in una battuta, cosi' arriva in fondo proprio sul click successivo. */
+#metronomeBtn{display:inline-flex; align-items:center; gap:8px;}
+.metro-ico{width:20px; height:20px; flex-shrink:0; overflow:visible;}
+.metro-ico .rod{transform-box:view-box; transform-origin:12px 19px; transform:rotate(0deg); transition:transform .25s ease;}
+#metronomeBtn[data-side="l"] .rod{transform:rotate(-24deg);}
+#metronomeBtn[data-side="r"] .rod{transform:rotate(24deg);}
+@media (prefers-reduced-motion:reduce){ .metro-ico .rod{transition:none !important;} }
 .seqblock .prev{display:flex; flex-direction:column; gap:2px; min-height:26px; justify-content:center;}
 .seqblock-foot{display:flex; align-items:center; gap:3px;}
 .seqblock-foot input{width:36px; text-align:center; padding:3px 2px; font-size:10px;}
@@ -766,7 +774,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
         <input type="number" id="bpmNum" min="40" max="240" value="93">
         </label>
         <button id="tapBtn" class="mini">Tap</button>
-        <button id="metronomeBtn" class="mini" type="button" aria-pressed="false" title="Attiva/disattiva il metronomo">Metronomo</button>
+        <button id="metronomeBtn" class="mini" type="button" aria-pressed="false" title="Attiva/disattiva il metronomo"><svg class="metro-ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.5h4l5.5 17h-15z"/><path d="M7.2 15.5h9.6" stroke-width="1.3"/><g class="rod"><path d="M12 19V2.5"/><rect x="10.2" y="7" width="3.6" height="2.6" rx=".6" fill="currentColor" stroke="none"/></g></svg>Metronomo</button>
         <label class="fld" title="swing alla MPC: 50% dritto, 66% terzinato, 75% massimo">Swing <input type="range" id="swingRange" min="0" max="100" value="0"> <span id="swingPct" class="tiny">50%</span></label>
         <label class="fld" title="umanizza: piccole differenze a caso di tempo (fino a 10 ms) e forza (fino al 15%)">Umano <input type="range" id="humanRange" min="0" max="100" value="0"></label>
         <label class="fld">Vol <input type="range" id="masterVol" min="0" max="100" value="85"></label>
@@ -1047,19 +1055,19 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-28.01"></script>
-<script src="engine/styles-punk.js?v=2026-09-28.01"></script>
-<script src="engine/styles-post.js?v=2026-09-28.01"></script>
-<script src="engine/styles-machines.js?v=2026-09-28.01"></script>
-<script src="engine/styles-alt.js?v=2026-09-28.01"></script>
-<script src="engine/styles-groove.js?v=2026-09-28.01"></script>
-<script src="engine/styles-dub.js?v=2026-09-28.01"></script>
-<script src="engine/styles-break.js?v=2026-09-28.01"></script>
-<script src="engine/styles-soul.js?v=2026-09-28.01"></script>
-<script src="engine/styles-metal.js?v=2026-09-28.01"></script>
-<script src="engine/styles-electro.js?v=2026-09-28.01"></script>
-<script src="engine/variations.js?v=2026-09-28.01"></script>
-<script src="engine/import.js?v=2026-09-28.01"></script>
+<script src="engine/core.js?v=2026-09-28.02"></script>
+<script src="engine/styles-punk.js?v=2026-09-28.02"></script>
+<script src="engine/styles-post.js?v=2026-09-28.02"></script>
+<script src="engine/styles-machines.js?v=2026-09-28.02"></script>
+<script src="engine/styles-alt.js?v=2026-09-28.02"></script>
+<script src="engine/styles-groove.js?v=2026-09-28.02"></script>
+<script src="engine/styles-dub.js?v=2026-09-28.02"></script>
+<script src="engine/styles-break.js?v=2026-09-28.02"></script>
+<script src="engine/styles-soul.js?v=2026-09-28.02"></script>
+<script src="engine/styles-metal.js?v=2026-09-28.02"></script>
+<script src="engine/styles-electro.js?v=2026-09-28.02"></script>
+<script src="engine/variations.js?v=2026-09-28.02"></script>
+<script src="engine/import.js?v=2026-09-28.02"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -1627,6 +1635,19 @@ function metronomeHit(time, accent=false){
   gain.gain.exponentialRampToValueAtTime(0.0001,time+0.055);
   osc.connect(gain).connect(ctx.destination);
   osc.start(time); osc.stop(time+0.06);
+  metronomeSwing(time);
+}
+// L'asticella dell'icona parte verso l'altro lato sul click e ci arriva in una battuta.
+let metroSide="l";
+function metronomeSwing(time){
+  const b=document.getElementById("metronomeBtn"); if(!b) return;
+  const wait=Math.max(0,(time-actx().currentTime)*1000), beat=60/bpm();
+  setTimeout(()=>{
+    if(!ui.metronome) return;
+    metroSide=metroSide==="l"?"r":"l";
+    const rod=b.querySelector(".rod"); if(rod) rod.style.transitionDuration=beat+"s";
+    b.dataset.side=metroSide;
+  },wait);
 }
 
 function playingPattern(){
@@ -2498,6 +2519,7 @@ el("metronomeBtn").onclick=()=>{
   b.classList.toggle("on",ui.metronome);
   b.setAttribute("aria-pressed",String(ui.metronome));
   b.title=ui.metronome?"Disattiva il metronomo":"Attiva il metronomo";
+  if(!ui.metronome){ delete b.dataset.side; const rod=b.querySelector(".rod"); if(rod) rod.style.transitionDuration=""; }
   if(ui.metronome){ const ctx=actx(); if(ctx.state==="suspended") ctx.resume(); }
 };
 // Metronomo a trasporto fermo: batte i quarti (accento sull'1) per suonare senza base.
@@ -4505,7 +4527,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-28.01";
+const SW_VERSION="2026-09-28.02";
 (function pwa(){
   const netBadge=el("netBadge");
 

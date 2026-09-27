@@ -278,9 +278,16 @@ label.fld input[type=number]{width:54px;}
 .machine-bar{display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-top:12px; padding-top:11px; border-top:1px solid var(--edge-soft);}
 .machine-info{margin-left:auto; font-size:11px; color:var(--text-dim); letter-spacing:.02em; text-align:right;}
 .transport-extra{display:contents;}
-/* Vista "solo suono": solo la griglia dei beat (con le sue opzioni) e Play/Stop. */
+/* Vista Live: la griglia dei beat (con le sue opzioni), Play/Stop, Rec, tempo e metronomo. */
 body.sound-view .topbar, body.sound-view .project-panel, body.sound-view #machinePanel,
-body.sound-view #panelPatterns, body.sound-view .transport-extra{display:none;}
+body.sound-view #panelPatterns, body.sound-view .transport-extra > :not(.live-keep){display:none;}
+#liveKeysBtn{display:none;}
+body.sound-view #liveKeysBtn{display:inline-flex; align-items:center;}
+.live-keys{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; margin:0 0 14px;}
+.live-keys div{display:flex; align-items:center; gap:8px; min-width:0; font-size:13px;}
+.live-keys span{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.live-help-mods{margin:0 0 16px; padding-left:18px; font-size:13px; line-height:1.5;}
+@media (max-width:560px){ .live-keys{grid-template-columns:repeat(2,minmax(0,1fr));} }
 .machine-label{font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--text-dim); font-weight:700;}
 .machine-buttons{display:flex; flex-wrap:wrap; gap:6px;}
 .machine-more{margin-left:auto; font-weight:400;}
@@ -526,7 +533,7 @@ button.danger-fill{background:var(--danger); border-color:var(--danger); color:#
 .seqblock-actions{display:flex; gap:4px;}
 .seqblock-actions button{flex:1 1 0; padding:4px 5px; font-size:9px;}
 .seqblock-actions button.on{background:var(--key-primary,var(--accent)); color:var(--on-accent); border-color:var(--accent-dim); font-weight:700;}
-#metronomeBtn{min-height:44px; padding:11px 18px; font-size:13.5px;}
+#metronomeBtn, #liveKeysBtn{min-height:44px; padding:11px 18px; font-size:13.5px;}
 #metronomeBtn.on{background:var(--key-primary,var(--accent)); color:var(--on-accent); border-color:var(--accent-dim);}
 /* Icona metronomo: cassa a piramide e asticella che oscilla. Quando suona, ogni click manda l'asticella
    dall'altra parte in una battuta, cosi' arriva in fondo proprio sul click successivo. */
@@ -739,7 +746,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
   <div class="tabs">
     <button id="viewGrid" class="on">Griglia</button>
     <button id="viewSeq">Sequencer</button>
-    <button id="viewSound" title="Solo la griglia dei beat e Play/Stop, senza il resto">Solo suono</button>
+    <button id="viewSound" title="Per suonare dal vivo: la griglia, Play, Rec, tempo e metronomo">Vista Live</button>
   </div>
 
   <div class="panel" id="panelPatterns">
@@ -768,13 +775,14 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <div class="flexline">
       <button id="playBtn" title="Play / Stop (barra spaziatrice)"><span class="ico">&#9654;</span> Play</button>
       <div class="transport-extra">
-        <button id="recBtn"><span class="rec-dot" aria-hidden="true">&#9679;</span> Rec</button>
-        <label class="fld">BPM
+        <button id="recBtn" class="live-keep"><span class="rec-dot" aria-hidden="true">&#9679;</span> Rec</button>
+        <label class="fld live-keep">BPM
           <input type="range" id="bpmRange" min="60" max="180" value="93">
         <input type="number" id="bpmNum" min="40" max="240" value="93">
         </label>
-        <button id="tapBtn" class="mini">Tap</button>
-        <button id="metronomeBtn" class="mini" type="button" aria-pressed="false" title="Attiva/disattiva il metronomo"><svg class="metro-ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.5h4l5.5 17h-15z"/><path d="M7.2 15.5h9.6" stroke-width="1.3"/><g class="rod"><path d="M12 19V2.5"/><rect x="10.2" y="7" width="3.6" height="2.6" rx=".6" fill="currentColor" stroke="none"/></g></svg>Metronomo</button>
+        <button id="tapBtn" class="mini live-keep">Tap</button>
+        <button id="metronomeBtn" class="mini live-keep" type="button" aria-pressed="false" title="Attiva/disattiva il metronomo"><svg class="metro-ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.5h4l5.5 17h-15z"/><path d="M7.2 15.5h9.6" stroke-width="1.3"/><g class="rod"><path d="M12 19V2.5"/><rect x="10.2" y="7" width="3.6" height="2.6" rx=".6" fill="currentColor" stroke="none"/></g></svg>Metronomo</button>
+        <button id="liveKeysBtn" class="mini live-keep" type="button" title="Mostra i tasti degli strumenti">Tasti</button>
         <label class="fld" title="swing alla MPC: 50% dritto, 66% terzinato, 75% massimo">Swing <input type="range" id="swingRange" min="0" max="100" value="0"> <span id="swingPct" class="tiny">50%</span></label>
         <label class="fld" title="umanizza: piccole differenze a caso di tempo (fino a 10 ms) e forza (fino al 15%)">Umano <input type="range" id="humanRange" min="0" max="100" value="0"></label>
         <label class="fld">Vol <input type="range" id="masterVol" min="0" max="100" value="85"></label>
@@ -1037,6 +1045,23 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       </div>
     </form>
   </dialog>
+  <dialog class="ask app-promo" id="liveHelp" aria-labelledby="liveHelpTitle">
+    <form method="dialog">
+      <h3 id="liveHelpTitle">Vista Live · tasti</h3>
+      <p>Ogni tasto o tocco suona lo strumento, senza scriverlo nel pattern:</p>
+      <div class="live-keys" id="liveKeys"></div>
+      <ul class="live-help-mods">
+        <li><kbd>spazio</kbd> Play / Stop.</li>
+        <li><kbd>⌥</kbd> + tasto, oppure <kbd>⌘</kbd> + click sul pad: scrive il colpo nello step che sta suonando.</li>
+        <li><kbd>⌘</kbd> + click su uno step: lo accende o lo spegne (con <kbd>⌘⌥</kbd> accento, <kbd>⌘⇧</kbd> nota fantasma).</li>
+        <li><b>Rec</b> acceso durante il Play: anche i tasti normali scrivono i colpi.</li>
+      </ul>
+      <div class="ask-btns">
+        <button type="submit" value="never">Non mostrare più</button>
+        <button type="submit" value="close" class="primary">Chiudi</button>
+      </div>
+    </form>
+  </dialog>
   <dialog class="ask app-promo" id="guestPromo" aria-labelledby="guestPromoTitle">
     <form method="dialog">
       <h3 id="guestPromoTitle">Perché registrarsi</h3>
@@ -1055,19 +1080,19 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-28.03"></script>
-<script src="engine/styles-punk.js?v=2026-09-28.03"></script>
-<script src="engine/styles-post.js?v=2026-09-28.03"></script>
-<script src="engine/styles-machines.js?v=2026-09-28.03"></script>
-<script src="engine/styles-alt.js?v=2026-09-28.03"></script>
-<script src="engine/styles-groove.js?v=2026-09-28.03"></script>
-<script src="engine/styles-dub.js?v=2026-09-28.03"></script>
-<script src="engine/styles-break.js?v=2026-09-28.03"></script>
-<script src="engine/styles-soul.js?v=2026-09-28.03"></script>
-<script src="engine/styles-metal.js?v=2026-09-28.03"></script>
-<script src="engine/styles-electro.js?v=2026-09-28.03"></script>
-<script src="engine/variations.js?v=2026-09-28.03"></script>
-<script src="engine/import.js?v=2026-09-28.03"></script>
+<script src="engine/core.js?v=2026-09-28.04"></script>
+<script src="engine/styles-punk.js?v=2026-09-28.04"></script>
+<script src="engine/styles-post.js?v=2026-09-28.04"></script>
+<script src="engine/styles-machines.js?v=2026-09-28.04"></script>
+<script src="engine/styles-alt.js?v=2026-09-28.04"></script>
+<script src="engine/styles-groove.js?v=2026-09-28.04"></script>
+<script src="engine/styles-dub.js?v=2026-09-28.04"></script>
+<script src="engine/styles-break.js?v=2026-09-28.04"></script>
+<script src="engine/styles-soul.js?v=2026-09-28.04"></script>
+<script src="engine/styles-metal.js?v=2026-09-28.04"></script>
+<script src="engine/styles-electro.js?v=2026-09-28.04"></script>
+<script src="engine/variations.js?v=2026-09-28.04"></script>
+<script src="engine/import.js?v=2026-09-28.04"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -1839,7 +1864,7 @@ function renderTracks(){
     const pad=document.createElement("button");
     pad.className="pad"; pad.textContent=PAD_LABEL[idx]||"•";
     pad.title="Suona (anteprima)";
-    pad.onclick=()=>hitPad(idx);
+    pad.onclick=(ev)=>{ if(isLive() && (ev.metaKey||ev.ctrlKey||ev.altKey)) liveWrite(idx); else hitPad(idx); };
     top.appendChild(pad);
 
     const nm=document.createElement("div");
@@ -1912,6 +1937,7 @@ function renderTracks(){
       paintStep(b,arr[i],i,modOf(pat,t.id,i));
       if(i>=L){ b.disabled=true; b.classList.add("outlen"); b.title="fuori dalla lunghezza della traccia"; }
       b.onclick=(ev)=>{
+        if(isLive() && !(ev.metaKey||ev.ctrlKey)){ hitPad(project.tracks.indexOf(t)); return; }
         const key=STEP_MODE_KEY[ui.stepMode];
         if(key){
           if(!arr[i]){ setStatus("prima accendi il colpo (modalita' Colpi)"); return; }
@@ -1930,7 +1956,10 @@ function renderTracks(){
         paintStep(b,arr[i],i,modOf(pat,t.id,i));
         lanePaint.get(t.id)?.();
       };
-      b.oncontextmenu=(ev)=>{ ev.preventDefault(); pushUndo(); arr[i]= arr[i]===2?0:2; paintStep(b,arr[i],i,modOf(pat,t.id,i)); lanePaint.get(t.id)?.(); };
+      b.oncontextmenu=(ev)=>{ ev.preventDefault();
+        // sul Mac ctrl+click arriva come click destro: nella Vista Live accende/spegne lo step come cmd+click
+        if(isLive()){ if(ev.ctrlKey){ pushUndo(); arr[i]= arr[i]?0:1; paintStep(b,arr[i],i,modOf(pat,t.id,i)); lanePaint.get(t.id)?.(); } return; }
+        pushUndo(); arr[i]= arr[i]===2?0:2; paintStep(b,arr[i],i,modOf(pat,t.id,i)); lanePaint.get(t.id)?.(); };
       steps.appendChild(b); els.push(b);
     }
     stepEls.set(t.id,els);
@@ -2364,16 +2393,18 @@ function setView(v){
   el("viewSound").classList.toggle("on",v==="sound");
   el("viewRecent").classList.toggle("on",v==="recent");
   document.body.classList.toggle("sound-view",v==="sound");
-  // "Solo suono" mostra la stessa griglia della Griglia, senza il resto dell'interfaccia.
+  // La Vista Live mostra la stessa griglia della Griglia, senza il resto dell'interfaccia.
   el("panelPatterns").hidden = v!=="grid";
   el("panelGrid").hidden = v!=="grid" && v!=="sound";
   el("panelSeq").hidden = v!=="seq";
   el("panelRecent").hidden = v!=="recent";
   setMode(v==="seq"?"song":"pattern");
   el("helpKeys").hidden = v!=="grid";
-  // Rec registra nella griglia del pattern: fuori dalla Griglia sparisce e si spegne
-  el("recBtn").hidden = v!=="grid";
-  if(v!=="grid" && recording){ recording=false; el("recBtn").classList.remove("on"); }
+  // Rec registra nella griglia del pattern: fuori da Griglia e Vista Live sparisce e si spegne
+  const recView = v==="grid" || v==="sound";
+  el("recBtn").hidden = !recView;
+  if(!recView && recording){ recording=false; el("recBtn").classList.remove("on"); }
+  if(v==="sound") showLiveHelp();
   if(v==="recent") refreshRecent();
   if(v==="seq") renderSong();
 }
@@ -2406,6 +2437,37 @@ function hitPad(idx){
   if(padEl){ padEl.classList.add("hit"); setTimeout(()=>padEl.classList.remove("hit"),90); }
   if(recording && playing) recordHit(t);
 }
+
+// Vista Live: tasti e tocchi suonano soltanto; con un modificatore il colpo si scrive nello step che suona.
+const isLive = ()=>document.body.classList.contains("sound-view");
+function liveWrite(idx){
+  const t=project.tracks[idx];
+  if(!t) return;
+  hitPad(idx);
+  if(!playing){ setStatus("premi Play: il colpo si scrive nello step che sta suonando"); return; }
+  if(!recording){ pushUndo(); recordHit(t); }
+}
+const LIVE_HELP_KEY="pm.liveHelp.hide";
+function fillLiveKeys(){
+  const box=el("liveKeys"); box.innerHTML="";
+  project.tracks.slice(0,KEYS.length).forEach((t,i)=>{
+    const d=document.createElement("div"), k=document.createElement("kbd"), n=document.createElement("span");
+    k.textContent=PAD_LABEL[i]; n.textContent=sampleLabel(t.sampleIndex); n.title=n.textContent;
+    d.append(k,n); box.appendChild(d);
+  });
+}
+function showLiveHelp(force=false){
+  if(!force){ try{ if(localStorage.getItem(LIVE_HELP_KEY)) return; }catch(e){} }
+  const d=el("liveHelp");
+  if(d.open) return;
+  fillLiveKeys();
+  d.returnValue="close";
+  d.onclose=()=>{ if(d.returnValue==="never"){ try{ localStorage.setItem(LIVE_HELP_KEY,"1"); }catch(e){} } };
+  d.showModal();
+  d.querySelector('button[value="close"]').focus();
+}
+el("liveKeysBtn").onclick=()=>showLiveHelp(true);
+el("liveHelp").addEventListener("click",e=>{ if(e.target===el("liveHelp")) el("liveHelp").close("close"); });
 
 function recordHit(track){
   const pat=playingPattern();
@@ -2506,6 +2568,11 @@ document.addEventListener("keydown",(e)=>{
   if(!el("libOverlay").hidden && e.key==="Escape"){ closeLib(); return; }
   if(tag==="INPUT"||tag==="SELECT"||tag==="TEXTAREA") return;
   if(e.code==="Space"){ e.preventDefault(); togglePlay(); return; }
+  if(e.altKey && !e.metaKey && !e.ctrlKey && isLive()){
+    const j=KEYS.findIndex(k=>e.code===(/\d/.test(k)?"Digit"+k:"Key"+k.toUpperCase()));
+    if(j>=0){ e.preventDefault(); if(!e.repeat) liveWrite(j); }
+    return;
+  }
   if(e.metaKey||e.ctrlKey||e.altKey) return;
   const i=KEYS.indexOf(e.key.toLowerCase());
   if(i>=0 && !e.repeat){ e.preventDefault(); hitPad(i); }
@@ -4527,7 +4594,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-28.03";
+const SW_VERSION="2026-09-28.04";
 (function pwa(){
   const netBadge=el("netBadge");
 

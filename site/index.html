@@ -277,9 +277,13 @@ label.fld input[type=number]{width:54px;}
 .pattern-dot{width:10px; height:10px; border-radius:50%; flex:0 0 auto;}
 .machine-bar{display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-top:12px; padding-top:11px; border-top:1px solid var(--edge-soft);}
 .machine-info{margin-left:auto; font-size:11px; color:var(--text-dim); letter-spacing:.02em; text-align:right;}
+.transport-extra{display:contents;}
+/* Vista "solo suono": solo la griglia dei beat (con le sue opzioni) e Play/Stop. */
+body.sound-view .topbar, body.sound-view .project-panel, body.sound-view #machinePanel,
+body.sound-view #panelPatterns, body.sound-view .transport-extra{display:none;}
 .machine-label{font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--text-dim); font-weight:700;}
 .machine-buttons{display:flex; flex-wrap:wrap; gap:6px;}
-.machine-more{margin-left:auto;}
+.machine-more{margin-left:auto; font-weight:400;}
 .machine-select{font-size:14px; font-weight:700; padding:8px 12px; min-width:220px; max-width:100%;}
 .library-machine-select{min-width:220px; max-width:100%;}
 .lib-style-select{font-weight:700;}
@@ -638,23 +642,23 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 }
 /* Comandi principali piu' grandi. */
 #machinePanel .machine-bar{margin-top:0; padding-top:0; border-top:none;}
-#viewGrid, #viewSeq, #viewRecent{font-size:14px; padding:11px 22px; min-height:44px;}
-#viewGrid, #viewSeq{
+#viewGrid, #viewSeq, #viewSound, #viewRecent{font-size:14px; padding:11px 22px; min-height:44px;}
+#viewGrid, #viewSeq, #viewSound{
   min-height:52px; padding:12px 24px; border:2px solid var(--edge);
   border-radius:9px; font-weight:800; letter-spacing:.08em;
   box-shadow:inset 0 2px 0 rgba(255,255,255,.16), inset 0 -3px 0 rgba(0,0,0,.22), 0 3px 0 rgba(0,0,0,.28);
   transition:transform .06s, box-shadow .06s, background .12s;
 }
-#viewGrid:hover, #viewSeq:hover{border-color:var(--text-faint);}
-#viewGrid:active, #viewSeq:active{transform:translateY(2px); box-shadow:inset 0 1px 0 rgba(255,255,255,.08), inset 0 -1px 0 rgba(0,0,0,.2);}
-#viewGrid.on, #viewSeq.on{background:linear-gradient(180deg,#ff8a3d,#e0561a); border-color:#b8471f; color:#1c1b19; box-shadow:inset 0 2px 0 rgba(255,255,255,.35), inset 0 -3px 0 rgba(0,0,0,.2), 0 3px 0 rgba(0,0,0,.28);}
+#viewGrid:hover, #viewSeq:hover, #viewSound:hover{border-color:var(--text-faint);}
+#viewGrid:active, #viewSeq:active, #viewSound:active{transform:translateY(2px); box-shadow:inset 0 1px 0 rgba(255,255,255,.08), inset 0 -1px 0 rgba(0,0,0,.2);}
+#viewGrid.on, #viewSeq.on, #viewSound.on{background:linear-gradient(180deg,#ff8a3d,#e0561a); border-color:#b8471f; color:#1c1b19; box-shadow:inset 0 2px 0 rgba(255,255,255,.35), inset 0 -3px 0 rgba(0,0,0,.2), 0 3px 0 rgba(0,0,0,.28);}
 #pChoose, #pVary, #pNew{font-size:13px; padding:9px 16px; min-height:40px;}
 #recBtn{font-size:13.5px; padding:11px 18px; min-height:44px;}
 #bpmNum{height:44px; width:72px; font-size:14px;}
 #tapBtn{min-height:44px; padding:11px 18px; font-size:13.5px;}
 .topbar #accountLinks{display:inline-flex; align-items:baseline; gap:10px; margin-left:auto;}
 @media (max-width:560px){
-  #viewGrid, #viewSeq, #viewRecent{padding:10px 14px;}
+  #viewGrid, #viewSeq, #viewSound, #viewRecent{padding:10px 14px;}
 }
 </style>
 
@@ -726,6 +730,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
   <div class="tabs">
     <button id="viewGrid" class="on">Griglia</button>
     <button id="viewSeq">Sequencer</button>
+    <button id="viewSound" title="Solo la griglia dei beat e Play/Stop, senza il resto">Solo suono</button>
   </div>
 
   <div class="panel" id="panelPatterns">
@@ -750,20 +755,22 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <div class="lib-locks" id="pVaryPanel" hidden></div>
   </div>
 
-  <div class="panel">
+  <div class="panel" id="panelTransport">
     <div class="flexline">
       <button id="playBtn" title="Play / Stop (barra spaziatrice)"><span class="ico">&#9654;</span> Play</button>
-      <button id="recBtn"><span class="rec-dot" aria-hidden="true">&#9679;</span> Rec</button>
-      <label class="fld">BPM
-        <input type="range" id="bpmRange" min="60" max="180" value="93">
-      <input type="number" id="bpmNum" min="40" max="240" value="93">
-      </label>
-      <button id="tapBtn" class="mini">Tap</button>
-      <button id="metronomeBtn" class="mini" type="button" aria-pressed="false" title="Attiva/disattiva il metronomo">Metronomo</button>
-      <label class="fld" title="swing alla MPC: 50% dritto, 66% terzinato, 75% massimo">Swing <input type="range" id="swingRange" min="0" max="100" value="0"> <span id="swingPct" class="tiny">50%</span></label>
-      <label class="fld" title="umanizza: piccole differenze a caso di tempo (fino a 10 ms) e forza (fino al 15%)">Umano <input type="range" id="humanRange" min="0" max="100" value="0"></label>
-      <label class="fld">Vol <input type="range" id="masterVol" min="0" max="100" value="85"></label>
-      <div class="counter" id="counter">1 . 1</div>
+      <div class="transport-extra">
+        <button id="recBtn"><span class="rec-dot" aria-hidden="true">&#9679;</span> Rec</button>
+        <label class="fld">BPM
+          <input type="range" id="bpmRange" min="60" max="180" value="93">
+        <input type="number" id="bpmNum" min="40" max="240" value="93">
+        </label>
+        <button id="tapBtn" class="mini">Tap</button>
+        <button id="metronomeBtn" class="mini" type="button" aria-pressed="false" title="Attiva/disattiva il metronomo">Metronomo</button>
+        <label class="fld" title="swing alla MPC: 50% dritto, 66% terzinato, 75% massimo">Swing <input type="range" id="swingRange" min="0" max="100" value="0"> <span id="swingPct" class="tiny">50%</span></label>
+        <label class="fld" title="umanizza: piccole differenze a caso di tempo (fino a 10 ms) e forza (fino al 15%)">Umano <input type="range" id="humanRange" min="0" max="100" value="0"></label>
+        <label class="fld">Vol <input type="range" id="masterVol" min="0" max="100" value="85"></label>
+        <div class="counter" id="counter">1 . 1</div>
+      </div>
     </div>
   </div>
 
@@ -2332,9 +2339,12 @@ function renderSong(){
 function setView(v){
   el("viewGrid").classList.toggle("on",v==="grid");
   el("viewSeq").classList.toggle("on",v==="seq");
+  el("viewSound").classList.toggle("on",v==="sound");
   el("viewRecent").classList.toggle("on",v==="recent");
+  document.body.classList.toggle("sound-view",v==="sound");
+  // "Solo suono" mostra la stessa griglia della Griglia, senza il resto dell'interfaccia.
   el("panelPatterns").hidden = v!=="grid";
-  el("panelGrid").hidden = v!=="grid";
+  el("panelGrid").hidden = v!=="grid" && v!=="sound";
   el("panelSeq").hidden = v!=="seq";
   el("panelRecent").hidden = v!=="recent";
   setMode(v==="seq"?"song":"pattern");
@@ -2491,6 +2501,7 @@ el("metronomeBtn").onclick=()=>{
 el("viewRecent").onclick=()=>setView("recent");
 el("viewGrid").onclick=()=>setView("grid");
 el("viewSeq").onclick=()=>setView("seq");
+el("viewSound").onclick=()=>setView("sound");
 el("seqClear").onclick=async()=>{
   if(!project.song.length) return;
   if(!await ask({title:"Svuota arrangiamento", message:"Togliere tutti i blocchi della canzone? I pattern restano.", ok:"Svuota", danger:true})) return;

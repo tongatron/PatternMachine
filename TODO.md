@@ -7,6 +7,8 @@ In ordine consigliato.
 - [x] **Plug-in Audio Unit** (fatto, prototipo in `plugin/`): JUCE 8 con il sito in un WebView, motore C++ agganciato al
   PPQ di Logic (play, tempo, cicli, bounce), progetto salvato dentro il progetto di Logic. Da fare: uscite separate
   per voce, kit personali, firma per distribuirlo.
+- [ ] **Uscita multi-canale**: una traccia MIDI o un canale per strumento, per il mixer di Logic e delle DAW in
+  generale. Se possibile anche nel plug-in di Logic.
 - [ ] **Export per Scripter**: pattern/canzone come script per il plug-in Scripter (MIDI FX, JavaScript) sulla
   traccia di batteria. Suona agganciato al trasporto di Logic senza browser aperto; probabilita', flam e
   umanizza decisi da Logic a ogni giro. Note sulla mappa General MIDI. La strada piu' solida.

@@ -2,6 +2,7 @@
 
 /* Nel plug-in non servono account, PWA, link all'app e segnalazioni via server */
 .pm-plugin #desktopAppLink,
+.pm-plugin #pluginLink,
 .pm-plugin #installBtn,
 .pm-plugin #netBadge,
 .pm-plugin #accountLinks,

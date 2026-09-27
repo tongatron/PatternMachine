@@ -38,13 +38,15 @@ PATTERN_ID_RE = re.compile(r"^/api/patterns/([A-Za-z0-9\-]+)$")
 
 # Si serve solo cio' che fa parte del sito: server.py, mail.json, data/ e qualunque altro
 # file lasciato nella cartella (backup, appunti) restano fuori.
-STATIC_FILES = {"index.html", "funzioni.html", "macchine.html", "app.html", "manifest.json", "sw.js"}
-# download/: l'app per macOS (zip da ~100 MB) e app.json con versione e dimensione, scritti da desktop/scripts/release.sh.
+STATIC_FILES = {"index.html", "funzioni.html", "macchine.html", "app.html", "plugin.html", "manifest.json", "sw.js"}
+# download/: le app (zip da ~100 MB) e app.json con versione e dimensione, scritti da desktop/scripts/release.sh;
+# il plug-in per Logic e plugin.json, scritti da plugin/scripts/release.sh.
 STATIC_DIRS = ("engine/", "icons/", "samples/", "samples12/", "machines/", "assets/", "download/")
 DOWNLOAD_PLATFORMS = {
     "PatternMachine-macOS.zip": "macOS",
     "PatternMachine-Windows.exe": "Windows",
     "PatternMachine-Linux.AppImage": "Linux",
+    "PatternMachine-Plugin-macOS.zip": "Plug-in Logic",
 }
 
 # Visibili senza password: servono al browser per installare la PWA e alle anteprime dei link.

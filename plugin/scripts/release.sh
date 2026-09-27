@@ -1,7 +1,7 @@
 #!/bin/bash
 # Prepara il plug-in per la pagina "App" del sito: build di prova, poi
 #   site/download/PatternMachine-Plugin-macOS.zip   (AU + VST3 + LEGGIMI.txt)
-#   site/download/plugin.json                       (versione, dimensione, SHA-256: la legge site/app.html)
+#   site/download/plugin.json                       (versione, dimensione, SHA-256: la legge site/plugin.html)
 # Non tocca app.json ne' gli zip dell'app desktop. Poi si pubblica con scripts/deploy.sh --yes.
 set -euo pipefail
 cd "$(dirname "$0")/.."

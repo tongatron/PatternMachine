@@ -312,6 +312,7 @@ def main():
               ("1 download da 1 utente" in section, f"<b>{ADMIN}</b>" in section, "PatternMachine-macOS.zip" in section,
                bool(re.search(r"<td>\d\d/\d\d/\d{4} \d\d:\d\d</td>", section))), (True, True, True, True))
         check("pagina app", user.call("/app.html")[0], 200)
+        check("pagina plug-in", user.call("/plugin.html")[0], 200)
         check("scheda app non in cache", user.call("/download/app.json")[1].get("cache-control"), "private, no-cache")
         check("cache html privata", user.call("/")[1].get("cache-control"), "private, no-cache")
         check("cache campioni privata", user.call("/samples/Kick%201%20SP-1200.wav")[1].get("cache-control"),

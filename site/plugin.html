@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
-<title>App per Mac · PATTERN-MACHINE</title>
+<title>Plug-in per Logic · PATTERN-MACHINE</title>
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
 <style>
 /* Pagina di consultazione: stessi colori e materiali del tema chiaro della home
@@ -82,79 +82,52 @@ th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-sp
 <body>
 <div class="wrap">
 <header>
-  <h1>PATTERN-MACHINE per Mac, Win, Linux</h1>
-  <span class="muted">app desktop · prototipo</span>
+  <h1>PATTERN-MACHINE dentro Logic</h1>
+  <span class="muted">plug-in Audio Unit · prototipo</span>
   <a class="back" href="./">&larr; Torna alla drum machine</a>
 </header>
 
-<section>
+<section id="plugin">
   <h2>Scarica</h2>
-  <div class="download-grid">
-    <div class="download-item"><span class="tag tested">testato</span><a class="dl" data-platform="mac" href="#" download aria-disabled="true">Scarica per Mac</a><div class="facts" data-facts="mac"><span>in preparazione…</span></div></div>
-    <div class="download-item"><span class="tag untested">non testato</span><a class="dl" data-platform="windows" href="#" download aria-disabled="true">Scarica per Windows</a><div class="facts" data-facts="windows"><span>in preparazione…</span></div></div>
-    <div class="download-item"><span class="tag untested">non testato</span><a class="dl" data-platform="linux" href="#" download aria-disabled="true">Scarica per Linux</a><div class="facts" data-facts="linux"><span>in preparazione…</span></div></div>
+  <p>PatternMachine <b>dentro Logic</b>, su una traccia strumento: si apre la finestra del plug-in e c'è la drum machine completa. Premi Play in Logic e i pattern suonano a tempo, dalla battuta giusta, senza clock MIDI da configurare.</p>
+  <div class="get">
+    <span class="tag tested">testato in Logic</span>
+    <a class="dl" id="pluginDl" href="#" download aria-disabled="true">Scarica il plug-in</a>
+    <div class="facts" id="pluginFacts"><span>in preparazione…</span></div>
   </div>
-  <p class="muted sha" id="sha"></p>
-  <p class="muted">La build macOS è per Apple Silicon; Windows e Linux sono build x64. Le tre versioni funzionano offline e includono MIDI virtuale dove il sistema lo supporta.</p>
-</section>
 
-<section>
-  <h2>Cosa fa in più del sito</h2>
-  <div class="table-wrap"><table>
-    <tr><th>Nel browser</th><th>Nell'app</th></tr>
-    <tr><td>Esporti uno zip, lo scompatti, lo importi nella DAW</td><td><b>Trascini</b> il pattern (MIDI o WAV) dall'app direttamente nella timeline della DAW</td></tr>
-    <tr><td>Nessuna uscita MIDI dal vivo</td><td><b>Porta MIDI "PatternMachine"</b>: i pattern suonano Drum Kit Designer, Drum Machine Designer o qualsiasi strumento di Logic, e si registrano</td></tr>
-    <tr><td>Play e BPM impostati a mano</td><td><b>Segue il MIDI Clock della DAW</b>: parte, si ferma, salta e cambia tempo insieme alla DAW</td></tr>
-    <tr><td>Progetti salvati nel browser</td><td>Progetti come <b>file</b> in Musica › PatternMachine › Progetti, esportazioni in Musica › PatternMachine › Export</td></tr>
-    <tr><td>Serve la rete e la password</td><td>Funziona in locale, anche offline</td></tr>
-  </table></div>
-</section>
-
-<section>
-  <h2>Installare</h2>
-  <ol>
-    <li><b>macOS:</b> apri lo zip e trascina <b>PatternMachine</b> nella cartella <b>Applicazioni</b>. Questa versione non è notarizzata da Apple: al primo avvio, se macOS impedisce l'apertura, apri Terminale ed esegui <code>xattr -dr com.apple.quarantine /Applications/PatternMachine.app</code>, poi avvia di nuovo l'app. In alternativa fai Ctrl-clic sull'app, scegli <b>Apri</b> e conferma.</li>
-    <li><b>Windows:</b> avvia l'installer `.exe` e segui la procedura guidata. Se SmartScreen mostra <b>Windows ha protetto il computer</b>, verifica che il file provenga da questa pagina, scegli <b>Ulteriori informazioni</b> e poi <b>Esegui comunque</b>.</li>
-    <li><b>Linux:</b> scarica l'AppImage, rendila eseguibile con <code>chmod +x PatternMachine*.AppImage</code> e avviala. Se la distribuzione segnala che manca FUSE, installa il pacchetto FUSE richiesto dalla tua distribuzione e riprova.</li>
-  </ol>
-  <p class="muted">Gli avvisi compaiono perché i pacchetti non hanno ancora una firma commerciale del rispettivo sistema operativo. Accetta l'installazione solo se hai scaricato il file da questa pagina privata.</p>
-</section>
-
-<section>
-  <h2>Collegarla alla DAW</h2>
+  <h3>Cosa fa</h3>
   <ul>
-    <li><b>Note MIDI</b>: nel pannello DAW dell'app lascia attiva "Uscita MIDI" con note General MIDI. Nella DAW crea una traccia di batteria e seleziona la porta "PatternMachine".</li>
-    <li><b>Clock</b>: abilita nella DAW l'invio del MIDI Clock verso "PatternMachine". Nell'app seleziona la DAW, attiva "Segui il clock della DAW" e premi Play nella DAW.</li>
-    <li><b>Trascinare</b>: afferra <b>⠿ MIDI</b> o <b>⠿ WAV</b> nel pannello DAW e rilascia sulla timeline. Segue il selettore Pattern/Canzone.</li>
-    <li>Suono solo da Logic: spegni "Suono interno".</li>
+    <li><b>Sync automatico</b>: Play, Stop, tempo e cambi di tempo arrivano da Logic. Lo step 1 cade sulla battuta 1; segue anche i cicli e i salti sul righello.</li>
+    <li><b>Pattern o Canzone</b>: in Griglia gira il pattern scelto, allineato alle battute; in Sequencer la canzone parte dalla battuta 1 di Logic (nel pre-roll tace) e ricomincia alla fine.</li>
+    <li><b>Audio nel mixer di Logic</b>: effetti, fader, automazione e bounce (anche offline) come per qualsiasi strumento.</li>
+    <li><b>Il progetto si salva dentro il progetto di Logic</b> e suona anche senza aprire la finestra.</li>
+    <li><b>Pad e tastiera MIDI</b>: la nota C1 (36) suona la riga 1, C#1 la riga 2 e così via: i pad di un controller funzionano subito.</li>
+    <li>Tutti i kit, i blocchi per step, la libreria e gli export del sito. Progetti in Musica › PatternMachine › Progetti (gli stessi dell'app), export in Musica › PatternMachine › Export: il pulsante <b>Export ↗</b> accanto al Play apre la cartella.</li>
   </ul>
+
+  <h3>Installare</h3>
+  <ol>
+    <li>Apri lo zip e copia <b>PatternMachine.component</b> in <code>~/Library/Audio/Plug-Ins/Components</code> (nel Finder: Vai › Vai alla cartella…). Per altre DAW c'è anche <b>PatternMachine.vst3</b>, da copiare in <code>~/Library/Audio/Plug-Ins/VST3</code>.</li>
+    <li>Il plug-in non è notarizzato da Apple: in Terminale esegui <code>xattr -dr com.apple.quarantine ~/Library/Audio/Plug-Ins/Components/PatternMachine.component</code></li>
+    <li>Riapri Logic. Se non lo trovi: <b>Logic Pro › Settings › Plug-in Manager › Reset &amp; Rescan Selection</b>.</li>
+  </ol>
+
+  <h3>Usarlo</h3>
+  <ol>
+    <li><b>Track › New Software Instrument Track</b>.</li>
+    <li>Nel channel strip fai clic sullo slot <b>Instrument</b> e scegli <b>AU Instruments › Tongatron › PatternMachine › Stereo</b>. Conviene rinominare la traccia "PatternMachine".</li>
+    <li>Scrivi il pattern nella finestra del plug-in e premi <b>Play in Logic</b>. Il campo BPM mostra il tempo di Logic; il badge accanto al Play dice <b>Logic ▶ pattern</b> o <b>Logic ▶ canzone</b>.</li>
+    <li>A Logic fermo, il Play della finestra fa un'anteprima al tempo del progetto. Per registrare in audio usa il bounce di Logic; per il MIDI usa Export › MIDI e trascina il file in Logic.</li>
+    <li>Per riaprire la finestra: seleziona la traccia e fai clic sullo slot <b>PatternMac</b>.</li>
+  </ol>
+  <p class="muted">Solo Mac con Apple Silicon (macOS 12 o successivo). Uscita stereo unica, 6 dB sotto il volume del sito per lasciare margine nel mixer. I kit personali importati nell'app non ci sono.</p>
 </section>
+
 <footer class="site-footer">PATTERN-MACHINE è un progetto di <a class="site-badge" href="https://tongatron.org/"><span class="mark"></span><span>tongatron.org</span></a></footer>
 </div>
 
 <script>
-// La scheda download/app.json la scrive desktop/scripts/release.sh insieme ai tre artefatti.
-(async function(){
-  const links=[...document.querySelectorAll("[data-platform]")], sha=document.getElementById("sha");
-  const span=t=>{ const s=document.createElement("span"); s.textContent=t; return s; };
-  try{
-    const r=await fetch("download/app.json",{cache:"no-store"});
-    if(!r.ok) throw new Error(r.status);
-    const a=await r.json();
-    const platforms=a.platforms||{mac:a};
-    const d=new Date(a.date+"T12:00:00"), date=d.toLocaleDateString("it-IT",{day:"numeric",month:"long",year:"numeric"});
-    const archLabel={mac:"Apple Silicon · macOS 12+",windows:"Windows x64",linux:"Linux x64"};
-    links.forEach(link=>{
-      const p=platforms[link.dataset.platform], box=document.querySelector(`[data-facts="${link.dataset.platform}"]`);
-      if(!p){ link.setAttribute("aria-disabled","true"); box.replaceChildren(span("non disponibile")); return; }
-      link.href="download/"+encodeURIComponent(p.file)+"?v="+p.sha256.slice(0,12); link.removeAttribute("aria-disabled");
-      box.replaceChildren(span("versione "+a.version),span(Math.round(p.bytes/1048576)+" MB"),span(date),span(archLabel[link.dataset.platform]||p.arch||""));
-    });
-    sha.textContent="SHA-256 disponibili per ogni file nella scheda di release.";
-  }catch(e){
-    links.forEach(link=>{ document.querySelector(`[data-facts="${link.dataset.platform}"]`).replaceChildren(span("app non ancora pubblicata")); });
-  }
-})();
 // Plug-in per Logic: la scheda download/plugin.json la scrive plugin/scripts/release.sh.
 (async function(){
   const link=document.getElementById("pluginDl"), box=document.getElementById("pluginFacts");

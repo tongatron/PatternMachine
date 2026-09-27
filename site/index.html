@@ -578,8 +578,20 @@ button.danger-fill{background:var(--danger); border-color:var(--danger); color:#
 .tl-info .tl-time{font-size:13px; font-weight:700; color:var(--text); font-variant-numeric:tabular-nums; letter-spacing:0.04em;}
 .tl-info .tl-note{color:var(--text-faint);}
 
-/* Selettore tema */
-.theme-switch button{padding:4px 8px; font-size:10px;}
+/* Interruttore tema: Chiaro [ o ] Scuro */
+.theme-toggle{display:inline-flex; align-items:center; gap:6px; padding:4px 2px; background:none; border:none; box-shadow:none;
+  font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-faint); cursor:pointer;}
+.theme-toggle:hover{border:none;}
+.theme-toggle:active{transform:none;}
+.theme-toggle .tt-track{position:relative; width:30px; height:16px; border-radius:999px; background:var(--panel-2);
+  border:1px solid var(--edge); transition:background .15s, border-color .15s;}
+.theme-toggle .tt-knob{position:absolute; top:1px; left:1px; width:12px; height:12px; border-radius:50%;
+  background:var(--text-dim); transition:transform .15s;}
+.theme-toggle[aria-checked="false"] .tt-light, .theme-toggle[aria-checked="true"] .tt-dark{color:var(--text); font-weight:700;}
+.theme-toggle[aria-checked="true"] .tt-track{background:var(--accent); border-color:var(--accent);}
+.theme-toggle[aria-checked="true"] .tt-knob{transform:translateX(14px); background:var(--on-accent);}
+.theme-toggle:focus-visible .tt-track{outline:2px solid var(--accent); outline-offset:2px;}
+@media (prefers-reduced-motion:reduce){ .theme-toggle .tt-track, .theme-toggle .tt-knob{transition:none;} }
 
 table.recent{width:100%; border-collapse:collapse; font-size:13px;}
 table.recent th{text-align:left; color:var(--text-faint); font-weight:700; font-size:10.5px;
@@ -661,11 +673,10 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <span class="tagline">Drum machine a step, generatore di pattern e canzone, export MIDI, WAV e MP3</span>
     <a class="linkbtn help-link" href="funzioni.html" title="come si usa e cosa fa ogni funzione">Istruzioni e funzioni</a>
     <a class="linkbtn" id="desktopAppLink" href="app.html" title="PATTERN-MACHINE come app per macOS, Windows e Linux: MIDI, sync al clock e trascinamento">App per Mac, Win, Linux</a>
-    <button id="installBtn" class="linkbtn" title="Installa PATTERN-MACHINE come app web PWA">&#8681; App web PWA</button>
-    <div class="modeswitch theme-switch" role="group" aria-label="Tema dell'interfaccia">
-      <button type="button" data-theme-choice="light" title="Tema chiaro">&#9728;&#xFE0E; Chiaro</button>
-      <button type="button" data-theme-choice="dark" title="Tema scuro">&#9790; Scuro</button>
-    </div>
+    <button id="installBtn" class="linkbtn" title="Installa PATTERN-MACHINE come web app PWA">Web App PWA</button>
+    <button type="button" class="theme-toggle" id="themeToggle" role="switch" aria-checked="false" aria-label="Tema scuro" title="Passa dal tema chiaro allo scuro">
+      <span class="tt-side tt-light">Chiaro</span><span class="tt-track" aria-hidden="true"><span class="tt-knob"></span></span><span class="tt-side tt-dark">Scuro</span>
+    </button>
     <span class="net-badge" id="netBadge" hidden>offline</span>
     <span id="accountLinks">
       <span class="whoami" id="whoami" hidden></span>
@@ -884,7 +895,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     </div>
   </div>
 
-  <details class="help" id="helpKeys">
+  <details class="help" id="helpKeys" open>
     <summary>Suonare: i tasti e i comandi</summary>
     <div class="help-body">
       <section>
@@ -1039,19 +1050,19 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-27.02"></script>
-<script src="engine/styles-punk.js?v=2026-09-27.02"></script>
-<script src="engine/styles-post.js?v=2026-09-27.02"></script>
-<script src="engine/styles-machines.js?v=2026-09-27.02"></script>
-<script src="engine/styles-alt.js?v=2026-09-27.02"></script>
-<script src="engine/styles-groove.js?v=2026-09-27.02"></script>
-<script src="engine/styles-dub.js?v=2026-09-27.02"></script>
-<script src="engine/styles-break.js?v=2026-09-27.02"></script>
-<script src="engine/styles-soul.js?v=2026-09-27.02"></script>
-<script src="engine/styles-metal.js?v=2026-09-27.02"></script>
-<script src="engine/styles-electro.js?v=2026-09-27.02"></script>
-<script src="engine/variations.js?v=2026-09-27.02"></script>
-<script src="engine/import.js?v=2026-09-27.02"></script>
+<script src="engine/core.js?v=2026-09-27.03"></script>
+<script src="engine/styles-punk.js?v=2026-09-27.03"></script>
+<script src="engine/styles-post.js?v=2026-09-27.03"></script>
+<script src="engine/styles-machines.js?v=2026-09-27.03"></script>
+<script src="engine/styles-alt.js?v=2026-09-27.03"></script>
+<script src="engine/styles-groove.js?v=2026-09-27.03"></script>
+<script src="engine/styles-dub.js?v=2026-09-27.03"></script>
+<script src="engine/styles-break.js?v=2026-09-27.03"></script>
+<script src="engine/styles-soul.js?v=2026-09-27.03"></script>
+<script src="engine/styles-metal.js?v=2026-09-27.03"></script>
+<script src="engine/styles-electro.js?v=2026-09-27.03"></script>
+<script src="engine/variations.js?v=2026-09-27.03"></script>
+<script src="engine/import.js?v=2026-09-27.03"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -4414,17 +4425,13 @@ window.addEventListener("resize",()=>{
 })();
 
 // ---------- tema chiaro / scuro ----------
-// Di default Chiaro. "Auto" segue il sistema (nessun data-theme); Chiaro e Scuro forzano i token e la barra del browser.
+// Di default Chiaro; l'interruttore passa a Scuro. Il tema forza i token e la barra del browser.
 (function themeSwitch(){
-  const KEY="sp1200.theme", root=document.documentElement;
-  const buttons=[...document.querySelectorAll("[data-theme-choice]")];
+  const KEY="sp1200.theme", root=document.documentElement, toggle=el("themeToggle");
   const metas=[...document.querySelectorAll('meta[name="theme-color"]')];
   function apply(choice){
     root.dataset.theme=choice;
-    buttons.forEach(b=>{
-      const on=b.dataset.themeChoice===choice;
-      b.classList.toggle("on",on); b.setAttribute("aria-pressed",String(on));
-    });
+    toggle.setAttribute("aria-checked",String(choice==="dark"));
     const bg=getComputedStyle(root).getPropertyValue("--bg").trim();
     metas.forEach(m=>m.setAttribute("content", bg));
   }
@@ -4432,16 +4439,16 @@ window.addEventListener("resize",()=>{
   let choice="light";
   try{ choice=localStorage.getItem(KEY)==="dark"?"dark":"light"; }catch(e){}
   apply(choice);
-  buttons.forEach(b=>b.onclick=()=>{
-    choice=b.dataset.themeChoice;
+  toggle.onclick=()=>{
+    choice=choice==="dark"?"light":"dark";
     try{ localStorage.setItem(KEY,choice); }catch(e){}
     apply(choice);
-  });
+  };
 })();
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-27.02";
+const SW_VERSION="2026-09-27.03";
 (function pwa(){
   const standalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
   const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);

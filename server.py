@@ -595,6 +595,7 @@ td form{display:inline;}
 .row-acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;}
 .tag{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);}
 .table-wrap{overflow-x:auto;}
+.admin-bar{width:min(760px,100%);display:flex;justify-content:space-between;gap:10px;}
 .site-footer{margin-top:10px;}
 .site-footer a{transition:transform .2s;}
 .site-footer a:hover{transform:translateY(-1px);}
@@ -1108,7 +1109,11 @@ class Handler(BaseHTTPRequestHandler):
         msg_html = f'<p class="ok">{e(message)}</p>' if message else ""
         link_html = ("<p>Link per la nuova password (vale un&apos;ora, mandalo tu all&apos;utente):</p>"
                      f"<code>{e(link)}</code>") if link else ""
-        self._page(status, "Utenti", f"""<div class="card wide">
+        self._page(status, "Utenti", f"""<nav class="admin-bar">
+  <a class="btn ghost small" href="/">&larr; Torna a PatternMachine</a>
+  <a class="btn ghost small" href="/logout">Esci</a>
+</nav>
+<div class="card wide">
   <h1>Utenti</h1>
   <div class="line"></div>
   {msg_html}{link_html}{top}
@@ -1116,7 +1121,6 @@ class Handler(BaseHTTPRequestHandler):
     <tr><th>Nome</th><th>Email</th><th>Registrato</th><th>Ultimo accesso</th><th></th></tr>
     {''.join(rows)}
   </table></div>
-  <div class="links"><a href="/">&larr; Torna a PatternMachine</a><a href="/logout">Esci</a></div>
 </div>
 {downloads_section}
 {app_section}""", badge=False)

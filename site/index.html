@@ -790,6 +790,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <div class="flexline">
       <button id="playBtn" title="Play / Stop (space bar)"><span class="ico">&#9654;</span> Play</button>
       <button id="synthPlayBtn" type="button" hidden title="Play only the synth line"><span class="ico">&#9654;</span> Play solo Synth</button>
+      <button id="drumsPlayBtn" type="button" hidden title="Play only the drums, without the synth"><span class="ico">&#9654;</span> Play Solo Drums</button>
       <div class="transport-extra">
         <button id="recBtn" class="live-keep"><span class="rec-dot" aria-hidden="true">&#9679;</span> Rec</button>
         <label class="fld live-keep">BPM
@@ -1106,19 +1107,19 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-28.22"></script>
-<script src="engine/styles-punk.js?v=2026-09-28.22"></script>
-<script src="engine/styles-post.js?v=2026-09-28.22"></script>
-<script src="engine/styles-machines.js?v=2026-09-28.22"></script>
-<script src="engine/styles-alt.js?v=2026-09-28.22"></script>
-<script src="engine/styles-groove.js?v=2026-09-28.22"></script>
-<script src="engine/styles-dub.js?v=2026-09-28.22"></script>
-<script src="engine/styles-break.js?v=2026-09-28.22"></script>
-<script src="engine/styles-soul.js?v=2026-09-28.22"></script>
-<script src="engine/styles-metal.js?v=2026-09-28.22"></script>
-<script src="engine/styles-electro.js?v=2026-09-28.22"></script>
-<script src="engine/variations.js?v=2026-09-28.22"></script>
-<script src="engine/import.js?v=2026-09-28.22"></script>
+<script src="engine/core.js?v=2026-09-28.23"></script>
+<script src="engine/styles-punk.js?v=2026-09-28.23"></script>
+<script src="engine/styles-post.js?v=2026-09-28.23"></script>
+<script src="engine/styles-machines.js?v=2026-09-28.23"></script>
+<script src="engine/styles-alt.js?v=2026-09-28.23"></script>
+<script src="engine/styles-groove.js?v=2026-09-28.23"></script>
+<script src="engine/styles-dub.js?v=2026-09-28.23"></script>
+<script src="engine/styles-break.js?v=2026-09-28.23"></script>
+<script src="engine/styles-soul.js?v=2026-09-28.23"></script>
+<script src="engine/styles-metal.js?v=2026-09-28.23"></script>
+<script src="engine/styles-electro.js?v=2026-09-28.23"></script>
+<script src="engine/variations.js?v=2026-09-28.23"></script>
+<script src="engine/import.js?v=2026-09-28.23"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -1744,7 +1745,7 @@ const audibleTracks = ()=>{
 };
 
 // ---------- transport ----------
-let playing=false, recording=false, synthOnly=false;
+let playing=false, recording=false, synthOnly=false, drumsOnly=false;
 let nextTime=0, timer=null;
 let cursor={step:0, blockIndex:0, rep:0, loops:0, patternId:null};
 let queue=[];
@@ -1826,7 +1827,7 @@ function scheduler(){
       stepHits(m,dur,FLAM_SEC).forEach(([at,f])=>trigger(tr, nextTime+nudgeOf(t)+j+at, stepVel(v)*f*jv));
     });
     const syn=synthNow(pat);
-    if(window.PMSynth && syn) PMSynth.step(syn.sp, syn.step, nextTime);   // synth: note che partono in questo step
+    if(window.PMSynth && syn && !drumsOnly) PMSynth.step(syn.sp, syn.step, nextTime);   // synth: note che partono in questo step
     queue.push({time:nextTime, dur, step:cursor.step, cycle, rep:cursor.rep||0, patternId:pat.id, blockIndex:cursor.blockIndex, bar:barCount,
       synthId:syn?syn.sp.id:null, synthStep:syn?syn.step:-1, synthIndex:syn?syn.index:-1});
     nextTime += dur;
@@ -1894,7 +1895,7 @@ function play(){
 }
 function stop(){
   playing=false;
-  synthOnly=false;
+  synthOnly=false; drumsOnly=false;
   clearInterval(timer); timer=null; queue=[];
   if(window.PMSynth) PMSynth.allOff();
   visible={step:-1, patternId:null, blockIndex:-1, bar:1};
@@ -1904,14 +1905,21 @@ function stop(){
 const togglePlay = ()=> playing?stop():play();
 
 function paintTransport(){
-  const inSynth=!el("panelSynth").hidden;
-  const all=el("playBtn"), solo=el("synthPlayBtn");
+  const inSynth=!el("panelSynth").hidden, inDrums=el("viewGrid").classList.contains("on");
+  const all=el("playBtn"), solo=el("synthPlayBtn"), drums=el("drumsPlayBtn");
   all.classList.toggle("on",playing);
-  all.innerHTML=playing ? '<span class="ico">&#9632;</span> Stop' : `<span class="ico">&#9654;</span> ${inSynth?"Play All":"Play"}`;
+  all.innerHTML=playing ? '<span class="ico">&#9632;</span> Stop' : `<span class="ico">&#9654;</span> ${inSynth||inDrums?"Play All":"Play"}`;
   if(solo){
     solo.hidden=!inSynth;
     solo.classList.toggle("on",playing && synthOnly);
   }
+  drums.hidden=!inDrums;
+  drums.classList.toggle("on",playing && drumsOnly);
+}
+function toggleDrumsPlay(){
+  if(playing){ stop(); return; }
+  drumsOnly=true;
+  play();
 }
 
 function toggleSynthPlay(){
@@ -2683,6 +2691,7 @@ function setView(v){
   el("panelSynth").hidden = v!=="synth";
   el("panelRecent").hidden = v!=="recent";
   if(v!=="synth" && synthOnly) stop();
+  if(v!=="grid" && drumsOnly) stop();
   paintTransport();
   setMode(v==="seq"?"song":"pattern");
   el("helpKeys").hidden = v!=="grid";
@@ -2783,7 +2792,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || document.getElementById("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-28.22";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-28.23";
   document.body.appendChild(s);
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth")) loadSynth();
@@ -2876,7 +2885,8 @@ document.addEventListener("keydown",(e)=>{
 });
 
 // ---------- transport UI ----------
-el("playBtn").onclick=()=>{ if(playing) stop(); else { synthOnly=false; play(); } };
+el("playBtn").onclick=()=>{ if(playing) stop(); else { synthOnly=false; drumsOnly=false; play(); } };
+el("drumsPlayBtn").onclick=toggleDrumsPlay;
 el("synthPlayBtn").onclick=toggleSynthPlay;
 el("metronomeBtn").onclick=()=>{
   ui.metronome=!ui.metronome;
@@ -4909,7 +4919,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-28.22";
+const SW_VERSION="2026-09-28.23";
 (function pwa(){
   const netBadge=el("netBadge");
 

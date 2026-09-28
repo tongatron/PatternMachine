@@ -1088,7 +1088,10 @@
     b.classList.toggle("on", on); b.setAttribute("aria-pressed", String(on)); b.textContent = on ? "On" : "Off";
     const bank = presetBank(), users = userPresets(), cur = s?.preset || (engineOf() === "tone" ? DEFAULT_TONE_PRESET : DEFAULT_PRESET);
     const opt = n => `<option value="${esc(n)}"${n === cur ? " selected" : ""}>${esc(n)}</option>`;
-    el("synPreset").innerHTML = `<optgroup label="Factory">${Object.keys(bank).map(opt).join("")}</optgroup>`
+    // suoni di fabbrica: prima quelli con le unita' KORG logue, poi quelli del motore custom
+    const names = Object.keys(bank), korg = names.filter(n => bank[n].mType === "logue"), custom = names.filter(n => bank[n].mType !== "logue");
+    const group = (label, list) => list.length ? `<optgroup label="${label}">${list.map(opt).join("")}</optgroup>` : "";
+    el("synPreset").innerHTML = (engineOf() === "tone" ? group("Tone.js", names) : group("KORG logue", korg) + group("Custom", custom))
       + (Object.keys(users).length ? `<optgroup label="Mine">${Object.keys(users).map(opt).join("")}</optgroup>` : "")
       + (!bank[cur] && !users[cur] ? `<optgroup label="This project">${opt(cur)}</optgroup>` : "");
     el("synDelPreset").hidden = !users[cur];

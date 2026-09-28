@@ -1,4 +1,4 @@
-// Synth di PatternMachine (in prova, solo admin): una linea di note per pattern, suonata a tempo con la batteria.
+// Synth di PatternMachine (in prova): una linea di note per pattern, suonata a tempo con la batteria.
 // Lo carica index.html solo per l'admin (o in locale con ?synth); il suono e' in engine/synth-worklet.js.
 //
 // Dati nel progetto (li salvano serialize()/deserialize() di index.html):
@@ -710,7 +710,7 @@
     built = true;
     const st = document.createElement("style"); st.textContent = CSS; document.head.appendChild(st);
     el("panelSynth").innerHTML = `
-      <h2>Synth <span id="synPatName"></span><span class="synth-beta">test · admin only</span></h2>
+      <h2>Synth <span id="synPatName"></span><span class="synth-beta">test</span></h2>
       <div class="flexline">
         <button id="synOn" class="mini on" type="button" aria-pressed="true" title="Synth on/off in playback and exports">On</button>
         <label class="fld">Engine <select id="synEngine"><option value="custom">Custom + KORG</option><option value="tone">Tone.js</option></select></label>

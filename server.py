@@ -46,7 +46,7 @@ DOWNLOAD_PLATFORMS = {
     "PatternMachine-macOS.zip": "macOS",
     "PatternMachine-Windows.exe": "Windows",
     "PatternMachine-Linux.AppImage": "Linux",
-    "PatternMachine-Plugin-macOS.zip": "Plug-in Logic",
+    "PatternMachine-Plugin-macOS.zip": "Logic plug-in",
 }
 
 # Visibili senza password: servono al browser per installare la PWA e alle anteprime dei link;
@@ -436,13 +436,13 @@ def send_telegram(text):
 
 
 def report_text(fields, account):
-    who = fields["name"] or "(senza nome)"
+    who = fields["name"] or "(no name)"
     if fields["email"]:
         who += f" <{fields['email']}>"
-    acct = "ospite" if account.get("role") == "guest" else f"account {account.get('name', '?')}"
-    lines = ["Segnalazione da PatternMachine", f"Da: {who} ({acct})"]
+    acct = "guest" if account.get("role") == "guest" else f"account {account.get('name', '?')}"
+    lines = ["Problem report from PatternMachine", f"From: {who} ({acct})"]
     if fields["page"]:
-        lines.append(f"Pagina: {fields['page']}")
+        lines.append(f"Page: {fields['page']}")
     lines += ["", fields["message"]]
     if fields["info"]:
         lines += ["", "---", fields["info"]]
@@ -471,10 +471,10 @@ def all_downloads(users):
 
 
 def registration_text(user):
-    lines = ["Nuovo utente registrato su PatternMachine", f"Nome: {user['name']}"]
+    lines = ["New user signed up on PatternMachine", f"Name: {user['name']}"]
     if user.get("email"):
         lines.append(f"Email: {user['email']}")
-    lines.append(f"Data: {user.get('created_at', now_iso())}")
+    lines.append(f"Date: {user.get('created_at', now_iso())}")
     return "\n".join(lines)
 
 
@@ -483,7 +483,7 @@ def send_report_mail(text):
     if not admins or not mail_config():
         return False
     body = "<pre style=\"font:14px/1.5 -apple-system,Helvetica,Arial,sans-serif;white-space:pre-wrap;\">" + html.escape(text) + "</pre>"
-    return all(send_mail(a, "PatternMachine: segnalazione", text, body) for a in admins)
+    return all(send_mail(a, "PatternMachine: problem report", text, body) for a in admins)
 
 
 # Logo di tongatron.org in linea, nell'arancio dei pulsanti del sito, testo bianco.
@@ -498,15 +498,15 @@ def mail_html(title, intro, button_text, button_url, rows=(), outro=""):
     e = html.escape
     table = "".join(f'<tr><td style="padding:6px 14px 6px 0;color:#6b6f75;">{e(k)}</td>'
                     f'<td style="padding:6px 0;font-weight:700;">{e(v)}</td></tr>' for k, v in rows)
-    return f"""<!doctype html><html lang="it"><head><meta charset="utf-8"></head><body style="margin:0;background:#eceae4;padding:24px 12px;
+    return f"""<!doctype html><html lang="en"><head><meta charset="utf-8"></head><body style="margin:0;background:#eceae4;padding:24px 12px;
 font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;color:#1b1d20;">
 <div style="max-width:480px;margin:0 auto;background:#fff;border-radius:12px;padding:26px 24px;">
 <div style="font:700 15px ui-monospace,Menlo,monospace;letter-spacing:.2em;text-transform:uppercase;">PatternMachine</div>
-<div style="height:2px;background:#3b8fd6;margin:8px 0 20px;"></div>
+<div style="height:2px;background:#c8471f;margin:8px 0 20px;"></div>
 <h1 style="font-size:19px;margin:0 0 10px;">{e(title)}</h1>
 <p style="font-size:14px;line-height:1.55;margin:0 0 16px;">{e(intro)}</p>
 {f'<table style="font-size:14px;border-collapse:collapse;margin:0 0 20px;">{table}</table>' if rows else ''}
-<a href="{e(button_url)}" style="display:inline-block;background:#4f9e63;color:#fff;text-decoration:none;font-weight:700;
+<a href="{e(button_url)}" style="display:inline-block;background:#c8471f;background-image:linear-gradient(180deg,#e0743f,#b8471f);color:#fff;text-decoration:none;font-weight:700;
 letter-spacing:.08em;text-transform:uppercase;font-size:13px;padding:13px 22px;border-radius:9px;">{e(button_text)}</a>
 {f'<p style="font-size:12px;line-height:1.5;color:#6b6f75;margin:20px 0 0;">{e(outro)}</p>' if outro else ''}
 <div style="border-top:1px solid #e3e1db;margin:24px 0 0;padding:18px 0 0;text-align:center;">{TONGATRON_BADGE}</div>
@@ -514,49 +514,49 @@ letter-spacing:.08em;text-transform:uppercase;font-size:13px;padding:13px 22px;b
 
 
 def send_welcome(user, password):
-    rows = [("Nome", user["name"]), ("Password", password), ("Email", user["email"])]
-    text = (f"Ciao {user['name']}, benvenuto su PatternMachine!\n\n"
-            f"Nome: {user['name']}\nPassword: {password}\nEmail: {user['email']}\n\nEntra: {SITE_URL}/login\n")
-    return send_mail(user["email"], "Benvenuto su PatternMachine",
-                     text, mail_html(f"Benvenuto, {user['name']}!", "Il tuo account è pronto. Queste sono le tue credenziali:",
-                                     "Apri PatternMachine", SITE_URL + "/login", rows,
-                                     "Conserva questa mail: se dimentichi la password puoi reimpostarla dalla pagina di accesso."))
+    rows = [("Name", user["name"]), ("Password", password), ("Email", user["email"])]
+    text = (f"Hi {user['name']}, welcome to PatternMachine!\n\n"
+            f"Name: {user['name']}\nPassword: {password}\nEmail: {user['email']}\n\nSign in: {SITE_URL}/login\n")
+    return send_mail(user["email"], "Welcome to PatternMachine",
+                     text, mail_html(f"Welcome, {user['name']}!", "Your account is ready. These are your credentials:",
+                                     "Open PatternMachine", SITE_URL + "/login", rows,
+                                     "Keep this email: if you forget your password you can reset it from the sign-in page."))
 
 
 def send_reset(user, token):
     url = f"{SITE_URL}/reset?token={token}"
-    text = (f"Ciao {user['name']},\n\nper scegliere una nuova password apri questo link (vale un'ora):\n{url}\n\n"
-            "Se non l'hai chiesto tu, ignora questa mail: la password resta quella di prima.\n")
-    return send_mail(user["email"], "PatternMachine: nuova password", text,
-                     mail_html("Nuova password", f"Ciao {user['name']}, per scegliere una nuova password usa il pulsante qui sotto. Il link vale un'ora e si usa una volta sola.",
-                               "Scegli la nuova password", url, (),
-                               "Se non l'hai chiesto tu, ignora questa mail: la password resta quella di prima."))
+    text = (f"Hi {user['name']},\n\nto choose a new password open this link (valid for one hour):\n{url}\n\n"
+            "If you didn't ask for this, ignore this email: your password stays the same.\n")
+    return send_mail(user["email"], "PatternMachine: new password", text,
+                     mail_html("New password", f"Hi {user['name']}, use the button below to choose a new password. The link is valid for one hour and works only once.",
+                               "Choose a new password", url, (),
+                               "If you didn't ask for this, ignore this email: your password stays the same."))
 
 
 # Pagine di accesso (login, registrazione, recupero, admin): un solo guscio, {title} e {body} cambiano.
 PAGE_SHELL = """<!doctype html>
-<html lang="it">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#a3a097">
 <title>PATTERN-MACHINE — {title}</title>
-<meta name="description" content="Drum machine a step con SP-1200, RX-5, 808, 909, 707, 606, CR-78, LinnDrum, DMX e altre: generatore di pattern in decine di stili, variazioni, arrangiamento della canzone ed export MIDI.">
+<meta name="description" content="Step drum machine with SP-1200, RX-5, 808, 909, 707, 606, CR-78, LinnDrum, DMX and more: pattern generator in dozens of styles, variations, song arranger and MIDI export.">
 <!-- Anteprima dei link: chi condivide un link arriva qui (il sito e' dietro accesso), quindi i tag stanno in questa pagina. -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="PatternMachine">
-<meta property="og:title" content="PatternMachine — drum machine a step con generatore di pattern">
-<meta property="og:description" content="Drum machine a step con SP-1200, RX-5, 808, 909, 707, 606, CR-78, LinnDrum, DMX e altre: generatore di pattern in decine di stili, variazioni, arrangiamento della canzone ed export MIDI.">
+<meta property="og:title" content="PatternMachine — step drum machine with pattern generator">
+<meta property="og:description" content="Step drum machine with SP-1200, RX-5, 808, 909, 707, 606, CR-78, LinnDrum, DMX and more: pattern generator in dozens of styles, variations, song arranger and MIDI export.">
 <meta property="og:image" content="https://patternmachine.tongatron.org/assets/og-drum-machine-lab.jpg">
 <meta property="og:image:type" content="image/jpeg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="800">
-<meta property="og:image:alt" content="SP-1200, TR-808, TR-909 e Yamaha RX5 con l'interfaccia di PatternMachine in primo piano">
+<meta property="og:image:alt" content="SP-1200, TR-808, TR-909 and Yamaha RX5 with the PatternMachine interface in front">
 <meta property="og:url" content="https://patternmachine.tongatron.org/">
-<meta property="og:locale" content="it_IT">
+<meta property="og:locale" content="en_US">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="PatternMachine — drum machine a step con generatore di pattern">
+<meta name="twitter:title" content="PatternMachine — step drum machine with pattern generator">
 <meta name="twitter:image" content="https://patternmachine.tongatron.org/assets/og-drum-machine-lab.jpg">
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
@@ -801,11 +801,11 @@ class Handler(BaseHTTPRequestHandler):
         if path in OPEN_PATHS or path.startswith(OPEN_DIRS) or self._authorized():
             return True
         if self.command == "GET" and path.startswith("/download/"):
-            self._page(401, "Download riservato", """<div class="card">
-  <h1>Download riservato</h1>
+            self._page(401, "Members-only download", """<div class="card">
+  <h1>Members-only download</h1>
   <div class="line"></div>
-  <p>Per scaricare le app devi prima registrarti o accedere al tuo account.</p>
-  <div class="links"><a class="btn" href="/register?next=/app.html">Registrati</a><a class="btn ghost" href="/login?next=/app.html">Accedi</a></div>
+  <p>To download the apps, create an account or sign in first.</p>
+  <div class="links"><a class="btn" href="/login?next=/app.html">Sign in</a><a class="btn ghost" href="/register?next=/app.html">Create an account</a></div>
 </div>""")
             return False
         wants_page = self.command == "GET" and (path == "/" or path.endswith(".html")
@@ -869,32 +869,32 @@ class Handler(BaseHTTPRequestHandler):
         e = html.escape
         nxt = e(safe_next(next_path), quote=True)
         q = "" if safe_next(next_path) == "/" else "?next=" + quote(safe_next(next_path), safe="")
-        self._page(status, "Accesso", f"""<header class="brand">
+        self._page(status, "Sign in", f"""<header class="brand">
   <a class="logo" href="/landing.html">Pattern-Machine</a>
-  <p class="tagline">Drum machine a step · pattern · canzoni · export MIDI, WAV, MP3</p>
+  <p class="tagline">Step drum machine · patterns · songs · MIDI, WAV, MP3 export</p>
   <div class="pads" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i class="on"></i><i></i><i></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i class="on"></i><i></i><i></i><i></i></div>
 </header>
 <form class="card" method="post" action="/login">
-  <h1>Accedi</h1>
+  <h1>Sign in</h1>
   <div class="line"></div>
-  {f'<p class="ok">{e(note)}</p>' if note else '<p>Entra con il tuo nome (o la tua email) e la tua password.</p>'}
-  <label for="nm">Nome o email</label>
-  <input id="nm" name="name" autocomplete="username" placeholder="Steve o steve@example.com" value="{e(name, quote=True)}" {'' if name else 'autofocus'} required>
+  {f'<p class="ok">{e(note)}</p>' if note else '<p>Sign in with your name (or email) and your password.</p>'}
+  <label for="nm">Name or email</label>
+  <input id="nm" name="name" autocomplete="username" placeholder="Steve or steve@example.com" value="{e(name, quote=True)}" {'' if name else 'autofocus'} required>
   <label for="pw">Password</label>
   <input id="pw" name="password" type="password" autocomplete="current-password" {'autofocus' if name else ''} required>
   <input type="hidden" name="next" value="{nxt}">
-  <button type="submit">Entra</button>
+  <button type="submit">Sign in</button>
   <div class="err" role="alert">{e(error)}</div>
-  <div class="links"><span></span><a href="/forgot">Password dimenticata?</a></div>
-  <div class="or">Nuovo qui?</div>
-  <a class="btn ghost" href="/register{q}">Crea un account</a>
+  <div class="links"><span></span><a href="/forgot">Forgot your password?</a></div>
+  <div class="or">New here?</div>
+  <a class="btn ghost" href="/register{q}">Create an account</a>
 </form>
 <form class="card guest" method="post" action="/guest" style="padding:14px 22px;" onsubmit="try{{sessionStorage.setItem('guestWelcome','1')}}catch(e){{}}">
   <input type="hidden" name="next" value="{nxt}">
-  <button type="submit">Prova senza registrarti</button>
-  <p>Come ospite non potrai salvare i tuoi pattern né scaricare le app.</p>
+  <button type="submit">Try it without an account</button>
+  <p>As a guest you can't save your patterns or download the apps.</p>
 </form>
-<a class="about" href="/landing.html">Cos'è PATTERN-MACHINE? →</a>""")
+<a class="about" href="/landing.html">What is PATTERN-MACHINE? →</a>""")
 
     def _do_login(self):
         form = self._form()
@@ -904,7 +904,7 @@ class Handler(BaseHTTPRequestHandler):
         name = form.get("name", "").strip()
         ip = self._client_ip()
         if too_many(ip, "login"):
-            self._login_page(429, "Troppi tentativi. Riprova tra qualche minuto.", next_path, name)
+            self._login_page(429, "Too many attempts. Try again in a few minutes.", next_path, name)
             return
         with USERS_LOCK:
             db = load_users()
@@ -917,7 +917,7 @@ class Handler(BaseHTTPRequestHandler):
         if not ok:
             note(ip, "login")
             time.sleep(0.4)
-            self._login_page(401, "Nome, email o password errati.", next_path, name)
+            self._login_page(401, "Wrong name, email or password.", next_path, name)
             return
         self._redirect(next_path, [self._session_cookie(cookie, SESSION_DAYS * 86400)])
 
@@ -935,20 +935,20 @@ class Handler(BaseHTTPRequestHandler):
 
     def _register_page(self, status=200, error="", next_path="/", name="", email=""):
         e = html.escape
-        self._page(status, "Registrazione", f"""<form class="card" method="post" action="/register">
+        self._page(status, "Create an account", f"""<form class="card" method="post" action="/register">
   <h1>PATTERN-MACHINE</h1>
   <div class="line"></div>
-  <label for="nm">Nome</label>
+  <label for="nm">Name</label>
   <input id="nm" name="name" autocomplete="username" maxlength="{MAX_USERNAME}" placeholder="Steve" value="{e(name, quote=True)}" autofocus required>
   <label for="em">Email</label>
   <input id="em" name="email" type="email" autocomplete="email" placeholder="steve@example.com" value="{e(email, quote=True)}" required>
-  <p style="margin:6px 0 0;font-size:11px;">Con la mail ricevi le credenziali e puoi recuperare la password.</p>
+  <p style="margin:6px 0 0;font-size:11px;">We'll email you your credentials, and you'll need it to reset your password.</p>
   <label for="pw">Password</label>
   <input id="pw" name="password" type="password" autocomplete="new-password" required>
   <input type="hidden" name="next" value="{e(safe_next(next_path), quote=True)}">
-  <button type="submit">Registrati</button>
+  <button type="submit">Create account</button>
   <div class="err" role="alert">{e(error)}</div>
-  <div class="links"><a href="/login{'' if safe_next(next_path) == '/' else '?next=' + quote(safe_next(next_path), safe='')}">Hai già un account? Entra</a><a href="/landing.html">Cos'è PATTERN-MACHINE?</a></div>
+  <div class="links"><a href="/login{'' if safe_next(next_path) == '/' else '?next=' + quote(safe_next(next_path), safe='')}">Already have an account? Sign in</a><a href="/landing.html">What is PATTERN-MACHINE?</a></div>
 </form>""")
 
     def _do_register(self):
@@ -959,16 +959,16 @@ class Handler(BaseHTTPRequestHandler):
         raw_name, email, password = form.get("name", ""), form.get("email", "").strip(), form.get("password", "")
         ip = self._client_ip()
         name = clean_name(raw_name)
-        err = ("Troppe registrazioni da questa rete. Riprova tra qualche minuto." if too_many(ip, "register")
-               else f"Il nome deve avere da 1 a {MAX_USERNAME} caratteri." if not name
-               else "Scrivi la tua email." if not email
-               else "Email non valida." if not EMAIL_RE.match(email)
-               else "Scegli una password." if not password else "")
+        err = ("Too many sign-ups from this network. Try again in a few minutes." if too_many(ip, "register")
+               else f"The name must be 1 to {MAX_USERNAME} characters long." if not name
+               else "Enter your email." if not email
+               else "Invalid email." if not EMAIL_RE.match(email)
+               else "Choose a password." if not password else "")
         if not err:
             with USERS_LOCK:
                 db = load_users()
                 if find_user(db, name=name):
-                    err = "Questo nome è già usato: scegline un altro."
+                    err = "This name is already taken: choose another one."
                 else:
                     user = new_user(name, password, email)
                     user["last_login"] = now_iso()
@@ -985,15 +985,15 @@ class Handler(BaseHTTPRequestHandler):
 
     def _forgot_page(self, status=200, error="", done=False):
         e = html.escape
-        body = ("""<p class="ok">Se l'account ha una mail, ti abbiamo scritto: apri il link che trovi nel messaggio (vale un'ora).
-  Se non hai messo la mail alla registrazione, chiedi all'amministratore.</p>
-  <a class="btn ghost" href="/login">Torna all'accesso</a>""" if done else f"""<p>Scrivi il tuo nome o la mail dell'account: ti mandiamo un link per scegliere una nuova password.</p>
-  <label for="who">Nome o email</label>
-  <input id="who" name="who" autocomplete="username" placeholder="Steve o steve@example.com" autofocus required>
-  <button type="submit">Mandami il link</button>
+        body = ("""<p class="ok">If the account has an email address, we've sent you a message: open the link inside it (valid for one hour).
+  If you didn't give an email when you signed up, ask the administrator.</p>
+  <a class="btn ghost" href="/login">Back to sign in</a>""" if done else f"""<p>Enter your account name or email: we'll send you a link to choose a new password.</p>
+  <label for="who">Name or email</label>
+  <input id="who" name="who" autocomplete="username" placeholder="Steve or steve@example.com" autofocus required>
+  <button type="submit">Send me the link</button>
   <div class="err" role="alert">{e(error)}</div>
-  <div class="links"><a href="/login">Torna all'accesso</a></div>""")
-        self._page(status, "Password dimenticata", f"""<form class="card" method="post" action="/forgot">
+  <div class="links"><a href="/login">Back to sign in</a></div>""")
+        self._page(status, "Forgot password", f"""<form class="card" method="post" action="/forgot">
   <h1>PATTERN-MACHINE</h1>
   <div class="line"></div>
   {body}
@@ -1006,11 +1006,11 @@ class Handler(BaseHTTPRequestHandler):
         who = form.get("who", "").strip()
         ip = self._client_ip()
         if too_many(ip, "forgot"):
-            self._forgot_page(429, "Troppe richieste. Riprova tra qualche minuto.")
+            self._forgot_page(429, "Too many requests. Try again in a few minutes.")
             return
         note(ip, "forgot")
         if not mail_config():
-            self._forgot_page(503, "Il recupero via mail non è attivo: chiedi all'amministratore.")
+            self._forgot_page(503, "Password recovery by email is not active: ask the administrator.")
             return
         with USERS_LOCK:
             db = load_users()
@@ -1027,21 +1027,21 @@ class Handler(BaseHTTPRequestHandler):
     def _reset_page(self, status=200, token="", error="", name=""):
         e = html.escape
         if not name:
-            self._page(status, "Nuova password", """<div class="card">
+            self._page(status, "New password", """<div class="card">
   <h1>PATTERN-MACHINE</h1>
   <div class="line"></div>
-  <p>Il link non è valido o è scaduto (vale un'ora e si usa una volta sola).</p>
-  <a class="btn" href="/forgot">Chiedi un nuovo link</a>
+  <p>The link is invalid or has expired (it's valid for one hour and works only once).</p>
+  <a class="btn" href="/forgot">Ask for a new link</a>
 </div>""")
             return
-        self._page(status, "Nuova password", f"""<form class="card" method="post" action="/reset">
+        self._page(status, "New password", f"""<form class="card" method="post" action="/reset">
   <h1>PATTERN-MACHINE</h1>
   <div class="line"></div>
-  <p>Ciao <b>{e(name)}</b>, scegli la nuova password.</p>
-  <label for="pw">Nuova password</label>
+  <p>Hi <b>{e(name)}</b>, choose your new password.</p>
+  <label for="pw">New password</label>
   <input id="pw" name="password" type="password" autocomplete="new-password" autofocus required>
   <input type="hidden" name="token" value="{e(token, quote=True)}">
-  <button type="submit">Salva ed entra</button>
+  <button type="submit">Save and sign in</button>
   <div class="err" role="alert">{e(error)}</div>
 </form>""")
 
@@ -1062,7 +1062,7 @@ class Handler(BaseHTTPRequestHandler):
         if not user:
             self._reset_page(400)
         elif not password:
-            self._reset_page(400, token, "Scegli una password.", user["name"])
+            self._reset_page(400, token, "Choose a password.", user["name"])
         else:
             self._redirect("/", [self._session_cookie(cookie, SESSION_DAYS * 86400)])
 
@@ -1077,41 +1077,41 @@ class Handler(BaseHTTPRequestHandler):
         if app_expires.endswith("Z"):
             app_expires = app_expires[:-1]
         app_expires = app_expires[:16] if len(app_expires) >= 16 else app_expires
-        app_status = "attivo" if load_app_message().get("show") else "non attivo"
+        app_status = "active" if load_app_message().get("show") else "not active"
         app_section = f"""<div class="card wide" style="margin:0 0 16px;">
-  <h2 style="margin:0 0 4px;font-size:16px;">Messaggio nell'app</h2>
-  <p>Pubblica un avviso che apparirà all'avvio dell'app macOS. Stato attuale: <b>{app_status}</b>.</p>
+  <h2 style="margin:0 0 4px;font-size:16px;">In-app message</h2>
+  <p>Publish a notice shown when the macOS app starts. Current status: <b>{app_status}</b>.</p>
   <form method="post" action="/admin/app-message">
-    <label for="app-title">Titolo</label>
+    <label for="app-title">Title</label>
     <input id="app-title" name="title" maxlength="160" value="{e(str(app_msg.get('title') or ''), quote=True)}" required>
-    <label for="app-message">Messaggio</label>
+    <label for="app-message">Message</label>
     <textarea id="app-message" name="message" maxlength="2000" required>{e(str(app_msg.get('message') or ''))}</textarea>
     <label for="app-url">Link</label>
     <input id="app-url" name="url" type="url" value="{e(str(app_msg.get('url') or (SITE_URL + '/app.html')), quote=True)}" required>
-    <label for="app-expires">Scadenza <span class="opt">(facoltativa)</span></label>
+    <label for="app-expires">Expires <span class="opt">(optional)</span></label>
     <input id="app-expires" name="expires" type="datetime-local" value="{e(app_expires, quote=True)}">
     <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;">
-      <input name="enabled" type="checkbox" style="width:auto;margin:0;" {'checked' if app_msg.get('enabled', False) else ''}> Mostra il messaggio nell'app
+      <input name="enabled" type="checkbox" style="width:auto;margin:0;" {'checked' if app_msg.get('enabled', False) else ''}> Show the message in the app
     </label>
-    <button type="submit">Pubblica messaggio</button>
+    <button type="submit">Publish message</button>
   </form>
 </div>"""
         top = ""
         if confirm:
             top = f"""<div class="card" style="width:100%;margin:0 0 16px;box-shadow:none;">
-  <p>Eliminare l'utente <b>{e(confirm['name'])}</b>? I suoi progetti restano nel suo browser, ma non potrà più entrare. Non si può annullare.</p>
+  <p>Delete the user <b>{e(confirm['name'])}</b>? Their projects stay in their browser, but they won't be able to sign in again. This can't be undone.</p>
   <form method="post" action="/admin/delete" style="display:flex;gap:8px;">
     <input type="hidden" name="id" value="{e(confirm['id'], quote=True)}">
-    <a class="btn ghost small" href="/admin">Annulla</a>
-    <button class="danger small" type="submit">Elimina</button>
+    <a class="btn ghost small" href="/admin">Cancel</a>
+    <button class="danger small" type="submit">Delete</button>
   </form></div>"""
         rows = []
         for u in users:
             acts = []
             if u["id"] != me["id"]:
                 acts.append(f'<form method="post" action="/admin/reset"><input type="hidden" name="id" value="{e(u["id"], quote=True)}">'
-                            f'<button class="ghost small" type="submit">{"Manda reset" if u.get("email") else "Link reset"}</button></form>')
-                acts.append(f'<a class="btn ghost small" href="/admin?elimina={e(u["id"], quote=True)}">Elimina</a>')
+                            f'<button class="ghost small" type="submit">{"Send reset" if u.get("email") else "Reset link"}</button></form>')
+                acts.append(f'<a class="btn ghost small" href="/admin?elimina={e(u["id"], quote=True)}">Delete</a>')
             rows.append(f"""<tr><td><b>{e(u['name'])}</b> {'<span class="tag">admin</span>' if u.get('role') == 'admin' else ''}</td>
 <td>{e(u.get('email') or '—')}</td><td>{e(u['created_at'][:10])}</td><td>{e((u.get('last_login') or '—')[:10])}</td>
 <td><div class="row-acts">{''.join(acts)}</div></td></tr>""")
@@ -1127,31 +1127,31 @@ class Handler(BaseHTTPRequestHandler):
                 f"<tr><td>{e(local_time(d.get('at')))}</td><td><b>{e(u['name'])}</b></td>"
                 f"<td>{e(d.get('platform') or 'app')}</td><td>{e(d.get('file') or '')}</td></tr>"
                 for u, d in downloads[:200])
-            more = f"<p style=\"margin:10px 0 0;\">Mostrati gli ultimi 200 di {len(downloads)}.</p>" if len(downloads) > 200 else ""
-            dl_body = f"""<p>{len(downloads)} download da {people} {'utente' if people == 1 else 'utenti'}: {summary}.</p>
+            more = f"<p style=\"margin:10px 0 0;\">Showing the latest 200 of {len(downloads)}.</p>" if len(downloads) > 200 else ""
+            dl_body = f"""<p>{len(downloads)} {'download' if len(downloads) == 1 else 'downloads'} by {people} {'user' if people == 1 else 'users'}: {summary}.</p>
   <div class="table-wrap"><table>
-    <tr><th>Quando</th><th>Utente</th><th>App</th><th>File</th></tr>
+    <tr><th>When</th><th>User</th><th>App</th><th>File</th></tr>
     {dl_rows}
   </table></div>{more}"""
         else:
-            dl_body = "<p>Nessun download registrato.</p>"
+            dl_body = "<p>No downloads recorded yet.</p>"
         downloads_section = f"""<div class="card wide" style="margin:0 0 16px;">
-  <h2 style="margin:0 0 4px;font-size:16px;">Download delle app</h2>
+  <h2 style="margin:0 0 4px;font-size:16px;">App downloads</h2>
   {dl_body}
 </div>"""
         msg_html = f'<p class="ok">{e(message)}</p>' if message else ""
-        link_html = ("<p>Link per la nuova password (vale un&apos;ora, mandalo tu all&apos;utente):</p>"
+        link_html = ("<p>New password link (valid for one hour, send it to the user yourself):</p>"
                      f"<code>{e(link)}</code>") if link else ""
-        self._page(status, "Utenti", f"""<nav class="admin-bar">
-  <a class="btn ghost small" href="/">&larr; Torna a PatternMachine</a>
-  <a class="btn ghost small" href="/logout">Esci</a>
+        self._page(status, "Users", f"""<nav class="admin-bar">
+  <a class="btn ghost small" href="/">&larr; Back to PatternMachine</a>
+  <a class="btn ghost small" href="/logout">Sign out</a>
 </nav>
 <div class="card wide">
-  <h1>Utenti</h1>
+  <h1>Users</h1>
   <div class="line"></div>
   {msg_html}{link_html}{top}
   <div class="table-wrap"><table>
-    <tr><th>Nome</th><th>Email</th><th>Registrato</th><th>Ultimo accesso</th><th></th></tr>
+    <tr><th>Name</th><th>Email</th><th>Signed up</th><th>Last sign-in</th><th></th></tr>
     {''.join(rows)}
   </table></div>
 </div>
@@ -1162,7 +1162,7 @@ class Handler(BaseHTTPRequestHandler):
         user = self._user()
         if user and user.get("role") == "admin":
             return True
-        self.send_error(403, "Solo per l'amministratore")
+        self.send_error(403, "Administrators only")
         return False
 
     def _do_admin(self, action):
@@ -1184,10 +1184,10 @@ class Handler(BaseHTTPRequestHandler):
                 token = make_reset(db, target)
             save_users(db)
         if action == "delete":
-            self._admin_page(message=f"Utente {target['name']} eliminato.")
+            self._admin_page(message=f"User {target['name']} deleted.")
         elif target.get("email") and mail_config():
             send_reset(target, token)
-            self._admin_page(message=f"Mail con il link per la nuova password mandata a {target['name']}.")
+            self._admin_page(message=f"Email with the new password link sent to {target['name']}.")
         else:
             self._admin_page(link=f"{SITE_URL}/reset?token={token}")
 
@@ -1200,12 +1200,12 @@ class Handler(BaseHTTPRequestHandler):
         target = form.get("url", "").strip()
         expires = form.get("expires", "").strip()
         if not title or not message:
-            self._admin_page(400, "Scrivi un titolo e un messaggio.")
+            self._admin_page(400, "Enter a title and a message.")
             return
         base = urlparse(SITE_URL)
         link = urlparse(target)
         if link.scheme not in ("http", "https") or link.netloc != base.netloc:
-            self._admin_page(400, "Il link deve appartenere al sito PatternMachine.")
+            self._admin_page(400, "The link must point to the PatternMachine site.")
             return
         expires_out = ""
         if expires:
@@ -1215,7 +1215,7 @@ class Handler(BaseHTTPRequestHandler):
                     deadline = deadline.replace(tzinfo=timezone.utc)
                 expires_out = deadline.astimezone(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
             except ValueError:
-                self._admin_page(400, "La scadenza non è valida.")
+                self._admin_page(400, "The expiry date is not valid.")
                 return
         data = {"id": "admin-" + uuid.uuid4().hex, "title": title, "message": message, "url": target,
                 "expires": expires_out, "enabled": form.get("enabled") == "on"}
@@ -1227,9 +1227,9 @@ class Handler(BaseHTTPRequestHandler):
                 json.dump(data, f, ensure_ascii=False, indent=2)
             os.replace(tmp, APP_MESSAGE_FILE)
         except OSError:
-            self._admin_page(500, "Non riesco a salvare il messaggio sul server.")
+            self._admin_page(500, "Couldn't save the message on the server.")
             return
-        self._admin_page(message="Messaggio pubblicato nell'app." if data["enabled"] else "Messaggio disattivato.")
+        self._admin_page(message="Message published in the app." if data["enabled"] else "Message turned off.")
 
     # ---------- file statici ----------
     def _serve_static(self):
@@ -1245,11 +1245,11 @@ class Handler(BaseHTTPRequestHandler):
         if rel.startswith("download/") and os.path.basename(rel) in DOWNLOAD_PLATFORMS:
             user = self._user()
             if not user or user.get("role") == "guest":
-                self._page(403, "Download riservato", """<div class="card">
-  <h1>Download riservato</h1>
+                self._page(403, "Members-only download", """<div class="card">
+  <h1>Members-only download</h1>
   <div class="line"></div>
-  <p>Per scaricare le app devi avere un account registrato.</p>
-  <div class="links"><a class="btn" href="/register?next=/app.html">Registrati</a><a class="btn ghost" href="/login?next=/app.html">Accedi</a></div>
+  <p>To download the apps you need a registered account.</p>
+  <div class="links"><a class="btn" href="/login?next=/app.html">Sign in</a><a class="btn ghost" href="/register?next=/app.html">Create an account</a></div>
 </div>""")
                 return
             record_download(user["id"], os.path.basename(rel))

@@ -166,9 +166,9 @@ def main():
 
         # --- login ---
         s, h, body = anon.call("/login", "POST", form={"name": ADMIN, "password": "sbagliata", "next": "/"}, headers=same)
-        check("password errata", (s, "set-cookie" in h, b"Nome, email o password errati" in body), (401, False, True))
+        check("password errata", (s, "set-cookie" in h, b"Wrong name, email or password" in body), (401, False, True))
         s, h, body = anon.call("/login", "POST", form={"name": "nessuno", "password": TEST_PASSWORD}, headers=same)
-        check("utente inesistente: stesso messaggio", (s, b"Nome, email o password errati" in body), (401, True))
+        check("utente inesistente: stesso messaggio", (s, b"Wrong name, email or password" in body), (401, True))
         s, h, _ = user.call("/login", "POST", form={"name": "giovanni", "password": TEST_PASSWORD, "next": "/toolkit.html"}, headers=same)
         cookie = h.get("set-cookie", "")
         check("login (nome senza maiuscole) -> redirect a next", (s, h.get("location")), (303, "/toolkit.html"))
@@ -190,12 +190,12 @@ def main():
         mario.cookie = h["set-cookie"].split(";")[0]
         check("/api/me utente", json.loads(mario.call("/api/me")[2]), {"name": "Mario Rossi", "role": "user", "email": "mario@example.com"})
         mails = outbox(stage)
-        check("mail di benvenuto", [(m[0], m[1]) for m in mails], [("mario@example.com", "Benvenuto su PatternMachine")])
+        check("mail di benvenuto", [(m[0], m[1]) for m in mails], [("mario@example.com", "Welcome to PatternMachine")])
         check("benvenuto con credenziali e pulsante", ("Mario Rossi" in mails[0][3], "Password" in mails[0][3], ">x<" in mails[0][3],
               'href="https://patternmachine.tongatron.org/login"' in mails[0][3]), (True, True, True, True))
         telegrams = telegram_outbox(stage)
         check("notifica Telegram nuova registrazione", len(telegrams), 1)
-        check("contenuto notifica Telegram", ("Nuovo utente registrato" in telegrams[0], "Mario Rossi" in telegrams[0],
+        check("contenuto notifica Telegram", ("New user signed up" in telegrams[0], "Mario Rossi" in telegrams[0],
               "mario@example.com" in telegrams[0], "Password" not in telegrams[0]), (True, True, True, True))
         check("nome doppio (maiuscole diverse)", anon.call("/register", "POST", form={"name": "mario rossi", "password": "y", "email": "m2@example.com"}, headers=same)[0], 400)
         check("email non valida", anon.call("/register", "POST", form={"name": "Luca", "password": "y", "email": "no"}, headers=same)[0], 400)
@@ -233,7 +233,7 @@ def main():
         check("ospite non entra in /admin", guest.call("/admin")[0], 403)
         check("ospite puo' aprire login e registrazione", (guest.call("/login")[0], guest.call("/register")[0]), (200, 200))
         login_html = anon.call("/login")[2]
-        check("pagina di accesso con pulsante ospite", (b"Prova senza registrarti" in login_html,
+        check("pagina di accesso con pulsante ospite", (b"Try it without an account" in login_html,
               b"sessionStorage.setItem('guestWelcome','1')" in login_html), (True, True))
         fake = Client(port)
         fake.cookie = guest.cookie[:-1] + ("0" if guest.cookie[-1] != "0" else "1")
@@ -244,7 +244,7 @@ def main():
         check("forgot senza mail nell'account: nessuna mail", (anon.call("/forgot", "POST", form={"who": "Senza Mail"}, headers={**same, "CF-Connecting-IP": "198.51.100.1"})[0], len(outbox(stage))), (200, 2))
         anon.call("/forgot", "POST", form={"who": "MARIO@example.com"}, headers={**same, "CF-Connecting-IP": "198.51.100.1"})
         mails = outbox(stage)
-        check("mail di reset", (len(mails), mails[-1][0], mails[-1][1]), (3, "mario@example.com", "PatternMachine: nuova password"))
+        check("mail di reset", (len(mails), mails[-1][0], mails[-1][1]), (3, "mario@example.com", "PatternMachine: new password"))
         link = next(w for w in mails[-1][2].split() if "/reset?token=" in w)
         path = link.replace("https://patternmachine.tongatron.org", "")
         token = path.split("token=")[1]
@@ -266,12 +266,12 @@ def main():
         # --- pannello admin ---
         s, _, body = user.call("/admin")
         check("admin vede gli utenti", (s, b"Mario Rossi" in body, b"Senza Mail" in body), (200, True, True))
-        check("admin vede editor messaggio app", b"Messaggio nell'app" in body and b"Pubblica messaggio" in body, True)
+        check("admin vede editor messaggio app", b"In-app message" in body and b"Publish message" in body, True)
         message_form = {"title": "Aggiornamento PatternMachine", "message": "Scarica la nuova versione.",
                         "url": "https://patternmachine.tongatron.org/app.html", "expires": "2099-01-01T12:00", "enabled": "on"}
         s, _, body = user.call("/admin/app-message", "POST", form=message_form, headers=same)
         saved_message = json.loads((stage / "data" / "app-message.json").read_text())
-        check("admin pubblica messaggio app", (s, b"Messaggio pubblicato" in body, saved_message["title"], saved_message["enabled"]),
+        check("admin pubblica messaggio app", (s, b"Message published" in body, saved_message["title"], saved_message["enabled"]),
               (200, True, "Aggiornamento PatternMachine", True))
         check("messaggio app aggiornato", json.loads(anon.call("/api/app-message")[2])["title"], "Aggiornamento PatternMachine")
         check("utente normale: niente messaggi app", mario.call("/admin/app-message", "POST", form=message_form, headers=same)[0], 403)
@@ -279,11 +279,11 @@ def main():
         uid = {u["name"]: u["id"] for u in db["users"]}
         before = len(outbox(stage))
         s, _, body = user.call("/admin/reset", "POST", form={"id": uid["Mario Rossi"]}, headers=same)
-        check("admin: reset per mail", (s, len(outbox(stage)) - before, b"Mail con il link" in body), (200, 1, True))
+        check("admin: reset per mail", (s, len(outbox(stage)) - before, b"Email with the new password link" in body), (200, 1, True))
         s, _, body = user.call("/admin/reset", "POST", form={"id": uid["Senza Mail"]}, headers=same)
         check("admin: link di reset per chi non ha mail", (s, b"/reset?token=" in body), (200, True))
         s, _, body = user.call("/admin?elimina=" + uid["Senza Mail"])
-        check("admin: conferma di eliminazione nella pagina", (s, b"Eliminare l&#x27;utente" in body or b"Eliminare l'utente" in body), (200, True))
+        check("admin: conferma di eliminazione nella pagina", (s, b"Delete the user" in body), (200, True))
         check("admin: elimina", user.call("/admin/delete", "POST", form={"id": uid["Senza Mail"]}, headers=same)[0], 200)
         check("utente eliminato", "Senza Mail" in users_file.read_text(), False)
         user.call("/admin/delete", "POST", form={"id": uid[ADMIN]}, headers=same)
@@ -307,9 +307,9 @@ def main():
         check("download registrato per utente", (admin_downloads[-1]["platform"], admin_downloads[-1]["file"]),
               ("macOS", "PatternMachine-macOS.zip"))
         admin_page = user.call("/admin")[2].decode()
-        section = admin_page[admin_page.index("Download delle app"):]
+        section = admin_page[admin_page.index("App downloads"):]
         check("admin: sezione download con chi, cosa e quando",
-              ("1 download da 1 utente" in section, f"<b>{ADMIN}</b>" in section, "PatternMachine-macOS.zip" in section,
+              ("1 download by 1 user" in section, f"<b>{ADMIN}</b>" in section, "PatternMachine-macOS.zip" in section,
                bool(re.search(r"<td>\d\d/\d\d/\d{4} \d\d:\d\d</td>", section))), (True, True, True, True))
         check("pagina app", user.call("/app.html")[0], 200)
         check("pagina plug-in", user.call("/plugin.html")[0], 200)
@@ -343,7 +343,7 @@ def main():
         check("segnalazione su Telegram", (s, json.loads(b).get("via")), (200, "telegram"))
         sent = [f.read_text() for f in sorted((stage / "telegram").glob("*.txt"))]
         check("il messaggio ha testo, mittente e account", bool(sent) and all(x in sent[-1] for x in
-              ("il play non parte", "Steve <steve@example.com>", "account ", "Pagina: /")), True)
+              ("il play non parte", "Steve <steve@example.com>", "account ", "Page: /")), True)
         check("segnalazione vuota", user.call("/api/report", "POST", {"message": "  "}, rep)[0], 400)
         check("segnalazione con mail sbagliata", user.call("/api/report", "POST", {**msg, "email": "no"}, rep)[0], 400)
         check("segnalazione cross-site", user.call("/api/report", "POST", msg, {"Sec-Fetch-Site": "cross-site"})[0], 403)

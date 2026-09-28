@@ -404,7 +404,7 @@ body.sound-view #liveKeysBtn{display:inline-flex; align-items:center;}
 .ask p:empty{display:none;}
 .ask input{width:100%; box-sizing:border-box; margin:0 0 14px; font-size:13px;}
 .ask input[hidden]{display:none;}
-.ask .ask-btns{display:flex; justify-content:flex-end; gap:8px;}
+.ask .ask-btns{display:flex; flex-wrap:wrap; justify-content:flex-end; gap:8px;}
 .ask .ask-btns button{min-width:90px;}
 /* Primo accesso: invito a scaricare l'app */
 .app-promo{width:min(480px,calc(100% - 32px));}
@@ -1117,6 +1117,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       <input type="text" id="askInput" hidden spellcheck="false" autocomplete="off">
       <div class="ask-btns">
         <button type="submit" value="cancel" id="askCancel">Cancel</button>
+        <button type="submit" value="alt" id="askAlt" hidden></button>
         <button type="submit" value="ok" id="askOk" class="primary">OK</button>
       </div>
     </form>
@@ -1173,19 +1174,19 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-28.33"></script>
-<script src="engine/styles-punk.js?v=2026-09-28.33"></script>
-<script src="engine/styles-post.js?v=2026-09-28.33"></script>
-<script src="engine/styles-machines.js?v=2026-09-28.33"></script>
-<script src="engine/styles-alt.js?v=2026-09-28.33"></script>
-<script src="engine/styles-groove.js?v=2026-09-28.33"></script>
-<script src="engine/styles-dub.js?v=2026-09-28.33"></script>
-<script src="engine/styles-break.js?v=2026-09-28.33"></script>
-<script src="engine/styles-soul.js?v=2026-09-28.33"></script>
-<script src="engine/styles-metal.js?v=2026-09-28.33"></script>
-<script src="engine/styles-electro.js?v=2026-09-28.33"></script>
-<script src="engine/variations.js?v=2026-09-28.33"></script>
-<script src="engine/import.js?v=2026-09-28.33"></script>
+<script src="engine/core.js?v=2026-09-28.34"></script>
+<script src="engine/styles-punk.js?v=2026-09-28.34"></script>
+<script src="engine/styles-post.js?v=2026-09-28.34"></script>
+<script src="engine/styles-machines.js?v=2026-09-28.34"></script>
+<script src="engine/styles-alt.js?v=2026-09-28.34"></script>
+<script src="engine/styles-groove.js?v=2026-09-28.34"></script>
+<script src="engine/styles-dub.js?v=2026-09-28.34"></script>
+<script src="engine/styles-break.js?v=2026-09-28.34"></script>
+<script src="engine/styles-soul.js?v=2026-09-28.34"></script>
+<script src="engine/styles-metal.js?v=2026-09-28.34"></script>
+<script src="engine/styles-electro.js?v=2026-09-28.34"></script>
+<script src="engine/variations.js?v=2026-09-28.34"></script>
+<script src="engine/import.js?v=2026-09-28.34"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -3070,7 +3071,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || document.getElementById("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-28.33";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-28.34";
   document.body.appendChild(s);
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth")) loadSynth();
@@ -3118,15 +3119,20 @@ for(const id of ["appPromo","guestPromo"])
 // ---------- finestra di conferma ----------
 // Sostituisce confirm() e prompt() del browser con una finestra del sito.
 // ask({title, message, ok, danger, input}) -> Promise: true/false, oppure il testo (null se annullato) con `input`.
-function ask({title, message="", ok="OK", cancel="Cancel", danger=false, input=null}){
-  const d=el("askDialog"), f=el("askInput"), okB=el("askOk");
+// alt: un terzo pulsante (senza campo di testo); se lo si preme ask() risponde "alt".
+function ask({title, message="", ok="OK", cancel="Cancel", danger=false, input=null, alt=null}){
+  const d=el("askDialog"), f=el("askInput"), okB=el("askOk"), altB=el("askAlt");
   el("askTitle").textContent=title; el("askMsg").textContent=message;
   okB.textContent=ok; el("askCancel").textContent=cancel;
+  altB.hidden=!alt; altB.textContent=alt||"";
   okB.className=danger?"danger-fill":"primary";
   f.hidden=input===null; f.value=input??"";
   d.returnValue="cancel";
   return new Promise(resolve=>{
-    d.onclose=()=>{ const yes=d.returnValue==="ok"; resolve(input===null?yes:(yes?f.value:null)); };
+    d.onclose=()=>{
+      if(alt && d.returnValue==="alt") return resolve("alt");
+      const yes=d.returnValue==="ok"; resolve(input===null?yes:(yes?f.value:null));
+    };
     d.showModal();
     if(input!==null){ f.focus(); f.select(); } else (danger?el("askCancel"):okB).focus();
   });
@@ -3309,13 +3315,18 @@ el("pNew").onclick=()=>{
   const p=makePattern("Beat "+(project.patterns.length+1), curPattern().len);
   project.patterns.push(p); normalize(); selectPattern(p.id);
 };
-el("pDup").onclick=()=>{
-  pushUndo();
-  const src=curPattern();
-  const p=makePattern(src.name+" copia", src.len);
+// Copia indipendente di un pattern (griglia, blocchi per step, lunghezze delle righe).
+function copyPattern(src, name){
+  const p=makePattern(name, src.len);
   Object.entries(src.grid).forEach(([k,v])=>p.grid[k]=v.slice());
   p.mods=cloneMods(src.mods); p.lens={...(src.lens||{})};
-  project.patterns.push(p); normalize(); selectPattern(p.id);
+  project.patterns.push(p); normalize();
+  return p;
+}
+el("pDup").onclick=()=>{
+  pushUndo();
+  const p=copyPattern(curPattern(), curPattern().name+" copia");
+  selectPattern(p.id);
 };
 async function renamePattern(p){
   const n=await ask({title:"Rename pattern", ok:"Rename", input:p.name});
@@ -3403,17 +3414,34 @@ el("sPlay").onclick=()=>{
   ui.songStartPos=0;
   setMode("song"); play();
 };
+// I blocchi della canzone puntano ai pattern: due blocchi con lo stesso pattern ne condividono anche il nome.
+// Se il pattern e' in piu' blocchi si sceglie: solo questo blocco (diventa una copia col nome nuovo) o tutti.
 el("seqRename").onclick=async()=>{
   const i=blockIndex();
   if(i<0) return setStatus("select a block","err");
-  const p=patternById(project.song[i].patternId);
-  if(p) await renamePattern(p);
+  const b=project.song[i], p=patternById(b.patternId);
+  if(!p) return;
+  const shared=project.song.filter(x=>x.patternId===p.id).length;
+  if(shared<2) return renamePattern(p);
+  const n=await ask({title:"Rename pattern", ok:"Next", input:p.name});
+  if(n===null) return;
+  const clean=n.trim()||p.name;
+  if(clean===p.name) return;
+  const how=await ask({title:`“${p.name}” is in ${shared} blocks`,
+    message:`Only this block: it becomes a copy called “${clean}”, the other blocks keep “${p.name}” (and you can edit the two separately). All blocks: the pattern is renamed everywhere.`,
+    ok:"Only this block", alt:`All ${shared} blocks`});
+  if(!how) return;
+  pushUndo();
+  if(how==="alt") p.name=clean;
+  else b.patternId=copyPattern(p, clean).id;
+  renderPatterns(); renderSong(); el("gridTitle").textContent="Grid — "+curPattern().name;
+  setStatus(how==="alt" ? `renamed in ${shared} blocks` : `this block now uses “${clean}”`);
 };
 el("sDup").onclick=()=>{
   const i=blockIndex(); if(i<0) return setStatus("select a block","err");
   pushUndo();
   const src=project.song[i];
-  const b={id:uid(), patternId:src.patternId, repeats:src.repeats, section:src.section||"verse", fillPatternId:src.fillPatternId||null};
+  const b={id:uid(), patternId:src.patternId, repeats:src.repeats, section:src.section||"verse", fillPatternId:src.fillPatternId||null, ...(src.mutes?.length?{mutes:src.mutes.slice()}:{})};
   project.song.splice(i+1,0,b); ui.blockId=b.id; renderSong();
 };
 el("sLeft").onclick=()=>{
@@ -5291,7 +5319,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-28.33";
+const SW_VERSION="2026-09-28.34";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -5310,7 +5338,7 @@ const SW_VERSION="2026-09-28.33";
   });
 })();
 </script>
-<script src="engine/midi.js?v=2026-09-28.33"></script>
+<script src="engine/midi.js?v=2026-09-28.34"></script>
 
 </body>
 </html>

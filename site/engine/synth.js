@@ -235,7 +235,8 @@
     loading.catch(err => { loading = null; console.error(err); setStatus("synth: the audio engine didn't load", "err"); });
     return loading;
   }
-  const masterVol = () => (+el("masterVol").value || 0) / 100;
+  // volume del synth nel mix (cursore "Vol. synth") per il volume generale
+  const masterVol = () => (+el("masterVol").value || 0) / 100 * (+(el("synthVol")?.value ?? 100) || 0) / 100;
 
   function toneWave(w) { return w === "square" ? "square" : w === "tri" ? "triangle" : w === "saw" ? "sawtooth" : "sine"; }
   function toneFilterType(t) { return t === "hp12" ? "highpass" : t === "bp12" ? "bandpass" : "lowpass"; }
@@ -1480,7 +1481,7 @@
     if (built && synthVisible()) renderParams();
   });
   el("viewSynth").onclick = () => setView("synth");
-  el("masterVol").addEventListener("input", () => {
+  for (const id of ["masterVol", "synthVol"]) el(id).addEventListener("input", () => {
     if (chain) chain.apply(params(), bpm(), masterVol());
     if (toneSynth) applyToneParams(params());
   });

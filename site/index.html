@@ -278,6 +278,8 @@ label.fld input[type=number]{width:54px;}
 .machine-bar{display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-top:12px; padding-top:11px; border-top:1px solid var(--edge-soft);}
 .machine-info{margin-left:auto; font-size:11px; color:var(--text-dim); letter-spacing:.02em; text-align:right;}
 .transport-extra{display:contents;}
+.vol-group{display:inline-flex; flex-wrap:wrap; align-items:center; gap:6px 14px; padding:5px 10px; border:1px solid var(--edge-soft); border-radius:8px;}
+.vol-group input[type=range]{width:90px;}
 /* Vista Live: la griglia dei beat (con le sue opzioni), Play/Stop, Rec, tempo e metronomo. */
 body.sound-view .topbar, body.sound-view .project-panel, body.sound-view #machinePanel,
 body.sound-view #panelPatterns, body.sound-view .transport-extra > :not(.live-keep){display:none;}
@@ -803,7 +805,11 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
         <button id="liveKeysBtn" class="mini live-keep" type="button" title="Show the instrument keys">Keys</button>
         <label class="fld" title="MPC-style swing: 50% straight, 66% triplet feel, 75% maximum">Swing <input type="range" id="swingRange" min="0" max="100" value="0"> <span id="swingPct" class="tiny">50%</span></label>
         <label class="fld" title="humanize: small random variations in timing (up to 10 ms) and velocity (up to 15%)">Humanize <input type="range" id="humanRange" min="0" max="100" value="0"></label>
-        <label class="fld">Vol <input type="range" id="masterVol" min="0" max="100" value="85"></label>
+        <div class="vol-group" role="group" aria-label="Volumes">
+          <label class="fld" title="Volume of the drums (saved in the project)">Vol. drums <input type="range" id="drumsVol" min="0" max="100" value="100"></label>
+          <label class="fld" title="Volume of the synth (saved in the project)">Vol. synth <input type="range" id="synthVol" min="0" max="100" value="100"></label>
+          <label class="fld" title="General volume: drums, synth and metronome">Vol. general <input type="range" id="masterVol" min="0" max="100" value="85"></label>
+        </div>
         <div class="counter" id="counter">1 . 1</div>
       </div>
     </div>
@@ -1107,19 +1113,19 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-28.24"></script>
-<script src="engine/styles-punk.js?v=2026-09-28.24"></script>
-<script src="engine/styles-post.js?v=2026-09-28.24"></script>
-<script src="engine/styles-machines.js?v=2026-09-28.24"></script>
-<script src="engine/styles-alt.js?v=2026-09-28.24"></script>
-<script src="engine/styles-groove.js?v=2026-09-28.24"></script>
-<script src="engine/styles-dub.js?v=2026-09-28.24"></script>
-<script src="engine/styles-break.js?v=2026-09-28.24"></script>
-<script src="engine/styles-soul.js?v=2026-09-28.24"></script>
-<script src="engine/styles-metal.js?v=2026-09-28.24"></script>
-<script src="engine/styles-electro.js?v=2026-09-28.24"></script>
-<script src="engine/variations.js?v=2026-09-28.24"></script>
-<script src="engine/import.js?v=2026-09-28.24"></script>
+<script src="engine/core.js?v=2026-09-28.25"></script>
+<script src="engine/styles-punk.js?v=2026-09-28.25"></script>
+<script src="engine/styles-post.js?v=2026-09-28.25"></script>
+<script src="engine/styles-machines.js?v=2026-09-28.25"></script>
+<script src="engine/styles-alt.js?v=2026-09-28.25"></script>
+<script src="engine/styles-groove.js?v=2026-09-28.25"></script>
+<script src="engine/styles-dub.js?v=2026-09-28.25"></script>
+<script src="engine/styles-break.js?v=2026-09-28.25"></script>
+<script src="engine/styles-soul.js?v=2026-09-28.25"></script>
+<script src="engine/styles-metal.js?v=2026-09-28.25"></script>
+<script src="engine/styles-electro.js?v=2026-09-28.25"></script>
+<script src="engine/variations.js?v=2026-09-28.25"></script>
+<script src="engine/import.js?v=2026-09-28.25"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -1698,7 +1704,7 @@ function trigger(track, time, velocity, ctx=actx(), chokes=chokeVoices){
   const rate=Math.pow(2,(track.tune||0)/12);
   src.playbackRate.value=rate;
   const gain=ctx.createGain();
-  const master=+document.getElementById("masterVol").value/100;
+  const master=+document.getElementById("masterVol").value/100 * drumsVol();
   gain.gain.value=Math.min(1.4, track.vol*velocity*master);
 
   // Lowpass a 4 poli (due biquad in cascata), nello spirito dei VCF SSM2044 della macchina.
@@ -1757,6 +1763,7 @@ const stepVel = v => v===2 ? 1.0 : (v===3 ? 0.42 : 0.76);
 const midiVelOf = v => v===2 ? 1.0 : (v===3 ? 0.4 : 0.78);
 const nudgeOf = t => (t.nudge||0)/1000;      // micro-timing per traccia, in ms
 const bpm = ()=> Math.min(240, Math.max(40, parseInt(document.getElementById("bpmNum").value,10)||93));
+const drumsVol = ()=> (+document.getElementById("drumsVol").value||0)/100;
 const swing = ()=> (parseInt(document.getElementById("swingRange").value,10)||0)/100*0.5;
 const baseStepDur = ()=> 60/bpm()/4;
 const stepDur = step => baseStepDur()*(step%2===0 ? 1+swing() : 1-swing());
@@ -2792,7 +2799,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || document.getElementById("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-28.24";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-28.25";
   document.body.appendChild(s);
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth")) loadSynth();
@@ -2990,6 +2997,12 @@ bpmNum.oninput=()=>{ bpmRange.value=bpmNum.value; project.bpm=+bpmNum.value; pai
 const swingPct = ()=> Math.round(50+(+el("swingRange").value||0)/4);
 function paintSwing(){ el("swingPct").textContent=swingPct()+"%"; }
 el("swingRange").oninput=()=>{ project.swing=+el("swingRange").value; paintSwing(); };
+// Volumi di batteria e synth: il mix del brano, salvato nel progetto (serialize li legge dai cursori).
+function setMix(mix){
+  const v=x=>Number.isFinite(+x)?Math.max(0,Math.min(100,+x)):100;
+  el("drumsVol").value=v(mix?.drums); el("synthVol").value=v(mix?.synth);
+  el("synthVol").dispatchEvent(new Event("input"));
+}
 el("humanRange").oninput=()=>{ project.human=+el("humanRange").value; };
 
 let taps=[];
@@ -3145,6 +3158,7 @@ function serialize(){
   return {
     name: el("projectName").value.trim()||"Untitled",
     bpm: bpm(), swing: +el("swingRange").value||0, human: +el("humanRange").value||0,
+    ...(+el("drumsVol").value!==100 || +el("synthVol").value!==100 ? {mix:{drums:+el("drumsVol").value, synth:+el("synthVol").value}} : {}),
     sampleSet,
     tracks: project.tracks.map(t=>({id:t.id, sampleIndex:t.sampleIndex, vol:t.vol, tune:t.tune||0, choke:t.choke||0,
       decay:t.decay, cutoff:t.cutoff, reso:t.reso, start:t.start, reverse:t.reverse, nudge:t.nudge||0})),
@@ -3184,6 +3198,7 @@ function deserialize(d,keepSel){
   el("projectName").value=project.name;
   el("bpmNum").value=project.bpm; el("bpmRange").value=Math.min(180,Math.max(60,project.bpm));
   el("swingRange").value=project.swing; el("humanRange").value=project.human||0; paintSwing();
+  if(!keepSel) setMix(d.mix);   // annulla/ripeti non spostano i cursori del volume
   el("pLen").value=curPattern().len;
   normalize();
   project.tracks.forEach(t=>loadBuffer(t.sampleIndex));
@@ -3396,7 +3411,7 @@ el("newBtn").onclick=async()=>{
   currentProjectId=null; markCurrentRecent(); project=starterProject(); ui.patternId=project.patterns[0].id;
   ui.blockId=project.song[0].id;
   el("projectName").value=project.name; el("bpmNum").value=project.bpm;
-  el("bpmRange").value=project.bpm; el("swingRange").value=0; el("humanRange").value=0; paintSwing(); el("pLen").value=16;
+  el("bpmRange").value=project.bpm; el("swingRange").value=0; el("humanRange").value=0; paintSwing(); el("pLen").value=16; setMix(null);
   project.tracks.forEach(t=>loadBuffer(t.sampleIndex));
   renderAll(); markSaved(); setStatus("new project");
 };
@@ -4919,7 +4934,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-28.24";
+const SW_VERSION="2026-09-28.25";
 (function pwa(){
   const netBadge=el("netBadge");
 

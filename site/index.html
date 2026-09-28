@@ -1161,19 +1161,19 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-28.30"></script>
-<script src="engine/styles-punk.js?v=2026-09-28.30"></script>
-<script src="engine/styles-post.js?v=2026-09-28.30"></script>
-<script src="engine/styles-machines.js?v=2026-09-28.30"></script>
-<script src="engine/styles-alt.js?v=2026-09-28.30"></script>
-<script src="engine/styles-groove.js?v=2026-09-28.30"></script>
-<script src="engine/styles-dub.js?v=2026-09-28.30"></script>
-<script src="engine/styles-break.js?v=2026-09-28.30"></script>
-<script src="engine/styles-soul.js?v=2026-09-28.30"></script>
-<script src="engine/styles-metal.js?v=2026-09-28.30"></script>
-<script src="engine/styles-electro.js?v=2026-09-28.30"></script>
-<script src="engine/variations.js?v=2026-09-28.30"></script>
-<script src="engine/import.js?v=2026-09-28.30"></script>
+<script src="engine/core.js?v=2026-09-28.31"></script>
+<script src="engine/styles-punk.js?v=2026-09-28.31"></script>
+<script src="engine/styles-post.js?v=2026-09-28.31"></script>
+<script src="engine/styles-machines.js?v=2026-09-28.31"></script>
+<script src="engine/styles-alt.js?v=2026-09-28.31"></script>
+<script src="engine/styles-groove.js?v=2026-09-28.31"></script>
+<script src="engine/styles-dub.js?v=2026-09-28.31"></script>
+<script src="engine/styles-break.js?v=2026-09-28.31"></script>
+<script src="engine/styles-soul.js?v=2026-09-28.31"></script>
+<script src="engine/styles-metal.js?v=2026-09-28.31"></script>
+<script src="engine/styles-electro.js?v=2026-09-28.31"></script>
+<script src="engine/variations.js?v=2026-09-28.31"></script>
+<script src="engine/import.js?v=2026-09-28.31"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -1688,8 +1688,18 @@ function synthLayout(){
   });
   return {blocks, total:at};
 }
+// Quello che suona davvero: con la corsia vuota il pattern del synth scelto gira sotto tutta la canzone,
+// come negli altri tab (un blocco virtuale, auto:true); appena c'e' un blocco vale la corsia.
+function synthPlayLayout(){
+  const L=synthLayout();
+  if(L.blocks.length || !window.PMSynth) return L;
+  const sp=curSynth(), total=songLayout().total;
+  if(!sp || !total) return L;
+  const repeats=Math.ceil(total/sp.len);
+  return {blocks:[{b:{id:null, repeats}, sp, len:sp.len, start:0, steps:repeats*sp.len}], total:repeats*sp.len, auto:true};
+}
 // Cosa suona il synth a una posizione della canzone (in step dall'inizio): {sp, step} o null.
-function synthAt(pos, L=synthLayout()){
+function synthAt(pos, L=synthPlayLayout()){
   const x=L.blocks.find(x=>pos>=x.start && pos<x.start+x.steps);
   return x && x.sp ? {sp:x.sp, step:(pos-x.start)%x.len, index:L.blocks.indexOf(x)} : null;
 }
@@ -1699,7 +1709,7 @@ function synthTimeline(which){
   const total = which==="song" ? songLayout().total : curPattern().len*(which==="midi"?1:WAV_PATTERN_LOOPS);
   const out=[];
   if(which==="song"){
-    for(const x of synthLayout().blocks){
+    for(const x of synthPlayLayout().blocks){
       if(x.start>=total) break;
       for(let r=0;r<x.b.repeats && x.start+r*x.len<total;r++){
         const len=Math.min(x.len,total-(x.start+r*x.len));
@@ -2365,7 +2375,7 @@ function renderTimeline(){
     seg.append(name,info);
     lane.appendChild(seg);
   });
-  const SL=synthLayout(), slane=el("tlSynthLane"), total=seqLayout.total;
+  const SL=synthPlayLayout(), slane=el("tlSynthLane"), total=seqLayout.total;
   slane.innerHTML="";
   el("timeline").classList.toggle("has-synth", SL.blocks.length>0);
   if(total) SL.blocks.forEach(x=>{
@@ -2375,7 +2385,8 @@ function renderTimeline(){
     seg.style.left=`${x.start/total*100}%`; seg.style.width=`${Math.min(x.steps,total-x.start)/total*100}%`;
     seg.style.setProperty("--seg-color", x.sp?`hsl(${synthHue(x.sp.id)} 65% 58%)`:"var(--edge)");
     seg.style.setProperty("--bar-w",`${16/x.steps*100}%`);
-    const name=document.createElement("b"); name.textContent=x.sp?"♪ "+x.sp.name:"rest";
+    const name=document.createElement("b"); name.textContent=x.sp?"♪ "+x.sp.name+(SL.auto?" (auto)":""):"rest";
+    if(SL.auto) seg.title="the synth lane is empty: the selected synth pattern repeats under the whole song";
     seg.appendChild(name); slane.appendChild(seg);
   });
   tlNowBlock=-1;
@@ -2728,7 +2739,10 @@ function renderSynthLane(){
   const L=synthLayout();
   if(!L.blocks.length){
     const e=document.createElement("div"); e.className="song-empty synth";
-    e.textContent="no synth blocks — pick a synth pattern and press Insert: it plays under the drums from bar 1";
+    const auto=synthPlayLayout().auto && curSynth();
+    e.textContent=auto
+      ? `no synth blocks: “${curSynth().name}” repeats under the whole song — pick a synth pattern and press Insert to arrange it`
+      : "no synth blocks — pick a synth pattern and press Insert: it plays under the drums from bar 1";
     host.appendChild(e);
   }
   L.blocks.forEach((x,idx)=>{
@@ -3044,7 +3058,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || document.getElementById("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-28.30";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-28.31";
   document.body.appendChild(s);
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth")) loadSynth();
@@ -5197,7 +5211,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-28.30";
+const SW_VERSION="2026-09-28.31";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -5216,7 +5230,7 @@ const SW_VERSION="2026-09-28.30";
   });
 })();
 </script>
-<script src="engine/midi.js?v=2026-09-28.30"></script>
+<script src="engine/midi.js?v=2026-09-28.31"></script>
 
 </body>
 </html>

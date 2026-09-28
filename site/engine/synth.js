@@ -697,6 +697,18 @@
 .syn-p select{width:100%; min-width:0; padding:3px 5px;}
 .syn-p output{text-align:right; font-variant-numeric:tabular-nums; font-size:10px;}
 .syn-p.sel{grid-template-columns:84px minmax(0,1fr);}
+.synth-params{grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px;margin-top:14px;align-items:start;}
+.synth-sec{position:relative;overflow:hidden;border:1px solid color-mix(in srgb,var(--edge) 80%,#000);border-radius:9px;padding:0 9px 8px;background:linear-gradient(145deg,var(--panel),color-mix(in srgb,var(--panel-2) 70%,#000));box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 2px 5px rgba(0,0,0,.18);}
+.synth-sec::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.08;background:repeating-linear-gradient(0deg,transparent 0 2px,#fff 2px 3px);}
+.synth-sec h3{position:relative;z-index:1;display:flex;align-items:center;gap:7px;margin:0 -9px 6px;padding:8px 9px 7px;background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(0,0,0,.12));color:var(--text);border-bottom:1px solid var(--edge);}
+.synth-sec h3::before{content:"";width:7px;height:7px;flex:0 0 7px;border-radius:50%;background:var(--accent);box-shadow:0 0 7px color-mix(in srgb,var(--accent) 70%,transparent);}
+.sec-vco-1 h3::before,.sec-vco-2 h3::before{background:#d98b35;box-shadow:0 0 7px #d98b35}.sec-filter h3::before{background:#c8471f;box-shadow:0 0 7px #c8471f}.sec-amp-eg h3::before,.sec-filter-eg h3::before{background:#6bb36b;box-shadow:0 0 7px #6bb36b}.sec-lfo h3::before{background:#6ca4d8;box-shadow:0 0 7px #6ca4d8}.sec-voice h3::before{background:#bb78c9;box-shadow:0 0 7px #bb78c9}
+.syn-p{position:relative;z-index:1;min-height:29px;padding:3px 0;margin:0;border-bottom:1px solid color-mix(in srgb,var(--edge-soft) 45%,transparent);}
+.syn-p:last-child{border-bottom:0}.syn-p>span:first-child{font:700 9px/1.1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);}
+.syn-p input[type=range]{height:20px;appearance:none;background:transparent;cursor:pointer}.syn-p input[type=range]::-webkit-slider-runnable-track{height:4px;border-radius:99px;background:linear-gradient(90deg,var(--accent),color-mix(in srgb,var(--accent) 22%,var(--panel-3)))}.syn-p input[type=range]::-webkit-slider-thumb{appearance:none;width:15px;height:15px;margin-top:-5.5px;border:1px solid #272522;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff8e8 0 12%,#d8d0bd 13% 45%,#777268 46% 100%);box-shadow:0 1px 2px #000,0 0 0 2px color-mix(in srgb,var(--accent) 25%,transparent)}.syn-p input[type=range]::-moz-range-track{height:4px;border-radius:99px;background:linear-gradient(90deg,var(--accent),color-mix(in srgb,var(--accent) 22%,var(--panel-3)))}.syn-p input[type=range]::-moz-range-thumb{width:14px;height:14px;border:1px solid #272522;border-radius:50%;background:#d8d0bd;box-shadow:0 1px 2px #000}
+.syn-p output{min-width:0;overflow:hidden;padding:3px 4px;border:1px solid color-mix(in srgb,var(--edge) 75%,#000);border-radius:3px;background:var(--counter-bg,var(--panel-3));color:var(--counter-fg,var(--text));font:10px/1.1 var(--mono);white-space:nowrap}
+.syn-p select{padding:5px 6px;border:1px solid var(--edge);border-radius:3px;background:linear-gradient(180deg,var(--panel-2),var(--panel-3));color:var(--text);font:700 10px var(--mono);box-shadow:inset 0 1px 0 rgba(255,255,255,.1)}.syn-p.sel select{appearance:none;padding-right:22px}.syn-p.sel::after{content:"▾";position:absolute;right:7px;pointer-events:none;color:var(--accent)}
+.sec-vco-1 .syn-p input[type=range]::-webkit-slider-thumb,.sec-vco-2 .syn-p input[type=range]::-webkit-slider-thumb{border-radius:3px;background:linear-gradient(145deg,#f3b15e,#a75c1d);box-shadow:0 1px 2px #000,0 0 0 2px rgba(217,139,53,.22)}.sec-vco-1 .syn-p input[type=range]::-moz-range-thumb,.sec-vco-2 .syn-p input[type=range]::-moz-range-thumb{border-radius:3px;background:#d98b35}.sec-filter .syn-p input[type=range]::-webkit-slider-thumb{width:19px;height:19px;margin-top:-7.5px;background:conic-gradient(from 25deg,#e7d8b8,#736e64,#e7d8b8,#736e64,#e7d8b8);box-shadow:0 1px 3px #000,0 0 0 2px rgba(200,71,31,.25)}.sec-amp-eg .syn-p input[type=range]::-webkit-slider-runnable-track,.sec-filter-eg .syn-p input[type=range]::-webkit-slider-runnable-track{background:linear-gradient(90deg,#6bb36b,color-mix(in srgb,#6bb36b 22%,var(--panel-3)))}.sec-lfo .syn-p input[type=range]::-webkit-slider-runnable-track{background:linear-gradient(90deg,#6ca4d8,color-mix(in srgb,#6ca4d8 22%,var(--panel-3)))}.sec-voice .syn-p input[type=range]::-webkit-slider-runnable-track{background:linear-gradient(90deg,#bb78c9,color-mix(in srgb,#bb78c9 22%,var(--panel-3)))}
 .syn-p .cap{text-transform:capitalize;}
 .syn-note{font-size:9.5px; color:var(--text-faint); margin:2px 0 6px; line-height:1.4;}
 .synth-credits{font-size:10px; color:var(--text-faint); margin:10px 0 0; line-height:1.5;}
@@ -853,7 +865,8 @@
     for (const sec of SECTIONS) {
       const specs = sec.params.filter(spec => engineOf() !== "tone" || TONE_KEYS.has(spec.k));
       if (!specs.length) continue;
-      const d = document.createElement("div"); d.className = "synth-sec";
+      const slug = sec.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      const d = document.createElement("div"); d.className = "synth-sec sec-" + slug;
       d.innerHTML = `<h3>${sec.title}</h3>`;
       for (const spec of specs) {
         if (spec.k === "mUnit" && p.mType !== "logue") continue;

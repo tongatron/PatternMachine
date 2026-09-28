@@ -111,11 +111,25 @@
       uParams: { pluck: { 0: 380, 1: 820 } } },
   };
   const DEFAULT_PRESET = "Acid 303";
+  const TONE_PRESETS = {
+    "Tone Soft Pad": { vol: 70, o1Wave: "saw", o1Lvl: 100, fType: "lp12", cutoff: 48, reso: 10, aA: 62, aD: 60, aS: 82, aR: 68, gate: 100 },
+    "Tone Square Bass": { vol: 88, o1Wave: "square", o1Lvl: 100, fType: "lp12", cutoff: 32, reso: 18, aA: 0, aD: 35, aS: 58, aR: 12, gate: 78 },
+    "Tone Triangle Pluck": { vol: 82, o1Wave: "tri", o1Lvl: 100, fType: "lp12", cutoff: 55, reso: 8, aA: 0, aD: 28, aS: 0, aR: 22, gate: 55 },
+    "Tone Sine Lead": { vol: 76, o1Wave: "sine", o1Lvl: 100, fType: "lp12", cutoff: 100, reso: 0, aA: 4, aD: 25, aS: 82, aR: 18, gate: 86 },
+  };
+  const DEFAULT_TONE_PRESET = "Tone Soft Pad";
   const USER_KEY = "pm.synth.presets";
-  function userPresets() { try { return JSON.parse(localStorage.getItem(USER_KEY) || "{}"); } catch (e) { return {}; } }
-  function writeUserPresets(o) { try { localStorage.setItem(USER_KEY, JSON.stringify(o)); } catch (e) { setStatus("presets can't be saved in this browser", "err"); } }
-  const presetParams = name => {
-    const src = PRESETS[name] || userPresets()[name] || PRESETS[DEFAULT_PRESET];
+  const presetBank = () => engineOf() === "tone" ? TONE_PRESETS : PRESETS;
+  const userPresetKey = () => USER_KEY + "." + (engineOf() === "tone" ? "tone" : "custom");
+  function userPresets() {
+    try {
+      const key = userPresetKey(), old = key.endsWith(".custom") ? localStorage.getItem(USER_KEY) : null;
+      return JSON.parse(localStorage.getItem(key) || old || "{}");
+    } catch (e) { return {}; }
+  }
+  function writeUserPresets(o) { try { localStorage.setItem(userPresetKey(), JSON.stringify(o)); } catch (e) { setStatus("presets can't be saved in this browser", "err"); } }
+  const presetParams = (name, bank = presetBank()) => {
+    const src = bank[name] || userPresets()[name] || bank[bank === TONE_PRESETS ? DEFAULT_TONE_PRESET : DEFAULT_PRESET];
     return JSON.parse(JSON.stringify({ ...DEFAULTS, uParams: {}, ...src }));
   };
 
@@ -134,8 +148,9 @@
   const saveView = () => { try { localStorage.setItem("pm.synth.view", JSON.stringify(view)); } catch (e) {} };
 
   // Finche' non si tocca niente il progetto resta senza "synth" (e i progetti degli altri non cambiano).
-  const params = () => project.synth ? { ...presetParams(project.synth.preset), ...project.synth.params } : presetParams(DEFAULT_PRESET);
+  const params = () => project.synth ? { ...presetParams(project.synth.preset), ...project.synth.params } : presetParams(DEFAULT_PRESET, PRESETS);
   const engineOf = () => project.synth?.engine === "tone" ? "tone" : "custom";
+  const TONE_KEYS = new Set(["o1Wave", "o1Lvl", "fType", "cutoff", "reso", "aA", "aD", "aS", "aR", "gate", "trans", "vol"]);
   const keyOf = () => project.synth?.key ?? 9;               // La
   const scaleOf = () => SCALES[project.synth?.scale] ? project.synth.scale : "minor";
   function ensure() {
@@ -232,7 +247,7 @@
     toneFilter.type = toneFilterType(p.fType);
     toneFilter.frequency.setTargetAtTime(20 * Math.pow(1000, p.cutoff / 100), now, 0.02);
     toneFilter.Q.setTargetAtTime(0.1 + p.reso / 12, now, 0.02);
-    toneGain.gain.setTargetAtTime(masterVol() * (p.vol || 0) / 100, now, 0.02);
+    toneGain.gain.setTargetAtTime(masterVol() * (p.vol || 0) / 100 * (p.o1Lvl || 0) / 100, now, 0.02);
   }
   function loadTone() {
     if (window.Tone) return Promise.resolve(window.Tone);
@@ -740,10 +755,20 @@
     el("synEngine").onchange = async e => {
       const next = e.target.value === "tone" ? "tone" : "custom";
       if (next === engineOf()) return;
-      pushUndo(); ensure().engine = next; allOff();
-      if (next === "tone") { stopCustom(); try { await ensureTone(); setStatus("synth engine: Tone.js"); } catch (err) { ensure().engine = "custom"; setStatus("Tone.js could not load", "err"); } }
-      else { stopTone(); try { await ensureAudio(); setStatus("synth engine: Custom + KORG"); } catch (err) {} }
-      paintTop();
+      pushUndo();
+      const s = ensure(); s.engine = next;
+      const bank = presetBank(), fallback = next === "tone" ? DEFAULT_TONE_PRESET : DEFAULT_PRESET;
+      if (!bank[s.preset]) { s.preset = fallback; s.params = presetParams(fallback, bank); }
+      allOff();
+      if (next === "tone") {
+        stopCustom();
+        try { await ensureTone(); setStatus("synth engine: Tone.js"); }
+        catch (err) { s.engine = "custom"; s.preset = DEFAULT_PRESET; s.params = presetParams(DEFAULT_PRESET, PRESETS); setStatus("Tone.js could not load", "err"); }
+      } else {
+        stopTone();
+        try { await ensureAudio(); setStatus("synth engine: Custom + KORG"); } catch (err) {}
+      }
+      renderParams(); paintTop();
     };
     el("synPreset").onchange = e => {
       pushUndo();
@@ -757,7 +782,7 @@
       const name = await ask({ title: "Save synth preset", message: "The sound is saved in this browser.", ok: "Save", input: project.synth?.preset || "My sound" });
       if (name === null || !name.trim()) return;
       const clean = name.trim().slice(0, 40);
-      if (PRESETS[clean]) { setStatus("that name belongs to a factory preset", "err"); return; }
+      if (presetBank()[clean]) { setStatus("that name belongs to a factory preset", "err"); return; }
       const all = userPresets(); all[clean] = JSON.parse(JSON.stringify(params())); writeUserPresets(all);
       const s = ensure(); s.preset = clean; s.params = presetParams(clean);
       paintTop(); setStatus("preset saved: " + clean);
@@ -808,11 +833,11 @@
     if (!built) return;
     const s = project.synth, on = !(s && s.mute), b = el("synOn");
     b.classList.toggle("on", on); b.setAttribute("aria-pressed", String(on)); b.textContent = on ? "On" : "Off";
-    const users = userPresets(), cur = s?.preset || DEFAULT_PRESET;
+    const bank = presetBank(), users = userPresets(), cur = s?.preset || (engineOf() === "tone" ? DEFAULT_TONE_PRESET : DEFAULT_PRESET);
     const opt = n => `<option value="${esc(n)}"${n === cur ? " selected" : ""}>${esc(n)}</option>`;
-    el("synPreset").innerHTML = `<optgroup label="Factory">${Object.keys(PRESETS).map(opt).join("")}</optgroup>`
+    el("synPreset").innerHTML = `<optgroup label="Factory">${Object.keys(bank).map(opt).join("")}</optgroup>`
       + (Object.keys(users).length ? `<optgroup label="Mine">${Object.keys(users).map(opt).join("")}</optgroup>` : "")
-      + (!PRESETS[cur] && !users[cur] ? `<optgroup label="This project">${opt(cur)}</optgroup>` : "");
+      + (!bank[cur] && !users[cur] ? `<optgroup label="This project">${opt(cur)}</optgroup>` : "");
     el("synDelPreset").hidden = !users[cur];
     el("synEngine").value = engineOf();
     el("synKey").value = keyOf(); el("synScale").value = scaleOf();
@@ -826,9 +851,11 @@
     const p = params(), box = el("synParams");
     box.innerHTML = "";
     for (const sec of SECTIONS) {
+      const specs = sec.params.filter(spec => engineOf() !== "tone" || TONE_KEYS.has(spec.k));
+      if (!specs.length) continue;
       const d = document.createElement("div"); d.className = "synth-sec";
       d.innerHTML = `<h3>${sec.title}</h3>`;
-      for (const spec of sec.params) {
+      for (const spec of specs) {
         if (spec.k === "mUnit" && p.mType !== "logue") continue;
         if (spec.k === "mShape" && p.mType === "logue") continue;
         d.appendChild(control(spec, p[spec.k]));

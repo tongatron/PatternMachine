@@ -38,7 +38,7 @@ PATTERN_ID_RE = re.compile(r"^/api/patterns/([A-Za-z0-9\-]+)$")
 
 # Si serve solo cio' che fa parte del sito: server.py, mail.json, data/ e qualunque altro
 # file lasciato nella cartella (backup, appunti) restano fuori.
-STATIC_FILES = {"index.html", "funzioni.html", "macchine.html", "synth.html", "app.html", "plugin.html", "manifest.json", "sw.js"}
+STATIC_FILES = {"index.html", "landing.html", "funzioni.html", "macchine.html", "synth.html", "app.html", "plugin.html", "manifest.json", "sw.js"}
 # download/: le app (zip da ~100 MB) e app.json con versione e dimensione, scritti da desktop/scripts/release.sh;
 # il plug-in per Logic e plugin.json, scritti da plugin/scripts/release.sh.
 STATIC_DIRS = ("engine/", "icons/", "samples/", "samples12/", "machines/", "assets/", "download/")
@@ -49,9 +49,10 @@ DOWNLOAD_PLATFORMS = {
     "PatternMachine-Plugin-macOS.zip": "Plug-in Logic",
 }
 
-# Visibili senza password: servono al browser per installare la PWA e alle anteprime dei link.
-OPEN_PATHS = {"/login", "/logout", "/register", "/forgot", "/reset", "/manifest.json", "/api/app-message", "/assets/og-sp1200.png", "/assets/og-drum-machine-lab.jpg", "/assets/patternmachine-preview.jpg"}
-OPEN_DIRS = ("/icons/",)
+# Visibili senza password: servono al browser per installare la PWA e alle anteprime dei link;
+# landing.html presenta il progetto a chi non ha ancora un account (con le sue schermate).
+OPEN_PATHS = {"/landing.html", "/login", "/logout", "/register", "/forgot", "/reset", "/manifest.json", "/api/app-message", "/assets/og-sp1200.png", "/assets/og-drum-machine-lab.jpg", "/assets/patternmachine-preview.jpg"}
+OPEN_DIRS = ("/icons/", "/assets/landing/")
 
 # Dietro la password niente cache condivise (Cloudflare): "private" tiene la copia solo nel
 # browser. HTML, service worker e motore vanno sempre riconvalidati.

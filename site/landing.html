@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#a3a097">
+<title>PATTERN-MACHINE — step drum machine, patterns and songs</title>
+<meta name="description" content="Step drum machine with 14 classic machines (SP-1200, RX-5, TR-808, TR-909, LinnDrum, DMX…), a pattern generator with 67 styles, song arranger, synth, MIDI keyboard support and MIDI, WAV and MP3 export. In the browser, as a desktop app and as a Logic Pro plug-in.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="PATTERN-MACHINE">
+<meta property="og:title" content="PATTERN-MACHINE — step drum machine, patterns and songs">
+<meta property="og:description" content="14 classic drum machines, 67 pattern styles, song arranger and export to any DAW. Browser, desktop app and Logic Pro plug-in.">
+<meta property="og:image" content="https://patternmachine.tongatron.org/assets/patternmachine-preview.jpg">
+<meta property="og:url" content="https://patternmachine.tongatron.org/landing.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://patternmachine.tongatron.org/assets/patternmachine-preview.jpg">
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<style>
+/* Pagina di presentazione pubblica (visibile senza accesso): stessi colori e materiali
+   della drum machine (scocca grigia, pannelli chiari, tasti in rilievo, arancio). */
+:root{--body-bg:linear-gradient(180deg,#adaaa1,#9a978e); --plate:linear-gradient(180deg,#e2dfd6,#cfccc2);
+  --paper:#ebe8df; --edge:#55534b; --edge-soft:#8f8c83; --ink:#1c1b19; --dim:#3a3833;
+  --accent:#c8471f; --on-accent:#fff6ee; --green:linear-gradient(180deg,#4f9a5c,#2f6f3b);
+  --key:linear-gradient(180deg,#dcd9cf,#b5b2a8); --key-shadow:inset 0 1px 0 rgba(255,255,255,.8), 0 1px 0 rgba(0,0,0,.35);
+  --key-primary:linear-gradient(180deg,#e0743f,#b8471f);
+  --shadow:inset 0 1px 0 rgba(255,255,255,.65), inset 0 -1px 0 rgba(0,0,0,.18), 0 2px 0 rgba(0,0,0,.25);
+  --pad-off:linear-gradient(180deg,#f1eee6,#d9d6cc); --pad-on:linear-gradient(180deg,#f58a4c,#d45a24);
+  --lcd:#1a0f0c; --lcd-ink:#ff4a2a;
+  --mono:"SF Mono","JetBrains Mono",ui-monospace,Menlo,Consolas,monospace; color-scheme:light;}
+*{box-sizing:border-box}
+html{background:#9a978e; scroll-behavior:smooth;}
+body{margin:0; background:var(--body-bg); color:var(--ink); min-height:100vh;
+  font:16px/1.6 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif; -webkit-font-smoothing:antialiased;
+  padding:max(18px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) 40px max(16px,env(safe-area-inset-left));}
+.wrap{max-width:1100px; margin:0 auto;}
+a{color:var(--accent);}
+img{max-width:100%; display:block;}
+
+/* barra in alto */
+.top{display:flex; flex-wrap:wrap; align-items:center; gap:10px 16px; margin-bottom:16px;}
+.logo{font:800 20px/1 var(--mono); letter-spacing:.22em; text-transform:uppercase; color:var(--ink); text-decoration:none;}
+.top nav{display:flex; flex-wrap:wrap; gap:6px; margin-left:auto;}
+
+/* tasti */
+.btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; border:1px solid var(--edge); background:var(--key); color:var(--ink);
+  border-radius:3px; box-shadow:var(--key-shadow); padding:8px 14px; font:700 12px/1.3 var(--mono); letter-spacing:.06em;
+  text-transform:uppercase; text-decoration:none; white-space:nowrap; transition:transform .08s, border-color .15s, color .15s;}
+.btn:hover{border-color:var(--accent); color:var(--accent);}
+.btn:active{transform:translateY(1px);}
+.btn.primary{background:var(--key-primary); color:var(--on-accent); border-color:#8a3418;}
+.btn.play{background:var(--green); color:#fff; border-color:#1f4a27;}
+.btn.primary:hover,.btn.play:hover{color:#fff; filter:brightness(1.06);}
+.btn.big{padding:13px 22px; font-size:14px; border-radius:4px;}
+.btn.small{padding:6px 11px; font-size:11px;}
+
+/* pannelli */
+.panel{background:var(--plate); border:1px solid var(--edge); border-radius:3px; box-shadow:var(--shadow);
+  padding:18px 22px 22px; margin-bottom:14px;}
+.label{font:700 11px/1.3 var(--mono); letter-spacing:.16em; text-transform:uppercase; color:var(--dim);
+  margin:0 0 14px; padding-bottom:8px; border-bottom:1px solid var(--accent);}
+h2{font-size:26px; line-height:1.2; margin:0 0 8px; letter-spacing:-.01em;}
+h3{font-size:17px; margin:0 0 6px;}
+p{margin:6px 0;}
+.muted{color:var(--dim);}
+
+/* apertura */
+.hero{display:grid; grid-template-columns:1.05fr 1fr; gap:28px; align-items:center; padding:30px;}
+.hero h1{font-size:clamp(32px,5vw,50px); line-height:1.05; margin:0 0 14px; letter-spacing:-.02em;}
+.hero h1 em{font-style:normal; color:var(--accent);}
+.hero .lead{font-size:18px; color:var(--dim); margin:0 0 20px; max-width:34em;}
+.cta{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px;}
+.hero .note{font:12px/1.5 var(--mono); color:var(--dim);}
+.lcd{display:inline-block; background:var(--lcd); color:var(--lcd-ink); font:700 14px/1 var(--mono); letter-spacing:.18em;
+  padding:8px 12px; border-radius:2px; border:1px solid #000; text-shadow:0 0 6px rgba(255,74,42,.6); margin-bottom:16px;}
+
+/* mini sequencer animato */
+.seq{background:var(--paper); border:1px solid var(--edge-soft); border-radius:3px; padding:12px; box-shadow:inset 0 1px 3px rgba(0,0,0,.12);}
+.row{display:grid; grid-template-columns:34px repeat(16,1fr); gap:4px; align-items:center; margin-bottom:4px;}
+.row:last-child{margin-bottom:0;}
+.row b{font:700 10px/1 var(--mono); color:var(--dim); letter-spacing:.06em;}
+.pad{aspect-ratio:1; border:1px solid var(--edge-soft); border-radius:2px; background:var(--pad-off); box-shadow:inset 0 1px 0 rgba(255,255,255,.8);}
+.pad.on{background:var(--pad-on); border-color:#a1421b;}
+.pad.acc{background:linear-gradient(180deg,#e0453a,#b52a22); border-color:#7d1b16;}
+.pad.hit{animation:flash .25s ease-out;}
+@keyframes flash{0%{filter:brightness(1.7); transform:scale(1.08);} 100%{filter:none; transform:none;}}
+.pad.cur{outline:2px solid var(--ink); outline-offset:-1px;}
+.seq-foot{display:flex; justify-content:space-between; align-items:center; margin-top:10px; font:700 11px/1 var(--mono); color:var(--dim); letter-spacing:.08em;}
+.seq-foot button{cursor:pointer;}
+
+/* numeri */
+.stats{display:grid; grid-template-columns:repeat(4,1fr); gap:8px;}
+.stat{border:1px solid var(--edge-soft); border-radius:3px; padding:12px 14px; background:var(--paper);}
+.stat .num{font:800 30px/1 var(--mono); letter-spacing:-.02em; color:var(--accent);}
+.stat span{display:block; margin-top:6px; font:700 10px/1.4 var(--mono); letter-spacing:.08em; text-transform:uppercase; color:var(--dim);}
+
+/* tre forme */
+.forms{display:grid; grid-template-columns:repeat(3,1fr); gap:10px;}
+.form{display:flex; flex-direction:column; border:1px solid var(--edge-soft); border-radius:3px; padding:16px; background:var(--paper);}
+.form .tag{font:700 10px/1 var(--mono); letter-spacing:.12em; text-transform:uppercase; color:var(--accent); margin-bottom:8px;}
+.form ul{margin:8px 0 14px; padding-left:18px; font-size:15px;}
+.form li{margin:3px 0;}
+.form .btn{margin-top:auto; align-self:flex-start;}
+
+/* funzioni */
+.features{display:grid; grid-template-columns:repeat(3,1fr); gap:10px;}
+.feat{border:1px solid var(--edge-soft); border-radius:3px; padding:16px; background:var(--paper);}
+.feat .ico{display:inline-grid; place-items:center; width:34px; height:34px; border-radius:3px; background:var(--key-primary);
+  color:var(--on-accent); font:700 15px/1 var(--mono); margin-bottom:10px; box-shadow:var(--key-shadow);}
+.feat p{font-size:15px; color:var(--dim);}
+.beta{font:700 9px/1 var(--mono); letter-spacing:.1em; text-transform:uppercase; border:1px solid var(--accent); color:var(--accent);
+  border-radius:2px; padding:2px 4px; vertical-align:middle; margin-left:4px;}
+
+/* macchine */
+.chips{display:flex; flex-wrap:wrap; gap:6px;}
+.chip{border:1px solid var(--edge); border-radius:3px; padding:5px 10px; background:var(--key); box-shadow:var(--key-shadow);
+  font:700 12px/1.3 var(--mono);}
+.chip small{font-weight:400; color:var(--dim); margin-left:6px;}
+
+/* galleria */
+.gallery{display:grid; grid-template-columns:repeat(2,1fr); gap:12px;}
+.gallery figure{margin:0; background:var(--paper); border:1px solid var(--edge-soft); border-radius:3px; padding:8px;}
+.gallery img{border-radius:2px; border:1px solid var(--edge-soft); width:100%; height:auto; cursor:zoom-in;}
+.gallery figcaption{font:700 11px/1.4 var(--mono); letter-spacing:.08em; text-transform:uppercase; color:var(--dim); padding:8px 2px 2px;}
+.gallery .wide{grid-column:1 / -1;}
+.gallery .phone{display:grid; grid-template-columns:auto 1fr; gap:16px; align-items:center;}
+.gallery .phone img{max-width:200px;}
+
+/* export */
+.table-wrap{overflow-x:auto;}
+table{width:100%; border-collapse:collapse; font-size:15px;}
+th,td{text-align:left; padding:8px 10px; border-bottom:1px solid var(--edge-soft); vertical-align:top;}
+th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-spacing:.1em; text-transform:uppercase; color:var(--dim);}
+td:first-child{font-weight:700; white-space:nowrap;}
+.daws{display:flex; flex-wrap:wrap; gap:6px; margin-top:12px;}
+
+/* accesso */
+.access{text-align:center; padding:34px 22px;}
+.access h2{font-size:30px;}
+.access .cta{justify-content:center; margin:18px 0 8px;}
+.links{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:8px; margin-top:18px; text-align:left;}
+.links a{display:block; border:1px solid var(--edge-soft); border-radius:3px; background:var(--paper); padding:12px 14px; text-decoration:none; color:var(--ink);}
+.links a:hover{border-color:var(--accent);}
+.links a b{display:block; font:700 12px/1.3 var(--mono); letter-spacing:.06em; text-transform:uppercase; color:var(--accent);}
+.links a span{font-size:14px; color:var(--dim);}
+
+/* schermate a tutto schermo */
+.lightbox{position:fixed; inset:0; background:rgba(20,19,17,.88); display:none; place-items:center; padding:20px; z-index:10; cursor:zoom-out;}
+.lightbox.open{display:grid;}
+.lightbox img{max-height:92vh; width:auto; border-radius:3px; box-shadow:0 10px 40px rgba(0,0,0,.5);}
+
+footer{display:flex; flex-direction:column; align-items:center; gap:10px; margin:24px 0 6px; font:11px var(--mono); color:var(--dim); text-align:center;}
+.site-badge{display:inline-flex; align-items:center; gap:10px; text-decoration:none; font:700 14px/1.2 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  background:linear-gradient(180deg,#e0743f,#b8471f); color:#fff; padding:5px 12px; border-radius:999px; transition:.2s;}
+.site-badge .mark{width:11px; height:11px; border-radius:50%; background:#fff; flex-shrink:0;}
+.site-badge:hover{box-shadow:0 0 0 2px #8a3418;}
+
+@media (max-width:900px){
+  .hero{grid-template-columns:1fr; padding:22px 18px;}
+  .features{grid-template-columns:repeat(2,1fr);}
+  .forms{grid-template-columns:1fr;}
+  .stats{grid-template-columns:repeat(2,1fr);}
+}
+@media (max-width:600px){
+  body{font-size:15px;}
+  .panel{padding:14px 14px 18px;}
+  .features,.gallery{grid-template-columns:1fr;}
+  .gallery .phone{grid-template-columns:1fr;}
+  .gallery .phone img{margin:0 auto;}
+  .top nav{margin-left:0;}
+  .row{grid-template-columns:26px repeat(16,1fr); gap:2px;}
+  h2{font-size:22px;}
+  .btn.big{width:100%;}
+}
+@media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto;} .pad.hit{animation:none;} }
+</style>
+<script defer src="https://analytics.tongatron.org/script.js" data-website-id="9daa93b6-2afb-494a-89fb-288437a030d1" data-domains="patternmachine.tongatron.org"></script>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <a class="logo" href="#">Pattern-Machine</a>
+  <nav>
+    <a class="btn small" href="#features">Features</a>
+    <a class="btn small" href="#machines">Machines</a>
+    <a class="btn small" href="#screens">Screenshots</a>
+    <a class="btn small" href="#access">Access</a>
+    <a class="btn small primary" href="/login?next=/">Sign in</a>
+  </nav>
+</header>
+
+<!-- apertura -->
+<section class="panel hero">
+  <div>
+    <div class="lcd">SP-1200 · 93 BPM</div>
+    <h1>A step drum machine that <em>writes the beat with you</em>.</h1>
+    <p class="lead">Pick a classic machine, generate a groove in one of 67 styles, shape it step by step, chain patterns into a song and take it to your DAW as MIDI, WAV or MP3.</p>
+    <div class="cta">
+      <a class="btn play big" href="/">▶ Open the drum machine</a>
+      <a class="btn primary big" href="/register?next=/">Create an account</a>
+    </div>
+    <p class="note">In the browser, on phones too · desktop app for macOS, Windows, Linux · AU / VST3 plug-in for Logic Pro</p>
+  </div>
+  <div>
+    <div class="seq" id="seq" aria-label="Animated 16-step pattern"></div>
+    <div class="seq-foot"><span id="pos">1 . 1</span><button class="btn small" id="toggle" type="button">Pause</button></div>
+  </div>
+</section>
+
+<!-- numeri -->
+<section class="panel">
+  <div class="stats">
+    <div class="stat"><div class="num">14</div><span>classic machines</span></div>
+    <div class="stat"><div class="num">67</div><span>pattern styles</span></div>
+    <div class="stat"><div class="num">32</div><span>steps per pattern</span></div>
+    <div class="stat"><div class="num">3</div><span>ways to use it</span></div>
+  </div>
+</section>
+
+<!-- tre forme -->
+<section class="panel" id="forms">
+  <p class="label">One interface, three forms</p>
+  <div class="forms">
+    <div class="form">
+      <div class="tag">Web · PWA</div>
+      <h3>In the browser</h3>
+      <p class="muted">Nothing to install, works on any modern browser and on phones.</p>
+      <ul>
+        <li>Installable as a web app, ready offline</li>
+        <li>MIDI keyboards in Chrome, Edge and Firefox</li>
+        <li>Shareable links to your patterns</li>
+      </ul>
+      <a class="btn play" href="/">Open it</a>
+    </div>
+    <div class="form">
+      <div class="tag">macOS · Windows · Linux</div>
+      <h3>Desktop app</h3>
+      <p class="muted">Everything in the site, plus a direct line to your DAW.</p>
+      <ul>
+        <li>Virtual MIDI port <b>PatternMachine</b></li>
+        <li>Follows the DAW's MIDI Clock</li>
+        <li>Drag MIDI and WAV onto the timeline</li>
+        <li>Your own sample kits, fully offline</li>
+      </ul>
+      <a class="btn" href="/app.html">Download the app</a>
+    </div>
+    <div class="form">
+      <div class="tag">AU · VST3</div>
+      <h3>Logic Pro plug-in</h3>
+      <p class="muted">On an instrument track, in time with Logic's transport.</p>
+      <ul>
+        <li>Sample-accurate sync, cycles and jumps</li>
+        <li>Channel strip, effects and bounces</li>
+        <li>State saved inside the Logic project</li>
+        <li>One row per instance for separate mixer channels</li>
+      </ul>
+      <a class="btn" href="/plugin.html">Get the plug-in</a>
+    </div>
+  </div>
+</section>
+
+<!-- funzioni -->
+<section class="panel" id="features">
+  <p class="label">Features</p>
+  <div class="features">
+    <div class="feat"><div class="ico">✦</div><h3>Pattern generator</h3>
+      <p>67 styles in 10 families, from punk and post-punk to hip hop, dub, DnB, disco and club. One-click variations, automatic fills and 8 suggestions every time you change style.</p></div>
+    <div class="feat"><div class="ico">▦</div><h3>Step grid</h3>
+      <p>8, 16 or 32 steps, 40–240 BPM, swing and humanize. Accents and ghost notes, per-step probability, ratchets, flam, pitch, decay and filter.</p></div>
+    <div class="feat"><div class="ico">♫</div><h3>Song mode</h3>
+      <p>Chain patterns into verse, chorus and fill blocks with their own repeats. Drag to reorder, play from any point or solo a block.</p></div>
+    <div class="feat"><div class="ico">●</div><h3>Live view</h3>
+      <p>Just the grid, Play, Rec, tempo and metronome. Play from the keyboard or the pads and record hits while the pattern runs.</p></div>
+    <div class="feat"><div class="ico">∿</div><h3>Synthesizer <span class="beta">beta</span></h3>
+      <p>A synth part next to the drums, with its own engines, patterns and notes, and separate volumes for drums, synth and master.</p></div>
+    <div class="feat"><div class="ico">⌨</div><h3>MIDI keyboards</h3>
+      <p>Keys play the synth with velocity, pads trigger drums and transport, knobs move any parameter. Ready-made maps for AKAI MPK mini and Arturia MiniLab 3, plus Learn.</p></div>
+    <div class="feat"><div class="ico">⇪</div><h3>Export anywhere</h3>
+      <p>General MIDI or Logic kit mapping, WAV mix and stems, MP3, and ready-made project folders for Logic, Ableton Live and REAPER.</p></div>
+    <div class="feat"><div class="ico">⇄</div><h3>Import</h3>
+      <p>Bring in patterns from MIDI files or from plain text in the PatternTXT format. Save projects in the browser, as files or as links.</p></div>
+    <div class="feat"><div class="ico">◐</div><h3>Made to play</h3>
+      <p>Light and dark themes styled after the SP-1200 front panel, 80 levels of undo and a metronome that runs even with the transport stopped.</p></div>
+  </div>
+</section>
+
+<!-- macchine -->
+<section class="panel" id="machines">
+  <p class="label">The machines</p>
+  <h2>Fourteen legends, one grid.</h2>
+  <p class="muted" style="margin-bottom:14px">Switching machine maps every row to the closest sound. Each kit shows maker, year and specs, and the machines page tells the history of each one.</p>
+  <div class="chips">
+    <span class="chip">SP-1200<small>E-mu · 1987 · 16 &amp; 12-bit</small></span>
+    <span class="chip">RX-5<small>Yamaha · 1986</small></span>
+    <span class="chip">TR-808<small>Roland · 1980</small></span>
+    <span class="chip">TR-909<small>Roland · 1983</small></span>
+    <span class="chip">TR-707<small>Roland · 1985</small></span>
+    <span class="chip">TR-727<small>Roland · 1985</small></span>
+    <span class="chip">TR-606<small>Roland · 1981</small></span>
+    <span class="chip">CR-78<small>Roland · 1978</small></span>
+    <span class="chip">CR-8000<small>Roland · 1981</small></span>
+    <span class="chip">LinnDrum<small>Linn · 1982</small></span>
+    <span class="chip">DMX<small>Oberheim · 1981</small></span>
+    <span class="chip">Drumulator<small>E-mu · 1983</small></span>
+    <span class="chip">DrumTraks<small>Sequential · 1984</small></span>
+    <span class="chip">SDS-V<small>Simmons · 1981</small></span>
+  </div>
+</section>
+
+<!-- schermate -->
+<section class="panel" id="screens">
+  <p class="label">Screenshots</p>
+  <div class="gallery">
+    <figure class="wide"><img src="assets/landing/griglia.jpg" alt="Step grid with a Roland TR-808" loading="lazy" width="1440" height="1000"><figcaption>Step grid · Roland TR-808</figcaption></figure>
+    <figure><img src="assets/landing/solo-suono.jpg" alt="Live view" loading="lazy" width="1440" height="1000"><figcaption>Live view</figcaption></figure>
+    <figure><img src="assets/landing/sequencer.jpg" alt="Song arranger" loading="lazy" width="1440" height="1000"><figcaption>Song arranger</figcaption></figure>
+    <figure><img src="assets/landing/tema-scuro.jpg" alt="Dark theme" loading="lazy" width="1440" height="1000"><figcaption>Dark theme</figcaption></figure>
+    <figure><img src="assets/landing/macchine.jpg" alt="The machines page" loading="lazy" width="1440" height="1000"><figcaption>The machines</figcaption></figure>
+    <figure><img src="assets/landing/plugin-logic.jpg" alt="Logic Pro plug-in" loading="lazy" width="1440" height="1000"><figcaption>Inside Logic Pro</figcaption></figure>
+    <figure class="phone"><img src="assets/landing/mobile.jpg" alt="PATTERN-MACHINE on a phone" loading="lazy" width="416" height="900">
+      <div><figcaption style="padding-top:0">On the phone</figcaption><p class="muted">The same drum machine on a phone: install it from the browser and it works offline too.</p></div></figure>
+  </div>
+</section>
+
+<!-- export e DAW -->
+<section class="panel" id="export">
+  <p class="label">To your DAW</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Format</th><th>What you get</th></tr></thead>
+      <tbody>
+        <tr><td>MIDI</td><td>Pattern or whole song, General MIDI or Logic SP-1200 kit mapping, with tempo, swing and ratchets</td></tr>
+        <tr><td>WAV + stems</td><td>Full mix and separate tracks, aligned to bar 1</td></tr>
+        <tr><td>MP3</td><td>For listening and sharing, in every browser</td></tr>
+        <tr><td>DAW package</td><td>A folder ready for Logic Pro, Ableton Live, REAPER and other DAWs</td></tr>
+        <tr><td>Live MIDI</td><td>Desktop app: virtual port and MIDI Clock sync with your DAW</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="daws">
+    <span class="chip">Logic Pro</span><span class="chip">Ableton Live</span><span class="chip">REAPER</span><span class="chip">FL Studio</span>
+    <span class="chip">Cubase</span><span class="chip">Bitwig</span><span class="chip">Studio One</span>
+  </div>
+</section>
+
+<!-- accesso -->
+<section class="panel access" id="access">
+  <p class="label">Access</p>
+  <h2>Start making beats.</h2>
+  <p class="muted">Create an account to open the drum machine and download the desktop app and the Logic plug-in.</p>
+  <div class="cta">
+    <a class="btn primary big" href="/register?next=/">Create an account</a>
+    <a class="btn big" href="/login?next=/">Sign in</a>
+  </div>
+  <div class="links">
+    <a href="/"><b>Drum machine →</b><span>The web app, in the browser</span></a>
+    <a href="/app.html"><b>Desktop app →</b><span>macOS, Windows, Linux</span></a>
+    <a href="/plugin.html"><b>Logic plug-in →</b><span>AU and VST3</span></a>
+    <a href="/funzioni.html"><b>Guide →</b><span>Every feature, step by step</span></a>
+    <a href="/macchine.html"><b>The machines →</b><span>History, photos and specs</span></a>
+  </div>
+</section>
+
+<footer>
+  <span>Apart from the SP-1200 and RX-5 samples, the kits are Apple's recreations shipped with Logic Pro. Machine names are trademarks of their respective owners.</span>
+  <a class="site-badge" href="https://tongatron.org/"><span class="mark"></span><span>tongatron.org</span></a>
+</footer>
+</div>
+
+<div class="lightbox" id="lightbox" role="dialog" aria-label="Screenshot"><img alt=""></div>
+
+<script>
+// Mini sequencer: un groove boom-bap che scorre, solo luci (niente audio).
+const ROWS = [
+  ["BD", "x.......x.x....."],
+  ["SD", "....X.......X..."],
+  ["HH", "x.x.x.x.x.x.x.xx"],
+  ["OH", ".......x.......x"],
+];
+const seq = document.getElementById("seq");
+const cells = ROWS.map(([name, steps]) => {
+  const row = document.createElement("div");
+  row.className = "row";
+  row.innerHTML = `<b>${name}</b>`;
+  const pads = [...steps].map(c => {
+    const p = document.createElement("span");
+    p.className = "pad" + (c === "x" ? " on" : c === "X" ? " acc" : "");
+    row.appendChild(p);
+    return p;
+  });
+  seq.appendChild(row);
+  return pads;
+});
+const pos = document.getElementById("pos");
+const toggle = document.getElementById("toggle");
+let step = 0, timer = null;
+function tick() {
+  cells.forEach(pads => {
+    pads.forEach(p => p.classList.remove("cur"));
+    const p = pads[step];
+    p.classList.add("cur");
+    if (p.classList.contains("on") || p.classList.contains("acc")) {
+      p.classList.remove("hit"); void p.offsetWidth; p.classList.add("hit");
+    }
+  });
+  pos.textContent = `${Math.floor(step / 4) + 1} . ${step % 4 + 1}`;
+  step = (step + 1) % 16;
+}
+function play() { timer = setInterval(tick, 60000 / 93 / 4); toggle.textContent = "Pause"; }
+function pause() { clearInterval(timer); timer = null; toggle.textContent = "Play"; }
+toggle.addEventListener("click", () => timer ? pause() : play());
+if (matchMedia("(prefers-reduced-motion: reduce)").matches) { tick(); pause(); } else play();
+
+// Schermate a tutto schermo
+const box = document.getElementById("lightbox");
+document.querySelectorAll(".gallery img").forEach(img => img.addEventListener("click", () => {
+  box.querySelector("img").src = img.src;
+  box.querySelector("img").alt = img.alt;
+  box.classList.add("open");
+}));
+box.addEventListener("click", () => box.classList.remove("open"));
+document.addEventListener("keydown", e => { if (e.key === "Escape") box.classList.remove("open"); });
+</script>
+</body>
+</html>

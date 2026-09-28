@@ -674,23 +674,23 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 }
 /* Comandi principali piu' grandi. */
 #machinePanel .machine-bar, #synthEnginePanel .machine-bar{margin-top:0; padding-top:0; border-top:none;}
-#viewGrid, #viewSeq, #viewSynth, #viewRecent{font-size:14px; padding:11px 22px; min-height:44px;}
-#viewGrid, #viewSeq, #viewSynth{
+#viewGrid, #viewSeq, #viewSynth, #viewMidi, #viewRecent{font-size:14px; padding:11px 22px; min-height:44px;}
+#viewGrid, #viewSeq, #viewSynth, #viewMidi{
   min-height:52px; padding:12px 24px; border:2px solid var(--edge);
   border-radius:9px; font-weight:800; letter-spacing:.08em;
   box-shadow:inset 0 2px 0 rgba(255,255,255,.16), inset 0 -3px 0 rgba(0,0,0,.22), 0 3px 0 rgba(0,0,0,.28);
   transition:transform .06s, box-shadow .06s, background .12s;
 }
-#viewGrid:hover, #viewSeq:hover, #viewSynth:hover{border-color:var(--text-faint);}
-#viewGrid:active, #viewSeq:active, #viewSynth:active{transform:translateY(2px); box-shadow:inset 0 1px 0 rgba(255,255,255,.08), inset 0 -1px 0 rgba(0,0,0,.2);}
-#viewGrid.on, #viewSeq.on, #viewSynth.on{background:linear-gradient(180deg,#ff8a3d,#e0561a); border-color:#b8471f; color:#1c1b19; box-shadow:inset 0 2px 0 rgba(255,255,255,.35), inset 0 -3px 0 rgba(0,0,0,.2), 0 3px 0 rgba(0,0,0,.28);}
+#viewGrid:hover, #viewSeq:hover, #viewSynth:hover, #viewMidi:hover{border-color:var(--text-faint);}
+#viewGrid:active, #viewSeq:active, #viewSynth:active, #viewMidi:active{transform:translateY(2px); box-shadow:inset 0 1px 0 rgba(255,255,255,.08), inset 0 -1px 0 rgba(0,0,0,.2);}
+#viewGrid.on, #viewSeq.on, #viewSynth.on, #viewMidi.on{background:linear-gradient(180deg,#ff8a3d,#e0561a); border-color:#b8471f; color:#1c1b19; box-shadow:inset 0 2px 0 rgba(255,255,255,.35), inset 0 -3px 0 rgba(0,0,0,.2), 0 3px 0 rgba(0,0,0,.28);}
 #pChoose, #pVary, #pNew, #synPatBrowse, #synPatNew{font-size:13px; padding:9px 16px; min-height:40px;}
 #recBtn{font-size:13.5px; padding:11px 18px; min-height:44px;}
 #bpmNum{height:44px; width:72px; font-size:14px;}
 #tapBtn, #viewSound{min-height:44px; padding:11px 18px; font-size:13.5px;}
 .topbar #accountLinks{display:inline-flex; align-items:baseline; gap:10px; margin-left:auto;}
 @media (max-width:560px){
-  #viewGrid, #viewSeq, #viewSynth, #viewRecent{padding:10px 14px;}
+  #viewGrid, #viewSeq, #viewSynth, #viewMidi, #viewRecent{padding:10px 14px;}
 }
 </style>
 
@@ -755,6 +755,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <button id="viewGrid" class="on">Drum Grid</button>
     <button id="viewSynth" title="Synth line of the pattern, in time with the drums">Synthesizer</button>
     <button id="viewSeq">Sequencer</button>
+    <button id="viewMidi" hidden title="MIDI keyboard: connect it and choose what pads and knobs do">MIDI</button>
   </div>
 
   <div class="panel" id="machinePanel">
@@ -898,6 +899,9 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       </table>
     </div>
   </div>
+
+  <!-- Tastiera MIDI: la riempie engine/midi.js -->
+  <div class="panel" id="panelMidi" hidden></div>
 
   <div class="overlay" id="libOverlay" hidden>
     <div class="modal">
@@ -1117,19 +1121,19 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-28.26"></script>
-<script src="engine/styles-punk.js?v=2026-09-28.26"></script>
-<script src="engine/styles-post.js?v=2026-09-28.26"></script>
-<script src="engine/styles-machines.js?v=2026-09-28.26"></script>
-<script src="engine/styles-alt.js?v=2026-09-28.26"></script>
-<script src="engine/styles-groove.js?v=2026-09-28.26"></script>
-<script src="engine/styles-dub.js?v=2026-09-28.26"></script>
-<script src="engine/styles-break.js?v=2026-09-28.26"></script>
-<script src="engine/styles-soul.js?v=2026-09-28.26"></script>
-<script src="engine/styles-metal.js?v=2026-09-28.26"></script>
-<script src="engine/styles-electro.js?v=2026-09-28.26"></script>
-<script src="engine/variations.js?v=2026-09-28.26"></script>
-<script src="engine/import.js?v=2026-09-28.26"></script>
+<script src="engine/core.js?v=2026-09-28.27"></script>
+<script src="engine/styles-punk.js?v=2026-09-28.27"></script>
+<script src="engine/styles-post.js?v=2026-09-28.27"></script>
+<script src="engine/styles-machines.js?v=2026-09-28.27"></script>
+<script src="engine/styles-alt.js?v=2026-09-28.27"></script>
+<script src="engine/styles-groove.js?v=2026-09-28.27"></script>
+<script src="engine/styles-dub.js?v=2026-09-28.27"></script>
+<script src="engine/styles-break.js?v=2026-09-28.27"></script>
+<script src="engine/styles-soul.js?v=2026-09-28.27"></script>
+<script src="engine/styles-metal.js?v=2026-09-28.27"></script>
+<script src="engine/styles-electro.js?v=2026-09-28.27"></script>
+<script src="engine/variations.js?v=2026-09-28.27"></script>
+<script src="engine/import.js?v=2026-09-28.27"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -2692,10 +2696,11 @@ function setView(v){
   el("viewSound").setAttribute("aria-pressed",v==="sound");
   el("viewSound").hidden = v!=="grid" && v!=="sound";
   el("viewRecent").classList.toggle("on",v==="recent");
+  el("viewMidi").classList.toggle("on",v==="midi");
   document.body.classList.toggle("sound-view",v==="sound");
   // La Vista Live mostra la stessa griglia della Griglia, senza il resto dell'interfaccia.
   // Il Synth tiene il pannello Pattern: le note stanno nel pattern scelto lì.
-  el("machinePanel").hidden = v==="synth";
+  el("machinePanel").hidden = v==="synth" || v==="midi";
   el("panelPatterns").hidden = v!=="grid";
   el("panelGrid").hidden = v!=="grid" && v!=="sound";
   el("panelSeq").hidden = v!=="seq";
@@ -2703,6 +2708,7 @@ function setView(v){
   el("synthEnginePanel").hidden = v!=="synth" || !window.PMSynth;
   el("synthPatternPanel").hidden = v!=="synth" || !window.PMSynth;
   el("panelRecent").hidden = v!=="recent";
+  el("panelMidi").hidden = v!=="midi";
   if(v!=="synth" && synthOnly) stop();
   if(v!=="grid" && drumsOnly) stop();
   paintTransport();
@@ -2716,6 +2722,7 @@ function setView(v){
   if(v==="recent") refreshRecent();
   if(v==="seq") renderSong();
   if(v==="synth" && window.PMSynth) PMSynth.show();
+  if(v==="midi" && window.PMMidi) PMMidi.show();
 }
 
 function fmtDuration(sec){
@@ -2734,14 +2741,14 @@ function hitPreview(t){
   if(ctx.state==="suspended") ctx.resume();
   loadBuffer(t.sampleIndex).then(()=>trigger(t,actx().currentTime,0.9));
 }
-function hitPad(idx){
+function hitPad(idx, vel=1){
   const t=project.tracks[idx];
   if(!t) return;
   const ctx=actx();
   if(ctx.state==="suspended") ctx.resume();
   const b=bufferCache.get(cacheKey(t.sampleIndex));
-  if(!b || typeof b.then==="function"){ loadBuffer(t.sampleIndex).then(()=>trigger(t,actx().currentTime,1)); }
-  else trigger(t, ctx.currentTime, 1);
+  if(!b || typeof b.then==="function"){ loadBuffer(t.sampleIndex).then(()=>trigger(t,actx().currentTime,vel)); }
+  else trigger(t, ctx.currentTime, vel);
   const padEl=el("rows").children[idx]?.querySelector(".pad");
   if(padEl){ padEl.classList.add("hit"); setTimeout(()=>padEl.classList.remove("hit"),90); }
   if(recording && playing) recordHit(t);
@@ -2805,7 +2812,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || document.getElementById("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-28.26";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-28.27";
   document.body.appendChild(s);
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth")) loadSynth();
@@ -4940,7 +4947,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-28.26";
+const SW_VERSION="2026-09-28.27";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -4959,6 +4966,7 @@ const SW_VERSION="2026-09-28.26";
   });
 })();
 </script>
+<script src="engine/midi.js?v=2026-09-28.27"></script>
 
 </body>
 </html>

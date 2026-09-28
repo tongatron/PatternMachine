@@ -492,28 +492,28 @@
   }, true);
   window.addEventListener("blur", () => { for (const n of [...held.keys()]) liveOff(n); });
 
-  let midiAccess = null;
-  async function toggleMidi(btn) {
-    if (midiAccess) {
-      for (const i of midiAccess.inputs.values()) i.onmidimessage = null;
-      midiAccess.onstatechange = null; midiAccess = null;
-      btn.classList.remove("on"); btn.setAttribute("aria-pressed", "false");
-      setStatus("synth: MIDI input off"); return;
-    }
-    try {
-      midiAccess = await navigator.requestMIDIAccess();
-      const hook = () => { for (const i of midiAccess.inputs.values()) i.onmidimessage = onMidi; };
-      hook(); midiAccess.onstatechange = hook;
-      btn.classList.add("on"); btn.setAttribute("aria-pressed", "true");
-      const names = [...midiAccess.inputs.values()].map(i => i.name);
-      setStatus(names.length ? "synth: MIDI input from " + names.join(", ") : "synth: no MIDI keyboard connected");
-    } catch (e) { midiAccess = null; setStatus("synth: MIDI access refused", "err"); }
+  // Tastiera MIDI: la gestisce engine/midi.js (tasti, pad e manopole), che chiama liveOn/liveOff e knob() qui sotto.
+  function midiNote(n, vel) {
+    if (!allowed) return;
+    if (vel > 0) liveOn(n, vel); else liveOff(n);
   }
-  function onMidi(m) {
-    const [st, n, v] = m.data, type = st & 0xf0;
-    if (type === 0x90 && v > 0) liveOn(n, v / 127);
-    else if (type === 0x80 || type === 0x90) liveOff(n);
+  // Manopola MIDI -> parametro del synth (frac 0..1 sull'intervallo del parametro). Un solo passo di annulla
+  // per giro: si registra quando la manopola riparte dopo una pausa.
+  let knobAt = 0;
+  function knob(k, frac) {
+    const spec = SPEC[k];
+    if (!allowed || !spec || spec.opts) return null;
+    const lo = spec.min ?? 0, hi = spec.max ?? 100, v = Math.round(lo + clamp(frac, 0, 1) * (hi - lo));
+    const now = Date.now();
+    if (now - knobAt > 700) pushUndo();
+    knobAt = now;
+    setParam(k, v, false);
+    const r = built && el("synParams").querySelector(`input[data-k="${k}"]`);
+    if (r) { r.value = v; if (r.nextElementSibling) r.nextElementSibling.value = (spec.fmt || String)(v); }
+    return spec.label + " " + (spec.fmt || String)(v);
   }
+  // Parametri a cursore che una manopola puo' comandare (per la vista MIDI).
+  const knobTargets = () => SECTIONS.flatMap(sec => sec.params.filter(p => !p.opts).map(p => ({ k: p.k, label: p.label, section: sec.title })));
 
   // ---------- generatori (nella tonalita' e scala scelte) ----------
   // Ogni generatore riceve il pattern e restituisce le note {s, n, l, a?, g?}. Seguono il giro di accordi scelto
@@ -1190,8 +1190,9 @@
     el("synDown").onclick = () => { view.base = clamp(view.base - 12, 0, 96); saveView(); renderRoll(); };
     el("synUp").onclick = () => { view.base = clamp(view.base + 12, 0, 96); saveView(); renderRoll(); };
     el("synFold").onchange = e => { view.fold = e.target.checked; saveView(); renderRoll(); };
-    el("synMidiIn").hidden = !navigator.requestMIDIAccess;
-    el("synMidiIn").onclick = e => toggleMidi(e.currentTarget);
+    el("synMidiIn").hidden = !navigator.requestMIDIAccess || !window.PMMidi;
+    el("synMidiIn").onclick = () => window.PMMidi && PMMidi.toggle();
+    if (window.PMMidi) PMMidi.paint();
     el("synPanic").onclick = () => { held.clear(); paintKeys(); if (node) node.port.postMessage({ t: "panic" }); };
     wireRoll();
     wireKeyboard();
@@ -1319,7 +1320,7 @@
       row.appendChild(s);
     } else {
       const r = document.createElement("input"), out = document.createElement("output");
-      r.type = "range"; r.min = spec.min ?? 0; r.max = spec.max ?? 100; r.step = 1; r.value = value;
+      r.type = "range"; r.dataset.k = spec.k; r.min = spec.min ?? 0; r.max = spec.max ?? 100; r.step = 1; r.value = value;
       const show = () => { out.value = (spec.fmt || String)(+r.value); };
       show();
       let armed = true;   // un solo passo di annulla per trascinamento
@@ -1616,6 +1617,6 @@
   const debug = () => ({ audio: !!node, sampleRate: node ? node.context.sampleRate : null,
     unitsSent: [...unitsSent], unitsReady: [...unitsReady], unitErrors: unitErrors.slice(-3) });
 
-  window.PMSynth = { step, allOff, show, setAllowed, renderOffline, hasNotes, exportMidi, level, debug };
+  window.PMSynth = { step, allOff, show, setAllowed, renderOffline, hasNotes, exportMidi, level, debug, midiNote, knob, knobTargets };
   setAllowed(true);
 })();

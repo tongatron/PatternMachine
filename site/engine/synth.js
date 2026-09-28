@@ -224,7 +224,7 @@
         if (e.data.t === "unit-ready") unitsReady.add(e.data.name);
         if (e.data.t === "unit-error") { unitsSent.delete(e.data.name); unitErrors.push(e.data); setStatus("synth: KORG unit " + e.data.name + " failed to load", "err"); }
       };
-      chain = buildChain(ctx, n, ctx.destination);
+      chain = buildChain(ctx, n, synthOut(ctx));
       analyser = ctx.createAnalyser(); analyser.fftSize = 1024;
       chain.out.connect(analyser);
       node = n;
@@ -235,6 +235,8 @@
     loading.catch(err => { loading = null; console.error(err); setStatus("synth: the audio engine didn't load", "err"); });
     return loading;
   }
+  // uscita: il canale "synth" del mixer del sito (pan, meter, limiter), altrimenti dritto all'uscita
+  const synthOut = ctx => window.mixOut ? window.mixOut(ctx, "synth") : ctx.destination;
   // volume del synth nel mix (cursore "Vol. synth") per il volume generale
   const masterVol = () => (+el("masterVol").value || 0) / 100 * (+(el("synthVol")?.value ?? 100) || 0) / 100;
 
@@ -290,7 +292,7 @@
     toneGain = ctx.createGain();
     toneAnalyser = ctx.createAnalyser(); toneAnalyser.fftSize = 1024;
     toneSynth.connect(toneFilter); toneFilter.connect(toneGain);
-    toneGain.connect(toneAnalyser); toneAnalyser.connect(ctx.destination);
+    toneGain.connect(toneAnalyser); toneAnalyser.connect(synthOut(ctx));
     analyser = toneAnalyser;
     applyToneParams(params());
     return toneSynth;
@@ -964,7 +966,7 @@
     let n;
     try { n = new AudioWorkletNode(ctx, "pm-synth", opts(units)); }
     catch (e) { n = new AudioWorkletNode(ctx, "pm-synth", opts({})); setStatus("synth: the KORG unit is left out of this export", "err"); }
-    buildChain(ctx, n, ctx.destination).apply(p, bpm(), masterVol());
+    buildChain(ctx, n, synthOut(ctx)).apply(p, bpm(), masterVol());
     return true;
   }
 

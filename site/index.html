@@ -552,8 +552,8 @@ button.danger-fill{background:var(--danger); border-color:var(--danger); color:#
 .tl-lane-synth .tl-seg b{font-size:9px;}
 .tl-lane-synth .tl-seg.rest::before{opacity:.08;}
 .seqblock-meta{font-size:9px; color:var(--text-faint); letter-spacing:.04em;}
-.seqblock-actions{display:flex; gap:4px;}
-.seqblock-actions button{flex:1 1 0; padding:4px 5px; font-size:9px;}
+.seqblock-actions{display:flex; flex-wrap:wrap; gap:4px;}
+.seqblock-actions button{flex:1 1 auto; padding:4px 5px; font-size:9px;}
 .seqblock-actions button.on{background:var(--key-primary,var(--accent)); color:var(--on-accent); border-color:var(--accent-dim); font-weight:700;}
 #metronomeBtn, #liveKeysBtn{min-height:44px; padding:11px 18px; font-size:13.5px;}
 #metronomeBtn.on, #viewSound.on{background:var(--key-primary,var(--accent)); color:var(--on-accent); border-color:var(--accent-dim);}
@@ -679,24 +679,48 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 }
 /* Comandi principali piu' grandi. */
 #machinePanel .machine-bar, #synthEnginePanel .machine-bar{margin-top:0; padding-top:0; border-top:none;}
-#viewGrid, #viewSeq, #viewSynth, #viewRecent{font-size:14px; padding:11px 22px; min-height:44px;}
-#viewGrid, #viewSeq, #viewSynth{
+#viewGrid, #viewSeq, #viewSynth, #viewMix, #viewRecent{font-size:14px; padding:11px 22px; min-height:44px;}
+#viewGrid, #viewSeq, #viewSynth, #viewMix{
   min-height:52px; padding:12px 24px; border:2px solid var(--edge);
   border-radius:9px; font-weight:800; letter-spacing:.08em;
   box-shadow:inset 0 2px 0 rgba(255,255,255,.16), inset 0 -3px 0 rgba(0,0,0,.22), 0 3px 0 rgba(0,0,0,.28);
   transition:transform .06s, box-shadow .06s, background .12s;
 }
-#viewGrid:hover, #viewSeq:hover, #viewSynth:hover{border-color:var(--text-faint);}
-#viewGrid:active, #viewSeq:active, #viewSynth:active{transform:translateY(2px); box-shadow:inset 0 1px 0 rgba(255,255,255,.08), inset 0 -1px 0 rgba(0,0,0,.2);}
-#viewGrid.on, #viewSeq.on, #viewSynth.on{background:linear-gradient(180deg,#ff8a3d,#e0561a); border-color:#b8471f; color:#1c1b19; box-shadow:inset 0 2px 0 rgba(255,255,255,.35), inset 0 -3px 0 rgba(0,0,0,.2), 0 3px 0 rgba(0,0,0,.28);}
+#viewGrid:hover, #viewSeq:hover, #viewSynth:hover, #viewMix:hover{border-color:var(--text-faint);}
+#viewGrid:active, #viewSeq:active, #viewSynth:active, #viewMix:active{transform:translateY(2px); box-shadow:inset 0 1px 0 rgba(255,255,255,.08), inset 0 -1px 0 rgba(0,0,0,.2);}
+#viewGrid.on, #viewSeq.on, #viewSynth.on, #viewMix.on{background:linear-gradient(180deg,#ff8a3d,#e0561a); border-color:#b8471f; color:#1c1b19; box-shadow:inset 0 2px 0 rgba(255,255,255,.35), inset 0 -3px 0 rgba(0,0,0,.2), 0 3px 0 rgba(0,0,0,.28);}
 #pChoose, #pVary, #pNew, #synPatBrowse, #synPatNew{font-size:13px; padding:9px 16px; min-height:40px;}
 #recBtn{font-size:13.5px; padding:11px 18px; min-height:44px;}
 #bpmNum{height:44px; width:72px; font-size:14px;}
 #tapBtn, #viewSound{min-height:44px; padding:11px 18px; font-size:13.5px;}
 .topbar #accountLinks{display:inline-flex; align-items:baseline; gap:10px; margin-left:auto;}
 @media (max-width:560px){
-  #viewGrid, #viewSeq, #viewSynth, #viewRecent{padding:10px 14px;}
+  #viewGrid, #viewSeq, #viewSynth, #viewMix, #viewRecent{padding:10px 14px;}
 }
+/* Mixer: una striscia per traccia, poi i gruppi e il master. */
+.mix-strips{display:flex; gap:6px; overflow-x:auto; padding:2px 2px 10px; align-items:stretch;}
+.mx{flex:0 0 auto; width:74px; display:flex; flex-direction:column; align-items:center; gap:6px;
+  background:var(--plate,var(--panel-2)); border:1px solid var(--edge); border-radius:var(--r-panel,9px); padding:8px 5px;}
+.mx.group{background:var(--panel-3);}
+.mx.master{width:96px; border-color:var(--accent-dim);}
+.mx.off{opacity:.5;}
+.mx-sep{flex:0 0 1px; background:var(--edge); margin:0 4px;}
+.mx-name{font-size:10px; font-weight:700; letter-spacing:.04em; width:100%; text-align:center;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.mx-body{display:flex; gap:6px; align-items:stretch; height:160px;}
+.mx-meter{position:relative; width:8px; border-radius:3px; background:var(--led-off); overflow:hidden;}
+.mx-meter i{position:absolute; left:0; right:0; bottom:0; height:0;
+  background:linear-gradient(0deg,#3fae5a 0%,#3fae5a 70%,#e3b33a 85%,#d4402f 100%); background-size:100% 160px; background-position:bottom;}
+.mx-meter.clip{box-shadow:0 0 0 1px var(--danger);}
+.mx input.mx-fader{writing-mode:vertical-lr; direction:rtl; width:22px; height:160px; margin:0;}
+.mx input.mx-pan{width:100%; margin:0;}
+.mx-val{font-size:9.5px; color:var(--text-dim); font-variant-numeric:tabular-nums; min-height:12px;}
+.mx-btns{display:flex; gap:4px;}
+.mx-lim{padding:4px 7px; font-size:9.5px;}
+.mx-lim.on{background:var(--key-primary,var(--accent)); color:var(--on-accent); border-color:var(--accent-dim); font-weight:700;}
+.seqblock-mutes{display:flex; flex-wrap:wrap; gap:3px;}
+.seqblock-mutes button{padding:2px 5px; font-size:9px; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-transform:none; letter-spacing:0;}
+.seqblock-mutes button.on{background:var(--danger); border-color:var(--danger); color:#fff; text-decoration:line-through;}
 </style>
 
 <div class="wrap">
@@ -761,6 +785,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <button id="viewGrid" class="on">Drum Grid</button>
     <button id="viewSynth" title="Synth line of the pattern, in time with the drums">Synthesizer</button>
     <button id="viewSeq">Sequencer</button>
+    <button id="viewMix" title="Levels, pan, meters and the master limiter">Mixer</button>
   </div>
 
   <div class="panel" id="machinePanel">
@@ -895,6 +920,14 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     </p>
   </div>
 
+  <div class="panel" id="panelMix" hidden>
+    <h2>Mixer</h2>
+    <div class="mix-strips" id="mixStrips"></div>
+    <p class="hint" style="margin-top:0;">
+      One strip per row of the drum grid, then the drums and synth groups and the master · the faders are the same volumes as the grid and the top bar · double-click a pan to center it · the limiter keeps the master under 0 dB, live and in the WAV export (not in the stems) · pan, synth pan and limiter are saved in the project.
+    </p>
+  </div>
+
   <div class="panel" id="panelRecent" hidden>
     <h2 id="recentTitle">Saved projects</h2>
     <div class="recent-wrap">
@@ -986,6 +1019,8 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
           <li><b>Len.</b> makes the row loop with fewer steps (polyrhythms).</li>
           <li><b>⚙</b> opens the voice parameters: <b>Decay</b> shortens the tail, <b>Filter</b>+<b>Reso</b> are the 4-pole low-pass like the VCFs on the machine's outputs, <b>Start</b> moves the sample start, <b>Rev</b> plays it reversed.</li>
           <li><b>Feel</b> (in the ⚙ panel) pushes the row's hits ahead or behind, from −30 to +30 ms: snare “laid back”, kick “pushed”.</li>
+          <li>The <b>Mixer</b> tab shows every row as a strip with fader, <b>pan</b>, meter, M and S, then the drums, synth and master; the master <b>limiter</b> keeps the mix under 0 dB.</li>
+          <li>In the <b>Sequencer</b>, <b>Mute</b> on a block silences the rows you choose in that block only (a break without the hat, an intro without the kick).</li>
         </ul>
       </section>
       <section>
@@ -1126,19 +1161,19 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-28.29"></script>
-<script src="engine/styles-punk.js?v=2026-09-28.29"></script>
-<script src="engine/styles-post.js?v=2026-09-28.29"></script>
-<script src="engine/styles-machines.js?v=2026-09-28.29"></script>
-<script src="engine/styles-alt.js?v=2026-09-28.29"></script>
-<script src="engine/styles-groove.js?v=2026-09-28.29"></script>
-<script src="engine/styles-dub.js?v=2026-09-28.29"></script>
-<script src="engine/styles-break.js?v=2026-09-28.29"></script>
-<script src="engine/styles-soul.js?v=2026-09-28.29"></script>
-<script src="engine/styles-metal.js?v=2026-09-28.29"></script>
-<script src="engine/styles-electro.js?v=2026-09-28.29"></script>
-<script src="engine/variations.js?v=2026-09-28.29"></script>
-<script src="engine/import.js?v=2026-09-28.29"></script>
+<script src="engine/core.js?v=2026-09-28.30"></script>
+<script src="engine/styles-punk.js?v=2026-09-28.30"></script>
+<script src="engine/styles-post.js?v=2026-09-28.30"></script>
+<script src="engine/styles-machines.js?v=2026-09-28.30"></script>
+<script src="engine/styles-alt.js?v=2026-09-28.30"></script>
+<script src="engine/styles-groove.js?v=2026-09-28.30"></script>
+<script src="engine/styles-dub.js?v=2026-09-28.30"></script>
+<script src="engine/styles-break.js?v=2026-09-28.30"></script>
+<script src="engine/styles-soul.js?v=2026-09-28.30"></script>
+<script src="engine/styles-metal.js?v=2026-09-28.30"></script>
+<script src="engine/styles-electro.js?v=2026-09-28.30"></script>
+<script src="engine/variations.js?v=2026-09-28.30"></script>
+<script src="engine/import.js?v=2026-09-28.30"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -1512,7 +1547,7 @@ function makeTrack(sampleIndex,opts={}){
 // identico a prima finche' non si tocca niente.
 function voiceDefaults(o={}){
   return {decay:o.decay??100, cutoff:o.cutoff??100, reso:o.reso??0,
-    start:o.start??0, reverse:!!o.reverse, nudge:o.nudge??0};
+    start:o.start??0, reverse:!!o.reverse, nudge:o.nudge??0, pan:o.pan??0};
 }
 
 function makePattern(name,len=16){ return {id:uid(), name, len, grid:{}, mods:{}, lens:{}}; }
@@ -1594,6 +1629,11 @@ function normalize(){
   });
   migrateSynth();
   project.song=project.song.filter(b=>project.patterns.some(p=>p.id===b.patternId));
+  project.song.forEach(b=>{
+    if(!b.mutes) return;
+    b.mutes=b.mutes.filter(id=>project.tracks.some(t=>t.id===id));
+    if(!b.mutes.length) delete b.mutes;
+  });
   // pattern del synth: almeno uno; note dentro il pattern, lunghe almeno uno step e non oltre la fine
   if(!project.synthPatterns.length) project.synthPatterns.push(makeSynthPattern("Synth 1",16));
   project.synthPatterns.forEach(sp=>{
@@ -1731,7 +1771,7 @@ function trigger(track, time, velocity, ctx=actx(), chokes=chokeVoices){
   } else {
     src.connect(gain);
   }
-  gain.connect(ctx.destination);
+  gain.connect(mixOut(ctx, track.id));
 
   const offset=Math.min(0.95, (track.start||0)/100)*buf.duration;
   const avail=Math.max(0.01, (buf.duration-offset)/rate);
@@ -1762,6 +1802,59 @@ const audibleTracks = ()=>{
   const solo=project.tracks.some(t=>t.solo);
   return project.tracks.filter(t=>!t.mute && (!solo || t.solo));
 };
+
+// ---------- mixer: bus audio ----------
+// Ogni contesto audio (quello dal vivo e quelli degli export) ha il suo bus:
+// colpo -> canale della traccia (pan, meter) -> gruppo drums (meter) -> master (limiter, meter) -> uscita.
+// Il synth entra nel master col suo canale. I volumi restano quelli di prima (riga, Vol. drums/synth/general):
+// il bus aggiunge solo pan, meter e limiter. Negli stem il limiter non c'e': limita la somma, non le parti.
+const mixBuses=new WeakMap(), stemCtxs=new WeakSet();
+const limiterOn = ()=> project.limiter!==false;
+const panOf = key => (key==="synth" ? project.synthPan : project.tracks.find(t=>t.id===key)?.pan) || 0;
+function mixBus(ctx){
+  let m=mixBuses.get(ctx);
+  if(!m){
+    const live=ctx===audioCtx, meter=n=>{ const a=ctx.createAnalyser(); a.fftSize=n; return a; };
+    m={input:ctx.createGain(), drums:ctx.createGain(), lim:ctx.createDynamicsCompressor(), ch:new Map(), limOn:null, live,
+      an:live?meter(1024):null, drumsAn:live?meter(1024):null};
+    const L=m.lim;
+    L.threshold.value=-1; L.knee.value=0; L.ratio.value=20; L.attack.value=0.001; L.release.value=0.08;
+    L.connect(ctx.destination);
+    if(m.an) L.connect(m.an);
+    m.drums.connect(m.input);
+    if(m.drumsAn) m.drums.connect(m.drumsAn);
+    mixBuses.set(ctx,m);
+  }
+  const on=limiterOn() && !stemCtxs.has(ctx);
+  if(m.limOn!==on){
+    m.input.disconnect();
+    if(on) m.input.connect(m.lim);
+    else { m.input.connect(ctx.destination); if(m.an) m.input.connect(m.an); }
+    m.limOn=on;
+  }
+  return m;
+}
+// L'ingresso del canale: "synth" o l'id di una traccia; senza chiave si entra dritti nel master.
+function mixOut(ctx,key){
+  const m=mixBus(ctx);
+  if(key==null) return m.input;
+  let c=m.ch.get(key);
+  if(!c){
+    const pan=ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+    c={pan, in:pan||ctx.createGain(), an:null};
+    c.in.connect(key==="synth" ? m.input : m.drums);
+    if(m.live){ c.an=ctx.createAnalyser(); c.an.fftSize=512; c.in.connect(c.an); }
+    m.ch.set(key,c);
+  }
+  if(c.pan) c.pan.pan.value=panOf(key)/100;
+  return c.in;
+}
+// pan cambiato dal mixer: vale subito anche per le note gia' in corso
+function applyPan(key){
+  const c=audioCtx && mixBuses.get(audioCtx)?.ch.get(key);
+  if(c && c.pan) c.pan.pan.setTargetAtTime(panOf(key)/100, audioCtx.currentTime, 0.01);
+}
+function applyLimiter(){ if(audioCtx) mixBus(audioCtx); }
 
 // ---------- transport ----------
 let playing=false, recording=false, synthOnly=false, drumsOnly=false;
@@ -1836,7 +1929,9 @@ function scheduler(){
     const dur=stepDur(cursor.step);
     if(!synthOnly && ui.metronome && cursor.step%4===0) metronomeHit(nextTime,cursor.step===0);
     const cycle=ui.mode==="song" ? (cursor.rep||0) : (cursor.loops||0);
+    const blockMutes=ui.mode==="song" ? (project.song[cursor.blockIndex]?.mutes||[]) : [];
     if(!synthOnly) live.forEach(t=>{
+      if(blockMutes.includes(t.id)) return;
       const i=stepIdx(pat,t.id,cursor.step,cycle);
       const v=(pat.grid[t.id]||[])[i];
       if(!v) return;
@@ -2384,11 +2479,12 @@ function renderPatterns(){
 
 function blockBars(b){ const p=patternById(b.patternId); return (p?p.len:16)/16*b.repeats; }
 
-function miniPreview(pattern){
+function miniPreview(pattern, mutes=[]){
   const box=document.createElement("div");
   box.className="prev";
   if(!pattern) return box;
   const rows=project.tracks
+    .filter(t=>!mutes.includes(t.id))   // le righe mutate nel blocco non si vedono nell'anteprima
     .map(t=>pattern.grid[t.id])
     .filter(a=>a && a.some(v=>v))
     .slice(0,5);
@@ -2495,9 +2591,37 @@ function renderSong(){
       renderSong();
       setStatus(ui.songSoloBlockId?"solo on: the block loops":"solo off");
     };
-    actions.append(varyBlock,fillBlock,soloBlock); card.appendChild(actions);
+    // Mute per blocco: le righe tolte solo qui (un break senza l'hat, un'entrata senza cassa), senza copiare il pattern.
+    const nMuted=(b.mutes||[]).length;
+    const muteBlock=document.createElement("button"); muteBlock.type="button";
+    muteBlock.textContent=nMuted?`Mute ${nMuted}`:"Mute";
+    muteBlock.className=nMuted?"on":"";
+    muteBlock.title="choose the rows that stay silent in this block only";
+    muteBlock.setAttribute("aria-expanded",String(ui.muteBlockId===b.id));
+    muteBlock.onclick=e=>{ e.stopPropagation(); ui.muteBlockId=ui.muteBlockId===b.id?null:b.id; renderSong(); };
+    actions.append(varyBlock,fillBlock,soloBlock,muteBlock); card.appendChild(actions);
+    if(ui.muteBlockId===b.id){
+      const mutes=document.createElement("div"); mutes.className="seqblock-mutes";
+      mutes.setAttribute("role","group"); mutes.setAttribute("aria-label","Rows muted in this block");
+      project.tracks.forEach(t=>{
+        const on=(b.mutes||[]).includes(t.id);
+        const c=document.createElement("button"); c.type="button";
+        c.textContent=sampleLabel(t.sampleIndex); c.className=on?"on":"";
+        c.setAttribute("aria-pressed",String(on));
+        c.title=on?"muted in this block: click to bring it back":"click to mute it in this block";
+        c.onclick=e=>{
+          e.stopPropagation(); pushUndo();
+          const set=new Set(b.mutes||[]);
+          if(on) set.delete(t.id); else set.add(t.id);
+          if(set.size) b.mutes=[...set]; else delete b.mutes;
+          renderSong();
+        };
+        mutes.appendChild(c);
+      });
+      card.appendChild(mutes);
+    }
 
-    const prev=miniPreview(p);
+    const prev=miniPreview(p, b.mutes||[]);
     const phead=document.createElement("div"); phead.className="prev-head";
     prev.appendChild(phead);
     card.appendChild(prev);
@@ -2517,7 +2641,7 @@ function renderSong(){
     const dup=document.createElement("button");
     dup.className="sp"; dup.textContent="⧉"; dup.title="duplicate";
     dup.onclick=e=>{ e.stopPropagation(); pushUndo();
-        project.song.splice(idx+1,0,{id:uid(),patternId:b.patternId,repeats:b.repeats,section:b.section||"verse",fillPatternId:b.fillPatternId||null});
+        project.song.splice(idx+1,0,{id:uid(),patternId:b.patternId,repeats:b.repeats,section:b.section||"verse",fillPatternId:b.fillPatternId||null,...(b.mutes?.length?{mutes:b.mutes.slice()}:{})});
       ui.blockId=project.song[idx+1].id; renderSong(); };
     const del=document.createElement("button");
     del.className="danger"; del.textContent="×"; del.title="remove";
@@ -2697,6 +2821,7 @@ function setView(v){
   el("viewGrid").classList.toggle("on",v==="grid");
   el("viewSeq").classList.toggle("on",v==="seq");
   el("viewSynth").classList.toggle("on",v==="synth");
+  el("viewMix").classList.toggle("on",v==="mix");
   el("viewSound").classList.toggle("on",v==="sound");
   el("viewSound").setAttribute("aria-pressed",v==="sound");
   el("viewSound").hidden = v!=="grid" && v!=="sound";
@@ -2705,7 +2830,7 @@ function setView(v){
   document.body.classList.toggle("sound-view",v==="sound");
   // La Vista Live mostra la stessa griglia della Griglia, senza il resto dell'interfaccia.
   // Il Synth tiene il pannello Pattern: le note stanno nel pattern scelto lì.
-  el("machinePanel").hidden = v==="synth" || v==="midi";
+  el("machinePanel").hidden = v==="synth" || v==="midi" || v==="mix";
   el("panelPatterns").hidden = v!=="grid";
   el("panelGrid").hidden = v!=="grid" && v!=="sound";
   el("panelSeq").hidden = v!=="seq";
@@ -2714,10 +2839,14 @@ function setView(v){
   el("synthPatternPanel").hidden = v!=="synth" || !window.PMSynth;
   el("panelRecent").hidden = v!=="recent";
   el("panelMidi").hidden = v!=="midi";
+  const wasMix=!el("panelMix").hidden;
+  el("panelMix").hidden = v!=="mix";
+  if(v==="mix") renderMixer();
+  else if(wasMix) renderTracks();       // le righe della griglia riprendono volumi, mute e solo toccati nel mixer
   if(v!=="synth" && synthOnly) stop();
   if(v!=="grid" && drumsOnly) stop();
   paintTransport();
-  setMode(v==="seq"?"song":"pattern");
+  if(v!=="mix") setMode(v==="seq"?"song":"pattern");   // il mixer lascia suonare quello che suonava
   el("helpKeys").hidden = v!=="grid";
   // Rec registra nella griglia del pattern (nel Synth, le note): altrove sparisce e si spegne
   const recView = v==="grid" || v==="sound" || v==="synth";
@@ -2734,7 +2863,105 @@ function fmtDuration(sec){
   const s=Math.round(sec);
   return `${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`;
 }
-function renderAll(){ renderPatterns(); renderRuler(); renderTracks(); renderSong(); }
+function renderAll(){ renderPatterns(); renderRuler(); renderTracks(); renderSong(); if(!el("panelMix").hidden) renderMixer(); }
+
+// ---------- mixer: interfaccia ----------
+// Le strisce leggono e scrivono gli stessi valori della griglia (t.vol, mute, solo) e dei cursori in alto
+// (Vol. drums, synth, general): non c'e' un secondo volume da tenere allineato.
+let mixMeters=[], mixRaf=0;
+const panLabel = v => !v ? "C" : (v<0?"L":"R")+Math.abs(v);
+function renderMixer(){
+  const host=el("mixStrips");
+  host.innerHTML=""; mixMeters=[];
+  const bus=mixBus(actx());
+  const strip=({name, title, cls="", fader, pan, meter, extra})=>{
+    const d=document.createElement("div"); d.className="mx "+cls;
+    const nm=document.createElement("div"); nm.className="mx-name"; nm.textContent=name; nm.title=title||name;
+    d.appendChild(nm);
+    const body=document.createElement("div"); body.className="mx-body";
+    const m=document.createElement("div"); m.className="mx-meter"; const bar=document.createElement("i"); m.appendChild(bar);
+    body.appendChild(m);
+    const f=document.createElement("input"); f.type="range"; f.className="mx-fader"; f.min=0; f.max=100;
+    f.value=fader.get(); f.setAttribute("aria-label","Volume "+name);
+    const val=document.createElement("div"); val.className="mx-val"; val.textContent=f.value;
+    f.oninput=()=>{ fader.set(+f.value); val.textContent=f.value; };
+    body.appendChild(f);
+    d.appendChild(body); d.appendChild(val);
+    if(pan){
+      const p=document.createElement("input"); p.type="range"; p.className="mx-pan"; p.min=-100; p.max=100; p.step=5;
+      p.value=pan.get(); p.title="Pan: "+panLabel(pan.get())+" (double-click: center)"; p.setAttribute("aria-label","Pan "+name);
+      const pv=document.createElement("div"); pv.className="mx-val"; pv.textContent=panLabel(+p.value);
+      const setP=v=>{ pan.set(v); pv.textContent=panLabel(v); p.title="Pan: "+panLabel(v)+" (double-click: center)"; };
+      p.oninput=()=>setP(+p.value);
+      p.ondblclick=()=>{ p.value=0; setP(0); };
+      d.appendChild(p); d.appendChild(pv);
+    }
+    if(extra) d.appendChild(extra);
+    host.appendChild(d);
+    mixMeters.push({an:meter, bar, box:m, fader:f, val, src:fader.src, lvl:0, clip:0});
+    return d;
+  };
+  const sep=()=>{ const x=document.createElement("div"); x.className="mx-sep"; host.appendChild(x); };
+
+  const solo=project.tracks.some(t=>t.solo);
+  project.tracks.forEach(t=>{
+    const btns=document.createElement("div"); btns.className="mx-btns";
+    const mk=(cls,label,key,tip)=>{
+      const b=document.createElement("button"); b.type="button";
+      b.className="chip-btn "+cls+(t[key]?" on":""); b.textContent=label; b.title=tip;
+      b.onclick=()=>{ t[key]=!t[key]; renderMixer(); };
+      return b;
+    };
+    btns.append(mk("m","M","mute","Mute"), mk("s","S","solo","Solo"));
+    const d=strip({name:sampleLabel(t.sampleIndex),
+      fader:{get:()=>Math.round((t.vol??0.8)*100), set:v=>{ t.vol=v/100; }},
+      pan:{get:()=>t.pan||0, set:v=>{ t.pan=v; applyPan(t.id); }},
+      meter:mixOut(actx(),t.id) && bus.ch.get(t.id).an, extra:btns});
+    if(t.mute || (solo && !t.solo)) d.classList.add("off");
+  });
+  sep();
+  const slider=id=>({src:el(id), get:()=>+el(id).value, set:v=>{ el(id).value=v; el(id).dispatchEvent(new Event("input")); }});
+  strip({name:"Drums", title:"All the drums (Vol. drums)", cls:"group", fader:slider("drumsVol"), meter:bus.drumsAn});
+  if(window.PMSynth) strip({name:"Synth", title:"The synth line (Vol. synth)", cls:"group", fader:slider("synthVol"),
+    pan:{get:()=>project.synthPan||0, set:v=>{ project.synthPan=v; applyPan("synth"); }},
+    meter:mixOut(actx(),"synth") && bus.ch.get("synth").an});
+  sep();
+  const lim=document.createElement("button"); lim.type="button";
+  const paintLim=()=>{ lim.className="mx-lim"+(limiterOn()?" on":""); lim.textContent=limiterOn()?"Limiter on":"Limiter off"; };
+  lim.title="Keeps the master under 0 dB, so many hits together don't distort";
+  lim.onclick=()=>{ project.limiter=!limiterOn(); applyLimiter(); paintLim(); };
+  paintLim();
+  const gr=document.createElement("div"); gr.className="mx-val"; gr.id="mixGR"; gr.title="Gain reduction of the limiter";
+  const box=document.createElement("div"); box.style.cssText="display:flex; flex-direction:column; align-items:center; gap:4px;";
+  box.append(lim,gr);
+  strip({name:"Master", title:"General volume: drums, synth and metronome (Vol. general)", cls:"group master",
+    fader:slider("masterVol"), meter:bus.an, extra:box});
+  if(!mixRaf) mixRaf=requestAnimationFrame(paintMeters);
+}
+// Picco di ogni canale, con caduta lenta; il bordo rosso resta un secondo se si supera 0 dB.
+function paintMeters(){
+  mixRaf=0;
+  if(el("panelMix").hidden) return;
+  const now=performance.now();
+  mixMeters.forEach(m=>{
+    let pk=0;
+    if(m.an){
+      const b=m.an._buf||(m.an._buf=new Float32Array(m.an.fftSize));
+      m.an.getFloatTimeDomainData(b);
+      for(let i=0;i<b.length;i++){ const a=Math.abs(b[i]); if(a>pk) pk=a; }
+    }
+    m.lvl=Math.max(pk, m.lvl*0.92);
+    const db=m.lvl>0 ? 20*Math.log10(m.lvl) : -99;
+    m.bar.style.height=Math.max(0,Math.min(100,(db+48)/48*100))+"%";
+    if(pk>=1) m.clip=now+1000;
+    m.box.classList.toggle("clip", m.clip>now);
+    // i cursori in alto (o il MIDI) possono muovere gli stessi volumi: la striscia li segue
+    if(m.src && document.activeElement!==m.fader && +m.fader.value!==+m.src.value){ m.fader.value=m.src.value; m.val.textContent=m.src.value; }
+  });
+  const g=el("mixGR"), bus=audioCtx && mixBuses.get(audioCtx);
+  if(g && bus){ const x=bus.lim.reduction, r=bus.limOn ? (typeof x==="object" ? x.value : x) : 0; g.textContent=r<-0.1 ? "GR "+r.toFixed(1)+" dB" : ""; }
+  mixRaf=requestAnimationFrame(paintMeters);
+}
 
 // ---------- playing pads ----------
 // Modalita' del click sugli step -> campo del blocco che cambia (Colpi non ne ha)
@@ -2817,7 +3044,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || document.getElementById("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-28.29";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-28.30";
   document.body.appendChild(s);
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth")) loadSynth();
@@ -2939,6 +3166,7 @@ el("metronomeBtn").onclick=()=>{
 el("viewRecent").onclick=()=>setView("recent");
 el("viewGrid").onclick=()=>setView("grid");
 el("viewSeq").onclick=()=>setView("seq");
+el("viewMix").onclick=()=>setView("mix");
 el("viewSynth").onclick=()=>{
   if(window.PMSynth){ setView("synth"); return; }
   loadSynth();
@@ -3020,6 +3248,19 @@ function setMix(mix){
   const v=x=>Number.isFinite(+x)?Math.max(0,Math.min(100,+x)):100;
   el("drumsVol").value=v(mix?.drums); el("synthVol").value=v(mix?.synth);
   el("synthVol").dispatchEvent(new Event("input"));
+  project.synthPan=Number.isFinite(+mix?.synthPan)?Math.max(-100,Math.min(100,+mix.synthPan)):0;
+  project.limiter=mix?.limiter!==false;
+  applyPan("synth"); applyLimiter();
+  if(!el("panelMix").hidden) renderMixer();
+}
+// Il mix salvato nel progetto: solo cio' che differisce dal default.
+function mixState(){
+  const o={};
+  if(+el("drumsVol").value!==100) o.drums=+el("drumsVol").value;
+  if(+el("synthVol").value!==100) o.synth=+el("synthVol").value;
+  if(project.synthPan) o.synthPan=project.synthPan;
+  if(project.limiter===false) o.limiter=false;
+  return o;
 }
 el("humanRange").oninput=()=>{ project.human=+el("humanRange").value; };
 
@@ -3176,16 +3417,16 @@ function serialize(){
   return {
     name: el("projectName").value.trim()||"Untitled",
     bpm: bpm(), swing: +el("swingRange").value||0, human: +el("humanRange").value||0,
-    ...(+el("drumsVol").value!==100 || +el("synthVol").value!==100 ? {mix:{drums:+el("drumsVol").value, synth:+el("synthVol").value}} : {}),
+    ...(()=>{ const mix=mixState(); return Object.keys(mix).length ? {mix} : {}; })(),
     sampleSet,
     tracks: project.tracks.map(t=>({id:t.id, sampleIndex:t.sampleIndex, vol:t.vol, tune:t.tune||0, choke:t.choke||0,
-      decay:t.decay, cutoff:t.cutoff, reso:t.reso, start:t.start, reverse:t.reverse, nudge:t.nudge||0})),
+      decay:t.decay, cutoff:t.cutoff, reso:t.reso, start:t.start, reverse:t.reverse, nudge:t.nudge||0, ...(t.pan?{pan:t.pan}:{})})),
     patterns: project.patterns.map(p=>({id:p.id, name:p.name, len:p.len,
       grid:Object.fromEntries(Object.entries(p.grid).map(([k,v])=>[k,v.slice()])),
       ...(p.mods&&Object.keys(p.mods).length?{mods:cloneMods(p.mods)}:{}),
       ...(p.lens&&Object.keys(p.lens).length?{lens:{...p.lens}}:{}),
       })),
-    song: project.song.map(b=>({id:b.id, patternId:b.patternId, repeats:b.repeats, section:b.section||"verse", ...(b.fillPatternId?{fillPatternId:b.fillPatternId}: {})})),
+    song: project.song.map(b=>({id:b.id, patternId:b.patternId, repeats:b.repeats, section:b.section||"verse", ...(b.fillPatternId?{fillPatternId:b.fillPatternId}: {}), ...(b.mutes?.length?{mutes:b.mutes.slice()}:{})})),
     synthPatterns: (project.synthPatterns||[]).map(sp=>({id:sp.id, name:sp.name, len:sp.len, synth:sp.synth.map(n=>({...n}))})),
     synthSong: (project.synthSong||[]).map(b=>({id:b.id, synthId:b.synthId||null, repeats:b.repeats, len:b.len||16})),
     ...(project.synth?{synth:JSON.parse(JSON.stringify(project.synth))}:{}),   // synth (in prova): suono, tonalita', on/off
@@ -3201,12 +3442,13 @@ function deserialize(d,keepSel){
     patterns:(d.patterns||[]).map(p=>({id:p.id, name:p.name, len:p.len||16,
       grid:Object.fromEntries(Object.entries(p.grid||{}).map(([k,v])=>[k,v.slice()])), mods:cloneMods(p.mods), lens:{...(p.lens||{})},
       ...(Array.isArray(p.synth)&&p.synth.length?{synth:p.synth.map(n=>({...n}))}:{})})),
-    song:(d.song||[]).map(b=>({id:b.id, patternId:b.patternId, repeats:b.repeats||1, section:b.section||"verse", fillPatternId:b.fillPatternId||null, ...(typeof b.synth==="string"&&b.synth?{synth:b.synth}:{})})),
+    song:(d.song||[]).map(b=>({id:b.id, patternId:b.patternId, repeats:b.repeats||1, section:b.section||"verse", fillPatternId:b.fillPatternId||null, ...(Array.isArray(b.mutes)&&b.mutes.length?{mutes:b.mutes.map(String)}:{}), ...(typeof b.synth==="string"&&b.synth?{synth:b.synth}:{})})),
     ...(Array.isArray(d.synthPatterns)&&Array.isArray(d.synthSong) ? {
       synthPatterns:d.synthPatterns.map(sp=>({id:sp.id, name:sp.name||"Synth", len:[8,16,32].includes(sp.len)?sp.len:16, synth:(Array.isArray(sp.synth)?sp.synth:[]).map(n=>({...n}))})),
       synthSong:d.synthSong.map(b=>({id:b.id, synthId:b.synthId||null, repeats:b.repeats||1, len:b.len||16})) } : {}),
     ...(d.synth&&typeof d.synth==="object"?{synth:JSON.parse(JSON.stringify(d.synth))}:{}),
   };
+  project.synthPan=Math.max(-100,Math.min(100,+d.mix?.synthPan||0)); project.limiter=d.mix?.limiter!==false;
   const ids=[...project.tracks, ...project.patterns, ...project.song, ...(project.synthPatterns||[]), ...(project.synthSong||[])].map(x=>+x.id).filter(n=>!isNaN(n));
   idSeq=Math.max(idSeq, ...(ids.length?ids:[0]))+1;
   if(!project.patterns.length) project.patterns=[makePattern("Beat 1",16)];
@@ -3441,7 +3683,7 @@ function varLen(v){
   return out;
 }
 const MIDI_PPQ=96;   // 24 tick per sedicesimo
-function patternEvents(pat, startTick, events, cycle=0){
+function patternEvents(pat, startTick, events, cycle=0, mutes=[]){
   const base=MIDI_PPQ/4;
   const s=swing();
   const perSec=bpm()/60*MIDI_PPQ;   // tick al secondo
@@ -3449,6 +3691,7 @@ function patternEvents(pat, startTick, events, cycle=0){
   for(let s16=0;s16<pat.len;s16++){
     const dur=Math.round(base*(s16%2===0?1+s:1-s));
     project.tracks.forEach(t=>{
+      if(mutes.includes(t.id)) return;
       const i=stepIdx(pat,t.id,s16,cycle);
       const v=(pat.grid[t.id]||[])[i];
       if(!v) return;
@@ -3475,7 +3718,7 @@ function buildMidi(which){
     project.song.forEach(b=>{
       const p=patternById(b.patternId);
       if(!p) return;
-      for(let r=0;r<Math.max(1,b.repeats);r++) tick=patternEvents(p,tick,events,r);
+      for(let r=0;r<Math.max(1,b.repeats);r++) tick=patternEvents(p,tick,events,r,b.mutes);
     });
   } else {
     tick=patternEvents(curPattern(),0,events);
@@ -3537,10 +3780,11 @@ const WAV_RATE=44100, WAV_TAIL=2, WAV_PATTERN_LOOPS=4;
 function wavEvents(which){
   const live=audibleTracks(), base=60/bpm()/4, sw=swing(), events=[];
   let t=0;
-  const emit=(pat,cycle)=>{
+  const emit=(pat,cycle,mutes=[])=>{
     for(let s=0;s<pat.len;s++){
       const d=base*(s%2===0?1+sw:1-sw);
       live.forEach(tr=>{
+        if(mutes.includes(tr.id)) return;
         const i=stepIdx(pat,tr.id,s,cycle);
         const v=(pat.grid[tr.id]||[])[i]; if(!v) return;
         const m=modOf(pat,tr.id,i); if(!stepPlays(m)) return;
@@ -3551,7 +3795,7 @@ function wavEvents(which){
       t+=d;
     }
   };
-  if(which==="song") project.song.forEach(b=>{ const p=patternById(b.patternId); if(p) for(let r=0;r<Math.max(1,b.repeats||1);r++) emit(p,r); });
+  if(which==="song") project.song.forEach(b=>{ const p=patternById(b.patternId); if(p) for(let r=0;r<Math.max(1,b.repeats||1);r++) emit(p,r,b.mutes); });
   else for(let r=0;r<WAV_PATTERN_LOOPS;r++) emit(curPattern(),r);
   return {events, length:t, live};
 }
@@ -3731,8 +3975,8 @@ const gmNoteFor = i => { const s=SAMPLES[i]; return GM_NOTE[s.name] ?? GM_NOTE[s
 function gmEvents(which){
   const events=[];
   let tick=0;
-  const add=(p,r=0)=>{ tick=patternEvents(p,tick,events,r); };
-  if(which==="song") project.song.forEach(b=>{ const p=patternById(b.patternId); if(p) for(let r=0;r<Math.max(1,b.repeats);r++) add(p,r); });
+  const add=(p,r=0,mutes)=>{ tick=patternEvents(p,tick,events,r,mutes); };
+  if(which==="song") project.song.forEach(b=>{ const p=patternById(b.patternId); if(p) for(let r=0;r<Math.max(1,b.repeats);r++) add(p,r,b.mutes); });
   else add(curPattern());
   // patternEvents scrive le note del kit SP-1200 di Logic (36+indice): qui si passa alla mappa GM
   events.forEach(e=>{ e.note=gmNoteFor(e.note-36); });
@@ -3805,6 +4049,7 @@ async function renderStems(which){
   for(const tr of live){
     if(!events.some(e=>e[1]===tr)) continue;
     const ctx=new OAC(2, frames, WAV_RATE), chokes=new Map();
+    stemCtxs.add(ctx);
     events.forEach(([time,t,vel,lt])=>{
       if(t===tr) trigger(lt,time,vel,ctx,chokes);
       else if(tr.choke>0 && t.choke===tr.choke) trigger(lt,time,0,ctx,chokes);
@@ -4952,7 +5197,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-28.29";
+const SW_VERSION="2026-09-28.30";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -4971,7 +5216,7 @@ const SW_VERSION="2026-09-28.29";
   });
 })();
 </script>
-<script src="engine/midi.js?v=2026-09-28.29"></script>
+<script src="engine/midi.js?v=2026-09-28.30"></script>
 
 </body>
 </html>

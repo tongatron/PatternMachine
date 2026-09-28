@@ -566,7 +566,7 @@
 #panelSynth .flexline + .flexline{margin-top:8px;}
 #panelSynth .export-menu summary{min-height:0; padding:6px 10px; font-size:10.5px;}
 #synOn.on{background:var(--ok); color:var(--on-ok); border-color:var(--ok);}
-.synth-roll-wrap{margin-top:9px; overflow:auto; max-height:430px; border:1px solid var(--edge); border-radius:6px; background:var(--panel-2); overscroll-behavior:contain;}
+.synth-roll-wrap{margin-top:9px; overflow-x:auto; overflow-y:visible; border:1px solid var(--edge); border-radius:6px; background:var(--panel-2);}
 .synth-roll{display:grid; min-width:100%; user-select:none; -webkit-user-select:none; touch-action:pan-y;}
 .sr-key{position:sticky; left:0; z-index:2; font-size:9px; padding:0 5px; display:flex; align-items:center; height:17px;
   background:var(--panel); color:var(--text-dim); border-right:1px solid var(--edge); border-bottom:1px solid var(--edge-soft); cursor:pointer;}

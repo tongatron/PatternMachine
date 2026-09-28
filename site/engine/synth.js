@@ -155,7 +155,9 @@
   const keyOf = () => project.synth?.key ?? 9;               // La
   const scaleOf = () => SCALES[project.synth?.scale] ? project.synth.scale : "minor";
   function ensure() {
-    if (!project.synth) project.synth = { preset: DEFAULT_PRESET, key: 9, scale: "minor", mute: false, params: presetParams(DEFAULT_PRESET) };
+    if (!project.synth) project.synth = { preset: DEFAULT_PRESET, key: 9, scale: "minor", mute: false, solo: false, params: presetParams(DEFAULT_PRESET) };
+    if (!project.synth.params || typeof project.synth.params !== "object") project.synth.params = {};
+    if (project.synth.solo == null) project.synth.solo = false;
     return project.synth;
   }
   // Al worklet vanno solo le manopole del suono (gli effetti stanno nel grafo qui sotto).
@@ -837,14 +839,14 @@
       ns.forEach(n => { const i = document.createElement("i"); i.style.left = `${n.s / item.len * 100}%`; i.style.width = `calc(${n.l / item.len * 100}% - 1px)`; i.style.top = `${(1 - (n.n - lo + 0.5) / span) * 100}%`; prev.appendChild(i); });
       mini.appendChild(prev);
       const acts = document.createElement("div"); acts.className = "lib-acts";
-      const load = document.createElement("button"); load.type = "button"; load.className = "mini primary"; load.textContent = "Load";
+      const load = document.createElement("button"); load.type = "button"; load.className = "mini primary"; load.textContent = "Replace pattern";
       load.title = "replace the notes of the synth pattern you are editing";
       load.onclick = () => {
         const sp = curSynth(); pushUndo(); ensure();
         sp.len = item.len; sp.synth = item.notes.map(n => ({ ...n }));
         closeLib(); paintPatternBar(); centerOn(sp); renderRoll(); setStatus(`synth: ${g.label.toLowerCase()} loaded in ${sp.name}`);
       };
-      const add = document.createElement("button"); add.type = "button"; add.className = "mini"; add.textContent = "+ Add";
+      const add = document.createElement("button"); add.type = "button"; add.className = "mini"; add.textContent = "Add as new";
       add.title = "add it as a new synth pattern";
       add.onclick = () => {
         pushUndo(); ensure();
@@ -1013,7 +1015,8 @@
 .syn-p select{width:100%; min-width:0; padding:3px 5px;}
 .syn-p output{text-align:right; font-variant-numeric:tabular-nums; font-size:10px;}
 .syn-p.sel{grid-template-columns:84px minmax(0,1fr);}
-.synth-params{grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px;margin-top:14px;align-items:start;}
+.synth-params{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px;align-items:start;}
+.synth-col{display:flex;flex-direction:column;gap:10px;min-width:0;}
 .synth-sec{position:relative;overflow:hidden;border:1px solid color-mix(in srgb,var(--edge) 80%,#000);border-radius:9px;padding:0 9px 8px;background:linear-gradient(145deg,var(--panel),color-mix(in srgb,var(--panel-2) 70%,#000));box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 2px 5px rgba(0,0,0,.18);}
 .synth-sec::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.08;background:repeating-linear-gradient(0deg,transparent 0 2px,#fff 2px 3px);}
 .synth-sec h3{position:relative;z-index:1;display:flex;align-items:center;gap:7px;margin:0 -9px 6px;padding:8px 9px 7px;background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(0,0,0,.12));color:var(--text);border-bottom:1px solid var(--edge);}
@@ -1040,6 +1043,7 @@
 @media (max-width:560px){ .export-list.syn-gen{min-width:0; width:calc(100vw - 32px);} .syn-gen-grid{grid-template-columns:1fr;} .syn-gen-opts{grid-template-columns:1fr 1fr;} }
 .synth-credits{font-size:10px; color:var(--text-faint); margin:10px 0 0; line-height:1.5;}
 .synth-credits a{color:inherit;}
+@media (max-width:900px){ .synth-params{grid-template-columns:repeat(2,minmax(0,1fr));} }
 @media (max-width:560px){ .synth-params{grid-template-columns:1fr;} #synScope{display:none;} .syn-p{grid-template-columns:78px minmax(0,1fr) 56px;} }
 `;
 
@@ -1066,7 +1070,7 @@
         <span class="tiny" id="synPatCount"></span>
       </div>
       <div class="flexline">
-        <button id="synPatBrowse" class="mini primary" type="button" title="Suggestions from the generators: listen and load">Browse…</button>
+        <button id="synPatBrowse" class="mini primary" type="button" title="Suggestions from the generators: listen and apply">✦ Generate</button>
         <button id="synPatNew" class="mini" type="button" title="A new empty synth pattern">+ New</button>
         <button id="synPatDup" class="mini" type="button">Duplicate</button>
         <button id="synPatRename" class="mini" type="button">Rename</button>
@@ -1078,7 +1082,8 @@
     el("panelSynth").innerHTML = `
       <h2>Notes <span id="synPatName"></span><span class="synth-beta">test</span></h2>
       <div class="flexline">
-        <button id="synOn" class="mini on" type="button" aria-pressed="true" title="Synth on/off in playback and exports">On</button>
+        <button id="synOn" class="mini on" type="button" aria-pressed="true" title="Mute or unmute the synth in playback and exports">On</button>
+        <button id="synSolo" class="mini" type="button" aria-pressed="false" title="Play the synth without the drums">Solo</button>
         <label class="fld">Key <select id="synKey"></select></label>
         <label class="fld">Scale <select id="synScale"></select></label>
         <details class="export-menu" id="synGenMenu"><summary>Generate ▾</summary><div class="export-list syn-gen" id="synGen"></div></details>
@@ -1114,6 +1119,7 @@
         compiled to WebAssembly, one instance per voice. To record: turn on Rec, press Play and play the keys.</p>`;
 
     el("synOn").onclick = () => { pushUndo(); const s = ensure(); s.mute = !s.mute; if (s.mute) allOff(); paintTop(); };
+    el("synSolo").onclick = () => { pushUndo(); const s = ensure(); s.solo = !s.solo; paintTop(); };
     el("synEngine").onchange = async e => {
       const next = e.target.value === "tone" ? "tone" : "custom";
       if (next === engineOf()) return;
@@ -1204,8 +1210,9 @@
   function paintTap() { el("synTap").querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.mode === view.tap)); }
   function paintTop() {
     if (!built) return;
-    const s = project.synth, on = !(s && s.mute), b = el("synOn");
+    const s = project.synth, on = !(s && s.mute), b = el("synOn"), solo = el("synSolo");
     b.classList.toggle("on", on); b.setAttribute("aria-pressed", String(on)); b.textContent = on ? "On" : "Off";
+    solo.classList.toggle("on", !!s?.solo); solo.setAttribute("aria-pressed", String(!!s?.solo));
     const bank = presetBank(), users = userPresets(), cur = s?.preset || (engineOf() === "tone" ? DEFAULT_TONE_PRESET : DEFAULT_PRESET);
     const opt = n => `<option value="${esc(n)}"${n === cur ? " selected" : ""}>${esc(n)}</option>`;
     // suoni di fabbrica: prima quelli con le unita' KORG logue, poi quelli del motore custom
@@ -1286,6 +1293,7 @@
     if (!built) return;
     const p = params(), box = el("synParams");
     box.innerHTML = "";
+    const cols = Array.from({length:4}, () => { const c = document.createElement("div"); c.className = "synth-col"; box.appendChild(c); return c; });
     for (const sec of SECTIONS) {
       const specs = sec.params.filter(spec => engineOf() !== "tone" || TONE_KEYS.has(spec.k));
       if (!specs.length) continue;
@@ -1302,7 +1310,7 @@
         if (p.mType === "logue") renderUnitParams(units, p);
         else units.innerHTML = `<p class="syn-note">${SPEC.mShape.hint}. Raise Multi in the mixer to hear it.</p>`;
       }
-      box.appendChild(d);
+      cols[(SECTIONS.indexOf(sec)) % cols.length].appendChild(d);
     }
   }
   function control(spec, value) {
@@ -1546,6 +1554,7 @@
   function frame() {
     requestAnimationFrame(frame);
     if (!allowed) return;
+    if (!project) return;
     // progetto caricato, annulla/ripeti: il suono torna quello del progetto
     if (project !== lastProject || project.synth !== lastSynth) {
       const refresh = lastProject !== null;

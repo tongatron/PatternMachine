@@ -39,6 +39,13 @@
     { id: "E", label: "voice mix", hint: "each voice comes at random from your pattern or another style" },
     { id: "U", label: "double hybrid", hint: "two groups of voices taken from two different styles" },
   ];
+  const GROUPS = {
+    G: "groove", O: "hi-hat e percussioni", S: "groove", H: "struttura", D: "hi-hat e percussioni",
+    P: "struttura", F: "groove", R: "hi-hat e percussioni", W: "groove", L: "struttura",
+    M: "hi-hat e percussioni", X: "ibridi", Y: "hi-hat e percussioni", T: "hi-hat e percussioni",
+    N: "groove", B: "struttura", C: "ibridi", J: "ibridi", E: "ibridi", U: "ibridi",
+  };
+  TYPES.forEach(t => { t.group = GROUPS[t.id] || "groove"; });
 
   // Stili che l'ibrido (~VX) puo' pescare. Lista FISSA: l'indice e' scritto nel codice, quindi non si tocca
   // e non si riordina (cambierebbe i codici condivisi). Stili nuovi non sono donatori: servirebbe un'altra lettera.

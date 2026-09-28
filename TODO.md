@@ -52,14 +52,14 @@ priorità. Nota: i punti su barra di stato (`setStatus`) e trasporto (`stop`, `s
 l'app desktop sostituisce da `desktop/bridge/bridge.js`: l'app andrà allineata al suo prossimo aggiornamento.
 
 ### Priorità alte
-- [ ] **Il lavoro non si perde.** Oggi non c'è salvataggio automatico né avviso alla chiusura della scheda
+- [x] **Il lavoro non si perde.** Bozza automatica nel browser con recupero all'avvio e avviso alla chiusura se la bozza non è ancora stata scritta.
   (nessun `beforeunload`), e all'avvio si apre sempre un progetto nuovo (`project=starterProject()`, riga ~5265):
   chi ricarica perde il beat non salvato senza avviso; gli ospiti non possono salvare affatto.
   - bozza automatica nel browser a ogni modifica (con ritardo di qualche centinaio di ms), anche per gli ospiti;
   - all'avvio: "Riprendi il progetto di 5 minuti fa?" (finestra `ask()`, non popup del browser);
   - accanto al nome del progetto: "• non salvato" / "salvato ✓";
   - avviso alla chiusura solo se ci sono modifiche che nemmeno la bozza ha salvato.
-- [ ] **Griglia visibile subito e trasporto sempre a portata.** A 1440×900 il primo step è a 726 px: si vede per
+- [x] **Griglia visibile subito e trasporto sempre a portata.** Trasporto compatto e sticky, con posizione Pattern/Canzone esplicita; su telefono resta a portata in fondo.
   intero una sola riga di step, ogni strumento occupa 121 px. Su iPhone Play è a 986 px e il primo step a 1589 px
   (due schermate sotto). Scorrendo fino alla griglia, Play, BPM e posizione escono dallo schermo (si può fermare
   solo con la barra spaziatrice).
@@ -68,7 +68,7 @@ l'app desktop sostituisce da `desktop/bridge/bridge.js`: l'app andrà allineata 
   - Progetto + Macchina + Pattern in un'unica riga compatta;
   - link "Guide and features", "App for Mac, Win, Linux", "Logic plug-in" in un menu ☰ o nel footer;
   - obiettivo: a 1440×900 almeno 8 righe di griglia nella prima schermata.
-- [ ] **Un solo trasporto, identico in tutte le schede.** Oggi cambia a ogni scheda:
+- [x] **Un solo trasporto, identico in tutte le schede.** Pattern/Canzone è indipendente dalla scheda e il trasporto non viene più fermato cambiando vista; i comandi Play solo sono ricondotti ai mute/solo del Mixer.
   - Griglia: "Play All", "Play solo drums", Rec, Live View;
   - Sequencer: "Play", senza Rec, senza Live View;
   - Synth: "Play solo synth"; Swing sale in prima riga, Humanize scende in seconda.
@@ -94,7 +94,8 @@ l'app desktop sostituisce da `desktop/bridge/bridge.js`: l'app andrà allineata 
   - nome leggibile al posto del codice esadecimale nel titolo ("Punk '77 43D685"): il codice resta sotto, una volta sola;
   - etichettare le righe dell'anteprima (BD, SD, HH…);
   - il campo Codice può stare in una sezione secondaria.
-- [ ] **Bug: i primi step di ogni battuta sono più piccoli.** `.step.g{margin-left:9px}` (riga 391) dentro la
+- [x] **Bug: i primi step di ogni battuta sono più piccoli.** Rimosso il margine dalla cella: gli step restano uguali
+  e il righello non va più a zig-zag. `.step.g{margin-left:9px}` (riga 391) dentro la
   griglia con `aspect-ratio:1/1` rimpicciolisce gli step 5, 9 e 13: 54×54 px contro 63×63 (misurato a 1440 px).
   Su telefono la seconda fila di step parte rientrata e il righello dei tempi va a zig-zag ("1 2" / "3 4").
   - spazio tra i gruppi nel `grid-template` (o gruppi da 4 come contenitori), non come margine della cella;
@@ -102,7 +103,7 @@ l'app desktop sostituisce da `desktop/bridge/bridge.js`: l'app andrà allineata 
     (rosso, arancio, giallo, bianco). Sostituisce il punto "bordo doppio" della sezione Interfaccia.
 
 ### Struttura
-- [ ] **Riga dello strumento compatta** (vedi anche Interfaccia). Oggi 11 comandi su una riga sopra gli step
+- [x] **Riga dello strumento compatta** (vedi anche Interfaccia). Oggi 11 comandi su una riga sopra gli step
   (anteprima, menu suono, M, S, Grp, Len., intonazione, volume, ▾, ⚙, ×), il nome ripetuto due volte (etichetta
   "BD 1" + menu "BD 1"), su telefono tre righe di comandi per strumento (~450 px a strumento). I parametri di riga
   stanno in tre posti: menu in riga, pannello ⚙, corsie ▾.
@@ -115,10 +116,10 @@ l'app desktop sostituisce da `desktop/bridge/bridge.js`: l'app andrà allineata 
   - corsie a barre (altezza = valore), trascinare in verticale per regolare e in orizzontale per disegnare su più
     step, come le velocity di Logic/Ableton; valore al passaggio del mouse;
   - nelle modalità "Step click", etichetta del valore su tutti gli step modificati.
-- [ ] **Accento, normale, ghost distinguibili senza colore.** Oggi rosso vs arancio (ghost = 50% di opacità):
+- [x] **Accento, normale, ghost distinguibili senza colore.** Oggi rosso vs arancio (ghost = 50% di opacità):
   per chi non distingue rosso e arancio sono quasi uguali. Codificarli anche con luminosità o forma (es. accento
   pieno + punto, ghost quadratino interno) e aggiungere una piccola legenda.
-- [ ] **Testina più visibile.** Oggi è un contorno sottile sullo step corrente: evidenziare tutta la colonna
+- [x] **Testina più visibile.** Oggi è un contorno sottile sullo step corrente: evidenziare tutta la colonna
   (banda su tutte le righe) e un LED sopra la griglia.
 - [ ] **Viste coerenti.** Le viste sono 7 (Griglia, Synth, Sequencer, Mixer, Live, Saved projects, MIDI) ma le
   linguette 4: "Saved projects" e "MIDI" nella barra del progetto e "Live View" nel trasporto cambiano tutta la
@@ -170,9 +171,8 @@ l'app desktop sostituisce da `desktop/bridge/bridge.js`: l'app andrà allineata 
   "salvato · locale", "salvato · cloud", "aggiunto: …", aria-label "step N vuoto" e "Togli … dalla lista",
   date formattate con `it-IT` in `fmtDate`.
 - [ ] **Importa:** "Import text" disattivato finché il campo è vuoto; "or tap to choose one" → "click" su desktop.
-- [ ] **Cursore BPM** 60–180 mentre il campo va da 40 a 240: stessi limiti; cursore più lungo o trascinamento sul numero.
-- [ ] **Valore dello swing** ("50%") tra il cursore Swing e l'etichetta Humanize: si legge "50% Humanize";
-  mostrare anche il valore di Humanize.
+- [x] **Cursore BPM** 40–240, allineato al campo numerico.
+- [x] **Valori Swing e Humanize** mostrati accanto ai rispettivi cursori.
 
 ### Live View
 - [ ] **Errore di modalità.** La griglia è identica a quella di modifica, ma un clic sullo step suona invece di

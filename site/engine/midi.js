@@ -98,7 +98,7 @@
     access.onstatechange = () => { hook(); paint(); renderMaps(); };
     try { localStorage.setItem(ON_KEY, "1"); } catch (e) {}
     const names = inputs().map(i => i.name);
-    setStatus(names.length ? "MIDI: " + names.join(", ") : "MIDI: on, but no device connected");
+    if (names.length) setStatus("MIDI: " + names.join(", "));
     paint();
     return true;
   }
@@ -107,7 +107,6 @@
     if (access) access.onstatechange = null;
     access = null; learn = null;
     try { localStorage.removeItem(ON_KEY); } catch (e) {}
-    setStatus("MIDI: off");
     paint(); renderMaps();
   }
   const toggle = () => access ? disconnect() : connect();
@@ -368,7 +367,7 @@
     el("midiConnect").textContent = access ? "Disconnect" : "Connect";
     el("midiConnect").className = access ? "" : "primary";
     const names = inputs().map(i => esc(i.name));
-    el("midiDev").innerHTML = !access ? "not connected" : names.length ? "Connected: <b>" + names.join("</b>, <b>") + "</b>" : "on, but no MIDI device connected";
+    el("midiDev").innerHTML = names.length ? "Connected: <b>" + names.join("</b>, <b>") + "</b>" : "";
   }
   function show() {
     build();

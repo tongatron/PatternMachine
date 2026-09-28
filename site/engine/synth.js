@@ -16,6 +16,7 @@
   const BASE = script ? new URL(".", script.src) : new URL("engine/", location.href);
   const QS = script ? new URL(script.src).search : "";
   const WORKLET_URL = new URL("synth-worklet.js" + QS, BASE).href;
+  const TONE_URL = new URL("tone.js" + QS, BASE).href;
   const LOGUE_DIR = new URL("logue/", BASE);
 
   const clamp = (x, a, b) => x < a ? a : (x > b ? b : x);
@@ -134,6 +135,7 @@
 
   // Finche' non si tocca niente il progetto resta senza "synth" (e i progetti degli altri non cambiano).
   const params = () => project.synth ? { ...presetParams(project.synth.preset), ...project.synth.params } : presetParams(DEFAULT_PRESET);
+  const engineOf = () => project.synth?.engine === "tone" ? "tone" : "custom";
   const keyOf = () => project.synth?.key ?? 9;               // La
   const scaleOf = () => SCALES[project.synth?.scale] ? project.synth.scale : "minor";
   function ensure() {
@@ -150,6 +152,7 @@
 
   // ---------- audio ----------
   let node = null, loading = null, chain = null, analyser = null;
+  let tone = null, toneLoading = null, toneSynth = null, toneFilter = null, toneGain = null, toneAnalyser = null;
   const unitCache = new Map();     // nome -> Promise<{module, bytes, info}>
   const unitsSent = new Set(), unitsReady = new Set(), unitErrors = [];
   let unitOpts = [["waves", "waves"], ["pluck", "pluck"]];
@@ -218,6 +221,64 @@
   }
   const masterVol = () => (+el("masterVol").value || 0) / 100;
 
+  function toneWave(w) { return w === "square" ? "square" : w === "tri" ? "triangle" : w === "saw" ? "sawtooth" : "sine"; }
+  function toneFilterType(t) { return t === "hp12" ? "highpass" : t === "bp12" ? "bandpass" : "lowpass"; }
+  function applyToneParams(p) {
+    if (!toneSynth || !toneFilter || !toneGain) return;
+    const now = actx().currentTime;
+    toneSynth.set({ oscillator: { type: toneWave(p.o1Wave) }, envelope: {
+      attack: envTime(p.aA), decay: envTime(p.aD), sustain: (p.aS || 0) / 100, release: envTime(p.aR),
+    } });
+    toneFilter.type = toneFilterType(p.fType);
+    toneFilter.frequency.setTargetAtTime(20 * Math.pow(1000, p.cutoff / 100), now, 0.02);
+    toneFilter.Q.setTargetAtTime(0.1 + p.reso / 12, now, 0.02);
+    toneGain.gain.setTargetAtTime(masterVol() * (p.vol || 0) / 100, now, 0.02);
+  }
+  function loadTone() {
+    if (window.Tone) return Promise.resolve(window.Tone);
+    if (toneLoading) return toneLoading;
+    toneLoading = new Promise((resolve, reject) => {
+      const s = document.createElement("script"); s.src = TONE_URL; s.async = true;
+      s.onload = () => window.Tone ? resolve(window.Tone) : reject(new Error("Tone.js global missing"));
+      s.onerror = () => reject(new Error("Tone.js failed to load"));
+      document.head.appendChild(s);
+    });
+    toneLoading.catch(() => { toneLoading = null; });
+    return toneLoading;
+  }
+  function stopCustom() {
+    if (node) node.port.postMessage({ t: "alloff" });
+    if (node) { node.disconnect(); node = null; }
+    if (chain?.out) chain.out.disconnect();
+    chain = null;
+  }
+  function stopTone() {
+    const oldAnalyser = toneAnalyser;
+    if (toneSynth) { try { toneSynth.releaseAll(); } catch (e) {} try { toneSynth.dispose(); } catch (e) {} }
+    if (toneFilter) { try { toneFilter.dispose(); } catch (e) {} }
+    if (toneGain) { try { toneGain.disconnect(); } catch (e) {} }
+    if (toneAnalyser) { try { toneAnalyser.disconnect(); } catch (e) {} }
+    toneSynth = toneFilter = toneGain = toneAnalyser = null;
+    if (analyser === oldAnalyser) analyser = null;
+  }
+  async function ensureTone() {
+    if (toneSynth) return toneSynth;
+    const ctx = actx(); if (ctx.state === "suspended") await ctx.resume();
+    const T = await loadTone();
+    T.setContext(ctx);
+    await T.start();
+    tone = T;
+    toneSynth = new T.PolySynth(T.Synth);
+    toneFilter = new T.Filter({ type: "lowpass", frequency: 1200, Q: 1 });
+    toneGain = ctx.createGain();
+    toneAnalyser = ctx.createAnalyser(); toneAnalyser.fftSize = 1024;
+    toneSynth.connect(toneFilter); toneFilter.connect(toneGain);
+    toneGain.connect(toneAnalyser); toneAnalyser.connect(ctx.destination);
+    analyser = toneAnalyser;
+    applyToneParams(params());
+    return toneSynth;
+  }
+
   // Effetti dopo la voce, come i tre slot della logue: MOD (chorus), DELAY (ping-pong a tempo), REVERB.
   function buildChain(ctx, src, dest) {
     const G = v => { const g = ctx.createGain(); g.gain.value = v; return g; };
@@ -274,6 +335,7 @@
   // Non requestAnimationFrame: in una scheda in background non girerebbe e il suono resterebbe indietro.
   let pushQueued = false;
   function pushParams() {
+    if (engineOf() === "tone") { if (toneSynth) applyToneParams(params()); return; }
     if (!node || pushQueued) return;
     pushQueued = true;
     queueMicrotask(() => {
@@ -306,16 +368,29 @@
   // Chiamata da scheduler() per ogni step messo in coda.
   function step(pat, s, time) {
     if (!allowed || !pat || !pat.synth || !pat.synth.length || project.synth?.mute) return;
+    const p = params();
+    if (engineOf() === "tone") {
+      if (!toneSynth) { ensureTone().catch(() => {}); return; }
+      const list = [];
+      eventsForStep(pat, s, time, p, list);
+      for (let i = 0; i < list.length; i += 2) {
+        const on = list[i], off = list[i + 1];
+        if (!on || on.t !== "on" || !off) continue;
+        toneSynth.triggerAttackRelease(noteName(on.n), Math.max(0.004, off.time - on.time), on.time, on.v);
+      }
+      return;
+    }
     if (!node) { ensureAudio().catch(() => {}); return; }
     const b = bpm();
-    if (b !== lastBpm) { lastBpm = b; node.port.postMessage({ t: "bpm", bpm: b }); chain.apply(params(), b, masterVol()); }
+    if (b !== lastBpm) { lastBpm = b; node.port.postMessage({ t: "bpm", bpm: b }); chain.apply(p, b, masterVol()); }
     const list = [];
-    eventsForStep(pat, s, time, params(), list);
+    eventsForStep(pat, s, time, p, list);
     if (list.length) node.port.postMessage({ t: "ev", list });
   }
   function allOff() {
     slideAt = -1;
     held.clear(); paintKeys();
+    if (toneSynth) { try { toneSynth.releaseAll(); } catch (e) {} }
     if (node) node.port.postMessage({ t: "alloff" });
   }
 
@@ -326,9 +401,12 @@
     const ctx = actx(); if (ctx.state === "suspended") ctx.resume();
     held.set(n, { t0: ctx.currentTime, rec: recording && playing ? recordNote(n, vel >= 0.99) : null });
     paintKeys();
-    ensureAudio().then(nd => {
+    const ready = engineOf() === "tone" ? ensureTone() : ensureAudio();
+    ready.then(nd => {
       if (!held.has(n)) return;
-      nd.port.postMessage({ t: "ev", list: [{ t: "on", time: 0, n: clamp(n + (params().trans || 0), 0, 127), v: vel, id: "k" + n }] });
+      const note = clamp(n + (params().trans || 0), 0, 127);
+      if (engineOf() === "tone") nd.triggerAttack(noteName(note), actx().currentTime, vel);
+      else nd.port.postMessage({ t: "ev", list: [{ t: "on", time: 0, n: note, v: vel, id: "k" + n }] });
     }).catch(() => {});
   }
   function liveOff(n) {
@@ -342,6 +420,7 @@
       h.rec.note.l = clamp(steps, 1, Math.max(1, h.rec.pat.len - h.rec.note.s));
       renderRoll();
     }
+    if (toneSynth) { try { toneSynth.triggerRelease(noteName(clamp(n + (params().trans || 0), 0, 127))); } catch (e) {} }
     if (node) node.port.postMessage({ t: "ev", list: [{ t: "off", time: 0, id: "k" + n }] });
   }
   // Registrazione: come recordHit() della batteria, la nota va nello step piu' vicino a quello che suona.
@@ -619,6 +698,7 @@
       <h2>Synth <span id="synPatName"></span><span class="synth-beta">test · admin only</span></h2>
       <div class="flexline">
         <button id="synOn" class="mini on" type="button" aria-pressed="true" title="Synth on/off in playback and exports">On</button>
+        <label class="fld">Engine <select id="synEngine"><option value="custom">Custom + KORG</option><option value="tone">Tone.js</option></select></label>
         <label class="fld">Preset <select id="synPreset"></select></label>
         <button id="synSavePreset" class="mini" type="button" title="Save the current sound as a preset in this browser">Save preset</button>
         <button id="synDelPreset" class="mini danger" type="button" hidden>Delete preset</button>
@@ -657,6 +737,14 @@
         compiled to WebAssembly, one instance per voice. To record: turn on Rec, press Play and play the keys.</p>`;
 
     el("synOn").onclick = () => { pushUndo(); const s = ensure(); s.mute = !s.mute; if (s.mute) allOff(); paintTop(); };
+    el("synEngine").onchange = async e => {
+      const next = e.target.value === "tone" ? "tone" : "custom";
+      if (next === engineOf()) return;
+      pushUndo(); ensure().engine = next; allOff();
+      if (next === "tone") { stopCustom(); try { await ensureTone(); setStatus("synth engine: Tone.js"); } catch (err) { ensure().engine = "custom"; setStatus("Tone.js could not load", "err"); } }
+      else { stopTone(); try { await ensureAudio(); setStatus("synth engine: Custom + KORG"); } catch (err) {} }
+      paintTop();
+    };
     el("synPreset").onchange = e => {
       pushUndo();
       const s = ensure(), name = e.target.value;
@@ -726,6 +814,7 @@
       + (Object.keys(users).length ? `<optgroup label="Mine">${Object.keys(users).map(opt).join("")}</optgroup>` : "")
       + (!PRESETS[cur] && !users[cur] ? `<optgroup label="This project">${opt(cur)}</optgroup>` : "");
     el("synDelPreset").hidden = !users[cur];
+    el("synEngine").value = engineOf();
     el("synKey").value = keyOf(); el("synScale").value = scaleOf();
     el("synFold").checked = !!view.fold;
     el("synPatName").textContent = "— " + curPattern().name;
@@ -787,7 +876,7 @@
   }
   async function primeUnit() {
     const p = params();
-    if (p.mType !== "logue") return;
+    if (engineOf() !== "custom" || p.mType !== "logue") return;
     try { await unitModule(p.mUnit); } catch (e) { setStatus("synth: KORG unit " + p.mUnit + " not available", "err"); return; }
     if (node) sendUnit(p.mUnit);
   }
@@ -1035,7 +1124,7 @@
     if (!allowed) return;
     build();
     renderParams(); renderRoll(); renderKeyboard(); paintTop();
-    ensureAudio().catch(() => {});
+    (engineOf() === "tone" ? ensureTone() : ensureAudio()).catch(() => {});
     primeUnit();
   }
   function setAllowed(v) {
@@ -1046,7 +1135,10 @@
 
   listUnits().then(list => { if (list.length) unitOpts = list.map(u => [u, u]); });
   el("viewSynth").onclick = () => setView("synth");
-  el("masterVol").addEventListener("input", () => { if (chain) chain.apply(params(), bpm(), masterVol()); });
+  el("masterVol").addEventListener("input", () => {
+    if (chain) chain.apply(params(), bpm(), masterVol());
+    if (toneSynth) applyToneParams(params());
+  });
   requestAnimationFrame(frame);
 
   // Livello RMS dell'uscita del synth in questo momento (per le prove dalla console).

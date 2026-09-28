@@ -975,6 +975,14 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
           <select id="genLen"><option>16</option><option>32</option></select>
         </label>
         <label class="fld"><input type="checkbox" id="genFill"> Fill</label>
+        <label class="fld" title="Suggest beats close to a tempo (±5 BPM), the closest first">Tempo
+          <select id="genTempo">
+            <option value="project" id="genTempoProject">Near the project</option>
+            <option value="custom">Near…</option>
+            <option value="any">Any tempo</option>
+          </select>
+          <input type="number" id="genBpm" min="40" max="240" value="93" aria-label="Target tempo in BPM" style="width:64px" hidden>
+        </label>
         <button type="button" id="genMore" class="mini primary" title="8 new suggestions with the same settings">↻ More suggestions</button>
         <button id="genVar" class="mini">Variation of the current pattern</button>
       </div>
@@ -1038,6 +1046,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
         <ul>
           <li><b>✦ Vary</b> (Pattern panel) transforms the pattern you are editing, even one you wrote by hand; <kbd>cmd</kbd>+<kbd>Z</kbd> undoes it.</li>
           <li><b>Browse…</b> opens the library and generator: it shows 8 suggestions for the selected machine and style right away, from the busiest to the simplest (the ● dots show how interesting each one is).</li>
+          <li><b>Tempo</b> in the library: by default the suggestions stay within ±5 BPM of the project tempo, the closest first; <b>Near…</b> lets you type another tempo, <b>Any tempo</b> turns the search off. With <b>Random</b> only the styles that reach that tempo are used.</li>
           <li>On every pattern: <b>Similar</b> creates 4 close variants; <b>Vary</b> transforms it in 20 ways (sparse, half-time, open hat, new fill, percussion layer, stop… and five <b>hybrids</b> with voices from another style).</li>
           <li><b>Arrange</b> derives intro, chorus, break and outro; <b>Lock</b> keeps some voices and regenerates the others.</li>
           <li>Every pattern has a code: the same code regenerates the same pattern.</li>
@@ -1164,19 +1173,19 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-28.32"></script>
-<script src="engine/styles-punk.js?v=2026-09-28.32"></script>
-<script src="engine/styles-post.js?v=2026-09-28.32"></script>
-<script src="engine/styles-machines.js?v=2026-09-28.32"></script>
-<script src="engine/styles-alt.js?v=2026-09-28.32"></script>
-<script src="engine/styles-groove.js?v=2026-09-28.32"></script>
-<script src="engine/styles-dub.js?v=2026-09-28.32"></script>
-<script src="engine/styles-break.js?v=2026-09-28.32"></script>
-<script src="engine/styles-soul.js?v=2026-09-28.32"></script>
-<script src="engine/styles-metal.js?v=2026-09-28.32"></script>
-<script src="engine/styles-electro.js?v=2026-09-28.32"></script>
-<script src="engine/variations.js?v=2026-09-28.32"></script>
-<script src="engine/import.js?v=2026-09-28.32"></script>
+<script src="engine/core.js?v=2026-09-28.33"></script>
+<script src="engine/styles-punk.js?v=2026-09-28.33"></script>
+<script src="engine/styles-post.js?v=2026-09-28.33"></script>
+<script src="engine/styles-machines.js?v=2026-09-28.33"></script>
+<script src="engine/styles-alt.js?v=2026-09-28.33"></script>
+<script src="engine/styles-groove.js?v=2026-09-28.33"></script>
+<script src="engine/styles-dub.js?v=2026-09-28.33"></script>
+<script src="engine/styles-break.js?v=2026-09-28.33"></script>
+<script src="engine/styles-soul.js?v=2026-09-28.33"></script>
+<script src="engine/styles-metal.js?v=2026-09-28.33"></script>
+<script src="engine/styles-electro.js?v=2026-09-28.33"></script>
+<script src="engine/variations.js?v=2026-09-28.33"></script>
+<script src="engine/import.js?v=2026-09-28.33"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -3061,7 +3070,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || document.getElementById("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-28.32";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-28.33";
   document.body.appendChild(s);
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth")) loadSynth();
@@ -4552,9 +4561,54 @@ function fillStyleSelect(){
   sel.appendChild(og);
 }
 
-const genPattern=(choice,len,opts={})=>SPEngine.generate({
+const genPattern=(choice,len,opts={})=> opts.target ? genNearTempo(choice,len,opts) : SPEngine.generate({
   style:SPEngine.resolveStyle(choice), len, section:opts.section, fill:opts.fill, seed:SPEngine.randomSeed(),
 });
+
+// ---------- libreria: ricerca per tempo ----------
+// Il tempo viene dal seed come tutto il resto: si provano seed (e, con "Random", stili il cui intervallo
+// comprende il tempo) finche' uno cade vicino. Cosi' il codice del pattern rigenera anche lo stesso BPM.
+const TEMPO_TOL=5;
+const styleRange = st => Array.isArray(st.bpm) ? st.bpm : [st.bpm, st.bpm];
+const tempoGap = (st,t)=>{ const [lo,hi]=styleRange(st); return t<lo ? lo-t : (t>hi ? t-hi : 0); };
+function stylePool(choice){
+  const all=SPEngine.groups.flatMap(g=>SPEngine.stylesIn(g.id));
+  if(!choice || choice==="any") return all;
+  if(choice.startsWith("group:")) return SPEngine.stylesIn(choice.slice(6));
+  return all.filter(st=>st.id===choice);
+}
+function genNearTempo(choice,len,opts){
+  const t=opts.target;
+  let pool=stylePool(choice);
+  const fit=pool.filter(st=>tempoGap(st,t)<=TEMPO_TOL);
+  if(fit.length) pool=fit;
+  else { const g=Math.min(...pool.map(st=>tempoGap(st,t))); pool=pool.filter(st=>tempoGap(st,t)===g); }
+  let best=null;
+  for(let i=0;i<60;i++){
+    const st=pool[Math.floor(Math.random()*pool.length)];
+    const p=SPEngine.generate({style:st.id, len, section:opts.section, fill:opts.fill, seed:SPEngine.randomSeed()});
+    if(!best || Math.abs(p.bpm-t)<Math.abs(best.bpm-t)) best=p;
+    if(Math.abs(p.bpm-t)<=2) break;
+  }
+  return best;
+}
+// Il tempo cercato: quello del progetto, uno scelto a mano, o nessuno.
+function tempoTarget(){
+  const m=el("genTempo").value;
+  if(m==="any") return null;
+  const v=m==="project" ? bpm() : +el("genBpm").value;
+  return Math.min(240,Math.max(40,Math.round(v)||bpm()));
+}
+let libTarget=null;   // il tempo con cui sono state fatte le proposte in lista
+function paintTempoPick(){
+  el("genTempoProject").textContent=`Near the project (${bpm()} BPM)`;
+  el("genBpm").hidden=el("genTempo").value!=="custom";
+}
+el("genTempo").addEventListener("change",()=>{
+  if(el("genTempo").value==="custom" && !el("genBpm").dataset.set) el("genBpm").value=bpm();
+  paintTempoPick();
+});
+el("genBpm").addEventListener("change",()=>{ el("genBpm").dataset.set="1"; });
 
 // ---------- ascolto nella libreria ----------
 // Un trasporto a parte suona il pattern proposto con le voci di default dei ruoli,
@@ -4868,7 +4922,10 @@ function renderLibrary(){
   host.innerHTML="";
   paintLibCount();
   paintLibManage();
-  const list=(libView==="fav"?favItems():library).slice().sort((a,b)=>libraryInterest(b)-libraryInterest(a));
+  // con un tempo cercato: prima i piu' vicini (a gruppi di 3 BPM), dentro il gruppo i piu' interessanti
+  const t=tempoTarget(), near=x=>Number.isFinite(x.bpm) ? Math.round(Math.abs(x.bpm-t)/3) : 99;
+  const list=(libView==="fav"?favItems():library).slice()
+    .sort((a,b)=>(t ? near(a)-near(b) : 0) || libraryInterest(b)-libraryInterest(a));
   const favs=new Set(favCodes());
   if(!list.length){
     const e=document.createElement("div"); e.className="lib-empty";
@@ -4988,7 +5045,9 @@ el("libClear").onclick=clearFavorites;
 // Alla prima apertura la libreria propone subito 8 pattern dello stile scelto.
 function openLib(){
   libraryOriginalKit=sampleSet; el("libKitSelect").value=sampleSet; el("libOverlay").hidden=false;
-  if(!library.length) refreshProposals(); else renderLibrary();
+  paintTempoPick();
+  // il tempo del progetto e' cambiato dall'ultima volta: nuove proposte vicine a quello
+  if(!library.length || (el("genTempo").value==="project" && libTarget!==tempoTarget())) refreshProposals(); else renderLibrary();
 }
 function closeLib(){ stopAudition(); el("libOverlay").hidden=true; }
 el("libTabAll").onclick=()=>setLibView("all");
@@ -5134,13 +5193,15 @@ const PROPOSALS=8;
 function refreshProposals(){
   const style=el("genStyle").value, len=+el("genLen").value;
   const section=el("genSection").value, fill=el("genFill").checked;
+  const target=tempoTarget();
+  libTarget=target;
   const made=[];
   const sig=p=>JSON.stringify(p.roles);
   for(let i=0;i<PROPOSALS;i++){
     const sec=section==="both"?(i%2?"chorus":"verse"):section;
-    let p=genPattern(style,len,{section:sec, fill});
+    let p=genPattern(style,len,{section:sec, fill, target});
     // negli stili rigidi due seed possono dare lo stesso ritmo: si riprova qualche volta
-    for(let t=0;t<8 && made.some(q=>sig(q)===sig(p));t++) p=genPattern(style,len,{section:sec, fill});
+    for(let t=0;t<8 && made.some(q=>sig(q)===sig(p));t++) p=genPattern(style,len,{section:sec, fill, target});
     made.push(p);
   }
   made.forEach(p=>{ p.interest=interestScore(p); p.fresh=false; });
@@ -5149,9 +5210,15 @@ function refreshProposals(){
   setLibView("all");
   el("libList").scrollTop=0;
   const label=el("genStyle").selectedOptions[0]?.textContent||"";
-  libNote(`${PROPOSALS} suggestions · ${label}`);
+  let near="";
+  if(target){
+    const pool=stylePool(style), gap=Math.min(...pool.map(st=>tempoGap(st,target)));
+    near=` · near ${target} BPM`;
+    if(gap>TEMPO_TOL && pool.length===1){ const [lo,hi]=styleRange(pool[0]); near+=` (this style goes from ${lo} to ${hi}: the closest ones)`; }
+  }
+  libNote(`${PROPOSALS} suggestions · ${label}${near}`);
 }
-["genStyle","genSection","genLen","genFill"].forEach(id=>el(id).addEventListener("change",refreshProposals));
+["genStyle","genSection","genLen","genFill","genTempo","genBpm"].forEach(id=>el(id).addEventListener("change",refreshProposals));
 el("genMore").onclick=refreshProposals;
 el("codeForm").onsubmit=e=>{
   e.preventDefault();
@@ -5224,7 +5291,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-28.32";
+const SW_VERSION="2026-09-28.33";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -5243,7 +5310,7 @@ const SW_VERSION="2026-09-28.32";
   });
 })();
 </script>
-<script src="engine/midi.js?v=2026-09-28.32"></script>
+<script src="engine/midi.js?v=2026-09-28.33"></script>
 
 </body>
 </html>

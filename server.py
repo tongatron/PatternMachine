@@ -540,7 +540,7 @@ PAGE_SHELL = """<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
-<meta name="theme-color" content="#e4e2dc">
+<meta name="theme-color" content="#a3a097">
 <title>PATTERN-MACHINE — {title}</title>
 <meta name="description" content="Drum machine a step con SP-1200, RX-5, 808, 909, 707, 606, CR-78, LinnDrum, DMX e altre: generatore di pattern in decine di stili, variazioni, arrangiamento della canzone ed export MIDI.">
 <!-- Anteprima dei link: chi condivide un link arriva qui (il sito e' dietro accesso), quindi i tag stanno in questa pagina. -->
@@ -561,48 +561,70 @@ PAGE_SHELL = """<!doctype html>
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <style>
-:root{--bg:#e4e2dc;--panel:#f7f6f2;--panel-2:#ffffff;--edge:#b9b6ad;--text:#1b1d20;--dim:#55585c;
-  --accent:#1f6fb2;--ok:#3d7a48;--on-ok:#fff;--danger:#b83a30;color-scheme:light;}
+/* Stessi colori e materiali della drum machine: scocca grigia, pannelli chiari, tasti in rilievo, arancio. */
+:root{--bg:#a3a097;--panel:#e2dfd6;--panel-2:#f4f2ec;--edge:#55534b;--edge-soft:#8f8c83;--text:#1c1b19;--dim:#3a3833;
+  --accent:#c8471f;--ok:#c8471f;--on-ok:#fff6ee;--danger:#b83a30;
+  --plate:linear-gradient(180deg,#e2dfd6,#cfccc2);--key:linear-gradient(180deg,#dcd9cf,#b5b2a8);
+  --key-primary:linear-gradient(180deg,#e0743f,#b8471f);--key-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 1px 0 rgba(0,0,0,.35);
+  --shadow:inset 0 1px 0 rgba(255,255,255,.65),inset 0 -1px 0 rgba(0,0,0,.18),0 2px 0 rgba(0,0,0,.25),0 18px 40px rgba(0,0,0,.18);
+  color-scheme:light;}
 *{box-sizing:border-box}
-body{margin:0;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:var(--bg);color:var(--text);
+html{background:#9a978e;}
+body{margin:0;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
+  background:linear-gradient(180deg,#adaaa1,#9a978e);color:var(--text);
   font-family:"SF Mono","JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
   padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));}
-.card{width:min(360px,100%);background:var(--panel);border:1px solid var(--edge);border-radius:12px;padding:22px 20px;
-  box-shadow:0 18px 50px rgba(0,0,0,.35);}
+.brand{width:min(380px,100%);text-align:center;margin-bottom:4px;}
+.brand .logo{display:block;font-size:22px;font-weight:800;line-height:1.1;letter-spacing:.22em;text-transform:uppercase;color:var(--text);text-decoration:none;}
+.brand .tagline{margin:8px 0 0;font-size:11px;color:var(--dim);letter-spacing:.04em;}
+.pads{display:flex;justify-content:center;gap:4px;margin-top:12px;}
+.pads i{width:14px;height:14px;border-radius:2px;border:1px solid var(--edge-soft);background:linear-gradient(180deg,#f1eee6,#d9d6cc);}
+.pads i.on{background:linear-gradient(180deg,#f58a4c,#d45a24);border-color:#a1421b;}
+.card{width:min(380px,100%);background:var(--plate);border:1px solid var(--edge);border-radius:4px;padding:22px 22px 20px;box-shadow:var(--shadow);}
 .card.wide{width:min(760px,100%);}
-h1{margin:0 0 4px;font-size:16px;letter-spacing:.2em;text-transform:uppercase;}
-.line{height:2px;background:var(--accent);margin:0 0 18px;}
+h1{margin:0 0 8px;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);}
+.line{height:1px;background:var(--accent);margin:0 0 16px;}
 p{margin:0 0 14px;font-size:12px;color:var(--dim);line-height:1.55;}
-label{display:block;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin:12px 0 6px;}
+label{display:block;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin:12px 0 6px;}
 label .opt{text-transform:none;letter-spacing:0;}
-input{width:100%;font:inherit;font-size:16px;padding:11px 12px;border-radius:8px;border:1px solid var(--edge);
+input{width:100%;font:inherit;font-size:16px;padding:11px 12px;border-radius:3px;border:1px solid var(--edge-soft);
+  background:var(--panel-2);color:var(--text);box-shadow:inset 0 1px 2px rgba(0,0,0,.12);}
+textarea{width:100%;min-height:100px;resize:vertical;font:inherit;font-size:14px;line-height:1.45;padding:11px 12px;border-radius:3px;border:1px solid var(--edge-soft);
   background:var(--panel-2);color:var(--text);}
-textarea{width:100%;min-height:100px;resize:vertical;font:inherit;font-size:14px;line-height:1.45;padding:11px 12px;border-radius:8px;border:1px solid var(--edge);
-  background:var(--panel-2);color:var(--text);}
-input:focus{outline:2px solid var(--accent);outline-offset:1px;}
-textarea:focus{outline:2px solid var(--accent);outline-offset:1px;}
-button,.btn{display:inline-block;width:100%;margin-top:16px;font:inherit;font-size:14px;font-weight:800;letter-spacing:.12em;
-  text-transform:uppercase;padding:12px;border-radius:9px;border:0;background:var(--ok);color:var(--on-ok);cursor:pointer;
-  text-align:center;text-decoration:none;}
+input:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent);}
+button,.btn{display:inline-block;width:100%;margin-top:16px;font:inherit;font-size:13px;font-weight:800;letter-spacing:.12em;
+  text-transform:uppercase;padding:12px;border-radius:3px;border:1px solid #8a3418;background:var(--key-primary);color:var(--on-ok);cursor:pointer;
+  text-align:center;text-decoration:none;box-shadow:var(--key-shadow);transition:transform .08s,filter .15s;}
+button:hover,.btn:hover{filter:brightness(1.06);}
+button:active,.btn:active{transform:translateY(1px);}
 button.small,.btn.small{width:auto;margin:0;padding:6px 10px;font-size:10px;letter-spacing:.08em;}
-button.ghost,.btn.ghost{background:transparent;color:var(--text);border:1px solid var(--edge);}
-button.danger{background:var(--danger);color:#fff;}
+button.ghost,.btn.ghost{background:var(--key);color:var(--text);border:1px solid var(--edge);}
+button.ghost:hover,.btn.ghost:hover{color:var(--accent);border-color:var(--accent);filter:none;}
+button.danger{background:var(--danger);color:#fff;border-color:#7d1b16;}
 .err{color:var(--danger);font-size:12px;margin:10px 0 0;min-height:1em;}
-.ok{color:var(--ok);font-size:12px;margin:0 0 12px;line-height:1.5;}
+.err:empty{margin:0;min-height:0;}
+.ok{color:#2f6f3b;font-size:12px;margin:0 0 12px;line-height:1.5;}
 .links{display:flex;justify-content:space-between;gap:10px;margin-top:16px;font-size:11px;}
+.or{display:flex;align-items:center;gap:10px;margin:18px 0 0;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);}
+.or::before,.or::after{content:"";flex:1;height:1px;background:var(--edge-soft);}
+.or + .btn{margin-top:12px;}
+.guest{width:min(380px,100%);text-align:center;}
+.guest button{margin-top:0;}
+.guest p{margin:8px 0 0;font-size:11px;}
+.about{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;text-decoration:none;}
 a{color:var(--accent);}
 table{width:100%;border-collapse:collapse;font-size:12px;}
 th{text-align:left;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);padding:6px 8px 6px 0;border-bottom:1px solid var(--edge);}
-td{padding:8px 8px 8px 0;border-bottom:1px solid var(--edge);vertical-align:middle;}
+td{padding:8px 8px 8px 0;border-bottom:1px solid var(--edge-soft);vertical-align:middle;}
 td form{display:inline;}
 .row-acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;}
 .tag{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);}
 .table-wrap{overflow-x:auto;}
 .admin-bar{width:min(760px,100%);display:flex;justify-content:space-between;gap:10px;}
-.site-footer{margin-top:10px;}
+.site-footer{margin-top:10px;display:flex;flex-direction:column;align-items:center;gap:12px;}
 .site-footer a{transition:transform .2s;}
 .site-footer a:hover{transform:translateY(-1px);}
-code{word-break:break-all;font-size:12px;background:var(--panel-2);padding:8px;border-radius:6px;display:block;margin:0 0 12px;}
+code{word-break:break-all;font-size:12px;background:var(--panel-2);padding:8px;border-radius:3px;display:block;margin:0 0 12px;}
 </style>
 <script defer src="https://analytics.tongatron.org/script.js" data-website-id="9daa93b6-2afb-494a-89fb-288437a030d1" data-domains="patternmachine.tongatron.org"></script>
 </head>
@@ -847,8 +869,13 @@ class Handler(BaseHTTPRequestHandler):
         e = html.escape
         nxt = e(safe_next(next_path), quote=True)
         q = "" if safe_next(next_path) == "/" else "?next=" + quote(safe_next(next_path), safe="")
-        self._page(status, "Accesso", f"""<form class="card" method="post" action="/login">
-  <h1>PATTERN-MACHINE</h1>
+        self._page(status, "Accesso", f"""<header class="brand">
+  <a class="logo" href="/landing.html">Pattern-Machine</a>
+  <p class="tagline">Drum machine a step · pattern · canzoni · export MIDI, WAV, MP3</p>
+  <div class="pads" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i class="on"></i><i></i><i></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i class="on"></i><i></i><i></i><i></i></div>
+</header>
+<form class="card" method="post" action="/login">
+  <h1>Accedi</h1>
   <div class="line"></div>
   {f'<p class="ok">{e(note)}</p>' if note else '<p>Entra con il tuo nome (o la tua email) e la tua password.</p>'}
   <label for="nm">Nome o email</label>
@@ -858,13 +885,16 @@ class Handler(BaseHTTPRequestHandler):
   <input type="hidden" name="next" value="{nxt}">
   <button type="submit">Entra</button>
   <div class="err" role="alert">{e(error)}</div>
-  <div class="links"><a href="/register{q}">Registrati</a><a href="/forgot">Password dimenticata?</a></div>
+  <div class="links"><span></span><a href="/forgot">Password dimenticata?</a></div>
+  <div class="or">Nuovo qui?</div>
+  <a class="btn ghost" href="/register{q}">Crea un account</a>
 </form>
-<form class="card" method="post" action="/guest" style="padding:14px 20px;" onsubmit="try{{sessionStorage.setItem('guestWelcome','1')}}catch(e){{}}">
+<form class="card guest" method="post" action="/guest" style="padding:14px 22px;" onsubmit="try{{sessionStorage.setItem('guestWelcome','1')}}catch(e){{}}">
   <input type="hidden" name="next" value="{nxt}">
-  <button class="ghost" type="submit" style="margin-top:0;">Accedi senza registrarti</button>
-  <p style="margin:8px 0 0;font-size:11px;text-align:center;">Non potrai memorizzare i tuoi pattern.</p>
-</form>""")
+  <button class="ghost" type="submit">Prova senza registrarti</button>
+  <p>Come ospite non potrai salvare i tuoi pattern né scaricare le app.</p>
+</form>
+<a class="about" href="/landing.html">Cos'è PATTERN-MACHINE? →</a>""")
 
     def _do_login(self):
         form = self._form()
@@ -918,7 +948,7 @@ class Handler(BaseHTTPRequestHandler):
   <input type="hidden" name="next" value="{e(safe_next(next_path), quote=True)}">
   <button type="submit">Registrati</button>
   <div class="err" role="alert">{e(error)}</div>
-  <div class="links"><a href="/login">Hai già un account? Entra</a></div>
+  <div class="links"><a href="/login{'' if safe_next(next_path) == '/' else '?next=' + quote(safe_next(next_path), safe='')}">Hai già un account? Entra</a><a href="/landing.html">Cos'è PATTERN-MACHINE?</a></div>
 </form>""")
 
     def _do_register(self):

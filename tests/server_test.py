@@ -233,7 +233,7 @@ def main():
         check("ospite non entra in /admin", guest.call("/admin")[0], 403)
         check("ospite puo' aprire login e registrazione", (guest.call("/login")[0], guest.call("/register")[0]), (200, 200))
         login_html = anon.call("/login")[2]
-        check("pagina di accesso con pulsante ospite", (b"Accedi senza registrarti" in login_html,
+        check("pagina di accesso con pulsante ospite", (b"Prova senza registrarti" in login_html,
               b"sessionStorage.setItem('guestWelcome','1')" in login_html), (True, True))
         fake = Client(port)
         fake.cookie = guest.cookie[:-1] + ("0" if guest.cookie[-1] != "0" else "1")

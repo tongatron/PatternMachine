@@ -1,8 +1,10 @@
-// Tastiera MIDI collegata al computer (pensata per la AKAI MPK mini Play mk3, va bene con qualsiasi controller):
+// Tastiere MIDI collegate al computer (profili per AKAI MPK mini Play mk3 e Arturia MiniLab 3, piu' uno per le altre):
 // i tasti suonano il synth, i pad le righe della batteria o i comandi del trasporto, le manopole volumi,
 // tempo e parametri del synth. Usa Web MIDI (Chrome, Edge, Opera, Firefox; Safari no).
 //
-// Le assegnazioni stanno nel browser (localStorage "pm.midi.map"), non nel progetto: dipendono dalla tastiera, non dal brano.
+// Le assegnazioni stanno nel browser (localStorage "pm.midi.maps"), non nel progetto: dipendono dalla tastiera, non dal brano.
+// Una mappa per profilo, scelto dal nome della porta MIDI: le due tastiere mandano i pad sulle stesse note del canale 10.
+//   maps = {mpk: map, minilab3: map, other: map}
 //   map = {keys:{ch, to:"synth"|"off"}, pads:[{ch, n, to}], knobs:[{ch, cc, to}]}   ch 0 = qualsiasi canale, n/cc null = libero
 //   pad:      "none" | "row:<i>" (riga i della griglia) | "play" "drums" "synth" "rec" "tap" "metro" "prev" "next"
 //   manopola: "none" | "vol:drums" "vol:synth" "vol:master" | "bpm" "swing" "human" | "syn:<parametro del synth>"
@@ -12,8 +14,8 @@
 // setView, setStatus, ask. Da engine/synth.js, se caricato: PMSynth.midiNote(), PMSynth.knob(), PMSynth.knobTargets().
 (function () {
   "use strict";
-  const MAP_KEY = "pm.midi.map", ON_KEY = "pm.midi.on";
-  const PADS = 16, KNOBS = 8;
+  const MAPS_KEY = "pm.midi.maps", OLD_MAP_KEY = "pm.midi.map", ON_KEY = "pm.midi.on";
+  const PADS = 16;
   const NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
   const noteName = n => NOTE_NAMES[n % 12] + (Math.floor(n / 12) - 2);   // come in Logic: 60 = C3
   const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
@@ -26,29 +28,52 @@
     ["bpm", "BPM"], ["swing", "Swing"], ["human", "Humanize"]];
   const KNOB_RANGES = { "vol:drums": "drumsVol", "vol:synth": "synthVol", "vol:master": "masterVol", bpm: "bpmRange", swing: "swingRange", human: "humanRange" };
 
-  // Come esce dalla fabbrica la MPK mini Play mk3: pad sul canale 10 (banco A 36-43, banco B 44-51), manopole CC 70-77.
-  function defaults() {
-    const padTo = i => i < 8 ? "row:" + i : PAD_ACTIONS[i - 8][0];
-    const knobTo = ["syn:cutoff", "syn:reso", "syn:fEnv", "vol:synth", "syn:delay", "syn:reverb", "bpm", "vol:master"];
+  // Profili delle tastiere, con le assegnazioni di fabbrica. Pad: banco A note 36-43, banco B 44-51, canale 10.
+  //   MPK mini Play mk3: manopole CC 70-77.
+  //   MiniLab 3 (modo Arturia): manopole CC 74 71 76 77 93 18 19 16, fader CC 82 83 85 17.
+  const PROFILES = {
+    mpk: { name: "AKAI MPK mini Play mk3", match: /mpk\s*mini\s*play/i,
+      controls: Array.from({ length: 8 }, (_, i) => "Knob " + (i + 1)),
+      cc: [70, 71, 72, 73, 74, 75, 76, 77],
+      to: ["syn:cutoff", "syn:reso", "syn:fEnv", "vol:synth", "syn:delay", "syn:reverb", "bpm", "vol:master"] },
+    minilab3: { name: "Arturia MiniLab 3", match: /mini\s*lab\s*3/i,
+      controls: [...Array.from({ length: 8 }, (_, i) => "Knob " + (i + 1)), ...Array.from({ length: 4 }, (_, i) => "Fader " + (i + 1))],
+      cc: [74, 71, 76, 77, 93, 18, 19, 16, 82, 83, 85, 17],
+      to: ["syn:cutoff", "syn:reso", "syn:fEnv", "syn:eD", "syn:delay", "syn:reverb", "syn:chorus", "bpm",
+        "vol:drums", "vol:synth", "vol:master", "swing"] },
+    other: { name: "Other MIDI devices", match: null,
+      controls: Array.from({ length: 8 }, (_, i) => "Knob " + (i + 1)),
+      cc: [70, 71, 72, 73, 74, 75, 76, 77],
+      to: ["syn:cutoff", "syn:reso", "syn:fEnv", "vol:synth", "syn:delay", "syn:reverb", "bpm", "vol:master"] },
+  };
+  const profileOf = name => Object.keys(PROFILES).find(id => PROFILES[id].match && PROFILES[id].match.test(name || "")) || "other";
+  function defaults(pid) {
+    const pr = PROFILES[pid], padTo = i => i < 8 ? "row:" + i : PAD_ACTIONS[i - 8][0];
     return {
       keys: { ch: 0, to: "synth" },
       pads: Array.from({ length: PADS }, (_, i) => ({ ch: 10, n: 36 + i, to: padTo(i) })),
-      knobs: Array.from({ length: KNOBS }, (_, i) => ({ ch: 0, cc: 70 + i, to: knobTo[i] })),
+      knobs: pr.cc.map((cc, i) => ({ ch: 0, cc, to: pr.to[i] })),
     };
   }
-  function load() {
-    const d = defaults();
-    try {
-      const m = JSON.parse(localStorage.getItem(MAP_KEY) || "null");
-      if (!m) return d;
-      if (m.keys) Object.assign(d.keys, m.keys);
-      (m.pads || []).slice(0, PADS).forEach((p, i) => Object.assign(d.pads[i], p));
-      (m.knobs || []).slice(0, KNOBS).forEach((k, i) => Object.assign(d.knobs[i], k));
-    } catch (e) {}
+  function merge(d, m) {
+    if (!m) return d;
+    if (m.keys) Object.assign(d.keys, m.keys);
+    (m.pads || []).slice(0, d.pads.length).forEach((p, i) => Object.assign(d.pads[i], p));
+    (m.knobs || []).slice(0, d.knobs.length).forEach((k, i) => Object.assign(d.knobs[i], k));
     return d;
   }
-  let map = load();
-  const save = () => { try { localStorage.setItem(MAP_KEY, JSON.stringify(map)); } catch (e) { setStatus("MIDI: assignments can't be saved in this browser", "err"); } };
+  function load() {
+    let saved = {};
+    try {
+      saved = JSON.parse(localStorage.getItem(MAPS_KEY) || "null");
+      // prima c'era una sola mappa, fatta per la MPK mini Play
+      if (!saved) saved = { mpk: JSON.parse(localStorage.getItem(OLD_MAP_KEY) || "null") };
+    } catch (e) { saved = {}; }
+    return Object.fromEntries(Object.keys(PROFILES).map(id => [id, merge(defaults(id), saved && saved[id])]));
+  }
+  let maps = load();
+  const save = () => { try { localStorage.setItem(MAPS_KEY, JSON.stringify(maps)); } catch (e) { setStatus("MIDI: assignments can't be saved in this browser", "err"); } };
+  let shown = null;   // profilo mostrato nella vista MIDI
 
   // ---------- collegamento ----------
   let access = null;
@@ -63,7 +88,7 @@
     try { access = await navigator.requestMIDIAccess(); }
     catch (e) { access = null; if (!quiet) setStatus("MIDI: access refused", "err"); paint(); return false; }
     hook();
-    access.onstatechange = () => { hook(); paint(); };
+    access.onstatechange = () => { hook(); paint(); renderMaps(); };
     try { localStorage.setItem(ON_KEY, "1"); } catch (e) {}
     const names = inputs().map(i => i.name);
     setStatus(names.length ? "MIDI: " + names.join(", ") : "MIDI: on, but no device connected");
@@ -82,30 +107,33 @@
 
   // ---------- messaggi ----------
   const chOk = (want, ch) => !want || want === ch;
-  let learn = null;   // {kind:"pad"|"knob", i}
+  let learn = null;   // {pid, kind:"pad"|"knob", i}
+  let lastPid = null;
   function onMessage(e) {
     const [st, d1 = 0, d2 = 0] = e.data;
     if (st >= 0xf0) return;                       // clock, sysex e simili: non servono qui
     const type = st & 0xf0, ch = (st & 15) + 1;
     const on = type === 0x90 && d2 > 0, off = type === 0x80 || (type === 0x90 && d2 === 0), cc = type === 0xb0;
     if (!on && !off && !cc) return;
-    if (learn && (learn.kind === "pad" ? on : cc)) { learned(ch, d1); return; }
+    const pid = profileOf(e.target && e.target.name), map = maps[pid], dev = e.target && e.target.name || "";
+    lastPid = pid;
+    if (learn && learn.pid === pid && (learn.kind === "pad" ? on : cc)) { learned(ch, d1); return; }
     if (on || off) {
       const i = map.pads.findIndex(p => p.n === d1 && chOk(p.ch, ch));
-      if (i >= 0) { if (on) padAction(i, d2 / 127); monitor(ch, d1, d2, on ? "Note on" : "Note off", on ? "Pad " + (i + 1) : ""); return; }
+      if (i >= 0) { if (on) padAction(pid, i, d2 / 127); monitor(dev, pid, ch, d1, d2, on ? "Note on" : "Note off", on ? "Pad " + (i + 1) : ""); return; }
       const toSynth = map.keys.to === "synth" && chOk(map.keys.ch, ch);
       if (toSynth && window.PMSynth && PMSynth.midiNote) PMSynth.midiNote(d1, on ? d2 / 127 : 0);
-      monitor(ch, d1, d2, on ? "Note on" : "Note off", toSynth ? "Synth" : "");
+      monitor(dev, pid, ch, d1, d2, on ? "Note on" : "Note off", toSynth ? "Synth" : "");
       return;
     }
     const i = map.knobs.findIndex(k => k.cc === d1 && chOk(k.ch, ch));
-    if (i >= 0) knobAction(i, d2);
-    monitor(ch, d1, d2, "CC", i >= 0 ? "Knob " + (i + 1) : "");
+    if (i >= 0) knobAction(pid, i, d2);
+    monitor(dev, pid, ch, d1, d2, "CC", i >= 0 ? PROFILES[pid].controls[i] : "");
   }
 
-  function padAction(i, vel) {
-    flash(i);
-    const to = map.pads[i].to;
+  function padAction(pid, i, vel) {
+    flash(pid, i);
+    const to = maps[pid].pads[i].to;
     if (to.startsWith("row:")) {
       const r = +to.slice(4);
       if (project.tracks[r]) hitPad(r, Math.max(0.15, vel));
@@ -124,9 +152,9 @@
     btn.click();
   }
 
-  function knobAction(i, raw) {
-    const to = map.knobs[i].to, f = raw / 127;
-    paintMeter(i, raw);
+  function knobAction(pid, i, raw) {
+    const to = maps[pid].knobs[i].to, f = raw / 127;
+    paintMeter(pid, i, raw);
     let msg = null;
     if (to.startsWith("syn:")) msg = window.PMSynth && PMSynth.knob ? PMSynth.knob(to.slice(4), f) : null;
     else if (KNOB_RANGES[to]) {
@@ -156,8 +184,8 @@
   transition:background .12s, border-color .12s;}
 #panelMidi .mcard.hit{background:var(--accent); border-color:var(--accent-dim); color:var(--on-accent);}
 #panelMidi .mcard.learning{border-color:var(--accent); box-shadow:0 0 0 2px var(--accent) inset;}
-#panelMidi .mcard .mhead{display:flex; align-items:baseline; gap:6px;}
-#panelMidi .mcard .mname{font-weight:700; font-size:12px;}
+#panelMidi .mcard .mhead{display:flex; flex-wrap:wrap; align-items:baseline; gap:2px 6px;}
+#panelMidi .mcard .mname{font-weight:700; font-size:12px; white-space:nowrap;}
 #panelMidi .mcard .msrc{font:10.5px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; color:var(--text-faint); margin-left:auto; white-space:nowrap;}
 #panelMidi .mcard.hit .msrc{color:inherit;}
 #panelMidi .mcard select{width:100%; min-width:0;}
@@ -179,30 +207,35 @@
       <div class="midi-top">
         <button id="midiConnect" class="primary" type="button">Connect</button>
         <span class="midi-dev" id="midiDev"></span>
-        <button id="midiReset" class="mini push" type="button" title="Back to the assignments for the AKAI MPK mini Play mk3 as it leaves the factory">Reset to MPK mini Play</button>
+      </div>
+      <div class="midi-top midi-prof">
+        <label class="fld" title="Each keyboard has its own assignments; playing a keyboard shows its own">Keyboard <select id="midiProfile"></select></label>
+        <button id="midiReset" class="mini push" type="button" title="Back to the assignments of this keyboard as it leaves the factory">Factory assignments</button>
       </div>
       <p class="midi-help">Connect a MIDI keyboard by USB and press <b>Connect</b> (Chrome, Edge or Firefox; Safari can't read MIDI devices).
         The keys play the synth, pads and knobs do what you choose below. To assign one, press <b>Learn</b> and hit the pad or turn the knob.
-        The assignments stay in this browser.</p>
+        Each keyboard (AKAI MPK mini Play mk3, Arturia MiniLab 3, any other) keeps its own assignments in this browser.</p>
       <div class="midi-mon" id="midiMon" aria-live="polite">No MIDI message yet</div>
       <h3>Keys</h3>
       <div class="midi-keys">
         <label class="fld">Play <select id="midiKeysTo"><option value="synth">Synthesizer</option><option value="off">Nothing</option></select></label>
-        <label class="fld" title="Only notes on this MIDI channel play the synth (the pads of the MPK mini Play send on channel 10)">Channel <select id="midiKeysCh">${chOpts}</select></label>
+        <label class="fld" title="Only notes on this MIDI channel play the synth (the pads of the MPK mini Play and of the MiniLab 3 send on channel 10)">Channel <select id="midiKeysCh">${chOpts}</select></label>
         <span class="tiny" id="midiKeysNote"></span>
       </div>
       <h3>Pads <span>velocity-sensitive on the drum rows</span></h3>
       <div class="midi-grid" id="midiPads"></div>
-      <h3>Knobs <span>the value follows the knob position</span></h3>
+      <h3 id="midiKnobsTitle">Knobs</h3>
       <div class="midi-grid" id="midiKnobs"></div>`;
     el("midiConnect").onclick = toggle;
+    el("midiProfile").onchange = e => { shown = e.target.value; learn = null; renderMaps(); };
     el("midiReset").onclick = async () => {
-      const yes = await ask({ title: "Reset the MIDI assignments?", message: "Pads and knobs go back to the factory settings of the AKAI MPK mini Play mk3.", ok: "Reset", danger: true });
+      const name = PROFILES[shown].name;
+      const yes = await ask({ title: "Reset the MIDI assignments?", message: `Keys, pads and knobs of the ${name} go back to the factory settings.`, ok: "Reset", danger: true });
       if (!yes) return;
-      map = defaults(); learn = null; save(); renderMaps(); setStatus("MIDI: assignments reset");
+      maps[shown] = defaults(shown); learn = null; save(); renderMaps(); setStatus("MIDI: assignments of the " + name + " reset");
     };
-    el("midiKeysTo").onchange = e => { map.keys.to = e.target.value; save(); paintKeysNote(); };
-    el("midiKeysCh").onchange = e => { map.keys.ch = +e.target.value; save(); };
+    el("midiKeysTo").onchange = e => { cur().keys.to = e.target.value; save(); paintKeysNote(); };
+    el("midiKeysCh").onchange = e => { cur().keys.ch = +e.target.value; save(); };
     for (const kind of ["pad", "knob"]) {
       const box = el(kind === "pad" ? "midiPads" : "midiKnobs");
       box.addEventListener("change", e => {
@@ -223,7 +256,8 @@
     }
     document.addEventListener("keydown", e => { if (e.key === "Escape" && learn) { learn = null; renderMaps(); } });
   }
-  const list = kind => kind === "pad" ? map.pads : map.knobs;
+  const cur = () => maps[shown];
+  const list = (kind, pid = shown) => kind === "pad" ? maps[pid].pads : maps[pid].knobs;
   const labelOf = to => (KNOB_GENERAL.find(([v]) => v === to) || [, to])[1];
 
   function padOptions() {
@@ -244,20 +278,27 @@
     return html;
   }
   function card(kind, i, item, opts) {
-    const learning = learn && learn.kind === kind && learn.i === i, name = (kind === "pad" ? "Pad " : "Knob ") + (i + 1);
+    const learning = learn && learn.kind === kind && learn.i === i, name = kind === "pad" ? "Pad " + (i + 1) : PROFILES[shown].controls[i];
     const src = kind === "pad"
       ? (item.n == null ? "not set" : `ch ${item.ch || "any"} · ${noteName(item.n)} (${item.n})`)
       : (item.cc == null ? "not set" : `ch ${item.ch || "any"} · CC ${item.cc}`);
     return `<div class="mcard${learning ? " learning" : ""}" data-i="${i}">
-      <div class="mhead"><span class="mname">${name}</span><span class="msrc">${learning ? (kind === "pad" ? "hit a pad…" : "turn a knob…") : src}</span></div>
+      <div class="mhead"><span class="mname">${name}</span><span class="msrc">${learning ? (kind === "pad" ? "hit a pad…" : "move it…") : src}</span></div>
       <select aria-label="${name}">${opts}</select>
       ${kind === "knob" ? `<div class="mmeter"><i></i></div>` : ""}
-      <div class="macts"><button type="button" class="mini learn${learning ? " on" : ""}" title="Then hit the pad or turn the knob on the keyboard (Esc cancels)">${learning ? "Cancel" : "Learn"}</button>
-        <button type="button" class="mini clear" title="Free this ${kind}" aria-label="Free ${name}">×</button></div></div>`;
+      <div class="macts"><button type="button" class="mini learn${learning ? " on" : ""}" title="Then hit the pad or move the knob or fader on the keyboard (Esc cancels)">${learning ? "Cancel" : "Learn"}</button>
+        <button type="button" class="mini clear" title="Free ${name}" aria-label="Free ${name}">×</button></div></div>`;
   }
   function renderMaps() {
     if (!built) return;
-    const po = padOptions(), ko = knobOptions();
+    const po = padOptions(), ko = knobOptions(), map = cur();
+    const opts = Object.keys(PROFILES).map(id => {
+      const on = inputs().some(i => profileOf(i.name) === id && id !== "other");
+      return `<option value="${id}">${esc(PROFILES[id].name)}${on ? " · connected" : ""}</option>`;
+    }).join("");
+    el("midiProfile").innerHTML = opts; el("midiProfile").value = shown;
+    const faders = PROFILES[shown].controls.some(c => c.startsWith("Fader"));
+    el("midiKnobsTitle").innerHTML = (faders ? "Knobs and faders" : "Knobs") + " <span>the value follows the knob position</span>";
     el("midiPads").innerHTML = map.pads.map((p, i) =>
       (i === 0 ? `<div class="midi-bank">Bank A</div>` : i === 8 ? `<div class="midi-bank">Bank B</div>` : "") + card("pad", i, p, po)).join("");
     el("midiKnobs").innerHTML = map.knobs.map((k, i) => card("knob", i, k, ko)).join("");
@@ -274,37 +315,39 @@
   }
   function paintKeysNote() {
     if (!built) return;
-    el("midiKeysNote").textContent = map.keys.to === "synth" && !window.PMSynth ? "the synth is available when you are signed in" : "";
+    el("midiKeysNote").textContent = cur().keys.to === "synth" && !window.PMSynth ? "the synth is available when you are signed in" : "";
   }
   async function startLearn(kind, i) {
     if (learn && learn.kind === kind && learn.i === i) { learn = null; renderMaps(); return; }
     if (!access && !(await connect())) return;
-    learn = { kind, i };
+    learn = { pid: shown, kind, i };
     renderMaps();
   }
   function learned(ch, num) {
-    const { kind, i } = learn, items = list(kind), f = kind === "pad" ? "n" : "cc";
+    const { pid, kind, i } = learn, items = list(kind, pid), f = kind === "pad" ? "n" : "cc";
     // lo stesso pad o la stessa manopola non comandano due cose: chi li aveva prima resta libero
     items.forEach((x, j) => { if (j !== i && x[f] === num && chOk(x.ch, ch)) x[f] = null; });
     items[i].ch = ch; items[i][f] = num;
     learn = null; save(); renderMaps();
-    setStatus(`MIDI: ${kind} ${i + 1} = ch ${ch} · ${kind === "pad" ? noteName(num) + " (" + num + ")" : "CC " + num}`);
+    setStatus(`MIDI: ${kind === "pad" ? "pad " + (i + 1) : PROFILES[pid].controls[i].toLowerCase()} = ch ${ch} · ${kind === "pad" ? noteName(num) + " (" + num + ")" : "CC " + num}`);
   }
 
   const viewOpen = () => built && !el("panelMidi").hidden;
-  function monitor(ch, d1, d2, what, dest) {
+  function monitor(dev, pid, ch, d1, d2, what, dest) {
     if (!viewOpen()) return;
+    // si suona un'altra tastiera: la vista passa alle sue assegnazioni (non durante Learn)
+    if (pid !== shown && !learn) { shown = pid; renderMaps(); }
     const body = what === "CC" ? `CC ${d1} · value ${d2}` : `${noteName(d1)} (${d1})` + (what === "Note on" ? ` · velocity ${d2}` : "");
-    el("midiMon").textContent = `${what} · ch ${ch} · ${body}` + (dest ? "  →  " + dest : "");
+    el("midiMon").textContent = `${dev ? dev + " · " : ""}${what} · ch ${ch} · ${body}` + (dest ? "  →  " + dest : "");
   }
-  function flash(i) {
-    if (!viewOpen()) return;
+  function flash(pid, i) {
+    if (!viewOpen() || pid !== shown) return;
     const c = el("midiPads").querySelector(`.mcard[data-i="${i}"]`);
     if (!c) return;
     c.classList.add("hit"); clearTimeout(c._t); c._t = setTimeout(() => c.classList.remove("hit"), 110);
   }
-  function paintMeter(i, raw) {
-    if (!viewOpen()) return;
+  function paintMeter(pid, i, raw) {
+    if (!viewOpen() || pid !== shown) return;
     const m = el("midiKnobs").querySelector(`.mcard[data-i="${i}"] .mmeter i`);
     if (m) m.style.width = clamp(raw / 127 * 100, 0, 100) + "%";
   }
@@ -320,10 +363,17 @@
     const names = inputs().map(i => esc(i.name));
     el("midiDev").innerHTML = !access ? "not connected" : names.length ? "Connected: <b>" + names.join("</b>, <b>") + "</b>" : "on, but no MIDI device connected";
   }
-  function show() { build(); renderMaps(); paint(); }
+  function show() {
+    build();
+    if (!shown) {
+      const named = inputs().map(i => profileOf(i.name)).find(id => id !== "other");
+      shown = lastPid || named || "mpk";
+    }
+    renderMaps(); paint();
+  }
 
   // Un'altra scheda del sito ha cambiato le assegnazioni: valgono anche qui.
-  addEventListener("storage", e => { if (e.key === MAP_KEY) { map = load(); renderMaps(); } });
+  addEventListener("storage", e => { if (e.key === MAPS_KEY) { maps = load(); renderMaps(); } });
 
   el("viewMidi").hidden = !navigator.requestMIDIAccess;
   el("viewMidi").onclick = () => setView("midi");

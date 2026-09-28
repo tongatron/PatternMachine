@@ -746,6 +746,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
   <div class="tabs">
     <button id="viewGrid" class="on">Grid</button>
     <button id="viewSeq">Sequencer</button>
+    <button id="viewSynth" title="Synth line of the pattern, in time with the drums (test, admin only)" hidden>Synth</button>
     <button id="viewSound" title="For playing live: the grid, Play, Rec, tempo and metronome">Live View</button>
   </div>
 
@@ -815,6 +816,9 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       <button id="pruneRowsBtn" class="mini" title="Removes rows with no hits in any pattern of the project (rows are shared by all patterns)">Remove empty rows</button>
     </div>
   </div>
+
+  <!-- Synth (in prova, solo admin): lo riempie engine/synth.js, caricato solo per l'admin -->
+  <div class="panel" id="panelSynth" hidden></div>
 
   <div class="panel" id="panelSeq" hidden>
     <h2>Sequencer — song arrangement</h2>
@@ -1076,19 +1080,19 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-28.06"></script>
-<script src="engine/styles-punk.js?v=2026-09-28.06"></script>
-<script src="engine/styles-post.js?v=2026-09-28.06"></script>
-<script src="engine/styles-machines.js?v=2026-09-28.06"></script>
-<script src="engine/styles-alt.js?v=2026-09-28.06"></script>
-<script src="engine/styles-groove.js?v=2026-09-28.06"></script>
-<script src="engine/styles-dub.js?v=2026-09-28.06"></script>
-<script src="engine/styles-break.js?v=2026-09-28.06"></script>
-<script src="engine/styles-soul.js?v=2026-09-28.06"></script>
-<script src="engine/styles-metal.js?v=2026-09-28.06"></script>
-<script src="engine/styles-electro.js?v=2026-09-28.06"></script>
-<script src="engine/variations.js?v=2026-09-28.06"></script>
-<script src="engine/import.js?v=2026-09-28.06"></script>
+<script src="engine/core.js?v=2026-09-28.07"></script>
+<script src="engine/styles-punk.js?v=2026-09-28.07"></script>
+<script src="engine/styles-post.js?v=2026-09-28.07"></script>
+<script src="engine/styles-machines.js?v=2026-09-28.07"></script>
+<script src="engine/styles-alt.js?v=2026-09-28.07"></script>
+<script src="engine/styles-groove.js?v=2026-09-28.07"></script>
+<script src="engine/styles-dub.js?v=2026-09-28.07"></script>
+<script src="engine/styles-break.js?v=2026-09-28.07"></script>
+<script src="engine/styles-soul.js?v=2026-09-28.07"></script>
+<script src="engine/styles-metal.js?v=2026-09-28.07"></script>
+<script src="engine/styles-electro.js?v=2026-09-28.07"></script>
+<script src="engine/variations.js?v=2026-09-28.07"></script>
+<script src="engine/import.js?v=2026-09-28.07"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -1541,6 +1545,12 @@ function normalize(){
       Object.keys(p.mods[k]).forEach(i=>{ if(+i>=p.len) delete p.mods[k][i]; });
       if(!Object.keys(p.mods[k]).length) delete p.mods[k];
     });
+    // note del synth: dentro il pattern, lunghe almeno uno step e non oltre la fine
+    if(p.synth){
+      p.synth=p.synth.filter(n=>n.s>=0 && n.s<p.len && n.n>=0 && n.n<=127);
+      p.synth.forEach(n=>{ n.l=Math.max(1,Math.min(n.l||1,p.len-n.s)); });
+      if(!p.synth.length) delete p.synth;
+    }
   });
   project.song=project.song.filter(b=>project.patterns.some(p=>p.id===b.patternId));
 }
@@ -1700,6 +1710,7 @@ function scheduler(){
       const tr=lockedTrack(t,m), j=jitterT(), jv=jitterV();
       stepHits(m,dur,FLAM_SEC).forEach(([at,f])=>trigger(tr, nextTime+nudgeOf(t)+j+at, stepVel(v)*f*jv));
     });
+    if(window.PMSynth) PMSynth.step(pat, cursor.step, nextTime);   // synth (solo admin): note che partono in questo step
     queue.push({time:nextTime, dur, step:cursor.step, cycle, rep:cursor.rep||0, patternId:pat.id, blockIndex:cursor.blockIndex, bar:barCount});
     nextTime += dur;
     cursor.step++;
@@ -1767,6 +1778,7 @@ function play(){
 function stop(){
   playing=false;
   clearInterval(timer); timer=null; queue=[];
+  if(window.PMSynth) PMSynth.allOff();
   visible={step:-1, patternId:null, blockIndex:-1, bar:1};
   const b=document.getElementById("playBtn");
   b.classList.remove("on"); b.innerHTML='<span class="ico">&#9654;</span> Play';
@@ -2386,23 +2398,27 @@ function renderSong(){
 function setView(v){
   el("viewGrid").classList.toggle("on",v==="grid");
   el("viewSeq").classList.toggle("on",v==="seq");
+  el("viewSynth").classList.toggle("on",v==="synth");
   el("viewSound").classList.toggle("on",v==="sound");
   el("viewRecent").classList.toggle("on",v==="recent");
   document.body.classList.toggle("sound-view",v==="sound");
   // La Vista Live mostra la stessa griglia della Griglia, senza il resto dell'interfaccia.
-  el("panelPatterns").hidden = v!=="grid";
+  // Il Synth tiene il pannello Pattern: le note stanno nel pattern scelto lì.
+  el("panelPatterns").hidden = v!=="grid" && v!=="synth";
   el("panelGrid").hidden = v!=="grid" && v!=="sound";
   el("panelSeq").hidden = v!=="seq";
+  el("panelSynth").hidden = v!=="synth";
   el("panelRecent").hidden = v!=="recent";
   setMode(v==="seq"?"song":"pattern");
   el("helpKeys").hidden = v!=="grid";
-  // Rec registra nella griglia del pattern: fuori da Griglia e Vista Live sparisce e si spegne
-  const recView = v==="grid" || v==="sound";
+  // Rec registra nella griglia del pattern (nel Synth, le note): altrove sparisce e si spegne
+  const recView = v==="grid" || v==="sound" || v==="synth";
   el("recBtn").hidden = !recView;
   if(!recView && recording){ recording=false; el("recBtn").classList.remove("on"); }
   if(v==="sound") showLiveHelp();
   if(v==="recent") refreshRecent();
   if(v==="seq") renderSong();
+  if(v==="synth" && window.PMSynth) PMSynth.show();
 }
 
 function fmtDuration(sec){
@@ -2487,6 +2503,15 @@ function recordHit(track){
 // L'ospite ("Accedi senza registrarti") usa il sito ma non salva: niente Salva, progetti e preferiti.
 // Per gli utenti registrati la scheda si chiama "Saved projects".
 let isGuest=false, isMember=false;   // isMember: utente registrato (user o admin)
+// Synth in prova: lo script si carica solo per l'admin (in locale anche con ?synth, per svilupparlo senza server.py).
+// Il pulsante "Synth" compare quando lo script e' pronto.
+function loadSynth(){
+  if(window.PMSynth || document.getElementById("synthScript")) return;
+  const s=document.createElement("script");
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-28.07";
+  document.body.appendChild(s);
+}
+if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth")) loadSynth();
 fetch("/api/me",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(me=>{
   if(!me||!me.name) return;
   window.__me=me;
@@ -2495,6 +2520,7 @@ fetch("/api/me",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(me=>{
   document.body.classList.toggle("guest",isGuest);
   el("whoami").textContent=me.name; el("whoami").hidden=false;
   el("adminLink").hidden=me.role!=="admin";
+  if(me.role==="admin") loadSynth();
   el("registerLink").hidden=!isGuest;
   if(isGuest && el("viewRecent").classList.contains("on")) setView("grid");
   if(isGuest && libView==="fav") setLibView("all");
@@ -2699,6 +2725,7 @@ el("pDup").onclick=()=>{
   const p=makePattern(src.name+" copia", src.len);
   Object.entries(src.grid).forEach(([k,v])=>p.grid[k]=v.slice());
   p.mods=cloneMods(src.mods); p.lens={...(src.lens||{})};
+  if(src.synth) p.synth=src.synth.map(n=>({...n}));
   project.patterns.push(p); normalize(); selectPattern(p.id);
 };
 async function renamePattern(p){
@@ -2740,6 +2767,11 @@ el("pLen").onchange=()=>{
     Object.values(p.mods||{}).forEach(row=>Object.keys(row).forEach(i=>{
       for(let j=+i+from;j<to;j+=from) row[j]={...row[i]};
     }));
+    if(p.synth){
+      const base=p.synth.filter(n=>n.s<from);
+      p.synth=[];
+      for(let k=0;k<to;k+=from) base.forEach(n=>p.synth.push({...n, s:n.s+k}));
+    }
   }
   p.len=to;
   normalize(); renderRuler(); renderTracks(); renderPatterns(); renderSong();
@@ -2833,8 +2865,10 @@ function serialize(){
     patterns: project.patterns.map(p=>({id:p.id, name:p.name, len:p.len,
       grid:Object.fromEntries(Object.entries(p.grid).map(([k,v])=>[k,v.slice()])),
       ...(p.mods&&Object.keys(p.mods).length?{mods:cloneMods(p.mods)}:{}),
-      ...(p.lens&&Object.keys(p.lens).length?{lens:{...p.lens}}:{})})),
+      ...(p.lens&&Object.keys(p.lens).length?{lens:{...p.lens}}:{}),
+      ...(p.synth&&p.synth.length?{synth:p.synth.map(n=>({...n}))}:{})})),
     song: project.song.map(b=>({id:b.id, patternId:b.patternId, repeats:b.repeats, section:b.section||"verse", ...(b.fillPatternId?{fillPatternId:b.fillPatternId}: {})})),
+    ...(project.synth?{synth:JSON.parse(JSON.stringify(project.synth))}:{}),   // synth (in prova): suono, tonalita', on/off
     updatedAt: Date.now(),
   };
 }
@@ -2845,8 +2879,10 @@ function deserialize(d,keepSel){
     tracks:(d.tracks||[]).map(t=>({id:t.id, sampleIndex:t.sampleIndex, vol:t.vol??0.8,
       tune:t.tune||0, choke:t.choke||0, mute:false, solo:false, ...voiceDefaults(t)})),
     patterns:(d.patterns||[]).map(p=>({id:p.id, name:p.name, len:p.len||16,
-      grid:Object.fromEntries(Object.entries(p.grid||{}).map(([k,v])=>[k,v.slice()])), mods:cloneMods(p.mods), lens:{...(p.lens||{})}})),
+      grid:Object.fromEntries(Object.entries(p.grid||{}).map(([k,v])=>[k,v.slice()])), mods:cloneMods(p.mods), lens:{...(p.lens||{})},
+      ...(Array.isArray(p.synth)&&p.synth.length?{synth:p.synth.map(n=>({...n}))}:{})})),
     song:(d.song||[]).map(b=>({id:b.id, patternId:b.patternId, repeats:b.repeats||1, section:b.section||"verse", fillPatternId:b.fillPatternId||null})),
+    ...(d.synth&&typeof d.synth==="object"?{synth:JSON.parse(JSON.stringify(d.synth))}:{}),
   };
   const ids=[...project.tracks, ...project.patterns, ...project.song].map(x=>+x.id).filter(n=>!isNaN(n));
   idSeq=Math.max(idSeq, ...(ids.length?ids:[0]))+1;
@@ -3198,12 +3234,14 @@ function wavEvents(which){
 
 async function renderWav(which){
   const {events, length, live}=wavEvents(which);
-  if(!events.length) throw new Error("vuoto");
+  const synth=window.PMSynth && PMSynth.hasNotes(which);
+  if(!events.length && !synth) throw new Error("vuoto");
   await Promise.all(live.map(t=>loadBuffer(t.sampleIndex)));
   const OAC=window.OfflineAudioContext||window.webkitOfflineAudioContext;
   const ctx=new OAC(2, Math.ceil((length+WAV_TAIL)*WAV_RATE), WAV_RATE);
   const chokes=new Map();
   events.forEach(([time,,vel,lt])=>trigger(lt,time,vel,ctx,chokes));
+  if(synth) await PMSynth.renderOffline(ctx, which);   // synth (solo admin) nello stesso mix
   const buf=await ctx.startRendering();
   return {buf, seconds:length};
 }
@@ -4590,7 +4628,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-28.06";
+const SW_VERSION="2026-09-28.07";
 (function pwa(){
   const netBadge=el("netBadge");
 

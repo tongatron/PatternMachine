@@ -1,14 +1,15 @@
 // Synth di PatternMachine (in prova): una linea di note per pattern, suonata a tempo con la batteria.
-// Lo carica index.html solo per l'admin (o in locale con ?synth); il suono e' in engine/synth-worklet.js.
+// Lo carica index.html per tutti gli utenti del sito (o in locale con ?synth); il suono e' in engine/synth-worklet.js.
 //
 // Dati nel progetto (li salvano serialize()/deserialize() di index.html):
 //   project.synth = {preset, key, scale, mute, params:{...manopole, uParams:{unita': {id: valore}}}}
-//   pattern.synth = [{s:step, n:nota MIDI, l:lunghezza in step, a:1 accento, g:1 slide verso la nota dopo}]
+//   project.synthPatterns = [{id, name, len, synth:[{s:step, n:nota MIDI, l:lunghezza in step, a:1 accento, g:1 slide}]}]
+//   project.synthSong = corsia del synth nella canzone (vedi index.html, synthLayout())
 // Nomi delle note come in Logic: 60 = C3.
 //
-// Usa dal sito (variabili globali dello script principale): actx, project, curPattern, patternById, playingPattern,
+// Usa dal sito (variabili globali dello script principale): actx, project, curPattern, curSynth, synthById, makeSynthPattern, uid,
 // bpm, swing, stepDur, playing, recording, visible, queue, pushUndo, setStatus, ask, el, saveBlob, exportBase,
-// varLen, MIDI_PPQ, SAMPLES, stepIdx, setView, WAV_PATTERN_LOOPS. index.html chiama PMSynth.step() da scheduler(),
+// varLen, MIDI_PPQ, SAMPLES, stepIdx, setView, synthTimeline, renderSong. index.html chiama PMSynth.step() da scheduler(),
 // PMSynth.allOff() da stop(), PMSynth.show() da setView() e PMSynth.renderOffline() dall'export WAV/MP3.
 (function () {
   "use strict";
@@ -440,15 +441,15 @@
   }
   // Registrazione: come recordHit() della batteria, la nota va nello step piu' vicino a quello che suona.
   function recordNote(n, accent) {
-    const pat = playingPattern();
+    const pat = synthById(visible.synthId) || curSynth();
     if (!pat) return null;
     const now = actx().currentTime;
-    let s = visible.step, ref = null;
+    let s = Math.max(0, visible.synthStep ?? 0), ref = null;
     for (const q of queue) { if (q.time > now) { ref = q; break; } }
-    if (ref && (ref.time - now) < stepDur(s) / 2) s = ref.step;
+    if (ref && ref.synthId === pat.id && (ref.time - now) < stepDur(visible.step) / 2) s = ref.synthStep;
     s = ((s % pat.len) + pat.len) % pat.len;
     ensure();
-    const notes = pat.synth || (pat.synth = []);
+    const notes = pat.synth;
     const i = notes.findIndex(x => x.s === s && x.n === n);
     if (i >= 0) notes.splice(i, 1);
     const note = { s, n, l: 1, ...(accent ? { a: 1 } : {}) };
@@ -514,78 +515,274 @@
   }
 
   // ---------- generatori (nella tonalita' e scala scelte) ----------
+  // Ogni generatore riceve il pattern e restituisce le note {s, n, l, a?, g?}. Seguono il giro di accordi scelto
+  // (gradi della scala), la densita' (rndD) e l'ottava; runGenerator() pulisce, somma o sostituisce la linea.
   const scaleNotes = () => SCALES[scaleOf()][1];
   const degree = (d, root) => {           // grado della scala (anche negativo o oltre l'ottava) -> nota MIDI
     const sc = scaleNotes(), L = sc.length;
     return root + sc[((d % L) + L) % L] + 12 * Math.floor(d / L);
   };
+  let dens = 1;                           // densita' del generatore in corso: 0.55 rada, 1 normale, 1.5 fitta
   const rnd = p => Math.random() < p;
+  const rndD = p => Math.random() < Math.min(0.97, p * dens);
   const pickW = pairs => { let t = pairs.reduce((a, [, w]) => a + w, 0) * Math.random(); for (const [v, w] of pairs) { t -= w; if (t <= 0) return v; } return pairs[0][0]; };
+  const pick = arr => arr[Math.floor(Math.random() * arr.length)];
   const bassRoot = () => { let r = 36 + keyOf(); if (r > 43) r -= 12; return r; };
-  function kickSteps(pat) {
-    const kicks = project.tracks.filter(t => /kick|bd/i.test((SAMPLES[t.sampleIndex] || {}).name || ""));
-    const on = new Set();
-    for (const t of kicks) for (let s = 0; s < pat.len; s++) if ((pat.grid[t.id] || [])[stepIdx(pat, t.id, s, 0)]) on.add(s);
-    return on;
-  }
+  const midRoot = () => { let r = 48 + keyOf(); if (r > 55) r -= 12; return r; };
+  const leadRoot = () => { let r = 60 + keyOf(); if (r > 67) r -= 12; return r; };
+  // gradi (relativi alla fondamentale dell'accordo) che formano la triade e la settima nella scala scelta
+  const is7 = () => scaleNotes().length === 7;
   function triad(d, root) {
-    if (scaleNotes().length === 7) return [degree(d, root), degree(d + 2, root), degree(d + 4, root)];
+    if (is7()) return [degree(d, root), degree(d + 2, root), degree(d + 4, root)];
     const r = degree(d, root);
     return [r, r + (scaleNotes().includes(4) ? 4 : 3), r + 7];
+  }
+  function seventh(d, root) {
+    if (is7()) return [...triad(d, root), degree(d + 6, root)];
+    const t = triad(d, root);
+    return [...t, t[0] + (scaleNotes().includes(11) && !scaleNotes().includes(10) ? 11 : 10)];
+  }
+  // Gli step con la cassa nel pattern di batteria scelto in Drum Grid, ripetuto sulla lunghezza del pattern del synth.
+  function kickSteps(pat) {
+    const drum = curPattern(), kicks = project.tracks.filter(t => /kick|bd/i.test((SAMPLES[t.sampleIndex] || {}).name || ""));
+    const on = new Set();
+    for (const t of kicks) for (let s = 0; s < pat.len; s++) if ((drum.grid[t.id] || [])[stepIdx(drum, t.id, s % drum.len, 0)]) on.add(s);
+    return on;
   }
   // Allunga ogni nota fino alla successiva, entro "max" step.
   function legatoFill(notes, len, max) {
     notes.sort((a, b) => a.s - b.s);
-    notes.forEach((x, i) => { const next = notes[i + 1] ? notes[i + 1].s : len; x.l = clamp(next - x.s, 1, max); });
+    notes.forEach((x, i) => { let j = i + 1; while (notes[j] && notes[j].s === x.s) j++; const next = notes[j] ? notes[j].s : len; x.l = clamp(next - x.s, 1, max); });
     return notes;
   }
+  const chordAt = (s, root, d, len, fn = triad) => fn(d, root).map(n => ({ s, n, l: len }));
+
+  const PROGRESSIONS = {
+    "1-6-4-5": ["1–6–4–5", [0, 5, 3, 4]], "1-4-5-1": ["1–4–5–1", [0, 3, 4, 0]], "1-5-6-4": ["1–5–6–4", [0, 4, 5, 3]],
+    "1-7-6-7": ["1–7–6–7", [0, 6, 5, 6]], "1-4-1-5": ["1–4–1–5", [0, 3, 0, 4]], "2-5-1-1": ["2–5–1–1", [1, 4, 0, 0]],
+    "1": ["1 (one chord)", [0]],
+  };
+  const DENSITY = { sparse: 0.55, normal: 1, busy: 1.5 };
+  const genOpts = () => Object.assign({ prog: "1-6-4-5", dens: "normal", oct: 0, add: false, last: "" }, view.gen || {});
+  // Giro di accordi sul pattern: un accordo ogni 8 step (16 step: i primi due, 32 step: tutti e quattro).
+  function chordPlan(pat) {
+    const prog = (PROGRESSIONS[genOpts().prog] || PROGRESSIONS["1-6-4-5"])[1];
+    const count = Math.max(1, Math.min(prog.length, Math.floor(pat.len / 8)));
+    const seg = Math.max(1, Math.floor(pat.len / count));
+    const at = s => prog[Math.min(count - 1, Math.floor(s / seg)) % prog.length];
+    return { seg, at, starts: Array.from({ length: count }, (_, i) => i * seg), next: s => at(Math.min(pat.len - 1, (Math.floor(s / seg) + 1) * seg)) };
+  }
+  // Arpeggio: "order" sceglie la nota dell'accordo (indice su 2 ottave) a ogni passo.
+  function arpeggio(pat, every, order, fn = triad) {
+    const root = midRoot(), plan = chordPlan(pat), out = [];
+    let k = 0;
+    for (let s = 0; s < pat.len; s += every) {
+      if (plan.starts.includes(s)) k = 0;
+      const tones = fn(plan.at(s), root), all = [...tones, ...tones.map(n => n + 12)];
+      if (s % 4 !== 0 && !rndD(0.9)) { k++; continue; }
+      out.push({ s, n: all[order(k++, all.length)], l: every, ...(s % 4 === 0 ? { a: 1 } : {}) });
+    }
+    return out;
+  }
+  const GEN_GROUPS = ["Bass", "Chords & pads", "Arpeggios", "Melody"];
   const GENERATORS = {
-    bass: { label: "Bassline on the kick", run(pat) {
-      const root = bassRoot(), kicks = kickSteps(pat), out = [];
+    bass: { group: "Bass", label: "On the kick", hint: "follows the kick drum of the pattern open in Drum Grid", run(pat) {
+      const root = bassRoot(), plan = chordPlan(pat), kicks = kickSteps(pat), out = [];
       if (!kicks.size) for (let s = 0; s < pat.len; s += 4) kicks.add(s);
       for (let s = 0; s < pat.len; s++) {
-        if (kicks.has(s)) out.push({ s, n: root, l: 1, ...(s % 16 === 0 ? { a: 1 } : {}) });
-        else if (s % 2 === 0 && rnd(0.35)) out.push({ s, n: degree(pickW([[0, 3], [4, 2], [7, 2], [2, 1], [-1, 1]]), root), l: 1 });
-        else if (s % 16 === 15 && rnd(0.5)) out.push({ s, n: degree(pickW([[-1, 1], [1, 1], [6, 1]]), root), l: 1 });
+        const c = plan.at(s);
+        if (kicks.has(s)) out.push({ s, n: degree(c, root), l: 1, ...(s % 16 === 0 ? { a: 1 } : {}) });
+        else if (s % 2 === 0 && rndD(0.3)) out.push({ s, n: degree(c + pickW([[0, 3], [4, 2], [7, 2], [2, 1], [-1, 1]]), root), l: 1 });
+        else if (s % 16 === 15 && rndD(0.45)) out.push({ s, n: degree(c + pickW([[-1, 1], [1, 1], [6, 1]]), root), l: 1 });
       }
       return legatoFill(out, pat.len, 2);
     } },
-    acid: { label: "Acid line (303)", run(pat) {
-      const root = bassRoot(), out = [];
+    acid: { group: "Bass", label: "Acid line (303)", hint: "16ths with accents, slides and octave jumps", run(pat) {
+      const root = bassRoot(), plan = chordPlan(pat), out = [];
       for (let s = 0; s < pat.len; s++) {
-        if (s > 0 && !rnd(0.72)) continue;
-        let n = s === 0 ? root : degree(pickW([[0, 5], [2, 2], [4, 2], [3, 1], [6, 1], [7, 2], [-2, 1]]), root);
+        if (s > 0 && !rndD(0.7)) continue;
+        const c = plan.at(s);
+        let n = s === 0 || plan.starts.includes(s) ? degree(c, root) : degree(c + pickW([[0, 5], [2, 2], [4, 2], [3, 1], [6, 1], [7, 2], [-2, 1]]), root);
         if (s > 0 && rnd(0.22)) n += 12;
         out.push({ s, n, l: 1, ...(rnd(0.25) ? { a: 1 } : {}), ...(s < pat.len - 1 && rnd(0.2) ? { g: 1 } : {}) });
       }
       return out;
     } },
-    arp: { label: "Arpeggio (16ths)", run(pat) {
-      const root = 48 + keyOf(), out = [], prog = [0, 5, 3, 4], shape = [0, 1, 2, 3, 2, 1];
-      const seg = pat.len / Math.min(4, Math.max(2, pat.len / 8));
+    offbeat: { group: "Bass", label: "Offbeat (house)", hint: "between the kicks, on the and of every beat", run(pat) {
+      const root = bassRoot(), plan = chordPlan(pat), out = [];
       for (let s = 0; s < pat.len; s++) {
-        const chord = triad(prog[Math.floor(s / seg) % prog.length], root), i = shape[s % shape.length];
-        out.push({ s, n: i === 3 ? chord[0] + 12 : chord[i], l: 1, ...(s % 4 === 0 ? { a: 1 } : {}) });
+        const c = plan.at(s);
+        if (s % 4 === 2) out.push({ s, n: degree(c, root) + (rnd(0.2) ? 12 : 0), l: 1, ...(s % 8 === 2 ? { a: 1 } : {}) });
+        else if (s % 4 === 3 && rndD(0.18)) out.push({ s, n: degree(c + pick([0, 4, 7]), root), l: 1 });
       }
       return out;
     } },
-    chords: { label: "Chords (i–VI–iv–v)", run(pat) {
-      const root = 48 + keyOf(), out = [], prog = [0, 5, 3, 4];
-      const n = pat.len >= 32 ? 4 : 2, seg = pat.len / n;
-      for (let c = 0; c < n; c++) for (const note of triad(prog[c % prog.length], root)) out.push({ s: c * seg, n: note, l: seg });
+    rolling: { group: "Bass", label: "Rolling 16ths (techno)", hint: "three 16ths after every kick", run(pat) {
+      const root = bassRoot(), plan = chordPlan(pat), out = [];
+      for (let s = 0; s < pat.len; s++) {
+        if (s % 4 === 0) continue;
+        if (!rndD(0.8) && s % 4 !== 1) continue;
+        const c = plan.at(s), turn = s % 16 >= 12 && rnd(0.35);
+        out.push({ s, n: degree(c + (turn ? pick([4, 2, 7]) : 0), root), l: 1, ...(s % 4 === 1 ? { a: 1 } : {}) });
+      }
       return out;
     } },
-    octave: { label: "Octave bounce (disco)", run(pat) {
-      const root = bassRoot(), out = [];
-      for (let s = 0; s < pat.len; s += 2) out.push({ s, n: s % 4 === 2 ? root + 12 : root, l: 1, ...(s % 4 === 2 ? { a: 1 } : {}) });
+    octave: { group: "Bass", label: "Octave bounce (disco)", hint: "root and octave on 8ths", run(pat) {
+      const root = bassRoot(), plan = chordPlan(pat), out = [];
+      for (let s = 0; s < pat.len; s += 2) {
+        const r = degree(plan.at(s), root), up = s % 4 === 2;
+        out.push({ s, n: up ? r + 12 : r, l: 1, ...(up ? { a: 1 } : {}) });
+        if (!up && rndD(0.12)) out.push({ s: s + 1, n: r + 12, l: 1 });
+      }
       return out;
+    } },
+    funk: { group: "Bass", label: "Syncopated (funk)", hint: "16th syncopation, octaves and slides", run(pat) {
+      const root = bassRoot(), plan = chordPlan(pat), out = [];
+      for (let s = 0; s < pat.len; s++) {
+        const c = plan.at(s), r = degree(c, root), p = [0.95, 0.22, 0.4, 0.5][s % 4];
+        if (s !== 0 && !plan.starts.includes(s) && !rndD(p)) continue;
+        const n = s % 4 === 0 ? r : pickW([[r, 3], [r + 12, 3], [degree(c + 4, root), 2], [degree(c + 6, root) - 12, 1]]);
+        out.push({ s, n, l: 1, ...(s % 8 === 0 ? { a: 1 } : {}), ...(n === r + 12 && s < pat.len - 1 && rnd(0.3) ? { g: 1 } : {}) });
+      }
+      return out;
+    } },
+    walking: { group: "Bass", label: "Walking (quarters)", hint: "one note per beat, walking to the next chord", run(pat) {
+      const root = bassRoot(), plan = chordPlan(pat), out = [];
+      let d = 0;
+      for (let s = 0; s < pat.len; s += 4) {
+        const c = plan.at(s), nextStart = plan.starts.includes(s + 4) || s + 4 >= pat.len;
+        if (plan.starts.includes(s)) d = c;
+        else if (nextStart) { const t = plan.next(s); d = t + (d > t ? 1 : -1); }
+        else d = clamp(d + pickW([[1, 3], [-1, 2], [2, 2], [-2, 1]]), c - 3, c + 7);
+        out.push({ s, n: degree(d, root), l: 3, ...(s === 0 ? { a: 1 } : {}) });
+        if (rndD(0.15) && s + 3 < pat.len) out.push({ s: s + 3, n: degree(d + pick([1, -1]), root), l: 1 });
+      }
+      return out;
+    } },
+    sub: { group: "Bass", label: "Long sub notes", hint: "one held root for every chord", run(pat) {
+      const root = bassRoot(), plan = chordPlan(pat), out = [];
+      for (const st of plan.starts) out.push({ s: st, n: degree(plan.at(st), root), l: plan.seg });
+      return out;
+    } },
+
+    chords: { group: "Chords & pads", label: "Chords (held)", hint: "triads held for the whole chord", run(pat) {
+      const root = midRoot(), plan = chordPlan(pat);
+      return plan.starts.flatMap(st => chordAt(st, root, plan.at(st), plan.seg));
+    } },
+    pad7: { group: "Chords & pads", label: "Pad with 7ths", hint: "four-note chords, softer voicing", run(pat) {
+      const root = midRoot(), plan = chordPlan(pat);
+      return plan.starts.flatMap(st => chordAt(st, root, plan.at(st), plan.seg, seventh));
+    } },
+    stabs: { group: "Chords & pads", label: "Offbeat stabs (house)", hint: "short chords on the and of every beat", run(pat) {
+      const root = midRoot(), plan = chordPlan(pat), out = [];
+      for (let s = 0; s < pat.len; s++) {
+        const hit = s % 4 === 2 ? (s % 8 === 2 || rndD(0.8)) : (s % 4 === 3 && rndD(0.15));
+        if (!hit) continue;
+        chordAt(s, root, plan.at(s), 1).forEach((x, i) => out.push(i === 0 && s % 8 === 2 ? { ...x, a: 1 } : x));
+      }
+      return out;
+    } },
+    dub: { group: "Chords & pads", label: "Dub chord (sparse)", hint: "one minor-7th stab here and there: turn up the delay", run(pat) {
+      const root = midRoot(), plan = chordPlan(pat), out = [];
+      for (let s = 0; s < pat.len; s++) {
+        const b = s % 16, hit = b === 2 || (b === 10 && rndD(0.55)) || (b === 7 && rndD(0.2)) || (b === 13 && rndD(0.15));
+        if (hit) out.push(...chordAt(s, root, plan.at(s), 1, seventh));
+      }
+      return out;
+    } },
+    gate: { group: "Chords & pads", label: "Trance gate", hint: "the chord chopped in a 16th rhythm", run(pat) {
+      const root = midRoot(), plan = chordPlan(pat), out = [];
+      const tpl = [1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1];
+      for (let s = 0; s < pat.len; s++) {
+        if (!tpl[s % 16] && !rndD(0.12)) continue;
+        if (tpl[s % 16] && dens < 1 && !rndD(0.9)) continue;
+        chordAt(s, root, plan.at(s), 1).forEach((x, i) => out.push(i === 0 && s % 4 === 0 ? { ...x, a: 1 } : x));
+      }
+      return out;
+    } },
+
+    arpUp: { group: "Arpeggios", label: "Up (16ths)", run: pat => arpeggio(pat, 1, (k, L) => k % (L - 2)) },
+    arpDown: { group: "Arpeggios", label: "Down (16ths)", run: pat => arpeggio(pat, 1, (k, L) => (L - 3) - (k % (L - 2))) },
+    arpUpDown: { group: "Arpeggios", label: "Up and down", run: pat => arpeggio(pat, 1, k => [0, 1, 2, 3, 2, 1][k % 6]) },
+    arp8: { group: "Arpeggios", label: "8ths, two octaves", run: pat => arpeggio(pat, 2, (k, L) => k % L) },
+    arp7: { group: "Arpeggios", label: "7th chord, up", run: pat => arpeggio(pat, 1, (k, L) => k % (L - 3), seventh) },
+    arpRnd: { group: "Arpeggios", label: "Random order", run: pat => arpeggio(pat, 1, (k, L) => Math.floor(Math.random() * L)) },
+
+    melody: { group: "Melody", label: "Call and response", hint: "a short phrase, answered with a different ending", run(pat) {
+      const root = leadRoot(), plan = chordPlan(pat), M = Math.max(4, Math.min(8, pat.len / 2)), out = [];
+      const rhythm = [0], degs = [pick([0, 2, 4])];
+      for (let s = 1; s < M; s++) if (s % 2 === 0 ? rndD(0.55) : rndD(0.2)) rhythm.push(s);
+      for (let i = 1; i < rhythm.length; i++) degs.push(clamp(degs[i - 1] + pickW([[1, 3], [-1, 3], [2, 1], [-2, 1], [0, 1]]), -2, 9));
+      for (let start = 0, k = 0; start < pat.len; start += M, k++) {
+        const c = plan.at(start), answer = k % 2 === 1;
+        rhythm.forEach((r, i) => {
+          if (start + r >= pat.len) return;
+          let d = degs[i] + c;
+          if (answer && i === rhythm.length - 1) d = c + pick([0, 2, 4, 7]);          // la risposta chiude su una nota dell'accordo
+          else if (answer && i === rhythm.length - 2 && rnd(0.6)) d += pick([1, -1]);
+          out.push({ s: start + r, n: degree(d, root), l: 1, ...(i === 0 ? { a: 1 } : {}) });
+        });
+      }
+      return legatoFill(out, pat.len, 3);
+    } },
+    riff: { group: "Melody", label: "Repeated riff", hint: "a 4-step figure repeated over the chords", run(pat) {
+      const root = leadRoot(), plan = chordPlan(pat), out = [];
+      const cell = [0, 1, 2, 3].map(i => (i === 0 || rndD(0.5)) ? pick([0, 2, 4, 7, 4]) : null);
+      for (let s = 0; s < pat.len; s++) {
+        let d = cell[s % 4];
+        if (s % 16 >= 12 && s % 4 === 3 && rnd(0.5)) d = pick([5, 6, -1]);   // variazione a fine battuta
+        if (d === null || d === undefined) continue;
+        out.push({ s, n: degree(plan.at(s) + d, root), l: 1, ...(s % 4 === 0 ? { a: 1 } : {}) });
+      }
+      return out;
+    } },
+    lead: { group: "Melody", label: "Long-note lead", hint: "few held notes on the chord tones", run(pat) {
+      const root = leadRoot(), plan = chordPlan(pat), out = [];
+      for (let s = 0; s < pat.len; s += 2) {
+        if (!(plan.starts.includes(s) || (s % 4 === 0 ? rndD(0.35) : rndD(0.12)))) continue;
+        out.push({ s, n: degree(plan.at(s) + pick([0, 2, 4, 4, 7]), root), l: 1, ...(plan.starts.includes(s) ? { a: 1 } : {}), ...(rnd(0.2) ? { g: 1 } : {}) });
+      }
+      return legatoFill(out, pat.len, 8);
     } },
   };
+  function runGenerator(k) {
+    const g = GENERATORS[k]; if (!g) return;
+    const o = genOpts(), pat = curSynth(), shift = 12 * (+o.oct || 0);
+    dens = DENSITY[o.dens] || 1;
+    let notes = [];
+    for (let tries = 0; tries < 6 && !notes.length; tries++)
+      notes = g.run(pat).map(x => ({ ...x, n: x.n + shift })).filter(x => x.n >= 0 && x.n <= 127 && x.s >= 0 && x.s < pat.len);
+    dens = 1;
+    notes.forEach(x => { x.l = clamp(Math.round(x.l || 1), 1, pat.len - x.s); if (x.g && x.s + x.l >= pat.len) delete x.g; });
+    pushUndo(); ensure();
+    if (o.add) { const key = x => x.s + ":" + x.n, fresh = new Set(notes.map(key)); notes = pat.synth.filter(x => !fresh.has(key(x))).concat(notes); }
+    pat.synth = notes.sort((a, b) => a.s - b.s || a.n - b.n);
+    view.gen = { ...o, last: k }; saveView(); paintGen();
+    centerOn(pat); renderRoll();
+    setStatus(`synth: ${g.group.toLowerCase()} · ${g.label.toLowerCase()} in ${NOTE_NAMES[keyOf()]} ${SCALES[scaleOf()][0].toLowerCase()}${o.add ? " (added)" : ""}`);
+  }
+  function genMenuHtml() {
+    const o = genOpts(), sel = (id, pairs, v) => `<select id="${id}">${pairs.map(([k, l]) => `<option value="${esc(k)}"${String(k) === String(v) ? " selected" : ""}>${esc(l)}</option>`).join("")}</select>`;
+    return `<div class="syn-gen-opts">
+        <label>Chords ${sel("synGenProg", Object.entries(PROGRESSIONS).map(([k, [l]]) => [k, l]), o.prog)}</label>
+        <label>Density ${sel("synGenDens", [["sparse", "Sparse"], ["normal", "Normal"], ["busy", "Busy"]], o.dens)}</label>
+        <label>Octave ${sel("synGenOct", [[-1, "−1"], [0, "0"], [1, "+1"]], o.oct)}</label>
+        <label class="syn-gen-add"><input type="checkbox" id="synGenAdd"${o.add ? " checked" : ""}> Add to the notes already there (layer bass, chords, melody)</label>
+      </div>
+      <p class="syn-note">In the key and scale chosen above. One chord every 8 steps: a 16-step pattern uses the first two chords, 32 steps all four.</p>
+      ${GEN_GROUPS.map(gr => `<div class="export-head">${esc(gr)}</div><div class="syn-gen-grid">${Object.entries(GENERATORS).filter(([, g]) => g.group === gr)
+        .map(([k, g]) => `<button type="button" data-gen="${k}"${g.hint ? ` title="${esc(g.hint)}"` : ""}>${esc(g.label)}</button>`).join("")}</div>`).join("")}`;
+  }
+  function paintGen() {
+    const b = el("synGenAgain"); if (!b) return;
+    const g = GENERATORS[genOpts().last];
+    b.hidden = !g;
+    if (g) b.title = `generate again: ${g.group} · ${g.label} (a new variation every click)`;
+  }
 
   // ---------- export MIDI della linea del synth ----------
   // Tempi come patternEvents() della batteria (24 tick per sedicesimo, con lo swing); gli slide si
   // sovrappongono alla nota dopo, cosi' un synth mono di Logic (Retro Synth, ES2 in legato) scivola.
-  const songPatterns = () => project.song.flatMap(b => { const p = patternById(b.patternId); return p ? Array(Math.max(1, b.repeats || 1)).fill(p) : []; });
   function synthMidi(which) {
     const p = params(), base = MIDI_PPQ / 4, sw = swing(), ev = [];
     let tick = 0;
@@ -600,7 +797,7 @@
         ev.push({ t: on, o: 1, n, v: x.a ? 120 : 92 }, { t: Math.max(on + 1, off), o: 0, n, v: 64 });
       }
     };
-    (which === "song" ? songPatterns() : [curPattern()]).forEach(emit);
+    synthTimeline(which === "song" ? "song" : "midi").forEach(emit);
     ev.sort((a, b) => (a.t - b.t) || (a.o - b.o));
     const trk = [], mpq = Math.round(60000000 / bpm());
     trk.push(...varLen(0), 0xFF, 0x51, 0x03, (mpq >> 16) & 0xff, (mpq >> 8) & 0xff, mpq & 0xff);
@@ -614,8 +811,7 @@
       0x4D, 0x54, 0x72, 0x6B, (L >>> 24) & 0xff, (L >>> 16) & 0xff, (L >>> 8) & 0xff, L & 0xff, ...trk]);
   }
   function hasNotesIn(which) {
-    const pats = which === "song" ? songPatterns() : [curPattern()];
-    return pats.some(p => p && p.synth && p.synth.length);
+    return synthTimeline(which === "song" ? "song" : "midi").some(p => p.synth.length);
   }
   function exportMidi(which) {
     if (which === "song" && !project.song.length) { setStatus("the song is empty", "err"); return; }
@@ -632,8 +828,8 @@
     const emit = pat => {
       for (let s = 0; s < pat.len; s++) { eventsForStep(pat, s, t, p, out); t += base * (s % 2 === 0 ? 1 + sw : 1 - sw); }
     };
-    // stesso giro di wavEvents(): pattern ripetuto WAV_PATTERN_LOOPS volte, canzone blocco per blocco
-    (which === "song" ? songPatterns() : Array(WAV_PATTERN_LOOPS).fill(curPattern())).forEach(emit);
+    // stessa durata di wavEvents(): la batteria ripetuta WAV_PATTERN_LOOPS volte, o la canzone con la corsia del synth
+    synthTimeline(which === "song" ? "song" : "pattern").forEach(emit);
     slideAt = saved;
     return out;
   }
@@ -711,6 +907,21 @@
 .sec-vco-1 .syn-p input[type=range]::-webkit-slider-thumb,.sec-vco-2 .syn-p input[type=range]::-webkit-slider-thumb{border-radius:3px;background:linear-gradient(145deg,#f3b15e,#a75c1d);box-shadow:0 1px 2px #000,0 0 0 2px rgba(217,139,53,.22)}.sec-vco-1 .syn-p input[type=range]::-moz-range-thumb,.sec-vco-2 .syn-p input[type=range]::-moz-range-thumb{border-radius:3px;background:#d98b35}.sec-filter .syn-p input[type=range]::-webkit-slider-thumb{width:19px;height:19px;margin-top:-7.5px;background:conic-gradient(from 25deg,#e7d8b8,#736e64,#e7d8b8,#736e64,#e7d8b8);box-shadow:0 1px 3px #000,0 0 0 2px rgba(200,71,31,.25)}.sec-amp-eg .syn-p input[type=range]::-webkit-slider-runnable-track,.sec-filter-eg .syn-p input[type=range]::-webkit-slider-runnable-track{background:linear-gradient(90deg,#6bb36b,color-mix(in srgb,#6bb36b 22%,var(--panel-3)))}.sec-lfo .syn-p input[type=range]::-webkit-slider-runnable-track{background:linear-gradient(90deg,#6ca4d8,color-mix(in srgb,#6ca4d8 22%,var(--panel-3)))}.sec-voice .syn-p input[type=range]::-webkit-slider-runnable-track{background:linear-gradient(90deg,#bb78c9,color-mix(in srgb,#bb78c9 22%,var(--panel-3)))}
 .syn-p .cap{text-transform:capitalize;}
 .syn-note{font-size:9.5px; color:var(--text-faint); margin:2px 0 6px; line-height:1.4;}
+#panelSynth .synth-box{margin:10px 0 0; padding:10px 12px; border:1px solid var(--edge); border-radius:var(--r-panel,9px); background:var(--panel-2); box-shadow:var(--shadow); display:flex; flex-direction:column; gap:9px;}
+#panelSynth .synth-box .chips{margin:0;}
+.synth-box-title{font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--text-dim); font-weight:700;}
+#synPatNew{font-size:13px; padding:9px 16px; min-height:40px;}
+#panelSynth .synth-bar{margin:10px 0 14px; padding:10px 12px; border:1px solid var(--edge); border-radius:var(--r-panel,9px); background:var(--panel-2); box-shadow:var(--shadow);}
+.export-list.syn-gen{min-width:min(470px, calc(100vw - 32px));}
+.syn-gen-opts{display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:6px 8px; font-size:9.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-dim);}
+.syn-gen-opts label{display:flex; flex-direction:column; gap:3px;}
+.syn-gen-opts select{width:100%; min-width:0; text-transform:none; letter-spacing:0;}
+.syn-gen-opts .syn-gen-add{grid-column:1/-1; flex-direction:row; align-items:center; gap:6px; text-transform:none; letter-spacing:0; font-size:10.5px; color:var(--text);}
+.syn-gen .syn-note{margin:4px 0 0;}
+.syn-gen-grid{display:grid; grid-template-columns:1fr 1fr; gap:4px;}
+.syn-gen-grid button{font-size:10.5px; padding:6px 8px;}
+.syn-gen-grid button{min-width:0; white-space:normal;}
+@media (max-width:560px){ .export-list.syn-gen{min-width:0; width:calc(100vw - 32px);} .syn-gen-grid{grid-template-columns:1fr;} .syn-gen-opts{grid-template-columns:1fr 1fr;} }
 .synth-credits{font-size:10px; color:var(--text-faint); margin:10px 0 0; line-height:1.5;}
 .synth-credits a{color:inherit;}
 @media (max-width:560px){ .synth-params{grid-template-columns:1fr;} #synScope{display:none;} .syn-p{grid-template-columns:78px minmax(0,1fr) 56px;} }
@@ -722,21 +933,41 @@
     built = true;
     const st = document.createElement("style"); st.textContent = CSS; document.head.appendChild(st);
     el("panelSynth").innerHTML = `
-      <h2>Synth <span id="synPatName"></span><span class="synth-beta">test</span></h2>
-      <div class="flexline">
-        <button id="synOn" class="mini on" type="button" aria-pressed="true" title="Synth on/off in playback and exports">On</button>
-        <label class="fld">Engine <select id="synEngine"><option value="custom">Custom + KORG</option><option value="tone">Tone.js</option></select></label>
+      <h2>Synthesizer <span id="synPatName"></span><span class="synth-beta">test</span></h2>
+      <div class="synth-box">
+        <div class="synth-box-title">Pattern</div>
+        <div class="chips" id="synPatChips">
+          <span class="dot pattern-dot" id="synPatDot"></span>
+          <select id="synPatSel" class="pattern-select" aria-label="Synth pattern to edit"></select>
+          <span class="tiny" id="synPatCount"></span>
+        </div>
+        <div class="flexline">
+          <button id="synPatNew" class="mini primary" type="button" title="A new empty synth pattern">+ New</button>
+          <button id="synPatDup" class="mini" type="button">Duplicate</button>
+          <button id="synPatRename" class="mini" type="button">Rename</button>
+          <button id="synClear" class="mini" type="button" title="Remove every note of this synth pattern">Clear</button>
+          <button id="synPatDel" class="mini danger" type="button">Delete</button>
+          <label class="fld" style="margin-left:auto;">Steps <select id="synPatLen"><option value="8">8</option><option value="16">16</option><option value="32">32</option></select></label>
+        </div>
+      </div>
+      <div class="machine-bar synth-bar">
+        <label class="machine-label" for="synEngine">Engine</label>
+        <select id="synEngine" class="machine-select"><option value="custom">Custom + KORG</option><option value="tone">Tone.js</option></select>
         <label class="fld">Preset <select id="synPreset"></select></label>
         <button id="synSavePreset" class="mini" type="button" title="Save the current sound as a preset in this browser">Save preset</button>
         <button id="synDelPreset" class="mini danger" type="button" hidden>Delete preset</button>
+        <a class="linkbtn machine-more" href="synth.html" title="How the synth engines work">Synth engines and methods →</a>
+      </div>
+      <div class="flexline">
+        <button id="synOn" class="mini on" type="button" aria-pressed="true" title="Synth on/off in playback and exports">On</button>
         <label class="fld">Key <select id="synKey"></select></label>
         <label class="fld">Scale <select id="synScale"></select></label>
-        <details class="export-menu" id="synGenMenu"><summary>Generate ▾</summary><div class="export-list" id="synGen"></div></details>
+        <details class="export-menu" id="synGenMenu"><summary>Generate ▾</summary><div class="export-list syn-gen" id="synGen"></div></details>
+        <button id="synGenAgain" class="mini" type="button" hidden>↻ Again</button>
         <details class="export-menu" id="synMidiMenu"><summary>MIDI ▾</summary><div class="export-list">
           <div class="export-head">Synth line only</div>
           <button id="synMidiPat" type="button" title="The synth notes of this pattern as a .mid file for a Logic software instrument">MIDI pattern</button>
           <button id="synMidiSong" type="button" title="The synth notes of the whole song as a .mid file">MIDI song</button></div></details>
-        <button id="synClear" class="mini danger" type="button">Clear notes</button>
       </div>
       <div class="flexline">
         <span class="tiny">Click:</span>
@@ -759,7 +990,7 @@
         <canvas id="synScope" width="400" height="80" aria-hidden="true"></canvas>
       </div>
       <div class="synth-params" id="synParams"></div>
-      <p class="synth-credits"><a href="synth.html" title="How the synth engines work">Synth engines and methods →</a><br>Multi engine › <b>KORG logue unit</b>: oscillators from the
+      <p class="synth-credits">Multi engine › <b>KORG logue unit</b>: oscillators from the
         <a href="https://github.com/korginc/logue-sdk" target="_blank" rel="noopener">KORG logue-sdk</a> (NTS-1 mkII, BSD-3-Clause),
         compiled to WebAssembly, one instance per voice. To record: turn on Rec, press Play and play the keys.</p>`;
 
@@ -809,25 +1040,35 @@
     el("synScale").innerHTML = Object.entries(SCALES).map(([k, [label]]) => `<option value="${k}">${label}</option>`).join("");
     el("synKey").onchange = e => { pushUndo(); ensure().key = +e.target.value; renderRoll(); };
     el("synScale").onchange = e => { pushUndo(); ensure().scale = e.target.value; renderRoll(); };
-    el("synGen").innerHTML = Object.entries(GENERATORS).map(([k, g]) => `<button type="button" data-gen="${k}">${g.label}</button>`).join("");
+    el("synGen").innerHTML = genMenuHtml();
     el("synGen").onclick = e => {
       const b = e.target.closest("[data-gen]"); if (!b) return;
       el("synGenMenu").open = false;
-      const pat = curPattern(), g = GENERATORS[b.dataset.gen];
-      pushUndo(); ensure();
-      pat.synth = g.run(pat).filter(x => x.n >= 0 && x.n <= 127);
-      centerOn(pat); renderRoll();
-      setStatus(`synth: ${g.label.toLowerCase()} in ${NOTE_NAMES[keyOf()]} ${SCALES[scaleOf()][0].toLowerCase()}`);
+      runGenerator(b.dataset.gen);
     };
+    el("synGen").onchange = () => {
+      view.gen = { ...genOpts(), prog: el("synGenProg").value, dens: el("synGenDens").value, oct: +el("synGenOct").value, add: el("synGenAdd").checked };
+      saveView();
+    };
+    el("synGenAgain").onclick = () => runGenerator(genOpts().last);
+    // il menu e' largo: se esce a destra lo sposta a sinistra, restando dentro lo schermo
+    el("synGenMenu").ontoggle = () => {
+      const L = el("synGen"); L.style.left = "";
+      if (!el("synGenMenu").open) return;
+      const r = L.getBoundingClientRect(), over = r.right - (innerWidth - 16);
+      if (over > 0) L.style.left = Math.max(-over, 16 - r.left) + "px";
+    };
+    paintGen();
     el("synMidiPat").onclick = () => { el("synMidiMenu").open = false; exportMidi("pattern"); };
     el("synMidiSong").onclick = () => { el("synMidiMenu").open = false; exportMidi("song"); };
     document.addEventListener("click", e => {
       for (const id of ["synGenMenu", "synMidiMenu"]) if (!el(id).contains(e.target)) el(id).open = false;
     });
     el("synClear").onclick = () => {
-      const pat = curPattern(); if (!pat.synth || !pat.synth.length) return;
-      pushUndo(); delete pat.synth; renderRoll(); setStatus("synth notes cleared");
+      const pat = curSynth(); if (!pat.synth.length) return;
+      pushUndo(); pat.synth = []; renderRoll(); setStatus("synth notes cleared");
     };
+    bindPatternBar();
     el("synTap").onclick = e => { const b = e.target.closest("[data-mode]"); if (!b) return; view.tap = b.dataset.mode; saveView(); paintTap(); };
     el("synDown").onclick = () => { view.base = clamp(view.base - 12, 0, 96); saveView(); renderRoll(); };
     el("synUp").onclick = () => { view.base = clamp(view.base + 12, 0, 96); saveView(); renderRoll(); };
@@ -854,7 +1095,66 @@
     el("synEngine").value = engineOf();
     el("synKey").value = keyOf(); el("synScale").value = scaleOf();
     el("synFold").checked = !!view.fold;
-    el("synPatName").textContent = "— " + curPattern().name;
+    el("synPatName").textContent = "— " + curSynth().name;
+    paintPatternBar();
+  }
+
+  // ---------- pattern del synth (come il pannello Pattern di Drum Grid) ----------
+  function paintPatternBar() {
+    if (!built) return;
+    const cur = curSynth(), sel = el("synPatSel");
+    sel.innerHTML = project.synthPatterns.map((sp, i) => `<option value="${esc(sp.id)}">${i + 1}. ${esc(sp.name)} · ${sp.len} step</option>`).join("");
+    sel.value = cur.id;
+    el("synPatDot").style.background = `hsl(${synthHue(cur.id)} 65% 58%)`;
+    const n = project.synthPatterns.length;
+    el("synPatCount").textContent = `${n} synth ${n === 1 ? "pattern" : "patterns"}`;
+    el("synPatLen").value = cur.len;
+    el("synPatDel").disabled = n <= 1;
+    el("synPatName").textContent = "— " + cur.name;
+  }
+  function selectSynth(id) {
+    ui.synthId = id; paintPatternBar(); centerOn(curSynth()); renderRoll();
+  }
+  function bindPatternBar() {
+    el("synPatSel").onchange = e => selectSynth(e.target.value);
+    el("synPatNew").onclick = () => {
+      pushUndo();
+      const sp = makeSynthPattern("Synth " + (project.synthPatterns.length + 1), curSynth().len);
+      project.synthPatterns.push(sp); selectSynth(sp.id); setStatus("new synth pattern: " + sp.name);
+    };
+    el("synPatDup").onclick = () => {
+      pushUndo();
+      const src = curSynth(), sp = makeSynthPattern(src.name + " copy", src.len);
+      sp.synth = src.synth.map(n => ({ ...n }));
+      project.synthPatterns.splice(project.synthPatterns.indexOf(src) + 1, 0, sp); selectSynth(sp.id);
+    };
+    el("synPatRename").onclick = async () => {
+      const sp = curSynth();
+      const name = await ask({ title: "Rename synth pattern", ok: "Rename", input: sp.name });
+      if (name === null || !name.trim() || name.trim() === sp.name) return;
+      pushUndo(); sp.name = name.trim().slice(0, 40); paintPatternBar();
+    };
+    el("synPatDel").onclick = async () => {
+      if (project.synthPatterns.length <= 1) { setStatus("at least one synth pattern is needed", "err"); return; }
+      const sp = curSynth(), used = project.synthSong.filter(b => b.synthId === sp.id).length;
+      const msg = `Delete "${sp.name}"?` + (used ? (used === 1 ? " Its block in the song becomes a rest" : ` Its ${used} blocks in the song become rests`) + ", so everything after it stays in time." : "") + " You can undo with cmd+Z.";
+      if (!await ask({ title: "Delete synth pattern", message: msg, ok: "Delete", danger: true })) return;
+      pushUndo();
+      project.synthSong.forEach(b => { if (b.synthId === sp.id) { b.len = sp.len; b.synthId = null; } });
+      const i = project.synthPatterns.indexOf(sp);
+      project.synthPatterns.splice(i, 1);
+      selectSynth(project.synthPatterns[Math.max(0, i - 1)].id);
+    };
+    // cambio di lunghezza come in Drum Grid: allungando le note si ripetono, accorciando si tagliano
+    el("synPatLen").onchange = e => {
+      const sp = curSynth(), from = sp.len, to = +e.target.value;
+      if (to === from) return;
+      pushUndo();
+      const base = sp.synth.filter(n => n.s < from), out = [];
+      for (let k = 0; k < to; k += from) base.forEach(n => { if (n.s + k < to) out.push({ ...n, s: n.s + k, l: Math.min(n.l, to - n.s - k) }); });
+      sp.len = to; sp.synth = out;
+      paintPatternBar(); renderRoll();
+    };
   }
 
   // ---------- manopole ----------
@@ -961,7 +1261,7 @@
     if (view.fold) { for (let n = view.base; n <= Math.min(127, view.base + 36); n++) if (inScale(n)) rows.push(n); }
     else {
       // due ottave; tre se le note del pattern salgono oltre
-      const hi = Math.max(0, ...(curPattern().synth || []).map(x => x.n));
+      const hi = Math.max(0, ...(curSynth().synth || []).map(x => x.n));
       const span = hi > view.base + 24 && hi <= view.base + 36 ? 36 : 24;
       for (let n = view.base; n <= Math.min(127, view.base + span); n++) rows.push(n);
     }
@@ -977,7 +1277,7 @@
   }
   function renderRoll() {
     if (!built) return;
-    const pat = curPattern(), roll = el("synRoll");
+    const pat = curSynth(), roll = el("synRoll");
     const { rows, inScale } = rowsFor(), len = pat.len, k = keyOf();
     roll.style.gridTemplateColumns = `56px repeat(${len}, minmax(${len > 16 ? 16 : 22}px, 1fr))`;
     const cover = new Map();   // "nota:step" -> nota che copre la cella
@@ -1021,7 +1321,7 @@
       const cell = e.target.closest(".sr-cell");
       if (!cell || e.button > 0) return;
       e.preventDefault();
-      const pat = curPattern(), n = +cell.dataset.n, s = +cell.dataset.s;
+      const pat = curSynth(), n = +cell.dataset.n, s = +cell.dataset.s;
       const hit = (pat.synth || []).find(x => x.n === n && x.s <= s && s < x.s + x.l);
       const mode = e.altKey ? "acc" : (e.shiftKey ? "slide" : view.tap);
       if (mode !== "note") {
@@ -1037,7 +1337,7 @@
       if (hit) drag = { note: hit, from: s, moved: false, created: false };
       else {
         const note = { s, n, l: 1 };
-        (pat.synth || (pat.synth = [])).push(note);
+        pat.synth.push(note);
         drag = { note, from: s, moved: false, created: true };
         preview(n);
         renderRoll();
@@ -1051,16 +1351,15 @@
       const s = +c.dataset.s;
       if (s === drag.from && !drag.moved) return;
       drag.moved = true;
-      const l = clamp(s - drag.note.s + 1, 1, curPattern().len - drag.note.s);
+      const l = clamp(s - drag.note.s + 1, 1, curSynth().len - drag.note.s);
       if (l !== drag.note.l) { drag.note.l = l; renderRoll(); }
     });
     const end = () => {
       if (!drag) return;
       const d = drag; drag = null;
       if (!d.created && !d.moved) {        // click su una nota senza trascinare: si toglie
-        const pat = curPattern();
+        const pat = curSynth();
         pat.synth = (pat.synth || []).filter(x => x !== d.note);
-        if (!pat.synth.length) delete pat.synth;
         renderRoll();
       }
     };
@@ -1130,13 +1429,13 @@
       if (refresh) { pushParams(); if (synthVisible()) { renderParams(); paintTop(); } }
     }
     if (!synthVisible() || !built) return;
-    const pat = curPattern();
+    const pat = curSynth();
     if (pat !== lastPat || pat.len !== lastLen || pat.synth !== lastNotes) {
-      if (pat !== lastPat) centerOn(pat);
+      if (pat !== lastPat) { centerOn(pat); paintPatternBar(); }
       lastPat = pat; lastLen = pat.len; lastNotes = pat.synth;
       if (!drag) renderRoll();
     }
-    const ph = playing && visible.patternId === pat.id ? visible.step : -1;
+    const ph = playing && visible.synthId === pat.id ? visible.synthStep : -1;
     if (ph !== lastPh) {
       if (rollCols[lastPh]) rollCols[lastPh].forEach(c => c.classList.remove("ph"));
       if (rollCols[ph]) rollCols[ph].forEach(c => c.classList.add("ph"));

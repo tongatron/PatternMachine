@@ -529,12 +529,27 @@ button.danger-fill{background:var(--danger); border-color:var(--danger); color:#
 .seqblock-head .grip{margin-left:auto; color:var(--text-faint); letter-spacing:-1px;}
 .seqblock select{width:100%; font-size:10px; padding:3px 4px;}
 .seqblock .seq-section{font-weight:700; color:var(--text); border-color:var(--section-color,var(--edge));}
+.seq-lane-head{display:flex; flex-wrap:wrap; align-items:center; gap:6px 8px; margin:4px 0 0; padding-top:8px; border-top:1px solid var(--edge-soft);}
+.seq-lane-label{font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--text-dim); font-weight:700;}
+.seq-synth-track{min-height:0;}
+.seqblock.synthblock{border-top-color:var(--synth-color,var(--edge)); border-style:dashed solid solid; background:color-mix(in srgb, var(--panel-2) 88%, var(--synth-color,var(--edge)));}
+.seqblock.synthblock.rest{opacity:.7; border-top-color:var(--edge);}
+.syn-prev{position:relative; height:34px; border-radius:4px; background:var(--led-off); overflow:hidden;}
+.syn-prev i{position:absolute; height:3px; border-radius:2px; background:var(--synth-color,var(--led-on));}
+.syn-prev .rest-label{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:9px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-faint);}
+.song-empty.synth{font-size:10px;}
+.tl-lane.tl-lane-synth{top:auto; height:20px; border-top:1px solid var(--bg); display:block;}
+.timeline.has-synth .tl-lane:not(.tl-lane-synth){bottom:20px;}
+.timeline.has-synth{height:66px;}
+.tl-lane-synth .tl-seg{position:absolute; top:0; bottom:0; padding:3px 5px; justify-content:center;}
+.tl-lane-synth .tl-seg b{font-size:9px;}
+.tl-lane-synth .tl-seg.rest::before{opacity:.08;}
 .seqblock-meta{font-size:9px; color:var(--text-faint); letter-spacing:.04em;}
 .seqblock-actions{display:flex; gap:4px;}
 .seqblock-actions button{flex:1 1 0; padding:4px 5px; font-size:9px;}
 .seqblock-actions button.on{background:var(--key-primary,var(--accent)); color:var(--on-accent); border-color:var(--accent-dim); font-weight:700;}
 #metronomeBtn, #liveKeysBtn{min-height:44px; padding:11px 18px; font-size:13.5px;}
-#metronomeBtn.on{background:var(--key-primary,var(--accent)); color:var(--on-accent); border-color:var(--accent-dim);}
+#metronomeBtn.on, #viewSound.on{background:var(--key-primary,var(--accent)); color:var(--on-accent); border-color:var(--accent-dim);}
 /* Icona metronomo: cassa a piramide e asticella che oscilla. Quando suona, ogni click manda l'asticella
    dall'altra parte in una battuta, cosi' arriva in fondo proprio sul click successivo. */
 #metronomeBtn{display:inline-flex; align-items:center; gap:8px;}
@@ -657,23 +672,23 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 }
 /* Comandi principali piu' grandi. */
 #machinePanel .machine-bar{margin-top:0; padding-top:0; border-top:none;}
-#viewGrid, #viewSeq, #viewSound, #viewRecent{font-size:14px; padding:11px 22px; min-height:44px;}
-#viewGrid, #viewSeq, #viewSound{
+#viewGrid, #viewSeq, #viewSynth, #viewRecent{font-size:14px; padding:11px 22px; min-height:44px;}
+#viewGrid, #viewSeq, #viewSynth{
   min-height:52px; padding:12px 24px; border:2px solid var(--edge);
   border-radius:9px; font-weight:800; letter-spacing:.08em;
   box-shadow:inset 0 2px 0 rgba(255,255,255,.16), inset 0 -3px 0 rgba(0,0,0,.22), 0 3px 0 rgba(0,0,0,.28);
   transition:transform .06s, box-shadow .06s, background .12s;
 }
-#viewGrid:hover, #viewSeq:hover, #viewSound:hover{border-color:var(--text-faint);}
-#viewGrid:active, #viewSeq:active, #viewSound:active{transform:translateY(2px); box-shadow:inset 0 1px 0 rgba(255,255,255,.08), inset 0 -1px 0 rgba(0,0,0,.2);}
-#viewGrid.on, #viewSeq.on, #viewSound.on{background:linear-gradient(180deg,#ff8a3d,#e0561a); border-color:#b8471f; color:#1c1b19; box-shadow:inset 0 2px 0 rgba(255,255,255,.35), inset 0 -3px 0 rgba(0,0,0,.2), 0 3px 0 rgba(0,0,0,.28);}
+#viewGrid:hover, #viewSeq:hover, #viewSynth:hover{border-color:var(--text-faint);}
+#viewGrid:active, #viewSeq:active, #viewSynth:active{transform:translateY(2px); box-shadow:inset 0 1px 0 rgba(255,255,255,.08), inset 0 -1px 0 rgba(0,0,0,.2);}
+#viewGrid.on, #viewSeq.on, #viewSynth.on{background:linear-gradient(180deg,#ff8a3d,#e0561a); border-color:#b8471f; color:#1c1b19; box-shadow:inset 0 2px 0 rgba(255,255,255,.35), inset 0 -3px 0 rgba(0,0,0,.2), 0 3px 0 rgba(0,0,0,.28);}
 #pChoose, #pVary, #pNew{font-size:13px; padding:9px 16px; min-height:40px;}
 #recBtn{font-size:13.5px; padding:11px 18px; min-height:44px;}
 #bpmNum{height:44px; width:72px; font-size:14px;}
-#tapBtn{min-height:44px; padding:11px 18px; font-size:13.5px;}
+#tapBtn, #viewSound{min-height:44px; padding:11px 18px; font-size:13.5px;}
 .topbar #accountLinks{display:inline-flex; align-items:baseline; gap:10px; margin-left:auto;}
 @media (max-width:560px){
-  #viewGrid, #viewSeq, #viewSound, #viewRecent{padding:10px 14px;}
+  #viewGrid, #viewSeq, #viewSynth, #viewRecent{padding:10px 14px;}
 }
 </style>
 
@@ -744,10 +759,9 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
   </div>
 
   <div class="tabs">
-    <button id="viewGrid" class="on">Grid</button>
+    <button id="viewGrid" class="on">Drum Grid</button>
+    <button id="viewSynth" title="Synth line of the pattern, in time with the drums">Synthesizer</button>
     <button id="viewSeq">Sequencer</button>
-    <button id="viewSynth" title="Synth line of the pattern, in time with the drums">Synth</button>
-    <button id="viewSound" title="For playing live: the grid, Play, Rec, tempo and metronome">Live View</button>
   </div>
 
   <div class="panel" id="panelPatterns">
@@ -783,6 +797,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
         <input type="number" id="bpmNum" min="40" max="240" value="93">
         </label>
         <button id="tapBtn" class="mini live-keep">Tap</button>
+        <button id="viewSound" class="mini live-keep" type="button" aria-pressed="false" title="For playing live: the grid, Play, Rec, tempo and metronome">Live View</button>
         <button id="metronomeBtn" class="mini live-keep" type="button" aria-pressed="false" title="Metronome on/off"><svg class="metro-ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.5h4l5.5 17h-15z"/><path d="M7.2 15.5h9.6" stroke-width="1.3"/><g class="rod"><path d="M12 19V2.5"/><rect x="10.2" y="7" width="3.6" height="2.6" rx=".6" fill="currentColor" stroke="none"/></g></svg>Metronome</button>
         <button id="liveKeysBtn" class="mini live-keep" type="button" title="Show the instrument keys">Keys</button>
         <label class="fld" title="MPC-style swing: 50% straight, 66% triplet feel, 75% maximum">Swing <input type="range" id="swingRange" min="0" max="100" value="0"> <span id="swingPct" class="tiny">50%</span></label>
@@ -842,14 +857,24 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     </div>
     <div class="timeline" id="timeline" title="Click: choose where the song starts">
       <div class="tl-lane" id="tlLane"></div>
+      <div class="tl-lane tl-lane-synth" id="tlSynthLane"></div>
       <div class="tl-done" id="tlDone"></div>
       <div class="tl-start" id="tlStart"></div>
       <div class="tl-head" id="tlHead"></div>
     </div>
     <div class="seq-ruler" id="seqRuler"></div>
     <div class="seq-track" id="seqTrack"></div>
+    <div class="seq-lane-head">
+      <span class="seq-lane-label">♪ Synth</span>
+      <select id="seqSynthPick" aria-label="Synth pattern to insert"></select>
+      <button id="ssAdd" class="mini primary" title="Insert the synth pattern after the selected synth block">+ Insert</button>
+      <button id="ssRest" class="mini" title="A silent block: the synth pauses (one bar, the length can be changed on the block)">+ Rest</button>
+      <button id="ssClear" class="mini danger">Clear</button>
+      <span class="tiny" id="synthLaneInfo" style="margin-left:auto;"></span>
+    </div>
+    <div class="seq-track seq-synth-track" id="seqSynthTrack"></div>
     <p class="hint" style="margin-top:0;">
-      Drag blocks to reorder them · pick the section right on the block · double-click opens the beat in the grid · click the line to choose where playback starts.
+      Drag blocks to reorder them · pick the section right on the block · double-click opens the beat in the grid (the synth block in the Synthesizer) · the synth blocks play under the drums at the same bars · click the line to choose where playback starts.
     </p>
   </div>
 
@@ -1081,19 +1106,19 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-28.16"></script>
-<script src="engine/styles-punk.js?v=2026-09-28.16"></script>
-<script src="engine/styles-post.js?v=2026-09-28.16"></script>
-<script src="engine/styles-machines.js?v=2026-09-28.16"></script>
-<script src="engine/styles-alt.js?v=2026-09-28.16"></script>
-<script src="engine/styles-groove.js?v=2026-09-28.16"></script>
-<script src="engine/styles-dub.js?v=2026-09-28.16"></script>
-<script src="engine/styles-break.js?v=2026-09-28.16"></script>
-<script src="engine/styles-soul.js?v=2026-09-28.16"></script>
-<script src="engine/styles-metal.js?v=2026-09-28.16"></script>
-<script src="engine/styles-electro.js?v=2026-09-28.16"></script>
-<script src="engine/variations.js?v=2026-09-28.16"></script>
-<script src="engine/import.js?v=2026-09-28.16"></script>
+<script src="engine/core.js?v=2026-09-28.22"></script>
+<script src="engine/styles-punk.js?v=2026-09-28.22"></script>
+<script src="engine/styles-post.js?v=2026-09-28.22"></script>
+<script src="engine/styles-machines.js?v=2026-09-28.22"></script>
+<script src="engine/styles-alt.js?v=2026-09-28.22"></script>
+<script src="engine/styles-groove.js?v=2026-09-28.22"></script>
+<script src="engine/styles-dub.js?v=2026-09-28.22"></script>
+<script src="engine/styles-break.js?v=2026-09-28.22"></script>
+<script src="engine/styles-soul.js?v=2026-09-28.22"></script>
+<script src="engine/styles-metal.js?v=2026-09-28.22"></script>
+<script src="engine/styles-electro.js?v=2026-09-28.22"></script>
+<script src="engine/variations.js?v=2026-09-28.22"></script>
+<script src="engine/import.js?v=2026-09-28.22"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -1508,7 +1533,7 @@ const jitterT = ()=> (Math.random()*2-1)*human()*0.010;
 const jitterV = ()=> 1+(Math.random()*2-1)*human()*0.15;
 
 let project=null;
-let ui={patternId:null, blockId:null, mode:"pattern", recording:false, songSoloBlockId:null, songStartPos:0, metronome:false};
+let ui={patternId:null, synthId:null, synthBlockId:null, blockId:null, mode:"pattern", recording:false, songSoloBlockId:null, songStartPos:0, metronome:false};
 
 function starterProject(){
   const tracks=[
@@ -1523,7 +1548,7 @@ function starterProject(){
   p.grid[tracks[2].id]=[2,0,1,0, 1,0,1,0, 2,0,1,0, 1,0,1,0];
   p.grid[tracks[3].id]=[0,0,0,0, 0,0,0,1, 0,0,0,0, 0,0,0,1];
   return {name:"Untitled", bpm:93, swing:0, tracks, patterns:[p],
-    song:[{id:uid(), patternId:p.id, repeats:4}]};
+    song:[{id:uid(), patternId:p.id, repeats:4}], synthPatterns:[makeSynthPattern("Synth 1",16)], synthSong:[]};
 }
 
 function normalize(){
@@ -1546,14 +1571,91 @@ function normalize(){
       Object.keys(p.mods[k]).forEach(i=>{ if(+i>=p.len) delete p.mods[k][i]; });
       if(!Object.keys(p.mods[k]).length) delete p.mods[k];
     });
-    // note del synth: dentro il pattern, lunghe almeno uno step e non oltre la fine
-    if(p.synth){
-      p.synth=p.synth.filter(n=>n.s>=0 && n.s<p.len && n.n>=0 && n.n<=127);
-      p.synth.forEach(n=>{ n.l=Math.max(1,Math.min(n.l||1,p.len-n.s)); });
-      if(!p.synth.length) delete p.synth;
-    }
   });
+  migrateSynth();
   project.song=project.song.filter(b=>project.patterns.some(p=>p.id===b.patternId));
+  // pattern del synth: almeno uno; note dentro il pattern, lunghe almeno uno step e non oltre la fine
+  if(!project.synthPatterns.length) project.synthPatterns.push(makeSynthPattern("Synth 1",16));
+  project.synthPatterns.forEach(sp=>{
+    sp.synth=(sp.synth||[]).filter(n=>n.s>=0 && n.s<sp.len && n.n>=0 && n.n<=127);
+    sp.synth.forEach(n=>{ n.l=Math.max(1,Math.min(n.l||1,sp.len-n.s)); });
+  });
+  // corsia del synth: un blocco che punta a un pattern sparito diventa una pausa lunga uguale
+  project.synthSong.forEach(b=>{
+    if(b.synthId && !synthById(b.synthId)) b.synthId=null;
+    b.repeats=Math.max(1,Math.min(64,b.repeats||1)); b.len=[8,16,32].includes(b.len)?b.len:16;
+  });
+  if(!synthById(ui.synthId)) ui.synthId=project.synthPatterns[0].id;
+  if(!project.synthSong.some(b=>b.id===ui.synthBlockId)) ui.synthBlockId=project.synthSong[0]?.id||null;
+}
+
+// ---------- pattern del synth ----------
+// Le linee del synth sono pattern a se' (project.synthPatterns: {id, name, len, synth:[note]}) e nella canzone
+// hanno una corsia propria sotto la batteria (project.synthSong: {id, synthId|null, repeats, len}); synthId null =
+// pausa di len step. Le note: {s:step, n:nota MIDI, l:lunghezza in step, a:accento, g:slide}.
+function makeSynthPattern(name,len=16){ return {id:uid(), name, len, synth:[]}; }
+const synthById = id => project.synthPatterns?.find(x=>x.id===id) || null;
+function curSynth(){ if(!synthById(ui.synthId)) ui.synthId=project.synthPatterns[0]?.id; return synthById(ui.synthId); }
+// Progetti di prima: le note stavano dentro i pattern di batteria (pattern.synth) e i blocchi della canzone
+// potevano sceglierne un'altra (block.synth). Diventano pattern del synth e una corsia uguale alla canzone.
+function migrateSynth(){
+  if(Array.isArray(project.synthPatterns) && Array.isArray(project.synthSong)){
+    project.patterns.forEach(p=>delete p.synth); project.song.forEach(b=>delete b.synth); return;
+  }
+  project.synthPatterns=[]; project.synthSong=[];
+  const map={};
+  project.patterns.forEach(p=>{
+    if(!p.synth||!p.synth.length){ delete p.synth; return; }
+    const sp=makeSynthPattern(p.name,p.len); sp.synth=p.synth.map(n=>({...n}));
+    project.synthPatterns.push(sp); map[p.id]=sp.id; delete p.synth;
+  });
+  if(project.synthPatterns.length){
+    project.song.forEach(b=>{
+      const drum=patternById(b.patternId), len=drum?drum.len:16, reps=Math.max(1,b.repeats||1);
+      const src=b.synth==="off" ? null : map[b.synth||b.patternId]||null, sp=synthById(src);
+      if(sp && (len*reps)%sp.len===0) project.synthSong.push({id:uid(), synthId:sp.id, repeats:len*reps/sp.len, len:sp.len});
+      else project.synthSong.push({id:uid(), synthId:null, repeats:reps, len});
+    });
+    while(project.synthSong.length && !project.synthSong[project.synthSong.length-1].synthId) project.synthSong.pop();
+  }
+  project.song.forEach(b=>delete b.synth);
+}
+function synthLayout(){
+  let at=0;
+  const blocks=(project.synthSong||[]).map(b=>{
+    const sp=synthById(b.synthId), len=sp?sp.len:(b.len||16), steps=len*Math.max(1,b.repeats||1);
+    const o={b, sp, len, start:at, steps}; at+=steps; return o;
+  });
+  return {blocks, total:at};
+}
+// Cosa suona il synth a una posizione della canzone (in step dall'inizio): {sp, step} o null.
+function synthAt(pos, L=synthLayout()){
+  const x=L.blocks.find(x=>pos>=x.start && pos<x.start+x.steps);
+  return x && x.sp ? {sp:x.sp, step:(pos-x.start)%x.len, index:L.blocks.indexOf(x)} : null;
+}
+// Per gli export: la linea del synth come sequenza di pezzi {len, synth} lunga quanto la batteria.
+// "pattern": il pattern del synth scelto ripetuto sotto WAV_PATTERN_LOOPS giri del pattern di batteria.
+function synthTimeline(which){
+  const total = which==="song" ? songLayout().total : curPattern().len*(which==="midi"?1:WAV_PATTERN_LOOPS);
+  const out=[];
+  if(which==="song"){
+    for(const x of synthLayout().blocks){
+      if(x.start>=total) break;
+      for(let r=0;r<x.b.repeats && x.start+r*x.len<total;r++){
+        const len=Math.min(x.len,total-(x.start+r*x.len));
+        out.push({len, synth:(x.sp?x.sp.synth:[]).filter(n=>n.s<len).map(n=>({...n, l:Math.min(n.l,len-n.s)}))});
+      }
+    }
+    const used=out.reduce((a,x)=>a+x.len,0);
+    if(used<total) out.push({len:total-used, synth:[]});
+  } else {
+    const sp=curSynth();
+    for(let at=0;at<total;at+=sp.len){
+      const len=Math.min(sp.len,total-at);
+      out.push({len, synth:sp.synth.filter(n=>n.s<len).map(n=>({...n, l:Math.min(n.l,len-n.s)}))});
+    }
+  }
+  return out;
 }
 
 const curPattern = ()=> project.patterns.find(p=>p.id===ui.patternId) || project.patterns[0];
@@ -1692,6 +1794,18 @@ function playingPattern(){
   return curPattern();
 }
 
+// Il synth in questo step: in Canzone segue la sua corsia alla stessa posizione della batteria,
+// altrimenti gira il pattern del synth scelto (cursor.abs conta gli step da quando e' partito Play).
+function synthNow(pat){
+  if(ui.mode==="song"){
+    const L=songLayout(), blk=L.blocks[cursor.blockIndex];
+    if(!blk) return null;
+    return synthAt(blk.start+(cursor.rep||0)*blk.len+cursor.step);
+  }
+  const sp=curSynth();
+  return sp ? {sp, step:(cursor.abs||0)%sp.len, index:-1} : null;
+}
+
 function scheduler(){
   const ctx=actx();
   while(nextTime < ctx.currentTime+0.12){
@@ -1711,10 +1825,12 @@ function scheduler(){
       const tr=lockedTrack(t,m), j=jitterT(), jv=jitterV();
       stepHits(m,dur,FLAM_SEC).forEach(([at,f])=>trigger(tr, nextTime+nudgeOf(t)+j+at, stepVel(v)*f*jv));
     });
-    if(window.PMSynth) PMSynth.step(pat, cursor.step, nextTime);   // synth (solo admin): note che partono in questo step
-    queue.push({time:nextTime, dur, step:cursor.step, cycle, rep:cursor.rep||0, patternId:pat.id, blockIndex:cursor.blockIndex, bar:barCount});
+    const syn=synthNow(pat);
+    if(window.PMSynth && syn) PMSynth.step(syn.sp, syn.step, nextTime);   // synth: note che partono in questo step
+    queue.push({time:nextTime, dur, step:cursor.step, cycle, rep:cursor.rep||0, patternId:pat.id, blockIndex:cursor.blockIndex, bar:barCount,
+      synthId:syn?syn.sp.id:null, synthStep:syn?syn.step:-1, synthIndex:syn?syn.index:-1});
     nextTime += dur;
-    cursor.step++;
+    cursor.step++; cursor.abs=(cursor.abs||0)+1;
     if(cursor.step>=pat.len){
       cursor.step=0; barCount++; cursor.loops=(cursor.loops||0)+1;
       if(ui.mode==="song"){
@@ -1736,7 +1852,8 @@ function frame(){
     let changed=false;
     while(queue.length && queue[0].time<=now){
       const e=queue.shift();
-      visible={step:e.step, cycle:e.cycle, patternId:e.patternId, blockIndex:e.blockIndex, bar:e.bar, rep:e.rep, time:e.time, dur:e.dur};
+      visible={step:e.step, cycle:e.cycle, patternId:e.patternId, blockIndex:e.blockIndex, bar:e.bar, rep:e.rep, time:e.time, dur:e.dur,
+        synthId:e.synthId, synthStep:e.synthStep, synthIndex:e.synthIndex};
       changed=true;
     }
     if(changed) paintPlayhead();
@@ -2125,6 +2242,19 @@ function renderTimeline(){
     seg.append(name,info);
     lane.appendChild(seg);
   });
+  const SL=synthLayout(), slane=el("tlSynthLane"), total=seqLayout.total;
+  slane.innerHTML="";
+  el("timeline").classList.toggle("has-synth", SL.blocks.length>0);
+  if(total) SL.blocks.forEach(x=>{
+    if(x.start>=total) return;
+    const seg=document.createElement("div");
+    seg.className="tl-seg"+(x.sp?"":" rest")+(x.b.id===ui.synthBlockId?" sel":"");
+    seg.style.left=`${x.start/total*100}%`; seg.style.width=`${Math.min(x.steps,total-x.start)/total*100}%`;
+    seg.style.setProperty("--seg-color", x.sp?`hsl(${synthHue(x.sp.id)} 65% 58%)`:"var(--edge)");
+    seg.style.setProperty("--bar-w",`${16/x.steps*100}%`);
+    const name=document.createElement("b"); name.textContent=x.sp?"♪ "+x.sp.name:"rest";
+    seg.appendChild(name); slane.appendChild(seg);
+  });
   tlNowBlock=-1;
   paintTimeline();
 }
@@ -2163,6 +2293,13 @@ function paintTimeline(){
     }
     tlNowBlock=nowIdx;
   }
+  const SL=live?synthLayout():null;
+  synthCards.forEach((c,i)=>{
+    const x=SL&&SL.blocks[i], inside=x && pos>=x.start && pos<x.start+x.steps;
+    c.el.classList.toggle("playing",!!inside);
+    c.prog.style.width=inside?`${(pos-x.start)/x.steps*100}%`:"0";
+    c.rep.textContent=inside?`${Math.floor((pos-x.start)/x.len)+1}/${x.b.repeats}`:"";
+  });
   const pct=L.total?pos/L.total*100:0;
   el("tlHead").style.left=`${pct}%`;
   el("tlDone").style.width=live?`${pct}%`:"0";
@@ -2408,15 +2545,133 @@ function renderSong(){
   const bars=bar-1;
   el("songInfo").textContent = project.song.length
     ? `${project.song.length} ${project.song.length===1?"block":"blocks"} · ${bars} ${bars===1?"bar":"bars"} · ${fmtDuration(bars*4*60/bpm())}` : "";
+  renderSynthLane();
   renderTimeline();
   paintPlayhead();
 }
+
+// ---------- corsia del synth nel Sequencer ----------
+const synthHue = id => (PATTERN_HUES[Math.max(0,(project.synthPatterns||[]).findIndex(p=>p.id===id))%PATTERN_HUES.length]+150)%360;
+let synthCards=[], synthDragFrom=null;
+function synthPreview(sp){
+  const box=document.createElement("div"); box.className="syn-prev";
+  if(!sp){ box.innerHTML='<span class="rest-label">rest</span>'; return box; }
+  const ns=sp.synth; if(!ns.length){ box.innerHTML='<span class="rest-label">empty</span>'; return box; }
+  const lo=Math.min(...ns.map(n=>n.n)), hi=Math.max(...ns.map(n=>n.n)), span=Math.max(12,hi-lo+1);
+  ns.forEach(n=>{
+    const i=document.createElement("i");
+    i.style.left=`${n.s/sp.len*100}%`; i.style.width=`calc(${n.l/sp.len*100}% - 1px)`;
+    i.style.top=`${(1-(n.n-lo+0.5)/span)*100}%`;
+    box.appendChild(i);
+  });
+  return box;
+}
+function renderSynthLane(){
+  const host=el("seqSynthTrack"), pick=el("seqSynthPick");
+  const keep=pick.value;
+  pick.innerHTML="";
+  project.synthPatterns.forEach((sp,i)=>{ const o=document.createElement("option"); o.value=sp.id; o.textContent=`${i+1}. ${sp.name} · ${sp.len} step`; pick.appendChild(o); });
+  pick.value=synthById(keep)?keep:ui.synthId;
+  host.innerHTML=""; synthCards=[];
+  const L=synthLayout();
+  if(!L.blocks.length){
+    const e=document.createElement("div"); e.className="song-empty synth";
+    e.textContent="no synth blocks — pick a synth pattern and press Insert: it plays under the drums from bar 1";
+    host.appendChild(e);
+  }
+  L.blocks.forEach((x,idx)=>{
+    const b=x.b, sp=x.sp, bars=x.steps/16, from=x.start/16+1;
+    const card=document.createElement("div");
+    card.className="seqblock synthblock"+(sp?"":" rest")+(b.id===ui.synthBlockId?" sel":"");
+    card.draggable=true;
+    if(sp) card.style.setProperty("--synth-color",`hsl(${synthHue(sp.id)} 65% 58%)`);
+    const head=document.createElement("div"); head.className="seqblock-head";
+    const dot=document.createElement("span"); dot.className="dot"; dot.style.background=sp?`hsl(${synthHue(sp.id)} 65% 58%)`:"var(--edge)";
+    const span=document.createElement("span");
+    const to=from+bars-1;
+    span.textContent=`bar ${Number.isInteger(from)?from:from.toFixed(1)}`+(bars>1?`–${Math.ceil(to)}`:"");
+    const grip=document.createElement("span"); grip.className="grip"; grip.textContent="⠿";
+    head.append(dot,span,grip); card.appendChild(head);
+
+    const sel=document.createElement("select"); sel.setAttribute("aria-label","Synth pattern of this block");
+    const o0=document.createElement("option"); o0.value=""; o0.textContent="— rest —"; sel.appendChild(o0);
+    project.synthPatterns.forEach(q=>{ const o=document.createElement("option"); o.value=q.id; o.textContent="♪ "+q.name; sel.appendChild(o); });
+    sel.value=b.synthId||"";
+    sel.onclick=e=>e.stopPropagation();
+    sel.onchange=()=>{ pushUndo(); if(sel.value){ b.synthId=sel.value; } else { b.len=x.len; b.synthId=null; } renderSong(); };
+    card.appendChild(sel);
+    if(!sp){
+      const lsel=document.createElement("select"); lsel.setAttribute("aria-label","Length of the rest");
+      [[8,"½ bar"],[16,"1 bar"],[32,"2 bars"]].forEach(([v,l])=>{ const o=document.createElement("option"); o.value=v; o.textContent=l; lsel.appendChild(o); });
+      lsel.value=b.len||16;
+      lsel.onclick=e=>e.stopPropagation();
+      lsel.onchange=()=>{ pushUndo(); b.len=+lsel.value; renderSong(); };
+      card.appendChild(lsel);
+    }
+    const meta=document.createElement("div"); meta.className="seqblock-meta";
+    meta.textContent=`${bars} ${bars===1?"bar":"bars"} · ×${b.repeats}`;
+    card.appendChild(meta);
+    card.appendChild(synthPreview(sp));
+    const prog=document.createElement("div"); prog.className="seq-prog";
+    const progFill=document.createElement("i"); prog.appendChild(progFill); card.appendChild(prog);
+
+    const foot=document.createElement("div"); foot.className="seqblock-foot";
+    const minus=document.createElement("button"); minus.textContent="−";
+    minus.onclick=e=>{ e.stopPropagation(); pushUndo(); b.repeats=Math.max(1,b.repeats-1); renderSong(); };
+    const rep=document.createElement("input");
+    rep.type="number"; rep.min=1; rep.max=64; rep.value=b.repeats; rep.title="repeats";
+    rep.onclick=e=>e.stopPropagation();
+    rep.onchange=()=>{ pushUndo(); b.repeats=Math.min(64,Math.max(1,+rep.value||1)); renderSong(); };
+    const plus=document.createElement("button"); plus.textContent="+";
+    plus.onclick=e=>{ e.stopPropagation(); pushUndo(); b.repeats=Math.min(64,b.repeats+1); renderSong(); };
+    const repNow=document.createElement("span"); repNow.className="seq-rep"; repNow.title="current repeat";
+    const dup=document.createElement("button"); dup.className="sp"; dup.textContent="⧉"; dup.title="duplicate";
+    dup.onclick=e=>{ e.stopPropagation(); pushUndo(); const c={id:uid(), synthId:b.synthId, repeats:b.repeats, len:b.len||16};
+      project.synthSong.splice(idx+1,0,c); ui.synthBlockId=c.id; renderSong(); };
+    const del=document.createElement("button"); del.className="danger"; del.textContent="×"; del.title="remove";
+    del.onclick=e=>{ e.stopPropagation(); pushUndo(); project.synthSong.splice(idx,1);
+      ui.synthBlockId=project.synthSong[Math.min(idx,project.synthSong.length-1)]?.id||null; renderSong(); };
+    foot.append(minus,rep,plus,repNow,dup,del); card.appendChild(foot);
+    synthCards.push({el:card, prog:progFill, rep:repNow});
+
+    card.onclick=()=>{ ui.synthBlockId=b.id; if(sp){ ui.synthId=sp.id; el("seqSynthPick").value=sp.id; } ui.songStartPos=x.start; renderSong(); };
+    card.ondblclick=e=>{ if(e.target.closest("button,input,select,.seqblock-foot")) return; if(sp){ ui.synthId=sp.id; setView("synth"); } };
+    card.ondragstart=e=>{ synthDragFrom=idx; card.classList.add("dragging"); e.dataTransfer.effectAllowed="move"; };
+    card.ondragend=()=>{ synthDragFrom=null; card.classList.remove("dragging"); clearDropMarks(); };
+    card.ondragover=e=>{ if(synthDragFrom===null) return; e.preventDefault();
+      const r=card.getBoundingClientRect(); clearDropMarks(); card.classList.add(e.clientX>r.left+r.width/2?"dropafter":"dropbefore"); };
+    card.ondrop=e=>{ if(synthDragFrom===null) return; e.preventDefault();
+      const r=card.getBoundingClientRect(); let to=idx+(e.clientX>r.left+r.width/2?1:0); if(to>synthDragFrom) to--;
+      if(to!==synthDragFrom){ pushUndo(); const [m]=project.synthSong.splice(synthDragFrom,1); project.synthSong.splice(to,0,m); ui.synthBlockId=m.id; }
+      synthDragFrom=null; clearDropMarks(); renderSong(); };
+    host.appendChild(card);
+  });
+  const drumTotal=songLayout().total;
+  el("synthLaneInfo").textContent = L.blocks.length
+    ? `${L.total/16} ${L.total===16?"bar":"bars"}` + (L.total>drumTotal ? ` · the last ${(L.total-drumTotal)/16} past the end of the drums are not played` : L.total<drumTotal ? ` · silent for the last ${(drumTotal-L.total)/16}` : " · same length as the drums")
+    : "";
+}
+function insertSynthBlock(block){
+  pushUndo();
+  const i=project.synthSong.findIndex(b=>b.id===ui.synthBlockId);
+  if(i>=0) project.synthSong.splice(i+1,0,block); else project.synthSong.push(block);
+  ui.synthBlockId=block.id; renderSong();
+}
+el("ssAdd").onclick=()=>{ const sp=synthById(el("seqSynthPick").value)||curSynth(); insertSynthBlock({id:uid(), synthId:sp.id, repeats:1, len:sp.len}); };
+el("ssRest").onclick=()=>insertSynthBlock({id:uid(), synthId:null, repeats:1, len:16});
+el("ssClear").onclick=async()=>{
+  if(!project.synthSong.length) return;
+  if(!await ask({title:"Clear the synth lane", message:"Remove every synth block from the song? The synth patterns stay. You can undo with cmd+Z.", ok:"Clear", danger:true})) return;
+  pushUndo(); project.synthSong=[]; ui.synthBlockId=null; renderSong(); setStatus("synth lane cleared");
+};
 
 function setView(v){
   el("viewGrid").classList.toggle("on",v==="grid");
   el("viewSeq").classList.toggle("on",v==="seq");
   el("viewSynth").classList.toggle("on",v==="synth");
   el("viewSound").classList.toggle("on",v==="sound");
+  el("viewSound").setAttribute("aria-pressed",v==="sound");
+  el("viewSound").hidden = v!=="grid" && v!=="sound";
   el("viewRecent").classList.toggle("on",v==="recent");
   document.body.classList.toggle("sound-view",v==="sound");
   // La Vista Live mostra la stessa griglia della Griglia, senza il resto dell'interfaccia.
@@ -2528,7 +2783,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || document.getElementById("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-28.16";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-28.22";
   document.body.appendChild(s);
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth")) loadSynth();
@@ -2655,7 +2910,7 @@ el("viewSynth").onclick=()=>{
   const s=document.getElementById("synthScript");
   if(s) s.addEventListener("load",()=>setView("synth"),{once:true});
 };
-el("viewSound").onclick=()=>setView("sound");
+el("viewSound").onclick=()=>setView(isLive()?"grid":"sound");
 el("seqClear").onclick=async()=>{
   if(!project.song.length) return;
   if(!await ask({title:"Clear arrangement", message:"Remove all the blocks from the song? The patterns stay.", ok:"Clear", danger:true})) return;
@@ -2752,7 +3007,6 @@ el("pDup").onclick=()=>{
   const p=makePattern(src.name+" copia", src.len);
   Object.entries(src.grid).forEach(([k,v])=>p.grid[k]=v.slice());
   p.mods=cloneMods(src.mods); p.lens={...(src.lens||{})};
-  if(src.synth) p.synth=src.synth.map(n=>({...n}));
   project.patterns.push(p); normalize(); selectPattern(p.id);
 };
 async function renamePattern(p){
@@ -2794,11 +3048,6 @@ el("pLen").onchange=()=>{
     Object.values(p.mods||{}).forEach(row=>Object.keys(row).forEach(i=>{
       for(let j=+i+from;j<to;j+=from) row[j]={...row[i]};
     }));
-    if(p.synth){
-      const base=p.synth.filter(n=>n.s<from);
-      p.synth=[];
-      for(let k=0;k<to;k+=from) base.forEach(n=>p.synth.push({...n, s:n.s+k}));
-    }
   }
   p.len=to;
   normalize(); renderRuler(); renderTracks(); renderPatterns(); renderSong();
@@ -2893,8 +3142,10 @@ function serialize(){
       grid:Object.fromEntries(Object.entries(p.grid).map(([k,v])=>[k,v.slice()])),
       ...(p.mods&&Object.keys(p.mods).length?{mods:cloneMods(p.mods)}:{}),
       ...(p.lens&&Object.keys(p.lens).length?{lens:{...p.lens}}:{}),
-      ...(p.synth&&p.synth.length?{synth:p.synth.map(n=>({...n}))}:{})})),
+      })),
     song: project.song.map(b=>({id:b.id, patternId:b.patternId, repeats:b.repeats, section:b.section||"verse", ...(b.fillPatternId?{fillPatternId:b.fillPatternId}: {})})),
+    synthPatterns: (project.synthPatterns||[]).map(sp=>({id:sp.id, name:sp.name, len:sp.len, synth:sp.synth.map(n=>({...n}))})),
+    synthSong: (project.synthSong||[]).map(b=>({id:b.id, synthId:b.synthId||null, repeats:b.repeats, len:b.len||16})),
     ...(project.synth?{synth:JSON.parse(JSON.stringify(project.synth))}:{}),   // synth (in prova): suono, tonalita', on/off
     updatedAt: Date.now(),
   };
@@ -2908,10 +3159,13 @@ function deserialize(d,keepSel){
     patterns:(d.patterns||[]).map(p=>({id:p.id, name:p.name, len:p.len||16,
       grid:Object.fromEntries(Object.entries(p.grid||{}).map(([k,v])=>[k,v.slice()])), mods:cloneMods(p.mods), lens:{...(p.lens||{})},
       ...(Array.isArray(p.synth)&&p.synth.length?{synth:p.synth.map(n=>({...n}))}:{})})),
-    song:(d.song||[]).map(b=>({id:b.id, patternId:b.patternId, repeats:b.repeats||1, section:b.section||"verse", fillPatternId:b.fillPatternId||null})),
+    song:(d.song||[]).map(b=>({id:b.id, patternId:b.patternId, repeats:b.repeats||1, section:b.section||"verse", fillPatternId:b.fillPatternId||null, ...(typeof b.synth==="string"&&b.synth?{synth:b.synth}:{})})),
+    ...(Array.isArray(d.synthPatterns)&&Array.isArray(d.synthSong) ? {
+      synthPatterns:d.synthPatterns.map(sp=>({id:sp.id, name:sp.name||"Synth", len:[8,16,32].includes(sp.len)?sp.len:16, synth:(Array.isArray(sp.synth)?sp.synth:[]).map(n=>({...n}))})),
+      synthSong:d.synthSong.map(b=>({id:b.id, synthId:b.synthId||null, repeats:b.repeats||1, len:b.len||16})) } : {}),
     ...(d.synth&&typeof d.synth==="object"?{synth:JSON.parse(JSON.stringify(d.synth))}:{}),
   };
-  const ids=[...project.tracks, ...project.patterns, ...project.song].map(x=>+x.id).filter(n=>!isNaN(n));
+  const ids=[...project.tracks, ...project.patterns, ...project.song, ...(project.synthPatterns||[]), ...(project.synthSong||[])].map(x=>+x.id).filter(n=>!isNaN(n));
   idSeq=Math.max(idSeq, ...(ids.length?ids:[0]))+1;
   if(!project.patterns.length) project.patterns=[makePattern("Beat 1",16)];
   ui.patternId=(keepSel && project.patterns.some(p=>p.id===prevPattern)) ? prevPattern : project.patterns[0].id;
@@ -3268,7 +3522,7 @@ async function renderWav(which){
   const ctx=new OAC(2, Math.ceil((length+WAV_TAIL)*WAV_RATE), WAV_RATE);
   const chokes=new Map();
   events.forEach(([time,,vel,lt])=>trigger(lt,time,vel,ctx,chokes));
-  if(synth) await PMSynth.renderOffline(ctx, which);   // synth (solo admin) nello stesso mix
+  if(synth) await PMSynth.renderOffline(ctx, which);   // synth nello stesso mix
   const buf=await ctx.startRendering();
   return {buf, seconds:length};
 }
@@ -4655,7 +4909,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-28.16";
+const SW_VERSION="2026-09-28.22";
 (function pwa(){
   const netBadge=el("netBadge");
 

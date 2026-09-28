@@ -1080,19 +1080,19 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-28.09"></script>
-<script src="engine/styles-punk.js?v=2026-09-28.09"></script>
-<script src="engine/styles-post.js?v=2026-09-28.09"></script>
-<script src="engine/styles-machines.js?v=2026-09-28.09"></script>
-<script src="engine/styles-alt.js?v=2026-09-28.09"></script>
-<script src="engine/styles-groove.js?v=2026-09-28.09"></script>
-<script src="engine/styles-dub.js?v=2026-09-28.09"></script>
-<script src="engine/styles-break.js?v=2026-09-28.09"></script>
-<script src="engine/styles-soul.js?v=2026-09-28.09"></script>
-<script src="engine/styles-metal.js?v=2026-09-28.09"></script>
-<script src="engine/styles-electro.js?v=2026-09-28.09"></script>
-<script src="engine/variations.js?v=2026-09-28.09"></script>
-<script src="engine/import.js?v=2026-09-28.09"></script>
+<script src="engine/core.js?v=2026-09-28.11"></script>
+<script src="engine/styles-punk.js?v=2026-09-28.11"></script>
+<script src="engine/styles-post.js?v=2026-09-28.11"></script>
+<script src="engine/styles-machines.js?v=2026-09-28.11"></script>
+<script src="engine/styles-alt.js?v=2026-09-28.11"></script>
+<script src="engine/styles-groove.js?v=2026-09-28.11"></script>
+<script src="engine/styles-dub.js?v=2026-09-28.11"></script>
+<script src="engine/styles-break.js?v=2026-09-28.11"></script>
+<script src="engine/styles-soul.js?v=2026-09-28.11"></script>
+<script src="engine/styles-metal.js?v=2026-09-28.11"></script>
+<script src="engine/styles-electro.js?v=2026-09-28.11"></script>
+<script src="engine/variations.js?v=2026-09-28.11"></script>
+<script src="engine/import.js?v=2026-09-28.11"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -2509,7 +2509,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || document.getElementById("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-28.09";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-28.11";
   document.body.appendChild(s);
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth")) loadSynth();
@@ -4629,7 +4629,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-28.09";
+const SW_VERSION="2026-09-28.11";
 (function pwa(){
   const netBadge=el("netBadge");
 

@@ -250,7 +250,7 @@
     if (node) node.port.postMessage({ t: "alloff" });
     if (node) { node.disconnect(); node = null; }
     if (chain?.out) chain.out.disconnect();
-    chain = null;
+    chain = null; loading = null; analyser = null;
   }
   function stopTone() {
     const oldAnalyser = toneAnalyser;
@@ -732,7 +732,7 @@
         <canvas id="synScope" width="400" height="80" aria-hidden="true"></canvas>
       </div>
       <div class="synth-params" id="synParams"></div>
-      <p class="synth-credits">Multi engine › <b>KORG logue unit</b>: oscillators from the
+      <p class="synth-credits"><a href="synth.html" title="How the synth engines work">Synth engines and methods →</a><br>Multi engine › <b>KORG logue unit</b>: oscillators from the
         <a href="https://github.com/korginc/logue-sdk" target="_blank" rel="noopener">KORG logue-sdk</a> (NTS-1 mkII, BSD-3-Clause),
         compiled to WebAssembly, one instance per voice. To record: turn on Rec, press Play and play the keys.</p>`;
 
@@ -1133,7 +1133,10 @@
     if (!allowed && !el("panelSynth").hidden) setView("grid");
   }
 
-  listUnits().then(list => { if (list.length) unitOpts = list.map(u => [u, u]); });
+  listUnits().then(list => {
+    if (list.length) unitOpts = list.map(u => [u, u]);
+    if (built && synthVisible()) renderParams();
+  });
   el("viewSynth").onclick = () => setView("synth");
   el("masterVol").addEventListener("input", () => {
     if (chain) chain.apply(params(), bpm(), masterVol());

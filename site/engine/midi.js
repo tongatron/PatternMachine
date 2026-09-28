@@ -72,7 +72,14 @@
     return Object.fromEntries(Object.keys(PROFILES).map(id => [id, merge(defaults(id), saved && saved[id])]));
   }
   let maps = load();
-  const save = () => { try { localStorage.setItem(MAPS_KEY, JSON.stringify(maps)); } catch (e) { setStatus("MIDI: assignments can't be saved in this browser", "err"); } };
+  // Le assegnazioni restano nel browser da una sessione all'altra; persist() chiede al browser di non cancellarle
+  // da solo quando libera spazio (resta possibile cancellarle a mano con i dati del sito).
+  let persistAsked = false;
+  function save() {
+    try { localStorage.setItem(MAPS_KEY, JSON.stringify(maps)); }
+    catch (e) { setStatus("MIDI: assignments can't be saved in this browser", "err"); return; }
+    if (!persistAsked && navigator.storage && navigator.storage.persist) { persistAsked = true; navigator.storage.persist().catch(() => {}); }
+  }
   let shown = null;   // profilo mostrato nella vista MIDI
 
   // ---------- collegamento ----------

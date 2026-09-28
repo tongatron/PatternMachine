@@ -181,7 +181,12 @@ h1{font-size:26px; letter-spacing:0.18em; text-transform:uppercase; margin:0; li
 .project-io button{min-height:42px; padding:10px 16px; font-size:12px; letter-spacing:.06em;}
 .project-panel #viewRecent{min-height:42px; padding:10px 16px; font-size:12px; letter-spacing:.06em;}
 .project-panel #projectName{height:42px; box-sizing:border-box;}
-.project-panel #importBtn{min-height:42px; padding:10px 16px; font-size:12px; letter-spacing:.06em; display:inline-flex; align-items:center; gap:6px;}
+.project-panel #importBtn, .project-panel #viewMidi{min-height:42px; padding:10px 16px; font-size:12px; letter-spacing:.06em; display:inline-flex; align-items:center; gap:6px;}
+/* MIDI: come Import, ma arancione (il colore dei tasti di vista accesi) */
+.project-panel #viewMidi{background:linear-gradient(180deg,#ff8a3d,#e0561a); border-color:#b8471f; color:#1c1b19; font-weight:700;}
+.project-panel #viewMidi:hover{filter:brightness(1.06);}
+.project-panel #viewMidi.on{box-shadow:inset 0 2px 4px rgba(0,0,0,.35); filter:brightness(.92);}
+.project-panel #viewMidi[hidden]{display:none;}
 @media (max-width:560px){.project-buttons{width:100%;}.project-buttons button{flex:1 1 30%;}}
 /* Menu Export: il summary ha l'aspetto di un tasto, l'elenco si apre sotto e si chiude al click fuori. */
 .export-menu{position:relative;}
@@ -674,23 +679,23 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 }
 /* Comandi principali piu' grandi. */
 #machinePanel .machine-bar, #synthEnginePanel .machine-bar{margin-top:0; padding-top:0; border-top:none;}
-#viewGrid, #viewSeq, #viewSynth, #viewMidi, #viewRecent{font-size:14px; padding:11px 22px; min-height:44px;}
-#viewGrid, #viewSeq, #viewSynth, #viewMidi{
+#viewGrid, #viewSeq, #viewSynth, #viewRecent{font-size:14px; padding:11px 22px; min-height:44px;}
+#viewGrid, #viewSeq, #viewSynth{
   min-height:52px; padding:12px 24px; border:2px solid var(--edge);
   border-radius:9px; font-weight:800; letter-spacing:.08em;
   box-shadow:inset 0 2px 0 rgba(255,255,255,.16), inset 0 -3px 0 rgba(0,0,0,.22), 0 3px 0 rgba(0,0,0,.28);
   transition:transform .06s, box-shadow .06s, background .12s;
 }
-#viewGrid:hover, #viewSeq:hover, #viewSynth:hover, #viewMidi:hover{border-color:var(--text-faint);}
-#viewGrid:active, #viewSeq:active, #viewSynth:active, #viewMidi:active{transform:translateY(2px); box-shadow:inset 0 1px 0 rgba(255,255,255,.08), inset 0 -1px 0 rgba(0,0,0,.2);}
-#viewGrid.on, #viewSeq.on, #viewSynth.on, #viewMidi.on{background:linear-gradient(180deg,#ff8a3d,#e0561a); border-color:#b8471f; color:#1c1b19; box-shadow:inset 0 2px 0 rgba(255,255,255,.35), inset 0 -3px 0 rgba(0,0,0,.2), 0 3px 0 rgba(0,0,0,.28);}
+#viewGrid:hover, #viewSeq:hover, #viewSynth:hover{border-color:var(--text-faint);}
+#viewGrid:active, #viewSeq:active, #viewSynth:active{transform:translateY(2px); box-shadow:inset 0 1px 0 rgba(255,255,255,.08), inset 0 -1px 0 rgba(0,0,0,.2);}
+#viewGrid.on, #viewSeq.on, #viewSynth.on{background:linear-gradient(180deg,#ff8a3d,#e0561a); border-color:#b8471f; color:#1c1b19; box-shadow:inset 0 2px 0 rgba(255,255,255,.35), inset 0 -3px 0 rgba(0,0,0,.2), 0 3px 0 rgba(0,0,0,.28);}
 #pChoose, #pVary, #pNew, #synPatBrowse, #synPatNew{font-size:13px; padding:9px 16px; min-height:40px;}
 #recBtn{font-size:13.5px; padding:11px 18px; min-height:44px;}
 #bpmNum{height:44px; width:72px; font-size:14px;}
 #tapBtn, #viewSound{min-height:44px; padding:11px 18px; font-size:13.5px;}
 .topbar #accountLinks{display:inline-flex; align-items:baseline; gap:10px; margin-left:auto;}
 @media (max-width:560px){
-  #viewGrid, #viewSeq, #viewSynth, #viewMidi, #viewRecent{padding:10px 14px;}
+  #viewGrid, #viewSeq, #viewSynth, #viewRecent{padding:10px 14px;}
 }
 </style>
 
@@ -723,6 +728,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
         <button id="viewRecent"><span id="recentLabel">Saved projects</span> <span id="recentCount"></span></button>
       </div>
       <div class="project-io">
+        <button id="viewMidi" hidden title="MIDI keyboard: connect it and choose what keys, pads and knobs do">MIDI</button>
         <button id="importBtn" title="Import MIDI, audio, PatternTXT, drum tabs, Hydrogen, REAPER, Ableton, MusicXML or a JSON project (you can also drop a file on the page)">Import</button>
         <details class="export-menu" id="exportMenu">
           <summary>Export</summary>
@@ -755,7 +761,6 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <button id="viewGrid" class="on">Drum Grid</button>
     <button id="viewSynth" title="Synth line of the pattern, in time with the drums">Synthesizer</button>
     <button id="viewSeq">Sequencer</button>
-    <button id="viewMidi" hidden title="MIDI keyboard: connect it and choose what pads and knobs do">MIDI</button>
   </div>
 
   <div class="panel" id="machinePanel">
@@ -1121,19 +1126,19 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-28.28"></script>
-<script src="engine/styles-punk.js?v=2026-09-28.28"></script>
-<script src="engine/styles-post.js?v=2026-09-28.28"></script>
-<script src="engine/styles-machines.js?v=2026-09-28.28"></script>
-<script src="engine/styles-alt.js?v=2026-09-28.28"></script>
-<script src="engine/styles-groove.js?v=2026-09-28.28"></script>
-<script src="engine/styles-dub.js?v=2026-09-28.28"></script>
-<script src="engine/styles-break.js?v=2026-09-28.28"></script>
-<script src="engine/styles-soul.js?v=2026-09-28.28"></script>
-<script src="engine/styles-metal.js?v=2026-09-28.28"></script>
-<script src="engine/styles-electro.js?v=2026-09-28.28"></script>
-<script src="engine/variations.js?v=2026-09-28.28"></script>
-<script src="engine/import.js?v=2026-09-28.28"></script>
+<script src="engine/core.js?v=2026-09-28.29"></script>
+<script src="engine/styles-punk.js?v=2026-09-28.29"></script>
+<script src="engine/styles-post.js?v=2026-09-28.29"></script>
+<script src="engine/styles-machines.js?v=2026-09-28.29"></script>
+<script src="engine/styles-alt.js?v=2026-09-28.29"></script>
+<script src="engine/styles-groove.js?v=2026-09-28.29"></script>
+<script src="engine/styles-dub.js?v=2026-09-28.29"></script>
+<script src="engine/styles-break.js?v=2026-09-28.29"></script>
+<script src="engine/styles-soul.js?v=2026-09-28.29"></script>
+<script src="engine/styles-metal.js?v=2026-09-28.29"></script>
+<script src="engine/styles-electro.js?v=2026-09-28.29"></script>
+<script src="engine/variations.js?v=2026-09-28.29"></script>
+<script src="engine/import.js?v=2026-09-28.29"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -2812,7 +2817,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || document.getElementById("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-28.28";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-28.29";
   document.body.appendChild(s);
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth")) loadSynth();
@@ -4947,7 +4952,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-28.28";
+const SW_VERSION="2026-09-28.29";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -4966,7 +4971,7 @@ const SW_VERSION="2026-09-28.28";
   });
 })();
 </script>
-<script src="engine/midi.js?v=2026-09-28.28"></script>
+<script src="engine/midi.js?v=2026-09-28.29"></script>
 
 </body>
 </html>

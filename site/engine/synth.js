@@ -466,7 +466,7 @@
   const synthVisible = () => allowed && !el("panelSynth").hidden;
   function typingTarget(e) {
     if (!synthVisible() || e.metaKey || e.ctrlKey || e.altKey) return false;
-    if (document.querySelector("dialog[open]") || !el("libOverlay").hidden) return false;
+    if (document.querySelector("dialog[open]") || !el("libOverlay").hidden || (el("synLib") && !el("synLib").hidden)) return false;
     const a = document.activeElement, tag = (a && a.tagName) || "";
     return !(tag === "INPUT" && !/^(range|checkbox|radio|button)$/.test(a.type) || tag === "SELECT" || tag === "TEXTAREA");
   }
@@ -746,15 +746,22 @@
       return legatoFill(out, pat.len, 8);
     } },
   };
-  function runGenerator(k) {
-    const g = GENERATORS[k]; if (!g) return;
-    const o = genOpts(), pat = curSynth(), shift = 12 * (+o.oct || 0);
+  // Note pulite di un generatore per un pattern lungo len (opzioni: giro, densita', ottava di genOpts()).
+  function generateNotes(k, len) {
+    const g = GENERATORS[k], o = genOpts(), shift = 12 * (+o.oct || 0), pat = { len, synth: [] };
     dens = DENSITY[o.dens] || 1;
     let notes = [];
-    for (let tries = 0; tries < 6 && !notes.length; tries++)
-      notes = g.run(pat).map(x => ({ ...x, n: x.n + shift })).filter(x => x.n >= 0 && x.n <= 127 && x.s >= 0 && x.s < pat.len);
-    dens = 1;
-    notes.forEach(x => { x.l = clamp(Math.round(x.l || 1), 1, pat.len - x.s); if (x.g && x.s + x.l >= pat.len) delete x.g; });
+    try {
+      for (let tries = 0; tries < 6 && !notes.length; tries++)
+        notes = g.run(pat).map(x => ({ ...x, n: x.n + shift })).filter(x => x.n >= 0 && x.n <= 127 && x.s >= 0 && x.s < len);
+    } finally { dens = 1; }
+    notes.forEach(x => { x.l = clamp(Math.round(x.l || 1), 1, len - x.s); if (x.g && x.s + x.l >= len) delete x.g; });
+    return notes.sort((a, b) => a.s - b.s || a.n - b.n);
+  }
+  function runGenerator(k) {
+    const g = GENERATORS[k]; if (!g) return;
+    const o = genOpts(), pat = curSynth();
+    let notes = generateNotes(k, pat.len);
     pushUndo(); ensure();
     if (o.add) { const key = x => x.s + ":" + x.n, fresh = new Set(notes.map(key)); notes = pat.synth.filter(x => !fresh.has(key(x))).concat(notes); }
     pat.synth = notes.sort((a, b) => a.s - b.s || a.n - b.n);
@@ -762,6 +769,116 @@
     centerOn(pat); renderRoll();
     setStatus(`synth: ${g.group.toLowerCase()} · ${g.label.toLowerCase()} in ${NOTE_NAMES[keyOf()]} ${SCALES[scaleOf()][0].toLowerCase()}${o.add ? " (added)" : ""}`);
   }
+  // ---------- Browse: libreria di suggerimenti dai generatori (come Browse… dei pattern di batteria) ----------
+  let libItems = [], libPreview = null;
+  const libOpts = () => Object.assign({ type: "*", len: curSynth().len }, view.lib || {});
+  function libSuggest() {
+    const o = libOpts(), keys = Object.keys(GENERATORS);
+    const pickKeys = o.type === "*" ? keys.slice().sort(() => Math.random() - 0.5).slice(0, 8) : Array(8).fill(o.type);
+    libItems = pickKeys.filter(k => GENERATORS[k]).map(k => ({ k, len: o.len, notes: generateNotes(k, o.len) }));
+    renderLib();
+  }
+  function libSelect(id, pairs, v) {
+    return `<select id="${id}">${pairs.map(([k, l]) => `<option value="${esc(k)}"${String(k) === String(v) ? " selected" : ""}>${esc(l)}</option>`).join("")}</select>`;
+  }
+  function buildLib() {
+    if (el("synLib")) return;
+    const d = document.createElement("div");
+    d.className = "overlay"; d.id = "synLib"; d.hidden = true;
+    d.innerHTML = `<div class="modal" role="dialog" aria-label="Synth pattern library">
+      <div class="modal-head"><h3>Synth pattern library</h3><span class="tiny" id="synLibInfo"></span><button class="x" id="synLibClose" type="button" aria-label="Close">&times;</button></div>
+      <div class="flexline" id="synLibOpts" style="margin-bottom:9px;"></div>
+      <p class="syn-note" id="synLibKey" style="margin:0 0 11px;"></p>
+      <div class="lib-list" id="synLibList"></div></div>`;
+    document.body.appendChild(d);
+    d.onclick = e => { if (e.target === d) closeLib(); };
+    el("synLibClose").onclick = closeLib;
+    el("synLibOpts").onchange = () => {
+      view.lib = { type: el("synLibType").value, len: +el("synLibLen").value };
+      view.gen = { ...genOpts(), prog: el("synLibProg").value, dens: el("synLibDens").value, oct: +el("synLibOct").value };
+      saveView(); if (built) el("synGen").innerHTML = genMenuHtml();
+      libSuggest();
+    };
+    document.addEventListener("keydown", e => { if (e.key === "Escape" && !el("synLib").hidden) closeLib(); });
+  }
+  function openLib() {
+    buildLib();
+    const o = libOpts(), g = genOpts();
+    const typeOpts = `<option value="*"${o.type === "*" ? " selected" : ""}>All kinds</option>` + GEN_GROUPS.map(gr => `<optgroup label="${esc(gr)}">${Object.entries(GENERATORS).filter(([, x]) => x.group === gr)
+      .map(([k, x]) => `<option value="${k}"${k === o.type ? " selected" : ""}>${esc(x.label)}</option>`).join("")}</optgroup>`).join("");
+    el("synLibOpts").innerHTML = `<label class="fld">Type <select id="synLibType">${typeOpts}</select></label>
+      <label class="fld">Chords ${libSelect("synLibProg", Object.entries(PROGRESSIONS).map(([k, [l]]) => [k, l]), g.prog)}</label>
+      <label class="fld">Density ${libSelect("synLibDens", [["sparse", "Sparse"], ["normal", "Normal"], ["busy", "Busy"]], g.dens)}</label>
+      <label class="fld">Octave ${libSelect("synLibOct", [[-1, "−1"], [0, "0"], [1, "+1"]], g.oct)}</label>
+      <label class="fld">Steps ${libSelect("synLibLen", [[8, "8"], [16, "16"], [32, "32"]], o.len)}</label>
+      <button type="button" id="synLibMore" class="mini primary" title="8 new suggestions with the same settings">↻ More suggestions</button>`;
+    el("synLibMore").onclick = libSuggest;
+    el("synLibKey").textContent = `In ${NOTE_NAMES[keyOf()]} ${SCALES[scaleOf()][0].toLowerCase()}, with the current sound. Key and scale are in Notes. Load replaces the notes of "${curSynth().name}", + Add makes a new synth pattern.`;
+    el("synLib").hidden = false;
+    libSuggest();
+  }
+  function closeLib() { stopPreview(); if (el("synLib")) el("synLib").hidden = true; }
+  function renderLib() {
+    stopPreview();
+    const list = el("synLibList"); list.innerHTML = "";
+    el("synLibInfo").textContent = `${libItems.length} suggestions`;
+    libItems.forEach(item => {
+      const g = GENERATORS[item.k], row = document.createElement("div");
+      row.className = "lib-item";
+      const play = document.createElement("button"); play.type = "button"; play.className = "lib-play"; play.textContent = "▶"; play.title = "listen";
+      play.onclick = () => libPreview && libPreview.item === item ? stopPreview() : startPreview(item, row);
+      const meta = document.createElement("div"); meta.className = "lib-meta";
+      meta.innerHTML = `<div class="lib-name">${esc(g.label)}</div><div class="lib-tag">${esc(g.group)} · ${item.len} step · ${item.notes.length} notes</div>` + (g.hint ? `<div class="lib-ref">${esc(g.hint)}</div>` : "");
+      const mini = document.createElement("div"); mini.className = "lib-mini";
+      const prev = document.createElement("div"); prev.className = "syn-prev"; prev.style.setProperty("--synth-color", "var(--accent)");
+      const ns = item.notes, lo = Math.min(...ns.map(n => n.n)), hi = Math.max(...ns.map(n => n.n)), span = Math.max(12, hi - lo + 1);
+      ns.forEach(n => { const i = document.createElement("i"); i.style.left = `${n.s / item.len * 100}%`; i.style.width = `calc(${n.l / item.len * 100}% - 1px)`; i.style.top = `${(1 - (n.n - lo + 0.5) / span) * 100}%`; prev.appendChild(i); });
+      mini.appendChild(prev);
+      const acts = document.createElement("div"); acts.className = "lib-acts";
+      const load = document.createElement("button"); load.type = "button"; load.className = "mini primary"; load.textContent = "Load";
+      load.title = "replace the notes of the synth pattern you are editing";
+      load.onclick = () => {
+        const sp = curSynth(); pushUndo(); ensure();
+        sp.len = item.len; sp.synth = item.notes.map(n => ({ ...n }));
+        closeLib(); paintPatternBar(); centerOn(sp); renderRoll(); setStatus(`synth: ${g.label.toLowerCase()} loaded in ${sp.name}`);
+      };
+      const add = document.createElement("button"); add.type = "button"; add.className = "mini"; add.textContent = "+ Add";
+      add.title = "add it as a new synth pattern";
+      add.onclick = () => {
+        pushUndo(); ensure();
+        const sp = makeSynthPattern(g.label, item.len); sp.synth = item.notes.map(n => ({ ...n }));
+        project.synthPatterns.push(sp); closeLib(); selectSynth(sp.id); setStatus("new synth pattern: " + sp.name);
+      };
+      acts.append(load, add);
+      row.append(play, meta, mini, acts);
+      list.appendChild(row);
+    });
+  }
+  // Ascolto di un suggerimento: gira da solo col suono attuale, finche' non lo fermi o parte il Play.
+  function startPreview(item, row) {
+    stopPreview();
+    if (playing) stop();
+    const pat = { len: item.len, synth: item.notes };
+    libPreview = { item, row, timer: null };
+    row.classList.add("playing"); row.querySelector(".lib-play").textContent = "■";
+    const me = libPreview;
+    (engineOf() === "tone" ? ensureTone() : ensureAudio()).then(() => {
+      if (libPreview !== me) return;
+      let s = 0, t = actx().currentTime + 0.08;
+      me.timer = setInterval(() => {
+        if (playing) { stopPreview(); return; }
+        while (t < actx().currentTime + 0.12) { step(pat, s, t); t += stepDur(s); s = (s + 1) % pat.len; }
+      }, 25);
+    }).catch(() => stopPreview());
+  }
+  function stopPreview() {
+    if (!libPreview) return;
+    clearInterval(libPreview.timer);
+    libPreview.row.classList.remove("playing");
+    const b = libPreview.row.querySelector(".lib-play"); if (b) b.textContent = "▶";
+    libPreview = null; allOff();
+  }
+
   function genMenuHtml() {
     const o = genOpts(), sel = (id, pairs, v) => `<select id="${id}">${pairs.map(([k, l]) => `<option value="${esc(k)}"${String(k) === String(v) ? " selected" : ""}>${esc(l)}</option>`).join("")}</select>`;
     return `<div class="syn-gen-opts">
@@ -908,11 +1025,7 @@
 .sec-vco-1 .syn-p input[type=range]::-webkit-slider-thumb,.sec-vco-2 .syn-p input[type=range]::-webkit-slider-thumb{border-radius:3px;background:linear-gradient(145deg,#f3b15e,#a75c1d);box-shadow:0 1px 2px #000,0 0 0 2px rgba(217,139,53,.22)}.sec-vco-1 .syn-p input[type=range]::-moz-range-thumb,.sec-vco-2 .syn-p input[type=range]::-moz-range-thumb{border-radius:3px;background:#d98b35}.sec-filter .syn-p input[type=range]::-webkit-slider-thumb{width:19px;height:19px;margin-top:-7.5px;background:conic-gradient(from 25deg,#e7d8b8,#736e64,#e7d8b8,#736e64,#e7d8b8);box-shadow:0 1px 3px #000,0 0 0 2px rgba(200,71,31,.25)}.sec-amp-eg .syn-p input[type=range]::-webkit-slider-runnable-track,.sec-filter-eg .syn-p input[type=range]::-webkit-slider-runnable-track{background:linear-gradient(90deg,#6bb36b,color-mix(in srgb,#6bb36b 22%,var(--panel-3)))}.sec-lfo .syn-p input[type=range]::-webkit-slider-runnable-track{background:linear-gradient(90deg,#6ca4d8,color-mix(in srgb,#6ca4d8 22%,var(--panel-3)))}.sec-voice .syn-p input[type=range]::-webkit-slider-runnable-track{background:linear-gradient(90deg,#bb78c9,color-mix(in srgb,#bb78c9 22%,var(--panel-3)))}
 .syn-p .cap{text-transform:capitalize;}
 .syn-note{font-size:9.5px; color:var(--text-faint); margin:2px 0 6px; line-height:1.4;}
-#panelSynth .synth-box{margin:10px 0 0; padding:10px 12px; border:1px solid var(--edge); border-radius:var(--r-panel,9px); background:var(--panel-2); box-shadow:var(--shadow); display:flex; flex-direction:column; gap:9px;}
-#panelSynth .synth-box .chips{margin:0;}
-.synth-box-title{font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--text-dim); font-weight:700;}
-#synPatNew{font-size:13px; padding:9px 16px; min-height:40px;}
-#panelSynth .synth-bar{margin:10px 0 14px; padding:10px 12px; border:1px solid var(--edge); border-radius:var(--r-panel,9px); background:var(--panel-2); box-shadow:var(--shadow);}
+.syn-preset-select{min-width:180px;}
 .export-list.syn-gen{min-width:min(470px, calc(100vw - 32px));}
 .syn-gen-opts{display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:6px 8px; font-size:9.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-dim);}
 .syn-gen-opts label{display:flex; flex-direction:column; gap:3px;}
@@ -933,32 +1046,35 @@
     if (built) return;
     built = true;
     const st = document.createElement("style"); st.textContent = CSS; document.head.appendChild(st);
-    el("panelSynth").innerHTML = `
-      <h2>Synthesizer <span id="synPatName"></span><span class="synth-beta">test</span></h2>
-      <div class="synth-box">
-        <div class="synth-box-title">Pattern</div>
-        <div class="chips" id="synPatChips">
-          <span class="dot pattern-dot" id="synPatDot"></span>
-          <select id="synPatSel" class="pattern-select" aria-label="Synth pattern to edit"></select>
-          <span class="tiny" id="synPatCount"></span>
-        </div>
-        <div class="flexline">
-          <button id="synPatNew" class="mini primary" type="button" title="A new empty synth pattern">+ New</button>
-          <button id="synPatDup" class="mini" type="button">Duplicate</button>
-          <button id="synPatRename" class="mini" type="button">Rename</button>
-          <button id="synClear" class="mini" type="button" title="Remove every note of this synth pattern">Clear</button>
-          <button id="synPatDel" class="mini danger" type="button">Delete</button>
-          <label class="fld" style="margin-left:auto;">Steps <select id="synPatLen"><option value="8">8</option><option value="16">16</option><option value="32">32</option></select></label>
-        </div>
-      </div>
-      <div class="machine-bar synth-bar">
+    el("synthEnginePanel").innerHTML = `
+      <div class="machine-bar">
         <label class="machine-label" for="synEngine">Engine</label>
         <select id="synEngine" class="machine-select"><option value="custom">Custom + KORG</option><option value="tone">Tone.js</option></select>
-        <label class="fld">Preset <select id="synPreset"></select></label>
+        <label class="machine-label" for="synPreset">Preset</label>
+        <select id="synPreset" class="machine-select syn-preset-select"></select>
         <button id="synSavePreset" class="mini" type="button" title="Save the current sound as a preset in this browser">Save preset</button>
         <button id="synDelPreset" class="mini danger" type="button" hidden>Delete preset</button>
         <a class="linkbtn machine-more" href="synth.html" title="How the synth engines work">Synth engines and methods →</a>
+      </div>`;
+    el("synthPatternPanel").innerHTML = `
+      <h2>Pattern</h2>
+      <div class="chips" id="synPatChips">
+        <span class="dot pattern-dot" id="synPatDot"></span>
+        <select id="synPatSel" class="pattern-select" aria-label="Synth pattern to edit"></select>
+        <span class="tiny" id="synPatCount"></span>
       </div>
+      <div class="flexline">
+        <button id="synPatBrowse" class="mini primary" type="button" title="Suggestions from the generators: listen and load">Browse…</button>
+        <button id="synPatNew" class="mini" type="button" title="A new empty synth pattern">+ New</button>
+        <button id="synPatDup" class="mini" type="button">Duplicate</button>
+        <button id="synPatRename" class="mini" type="button">Rename</button>
+        <button id="synClear" class="mini" type="button" title="Remove every note of this synth pattern">Clear</button>
+        <button id="synPatDel" class="mini danger" type="button">Delete</button>
+        <label class="fld" style="margin-left:auto;">Steps <select id="synPatLen"><option value="8">8</option><option value="16">16</option><option value="32">32</option></select></label>
+      </div>`;
+    el("synthEnginePanel").hidden = el("synthPatternPanel").hidden = el("panelSynth").hidden;
+    el("panelSynth").innerHTML = `
+      <h2>Notes <span id="synPatName"></span><span class="synth-beta">test</span></h2>
       <div class="flexline">
         <button id="synOn" class="mini on" type="button" aria-pressed="true" title="Synth on/off in playback and exports">On</button>
         <label class="fld">Key <select id="synKey"></select></label>
@@ -1121,6 +1237,7 @@
   }
   function bindPatternBar() {
     el("synPatSel").onchange = e => selectSynth(e.target.value);
+    el("synPatBrowse").onclick = openLib;
     el("synPatNew").onclick = () => {
       pushUndo();
       const sp = makeSynthPattern("Synth " + (project.synthPatterns.length + 1), curSynth().len);

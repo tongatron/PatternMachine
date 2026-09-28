@@ -673,7 +673,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
   .counter{margin-left:0;}
 }
 /* Comandi principali piu' grandi. */
-#machinePanel .machine-bar{margin-top:0; padding-top:0; border-top:none;}
+#machinePanel .machine-bar, #synthEnginePanel .machine-bar{margin-top:0; padding-top:0; border-top:none;}
 #viewGrid, #viewSeq, #viewSynth, #viewRecent{font-size:14px; padding:11px 22px; min-height:44px;}
 #viewGrid, #viewSeq, #viewSynth{
   min-height:52px; padding:12px 24px; border:2px solid var(--edge);
@@ -684,7 +684,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 #viewGrid:hover, #viewSeq:hover, #viewSynth:hover{border-color:var(--text-faint);}
 #viewGrid:active, #viewSeq:active, #viewSynth:active{transform:translateY(2px); box-shadow:inset 0 1px 0 rgba(255,255,255,.08), inset 0 -1px 0 rgba(0,0,0,.2);}
 #viewGrid.on, #viewSeq.on, #viewSynth.on{background:linear-gradient(180deg,#ff8a3d,#e0561a); border-color:#b8471f; color:#1c1b19; box-shadow:inset 0 2px 0 rgba(255,255,255,.35), inset 0 -3px 0 rgba(0,0,0,.2), 0 3px 0 rgba(0,0,0,.28);}
-#pChoose, #pVary, #pNew{font-size:13px; padding:9px 16px; min-height:40px;}
+#pChoose, #pVary, #pNew, #synPatBrowse, #synPatNew{font-size:13px; padding:9px 16px; min-height:40px;}
 #recBtn{font-size:13.5px; padding:11px 18px; min-height:44px;}
 #bpmNum{height:44px; width:72px; font-size:14px;}
 #tapBtn, #viewSound{min-height:44px; padding:11px 18px; font-size:13.5px;}
@@ -787,6 +787,10 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     </div>
     <div class="lib-locks" id="pVaryPanel" hidden></div>
   </div>
+
+  <!-- Synthesizer: Engine e Pattern stanno sopra Play come Drum Machine e Pattern della batteria (li riempie engine/synth.js) -->
+  <div class="panel" id="synthEnginePanel" hidden></div>
+  <div class="panel" id="synthPatternPanel" hidden></div>
 
   <div class="panel" id="panelTransport">
     <div class="flexline">
@@ -1113,19 +1117,19 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-28.25"></script>
-<script src="engine/styles-punk.js?v=2026-09-28.25"></script>
-<script src="engine/styles-post.js?v=2026-09-28.25"></script>
-<script src="engine/styles-machines.js?v=2026-09-28.25"></script>
-<script src="engine/styles-alt.js?v=2026-09-28.25"></script>
-<script src="engine/styles-groove.js?v=2026-09-28.25"></script>
-<script src="engine/styles-dub.js?v=2026-09-28.25"></script>
-<script src="engine/styles-break.js?v=2026-09-28.25"></script>
-<script src="engine/styles-soul.js?v=2026-09-28.25"></script>
-<script src="engine/styles-metal.js?v=2026-09-28.25"></script>
-<script src="engine/styles-electro.js?v=2026-09-28.25"></script>
-<script src="engine/variations.js?v=2026-09-28.25"></script>
-<script src="engine/import.js?v=2026-09-28.25"></script>
+<script src="engine/core.js?v=2026-09-28.26"></script>
+<script src="engine/styles-punk.js?v=2026-09-28.26"></script>
+<script src="engine/styles-post.js?v=2026-09-28.26"></script>
+<script src="engine/styles-machines.js?v=2026-09-28.26"></script>
+<script src="engine/styles-alt.js?v=2026-09-28.26"></script>
+<script src="engine/styles-groove.js?v=2026-09-28.26"></script>
+<script src="engine/styles-dub.js?v=2026-09-28.26"></script>
+<script src="engine/styles-break.js?v=2026-09-28.26"></script>
+<script src="engine/styles-soul.js?v=2026-09-28.26"></script>
+<script src="engine/styles-metal.js?v=2026-09-28.26"></script>
+<script src="engine/styles-electro.js?v=2026-09-28.26"></script>
+<script src="engine/variations.js?v=2026-09-28.26"></script>
+<script src="engine/import.js?v=2026-09-28.26"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -2696,6 +2700,8 @@ function setView(v){
   el("panelGrid").hidden = v!=="grid" && v!=="sound";
   el("panelSeq").hidden = v!=="seq";
   el("panelSynth").hidden = v!=="synth";
+  el("synthEnginePanel").hidden = v!=="synth" || !window.PMSynth;
+  el("synthPatternPanel").hidden = v!=="synth" || !window.PMSynth;
   el("panelRecent").hidden = v!=="recent";
   if(v!=="synth" && synthOnly) stop();
   if(v!=="grid" && drumsOnly) stop();
@@ -2799,7 +2805,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || document.getElementById("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-28.25";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-28.26";
   document.body.appendChild(s);
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth")) loadSynth();
@@ -4934,7 +4940,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-28.25";
+const SW_VERSION="2026-09-28.26";
 (function pwa(){
   const netBadge=el("netBadge");
 

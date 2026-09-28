@@ -891,7 +891,7 @@ class Handler(BaseHTTPRequestHandler):
 </form>
 <form class="card guest" method="post" action="/guest" style="padding:14px 22px;" onsubmit="try{{sessionStorage.setItem('guestWelcome','1')}}catch(e){{}}">
   <input type="hidden" name="next" value="{nxt}">
-  <button class="ghost" type="submit">Prova senza registrarti</button>
+  <button type="submit">Prova senza registrarti</button>
   <p>Come ospite non potrai salvare i tuoi pattern né scaricare le app.</p>
 </form>
 <a class="about" href="/landing.html">Cos'è PATTERN-MACHINE? →</a>""")

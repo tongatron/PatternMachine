@@ -26,21 +26,21 @@ const LEVELS=[
     {id:"ghost-snare", title:"Ghost notes on the snare", titleIt:"Ghost notes sul rullante", url:"ghost-snare.html", minutes:10, summary:"Add quiet snare notes without taking over the backbeat."},
     {id:"levels", title:"Levels and the Mixer", titleIt:"Livelli e Mixer", url:"levels.html", minutes:10, summary:"Balance rows with levels and the Mixer."}]},
   {id:"keys", title:"Playing with the keyboard", lessons:[
-    {id:"key-map", title:"The key map"},
-    {id:"timing", title:"Playing in time"},
-    {id:"recording", title:"Recording with Rec"},
-    {id:"no-mouse", title:"The grid without a mouse"},
-    {id:"midi-pads", title:"MIDI pads"}]},
+    {id:"key-map", title:"The key map", titleIt:"La mappa dei tasti", url:"key-map.html", minutes:10, summary:"Learn the 4×4 keyboard layout and find every drum row."},
+    {id:"timing", title:"Playing in time", titleIt:"Suonare a tempo", url:"timing.html", minutes:10, summary:"Listen, count and land hits on the nearest step."},
+    {id:"recording", title:"Recording with Rec", titleIt:"Registrare con Rec", url:"recording.html", minutes:10, summary:"Record a pattern from the keyboard while the loop plays."},
+    {id:"no-mouse", title:"The grid without a mouse", titleIt:"La griglia senza mouse", url:"no-mouse.html", minutes:10, summary:"Navigate, edit and undo with the keyboard."},
+    {id:"midi-pads", title:"MIDI pads", titleIt:"Pad MIDI", url:"midi-pads.html", minutes:10, summary:"Use pads for rows and transport, then remap a control."}]},
   {id:"groove", title:"Groove and sound", lessons:[
-    {id:"swing", title:"Swing and humanize"},
-    {id:"step-params", title:"Probability, ratchets and flams"},
-    {id:"polyrhythm", title:"Polyrhythms and Euclidean rhythms"},
-    {id:"kit-shaping", title:"Shaping the kit"}]},
+    {id:"swing", title:"Swing and humanize", titleIt:"Swing e humanize", url:"swing.html", minutes:10, summary:"Move the offbeats and add controlled variation."},
+    {id:"step-params", title:"Probability, ratchets and flams", titleIt:"Probabilità, ratchet e flam", url:"step-params.html", minutes:10, summary:"Make steps repeat, split and surprise you."},
+    {id:"polyrhythm", title:"Polyrhythms and Euclidean rhythms", titleIt:"Poliritmi e ritmi euclidei", url:"polyrhythm.html", minutes:10, summary:"Fit different repeating cycles into the same bar."},
+    {id:"kit-shaping", title:"Shaping the kit", titleIt:"Dare forma al kit", url:"kit-shaping.html", minutes:10, summary:"Choose sounds, tune them and make a kit your own."}]},
   {id:"song", title:"From pattern to song", lessons:[
-    {id:"sections", title:"Verse, chorus and break"},
-    {id:"fills", title:"Fills"},
-    {id:"sequencer", title:"The Sequencer"},
-    {id:"form", title:"Song form"}]},
+    {id:"sections", title:"Verse, chorus and break", titleIt:"Strofa, ritornello e break", url:"sections.html", minutes:10, summary:"Give patterns a role and arrange contrasting sections."},
+    {id:"fills", title:"Fills", titleIt:"Fill", url:"fills.html", minutes:10, summary:"Use a short fill to lead into the next section."},
+    {id:"sequencer", title:"The Sequencer", titleIt:"Il Sequencer", url:"sequencer.html", minutes:10, summary:"Chain blocks, repeats and pattern changes into a timeline."},
+    {id:"form", title:"Song form", titleIt:"La forma della canzone", url:"form.html", minutes:10, summary:"Plan an intro, build, drop and ending that make musical sense."}]},
   {id:"styles", title:"Styles", lessons:[
     {id:"boom-bap", title:"Boom bap"}, {id:"electro", title:"Electro"}, {id:"house", title:"House"},
     {id:"techno", title:"Techno"}, {id:"trap", title:"Trap"}, {id:"breakbeat", title:"Breakbeat and drum & bass"},
@@ -56,7 +56,10 @@ const PARTS={
   tour:["listen","copy","play"],
   backbeat:["listen","copy","record","mission"], "four-on-the-floor":["listen","copy","play"]
   ,hihats:["listen","copy","play"], "classic-beats":["listen","copy","play"], syncopation:["listen","copy","play"],
-  accents:["listen","copy","play"], "hihat-dynamics":["listen","copy","play"], "ghost-snare":["listen","copy","play"], levels:["listen","copy","play"]
+  accents:["listen","copy","play"], "hihat-dynamics":["listen","copy","play"], "ghost-snare":["listen","copy","play"], levels:["listen","copy","play"],
+  "key-map":["listen","copy","play"], timing:["listen","copy","play"], recording:["listen","copy","play"], "no-mouse":["listen","copy","play"], "midi-pads":["listen","copy","play"],
+  swing:["listen","copy","play"], "step-params":["listen","copy","play"], polyrhythm:["listen","copy","play"], "kit-shaping":["listen","copy","play"],
+  sections:["listen","copy","play"], fills:["listen","copy","play"], sequencer:["listen","copy","play"], form:["listen","copy","play"]
 };
 
 // Missioni nell'app: il beat di partenza (righe nell'ordine dei tasti 1, 2, 3...) e l'obiettivo.

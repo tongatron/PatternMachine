@@ -41,8 +41,11 @@ const SHELL = [
   // corso: indice, lezioni pronte, mini drum machine e scheda della missione
   "/learn/index.html",
   "/learn/backbeat.html",
+  "/learn/basics.html",
   "/learn/learn.css",
+  "/learn/lang.js",
   "/learn/lessons.js",
+  "/learn/basics.js",
   "/learn/mini.js",
   "/learn/coach.js",
 ];

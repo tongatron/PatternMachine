@@ -9,13 +9,13 @@
 // Il percorso completo. Una lezione con `url` e' pronta; le altre compaiono nell'indice come "soon".
 const LEVELS=[
   {id:"basics", title:"First steps", lessons:[
-    {id:"drum-machine", title:"What a drum machine does"},
-    {id:"time", title:"Tempo, bars and steps"},
-    {id:"kit", title:"The drum kit"},
-    {id:"tour", title:"A tour of PATTERN-MACHINE"}]},
+    {id:"drum-machine", title:"What a drum machine does", titleIt:"Cosa fa una drum machine", url:"drum-machine.html", minutes:8, summary:"Hear sounds become a beat: rows, steps and playback."},
+    {id:"time", title:"Tempo, bars and steps", titleIt:"Tempo, battute e step", url:"time.html", minutes:8, summary:"Count a bar of 4/4 and place four quarter-note kicks."},
+    {id:"kit", title:"The drum kit", titleIt:"La batteria", url:"kit.html", minutes:8, summary:"Meet kick, snare and hi-hat, then build a first beat."},
+    {id:"tour", title:"A tour of PATTERN-MACHINE", titleIt:"Un giro di PATTERN-MACHINE", url:"tour.html", minutes:10, summary:"Use the grid, transport and keyboard together."}]},
   {id:"steps", title:"Step programming", lessons:[
     {id:"four-on-the-floor", title:"Four on the floor"},
-    {id:"backbeat", title:"The backbeat", url:"backbeat.html", minutes:10,
+    {id:"backbeat", title:"The backbeat", titleIt:"Il backbeat", url:"backbeat.html", minutes:10,
       summary:"Snare or clap on beats 2 and 4: hear it, place it, play it with the keys, build it in the drum machine."},
     {id:"hihats", title:"Hi-hats: eighths, sixteenths, open"},
     {id:"classic-beats", title:"Classic beats: rock and boom bap"},
@@ -49,7 +49,13 @@ const LEVELS=[
 ];
 
 // Le parti di una lezione, nell'ordine in cui si fanno: la lezione e' finita quando ci sono tutte.
-const PARTS={backbeat:["listen","copy","record","mission"]};
+const PARTS={
+  "drum-machine":["listen","copy","play"],
+  time:["listen","copy","play"],
+  kit:["listen","copy","play"],
+  tour:["listen","copy","play"],
+  backbeat:["listen","copy","record","mission"]
+};
 
 // Missioni nell'app: il beat di partenza (righe nell'ordine dei tasti 1, 2, 3...) e l'obiettivo.
 // `sample` e' il nome dello slot (lo stesso su tutte le macchine), `back` la pagina a cui tornare.

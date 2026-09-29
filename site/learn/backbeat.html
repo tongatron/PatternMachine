@@ -8,6 +8,7 @@
 <meta name="description" content="Lesson: the backbeat, snare or clap on beats 2 and 4. Hear it, place it on the grid, play it with the keyboard and build it in PATTERN-MACHINE.">
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
 <link rel="stylesheet" href="learn.css?v=2026-09-30.1">
+<script src="lang.js?v=2026-09-30.1"></script>
 <script defer src="https://analytics.tongatron.org/script.js" data-website-id="9daa93b6-2afb-494a-89fb-288437a030d1" data-domains="patternmachine.tongatron.org"></script>
 </head>
 <body>
@@ -190,6 +191,7 @@
   addEventListener("storage",e=>{ if(e.key==="pm.learn") paint(); });
   addEventListener("pageshow",paint);
   document.addEventListener("visibilitychange",()=>{ if(!document.hidden) paint(); });
+  addEventListener("pmlangchange",()=>location.reload());
 
   // Ricominciare: secondo clic per confermare (niente finestre del browser).
   let armed=null;

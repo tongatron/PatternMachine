@@ -93,7 +93,7 @@ Download it from the [app page](https://patternmachine.tongatron.org/app.html) (
 | Export a zip, unzip it, import it into the DAW | **Drag** `⠿ MIDI` or `⠿ WAV` straight onto the DAW timeline |
 | No live MIDI output | **Virtual MIDI port "PatternMachine"**: patterns play Drum Kit Designer, Drum Machine Designer or any instrument, and pad hits can be recorded in the DAW |
 | Play and tempo set by hand | **Follows the DAW's MIDI Clock**: play, stop, continue, cycles and tempo |
-| Projects synced with your account (on the server, the same in every browser) | Projects as **files** in `~/Music/PatternMachine/Progetti`, exports in `~/Music/PatternMachine/Export` |
+| Projects synced with your account (on the server, the same in every browser) | Projects as **files** in `~/Music/PatternMachine/Progetti`, synced with the same account after signing in; exports in `~/Music/PatternMachine/Export` |
 | Needs a network connection | Works fully offline, with **all** the sounds |
 
 You can also **import your own drum machines** from a folder or zip of samples (WAV, AIFF, MP3, OGG, FLAC, M4A).

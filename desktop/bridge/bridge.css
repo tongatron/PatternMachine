@@ -44,3 +44,13 @@
 .pm-update-dialog .pm-update-actions{display:flex; justify-content:flex-end; flex-wrap:wrap; gap:8px;}
 .pm-update-dialog .pm-update-actions button{min-height:34px;}
 @media (max-width:560px){.pm-update-dialog .pm-update-actions{justify-content:stretch}.pm-update-dialog .pm-update-actions button{flex:1 1 100%;}}
+
+/* Account: accesso e stato della sincronizzazione nella scheda dei progetti. */
+.pm-account{display:flex; flex-wrap:wrap; align-items:center; gap:6px 8px; margin:-4px 0 12px;}
+.pm-account .tiny{margin-right:auto;}
+.pm-account .err{color:var(--danger);}
+.pm-login-dialog{width:min(440px,calc(100% - 32px));}
+.pm-login-dialog input[type=password]{width:100%; box-sizing:border-box; margin-top:4px; font-size:13px; font-family:inherit;
+  background:var(--panel-2); color:var(--text); border:1px solid var(--edge); border-radius:6px; padding:6px 8px;}
+.pm-login-links{font-size:11px !important; color:var(--text-dim);}
+.pm-login-links a{color:var(--accent);}

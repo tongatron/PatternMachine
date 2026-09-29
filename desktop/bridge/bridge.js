@@ -152,7 +152,21 @@
     doc(p){
       const id=String(p).split("/")[1];
       return {
-        async set(data){ await D.projects.set(id,data); notify(); },
+        async set(data){
+          // il progetto aperto e' cambiato su un altro dispositivo mentre qui c'erano modifiche:
+          // la versione di qui diventa una copia, come nel sito, e l'altra resta com'e'
+          if(staleOpen.has(id)){
+            staleOpen.delete(id);
+            const copy="p"+Date.now(), name=(data.name||"Untitled")+" (copy)";
+            await D.projects.set(copy,{...data, name});
+            if(currentProjectId===id){ currentProjectId=copy; el("projectName").value=name; project.name=name; }
+            notify();
+            // dopo il "saved" del sito, che arriva appena finisce il salvataggio
+            setTimeout(()=>setStatus(`changed on another device: yours is saved as "${name}"`),50);
+            return;
+          }
+          await D.projects.set(id,data); notify();
+        },
         async get(){ const d=await D.projects.get(id); return {exists:!!d, data:()=>d}; },
         async delete(){ await D.projects.delete(id); notify(); },
       };
@@ -160,6 +174,86 @@
   };
   db=fileDb;
   unsubRecent=fileDb.collection("projects").onSnapshot(s=>renderRecent(s.docs.map(d=>({id:d.id,...d.data()}))));
+
+  // ---------- account: progetti sincronizzati con il sito ----------
+  // La sincronizzazione la fa main.js sui file della cartella; qui lo stato, l'accesso e il progetto
+  // aperto: se cambia altrove e qui non ci sono modifiche si ricarica, altrimenti resta com'e' e al
+  // prossimo salvataggio diventa una copia.
+  const staleOpen=new Set();
+  D.projects.onChanged(ch=>{
+    (ch.renamed||[]).forEach(r=>{
+      if(currentProjectId!==r.from) return;
+      const clean=projectSnap()===savedSnap;
+      currentProjectId=r.to; el("projectName").value=r.name; project.name=r.name;
+      if(clean) markSaved();
+      setStatus(`changed on another device: yours is saved as "${r.name}"`);
+    });
+    if((ch.deleted||[]).includes(currentProjectId)) currentProjectId=null;
+    if((ch.updated||[]).includes(currentProjectId)){
+      const id=currentProjectId;
+      if(projectSnap()===savedSnap) D.projects.get(id).then(d=>{
+        if(d && currentProjectId===id){ deserialize(d,true); markSaved(); setStatus("updated from another device"); }
+      });
+      else staleOpen.add(id);
+    }
+    notify(); markCurrentRecent();
+  });
+
+  const acct=document.createElement("div"); acct.className="pm-account";
+  acct.innerHTML=`<span class="tiny" id="pmAccount"></span>
+    <button type="button" class="mini primary" id="pmSignIn">Sign in</button>
+    <button type="button" class="mini" id="pmSyncNow" hidden>Sync now</button>
+    <button type="button" class="mini" id="pmSignOut" hidden>Sign out</button>`;
+  el("recentTitle").after(acct);
+  function paintAccount(st){
+    const on=!!st.name && !["signed-out","expired"].includes(st.state);
+    const time=st.at ? new Date(st.at).toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"}) : "";
+    const text={
+      "signed-out":"Sign in with your PatternMachine account to sync these projects with the website and your other computers.",
+      expired:"Session expired: sign in again to keep syncing.",
+      syncing:`Signed in as ${st.name} · syncing…`,
+      ok:`Signed in as ${st.name} · synced ✓${time?" "+time:""}`,
+      error:`Signed in as ${st.name} · ${st.message||"sync failed"}`,
+    }[st.state]||"";
+    const a=el("pmAccount"); a.textContent=text; a.className="tiny"+(st.state==="error"||st.state==="expired"?" err":"");
+    el("pmSignIn").hidden=on; el("pmSyncNow").hidden=!on; el("pmSignOut").hidden=!on;
+    el("pmSyncNow").disabled=st.state==="syncing";
+  }
+  D.account.onState(paintAccount);
+  D.account.status().then(paintAccount);
+  el("pmSyncNow").onclick=()=>D.account.sync();
+  el("pmSignOut").onclick=async()=>{
+    if(!await ask({title:"Sign out", message:"The projects stay in the Projects folder; they stop syncing until you sign in again.", ok:"Sign out"})) return;
+    D.account.logout();
+  };
+  el("pmSignIn").onclick=()=>{
+    const d=document.createElement("dialog"); d.className="pm-kit-dialog pm-login-dialog"; d.setAttribute("aria-labelledby","pmLoginTitle");
+    d.innerHTML=`<form>
+      <h3 id="pmLoginTitle">Sign in</h3>
+      <p>Use your PatternMachine account: the projects in this app and on the website stay the same everywhere. The password is sent only to the PatternMachine server and is not stored.</p>
+      <label>Name or email<input type="text" id="pmLoginName" autocomplete="username" required></label>
+      <label>Password<input type="password" id="pmLoginPass" autocomplete="current-password" required></label>
+      <p class="pm-kit-status" role="status"></p>
+      <p class="pm-login-links"><a href="#" data-page="register">Create an account</a> · <a href="#" data-page="forgot">Forgot your password?</a></p>
+      <div class="pm-kit-actions"><button type="button" value="cancel">Cancel</button><button type="submit" value="ok" class="primary">Sign in</button></div>
+    </form>`;
+    const status=d.querySelector(".pm-kit-status"), okB=d.querySelector('[value="ok"]');
+    d.querySelectorAll("[data-page]").forEach(a=>a.onclick=e=>{ e.preventDefault(); D.account.open(a.dataset.page); });
+    d.querySelector('[value="cancel"]').onclick=()=>d.close("cancel");
+    d.querySelector("form").onsubmit=async e=>{
+      e.preventDefault();
+      const name=d.querySelector("#pmLoginName").value.trim(), pass=d.querySelector("#pmLoginPass").value;
+      if(!name || !pass){ status.textContent="Enter name and password."; status.className="pm-kit-status err"; return; }
+      okB.disabled=true; status.textContent="signing in…"; status.className="pm-kit-status";
+      const r=await D.account.login(name,pass);
+      if(r.ok){ d.close("ok"); setStatus("signed in as "+r.name); return; }
+      status.textContent=r.error; status.className="pm-kit-status err"; okB.disabled=false;
+      d.querySelector("#pmLoginPass").select();
+    };
+    d.addEventListener("click",e=>{ if(e.target===d) d.close("cancel"); });
+    d.addEventListener("close",()=>d.remove());
+    document.body.appendChild(d); d.showModal(); d.querySelector("#pmLoginName").focus();
+  };
 
   const siteSetStatus=setStatus;
   setStatus=(msg,kind)=>siteSetStatus(String(msg).replace("· cloud","· su file"),kind);
@@ -253,8 +347,11 @@
     const base=clockPeriod()*6, sw=swing(), even=cursor.step%2===0;
     const at=ctx.currentTime+CLOCK_LEAD+(even?0:sw*base);
     const dur=base*(even?1+sw:1-sw);
+    if(!synthOnly && ui.metronome && cursor.step%4===0) metronomeHit(at,cursor.step===0);
     const cycle=ui.mode==="song" ? (cursor.rep||0) : (cursor.loops||0);
-    audibleTracks().forEach(t=>{
+    const blockMutes=ui.mode==="song" ? (project.song[cursor.blockIndex]?.mutes||[]) : [];
+    if(!synthOnly && !drumsSilent()) audibleTracks().forEach(t=>{
+      if(blockMutes.includes(t.id)) return;
       const i=stepIdx(pat,t.id,cursor.step,cycle);
       const v=(pat.grid[t.id]||[])[i];
       if(!v) return;
@@ -263,8 +360,11 @@
       const tr=lockedTrack(t,m), j=jitterT(), jv=jitterV();
       stepHits(m,dur,FLAM_SEC).forEach(([h,f])=>trigger(tr, at+nudgeOf(t)+j+h, stepVel(v)*f*jv));
     });
-    queue.push({time:at, dur, step:cursor.step, cycle, rep:cursor.rep||0, patternId:pat.id, blockIndex:cursor.blockIndex, bar:barCount});
-    cursor.step++;
+    const syn=synthNow(pat);
+    if(window.PMSynth && syn && !drumsOnly) PMSynth.step(syn.sp, syn.step, at);
+    queue.push({time:at, dur, step:cursor.step, cycle, rep:cursor.rep||0, patternId:pat.id, blockIndex:cursor.blockIndex, bar:barCount,
+      synthId:syn?syn.sp.id:null, synthStep:syn?syn.step:-1, synthIndex:syn?syn.index:-1});
+    cursor.step++; cursor.abs=(cursor.abs||0)+1;
     if(cursor.step>=pat.len){
       cursor.step=0; barCount++; cursor.loops=(cursor.loops||0)+1;
       if(ui.mode==="song"){
@@ -272,7 +372,8 @@
         const block=project.song[cursor.blockIndex];
         if(cursor.rep>=Math.max(1,block?.repeats||1)){
           cursor.rep=0;
-          cursor.blockIndex=(cursor.blockIndex+1)%Math.max(1,project.song.length);
+          const soloIdx=ui.songSoloBlockId ? project.song.findIndex(b=>b.id===ui.songSoloBlockId) : -1;
+          cursor.blockIndex=soloIdx>=0 ? soloIdx : (cursor.blockIndex+1)%Math.max(1,project.song.length);
         }
       }
     }

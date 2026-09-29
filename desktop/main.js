@@ -2,16 +2,18 @@
 // - app://pm/ serve i file del sito dal disco (niente server, niente password) e aggiunge a index.html
 //   bridge/bridge.js e bridge/bridge.css, che agganciano le funzioni native senza toccare il sito.
 // - porta MIDI virtuale "PatternMachine": uscita (note verso Logic) e ingresso (MIDI Clock da Logic).
-// - progetti ed esportazioni come file veri in ~/Music/PatternMachine.
+// - progetti ed esportazioni come file veri in ~/Music/PatternMachine; i progetti si sincronizzano con
+//   l'account del sito (stessi progetti nel browser e negli altri Mac).
 // - trascinamento di MIDI/WAV dall'app alla timeline di Logic.
-const { app, BrowserWindow, protocol, net, ipcMain, shell, Menu, nativeImage, dialog } = require("electron");
+const { app, BrowserWindow, protocol, net, ipcMain, shell, Menu, nativeImage, dialog, safeStorage } = require("electron");
 const path = require("path");
 const fs = require("fs");
 const https = require("https");
 const { execFileSync } = require("child_process");
-const { randomUUID } = require("crypto");
+const { randomUUID, createHash } = require("crypto");
 const { pathToFileURL } = require("url");
 
+if (process.env.PM_USERDATA) app.setPath("userData", process.env.PM_USERDATA);   // PM_USERDATA: per le prove
 const SITE_DIR = app.isPackaged ? path.join(process.resourcesPath, "site") : path.join(__dirname, "..", "site");
 const BRIDGE_DIR = path.join(__dirname, "bridge");
 const HOME_DIR = process.env.PM_HOME || path.join(app.getPath("music"), "PatternMachine");   // PM_HOME: per le prove
@@ -22,6 +24,8 @@ const KITS_DIR = path.join(app.getPath("userData"), "drum-machines");
 const PORT_NAME = "PatternMachine";
 const APP_MESSAGE_URL = "https://patternmachine.tongatron.org/api/app-message";
 const APP_MESSAGE_STATE = path.join(app.getPath("userData"), "app-message-state.json");
+const SERVER = process.env.PM_SERVER || "https://patternmachine.tongatron.org";   // PM_SERVER: per le prove
+const ACCOUNT_FILE = path.join(app.getPath("userData"), "account.json");
 
 protocol.registerSchemesAsPrivileged([
   { scheme: "app", privileges: { standard: true, secure: true, supportFetchAPI: true, stream: true } },
@@ -100,7 +104,7 @@ const projectFile = id => {
 };
 ipcMain.handle("projects:list", () => {
   fs.mkdirSync(PROJECTS_DIR, { recursive: true });
-  return fs.readdirSync(PROJECTS_DIR).filter(f => f.endsWith(".json")).map(f => {
+  return fs.readdirSync(PROJECTS_DIR).filter(f => f.endsWith(".json") && !f.startsWith(".")).map(f => {
     try { return { id: f.slice(0, -5), data: JSON.parse(fs.readFileSync(path.join(PROJECTS_DIR, f), "utf8")) }; }
     catch (e) { return null; }
   }).filter(Boolean);
@@ -109,18 +113,207 @@ ipcMain.handle("projects:get", (_e, id) => {
   const f = projectFile(id);
   return fs.existsSync(f) ? JSON.parse(fs.readFileSync(f, "utf8")) : null;
 });
-ipcMain.handle("projects:set", (_e, id, data) => {
+function writeProject(id, data) {
   fs.mkdirSync(PROJECTS_DIR, { recursive: true });
-  const f = projectFile(id), tmp = f + ".tmp";
-  fs.writeFileSync(tmp, JSON.stringify(data, null, 1));
+  const f = projectFile(id), tmp = f + ".tmp", text = JSON.stringify(data, null, 1);
+  fs.writeFileSync(tmp, text);
   fs.renameSync(tmp, f);
+  return text;
+}
+ipcMain.handle("projects:set", (_e, id, data) => {
+  writeProject(id, data);
+  syncSoon();
   return true;
 });
 // nel Cestino, non cancellato: un progetto rimosso per sbaglio si recupera
 ipcMain.handle("projects:delete", async (_e, id) => {
   const f = projectFile(id);
   if (fs.existsSync(f)) await shell.trashItem(f);
+  syncSoon();
   return true;
+});
+
+// ---------- account e sincronizzazione dei progetti ----------
+// Si entra con nome e password del sito: la password va solo al server, si tiene il cookie di sessione
+// cifrato col portachiavi di macOS (safeStorage). La cartella Progetti resta la copia di lavoro: si
+// confronta coi progetti dell'account (/api/projects) guardando i file, quindi valgono anche i file
+// aggiunti, cambiati o tolti dal Finder. Per ogni progetto sync-<utente>.json ricorda la rev del server
+// e l'impronta del file all'ultima sincronizzazione:
+// - file cambiato qui -> si manda, con la rev da cui era partito; se nel frattempo e' cambiato altrove il
+//   server lo tiene come copia ("Nome (copy)") e qui arriva anche l'altra versione: non si perde niente;
+// - file tolto qui -> si cancella anche nell'account (se non e' cambiato altrove nel frattempo);
+// - cambiato o cancellato altrove -> si aggiorna il file (quelli tolti vanno nel Cestino).
+// La cartella si lega al primo account che la sincronizza: un altro account non la mescola.
+let account = null;              // {name, uid, cookie}
+let syncState = { state: "signed-out" };
+const LINK_FILE = () => path.join(PROJECTS_DIR, ".account.json");
+const syncFile = uid => path.join(app.getPath("userData"), `sync-${uid}.json`);
+const sha = text => createHash("sha256").update(text).digest("hex");
+const readJson = (f, fallback) => { try { return JSON.parse(fs.readFileSync(f, "utf8")); } catch (e) { return fallback; } };
+function writeJson(f, data) {
+  fs.mkdirSync(path.dirname(f), { recursive: true });
+  fs.writeFileSync(f + ".tmp", JSON.stringify(data));
+  fs.renameSync(f + ".tmp", f);
+}
+
+function saveAccount() {
+  if (!account) { fs.rmSync(ACCOUNT_FILE, { force: true }); return; }
+  // senza portachiavi la sessione resta solo in memoria: al prossimo avvio si rientra
+  if (!safeStorage.isEncryptionAvailable()) return;
+  writeJson(ACCOUNT_FILE, { name: account.name, uid: account.uid, cookie: safeStorage.encryptString(account.cookie).toString("base64") });
+}
+function loadAccount() {
+  const a = readJson(ACCOUNT_FILE, null);
+  if (!a || !a.cookie || !safeStorage.isEncryptionAvailable()) return null;
+  try { return { name: a.name, uid: a.uid, cookie: safeStorage.decryptString(Buffer.from(a.cookie, "base64")) }; }
+  catch (e) { return null; }
+}
+function setSyncState(next) {
+  syncState = { ...next, name: account?.name || "", server: SERVER };
+  win?.webContents.send("sync:state", syncState);
+}
+
+class SessionExpired extends Error {}
+async function api(pathname, { method = "GET", body } = {}) {
+  const res = await fetch(SERVER + pathname, {
+    method, redirect: "manual",
+    headers: { Cookie: account.cookie, Accept: "application/json", ...(body ? { "Content-Type": "application/json" } : {}) },
+    body: body ? JSON.stringify(body) : undefined,
+    signal: AbortSignal.timeout(20000),
+  });
+  if (res.status === 401 || res.status === 303) throw new SessionExpired();
+  return res;
+}
+async function apiJson(pathname, opts) {
+  const res = await api(pathname, opts);
+  if (!res.ok) throw new Error(`${pathname}: HTTP ${res.status}`);
+  return res.json();
+}
+
+async function login(name, password) {
+  const res = await fetch(SERVER + "/login", {
+    method: "POST", redirect: "manual",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ name, password, next: "/" }).toString(),
+    signal: AbortSignal.timeout(20000),
+  });
+  const cookie = (res.headers.getSetCookie?.() || [res.headers.get("set-cookie") || ""])
+    .map(c => c.split(";")[0]).find(c => c.startsWith("sp1200_session=") && c.length > 16);
+  if (res.status === 429) return { error: "Too many attempts: try again in a few minutes." };
+  if (res.status !== 303 || !cookie) return { error: "Wrong name, email or password." };
+  account = { name, uid: "", cookie };
+  const me = await apiJson("/api/me");
+  if (me.role === "guest" || !me.id) { account = null; return { error: "Guests have no saved projects: sign in with a registered account." }; }
+  account = { name: me.name, uid: me.id, cookie };
+  saveAccount();
+  syncNow();
+  return { ok: true, name: me.name };
+}
+function logout() {
+  account = null; saveAccount();
+  setSyncState({ state: "signed-out" });
+}
+
+function readLocalProjects() {
+  fs.mkdirSync(PROJECTS_DIR, { recursive: true });
+  const out = {};
+  for (const f of fs.readdirSync(PROJECTS_DIR)) {
+    const m = /^([A-Za-z0-9_-]{1,64})\.json$/.exec(f);
+    if (!m) continue;
+    try { const text = fs.readFileSync(path.join(PROJECTS_DIR, f), "utf8"); out[m[1]] = { text, hash: sha(text) }; } catch (e) {}
+  }
+  return out;
+}
+// Riscrive un file solo se nel frattempo non e' cambiato (la pagina potrebbe averlo appena salvato).
+function replaceIfUnchanged(id, expectedHash, data) {
+  const f = projectFile(id);
+  let now = null;
+  try { now = sha(fs.readFileSync(f, "utf8")); } catch (e) {}
+  if (now !== expectedHash) return null;
+  return sha(writeProject(id, data));
+}
+
+async function syncOnce() {
+  const uid = account.uid, metaFile = syncFile(uid);
+  const link = readJson(LINK_FILE(), null);
+  if (link && link.uid && link.uid !== uid) {
+    setSyncState({ state: "error", message: `This Projects folder is synced with another account (${link.name}). Sign in with that account to sync it.` });
+    return;
+  }
+  const meta = readJson(metaFile, { rev: {}, hash: {} });
+  const save = () => writeJson(metaFile, meta);
+  const local = readLocalProjects();
+  const remote = {};
+  for (const p of (await apiJson("/api/projects")).projects || []) remote[p.id] = p;
+  if (!link) writeJson(LINK_FILE(), { uid, name: account.name });
+  const changes = { updated: [], deleted: [], renamed: [] };
+  const download = async (id, expectedHash) => {
+    const got = await apiJson("/api/projects/" + id);
+    const hash = expectedHash === undefined ? sha(writeProject(id, got.data)) : replaceIfUnchanged(id, expectedHash, got.data);
+    if (hash) { meta.rev[id] = got.rev; meta.hash[id] = hash; changes.updated.push(id); }
+  };
+  const ids = new Set([...Object.keys(local), ...Object.keys(remote), ...Object.keys(meta.rev)]);
+  for (const id of ids) {
+    const L = local[id], R = remote[id], rev = meta.rev[id];
+    const changedHere = L && (!rev || L.hash !== meta.hash[id] || !R);
+    const changedThere = R && R.rev !== rev;
+    if (!L && rev) {                                   // tolto qui
+      if (R && !R.deleted && changedThere) await download(id);            // ma cambiato altrove: vince la modifica
+      else {
+        if (R && !R.deleted) { const r = await api("/api/projects/" + id, { method: "DELETE" }); if (!r.ok && r.status !== 404) throw new Error("delete " + r.status); }
+        delete meta.rev[id]; delete meta.hash[id];
+      }
+    } else if (changedHere && !(R && R.deleted && rev && L.hash === meta.hash[id])) {
+      let data;
+      try { data = JSON.parse(L.text); } catch (e) { continue; }          // file rovinato a mano: si lascia stare
+      const res = await apiJson("/api/projects/" + id, { method: "PUT", body: { data, base: (R && !R.deleted) ? rev || null : null } });
+      if (res.conflict) {
+        // questa versione e' diventata una copia nell'account; nel file originale arriva l'altra
+        const copyHash = sha(writeProject(res.id, { ...data, name: res.name }));
+        meta.rev[res.id] = res.rev; meta.hash[res.id] = copyHash;
+        changes.renamed.push({ from: id, to: res.id, name: res.name });
+        await download(id, L.hash);
+      } else { meta.rev[id] = res.rev; meta.hash[id] = L.hash; }
+    } else if (R && R.deleted) {                       // cancellato altrove
+      if (L) { await shell.trashItem(projectFile(id)).catch(() => {}); changes.deleted.push(id); }
+      delete meta.rev[id]; delete meta.hash[id];
+    } else if (R && changedThere) {                    // cambiato (o nuovo) altrove
+      await download(id, L ? L.hash : undefined);
+    }
+    save();
+  }
+  save();
+  if (changes.updated.length || changes.deleted.length || changes.renamed.length) win?.webContents.send("projects:changed", changes);
+  setSyncState({ state: "ok", at: Date.now() });
+}
+
+let syncing = null, syncAgain = false, syncTimer = null;
+function syncNow() {
+  clearTimeout(syncTimer);
+  if (!account) return Promise.resolve();
+  if (syncing) { syncAgain = true; return syncing; }
+  setSyncState({ ...syncState, state: "syncing" });
+  syncing = (async () => {
+    try {
+      do { syncAgain = false; await syncOnce(); } while (syncAgain && account);
+    } catch (e) {
+      if (e instanceof SessionExpired) { account = null; saveAccount(); setSyncState({ state: "expired" }); }
+      else { setSyncState({ state: "error", message: "Can't reach the server: projects stay in the folder and sync when it's back." }); syncTimer = setTimeout(syncNow, 30000); }
+    } finally { syncing = null; }
+  })();
+  return syncing;
+}
+function syncSoon() { clearTimeout(syncTimer); if (account) syncTimer = setTimeout(syncNow, 1500); }
+
+ipcMain.handle("account:status", () => syncState);
+ipcMain.handle("account:login", async (_e, name, password) => {
+  try { return await login(String(name || "").trim(), String(password || "")); }
+  catch (e) { account = null; return { error: "Can't reach the server: check the connection and try again." }; }
+});
+ipcMain.handle("account:logout", () => { logout(); return true; });
+ipcMain.handle("sync:now", () => syncNow().then(() => syncState));
+ipcMain.on("account:open", (_e, page) => {
+  if (["register", "forgot"].includes(page)) shell.openExternal(`${SERVER}/${page}`);
 });
 
 // ---------- drum machine personali ----------
@@ -332,6 +525,7 @@ function createWindow() {
     if (!url.startsWith("app://pm/")) { e.preventDefault(); if (/^https?:/.test(url)) shell.openExternal(url); }
   });
   win.on("closed", () => { win = null; });
+  win.on("focus", () => { if (account && !syncing) syncNow(); });
   win.loadURL("app://pm/index.html");
 }
 
@@ -364,6 +558,10 @@ app.whenReady().then(() => {
   buildMenu();
   createWindow();
   setTimeout(checkAppMessage, 3000);
+  account = loadAccount();
+  setSyncState({ state: account ? "syncing" : "signed-out" });
+  if (account) syncNow();
+  setInterval(() => { if (account && win && win.isFocused()) syncNow(); }, 60000);
   app.on("activate", () => { if (!win) createWindow(); });
 });
 app.on("window-all-closed", () => app.quit());

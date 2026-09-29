@@ -8,7 +8,7 @@
 // Cloudflare tiene in cache i .js, l'URL nuovo lo scavalca.
 // Il worker nuovo si attiva subito (skipWaiting): la pagina aperta e' gia' quella
 // presa dalla rete, quindi non serve ricaricarla e non si perde lavoro non salvato.
-const VERSION = "2026-09-30.7";
+const VERSION = "2026-09-30.12";
 const SHELL_CACHE = `sp1200-shell-${VERSION}`;
 const SAMPLE_CACHE = "sp1200-samples-v1"; // non versionata: i campioni non si riscaricano ad ogni rilascio
 
@@ -49,6 +49,7 @@ const SHELL = [
   "/learn/styles.html",
   "/learn/learn.css",
   "/learn/lang.js",
+  "/learn/it.js",
   "/learn/lessons.js",
   "/learn/basics.js",
   "/learn/level23.js",

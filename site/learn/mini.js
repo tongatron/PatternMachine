@@ -9,6 +9,7 @@
 (function(){
 "use strict";
 const L=window.PMLearn;
+const tr=s=>window.PMLang?.t?window.PMLang.t(s):s;
 const KEYS=["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const VEL=[0,0.76,1,0.42];                  // come stepVel nell'app: spento, normale, accento, ghost
 const LEVEL_NAME=["empty","normal","accent","ghost"];
@@ -96,8 +97,8 @@ function make(tag, cls, html, title){
   if(tag==="button") n.type="button";
   return n;
 }
-const PLAY_HTML='<span class="ico" aria-hidden="true">&#9654;</span> Play';
-const STOP_HTML='<span class="ico" aria-hidden="true">&#9632;</span> Stop';
+const PLAY_HTML='<span class="ico" aria-hidden="true">&#9654;</span> '+tr("Play");
+const STOP_HTML='<span class="ico" aria-hidden="true">&#9632;</span> '+tr("Stop");
 
 class Mini{
   constructor(host, o){
@@ -106,7 +107,7 @@ class Mini{
     this.bpm=o.bpm||92;
     this.swing=o.swing||50;                 // percentuale MPC: 50 dritto, 66 terzina, 75 massimo
     this.kit=KIT_DIR[o.kit]?o.kit:"12bit";
-    this.rows=o.rows.map((r,i)=>({...r, key:KEYS[i], vol:r.vol??0.8, levels:L.parseTab(r.tab,this.len)}));
+    this.rows=o.rows.map((r,i)=>({...r, label:tr(r.label), key:KEYS[i], vol:r.vol??0.8, levels:L.parseTab(r.tab,this.len)}));
     this.guide=o.guide||{};
     this.variant=o.variant||(o.variants?o.variants[0].id:null);
     this.playing=false; this.recording=false; this.metronome=!!o.metronome;
@@ -132,11 +133,11 @@ class Mini{
     if(o.label) h.setAttribute("aria-label",o.label);
     h.setAttribute("role","group");
     const bar=make("div","pmm-bar");
-    this.playBtn=make("button","pmm-play",PLAY_HTML,"Play / Stop (space bar)");
+    this.playBtn=make("button","pmm-play",PLAY_HTML,tr("Play / Stop (space bar)"));
     this.playBtn.onclick=()=>this.toggle();
     bar.append(this.playBtn);
     if(c.rec){
-      this.recBtn=make("button","pmm-rec",'<span class="rec-dot" aria-hidden="true">&#9679;</span> Rec',"Rec: while it plays, what you play is written on the nearest step");
+      this.recBtn=make("button","pmm-rec",'<span class="rec-dot" aria-hidden="true">&#9679;</span> Rec',tr("Rec: while it plays, what you play is written on the nearest step"));
       this.recBtn.setAttribute("aria-pressed","false");
       this.recBtn.onclick=()=>this.setRec(!this.recording);
       bar.append(this.recBtn);
@@ -149,7 +150,7 @@ class Mini{
       lab.append(r,val); bar.append(lab);
     }
     if(c.metronome){
-      this.metroBtn=make("button","pmm-metro","Metronome","Metronome on/off: a click on every beat, louder on the 1");
+      this.metroBtn=make("button","pmm-metro",tr("Metronome"),tr("Metronome on/off: a click on every beat, louder on the 1"));
       this.metroBtn.setAttribute("aria-pressed",String(this.metronome));
       this.metroBtn.onclick=()=>{ this.metronome=!this.metronome; this.paintTransport(); };
       bar.append(this.metroBtn);
@@ -164,17 +165,17 @@ class Mini{
       bar.append(g);
     }
     if(o.hint){
-      this.hintBtn=make("button","mini","Show me where","Marks the steps to fill");
+      this.hintBtn=make("button","mini",tr("Show me where"),tr("Marks the steps to fill"));
       this.hintBtn.onclick=()=>{ this.guide={...this.guide,...o.hint}; this.hintBtn.hidden=true; this.paint(); };
       bar.append(this.hintBtn);
     }
     if(c.undo){
-      this.undoBtn=make("button","mini","&#8630; Undo","Undo the last change (⌘Z / Ctrl+Z)");
+      this.undoBtn=make("button","mini","&#8630; "+tr("Undo"),tr("Undo the last change (⌘Z / Ctrl+Z)"));
       this.undoBtn.onclick=()=>this.undo();
       bar.append(this.undoBtn);
     }
     if(c.clear){
-      this.clearBtn=make("button","mini danger","Clear","Clear the rows you can edit");
+      this.clearBtn=make("button","mini danger",tr("Clear"),tr("Clear the rows you can edit"));
       this.clearBtn.onclick=()=>this.clear();
       bar.append(this.clearBtn);
     }
@@ -206,7 +207,7 @@ class Mini{
       pad.setAttribute("aria-label",`Play ${r.label}, key ${r.key.toUpperCase()}`);
       pad.onclick=()=>this.pad(ri);
       const name=make("span","pmm-name",r.label);
-      if(r.lock){ name.title="Locked in this exercise"; name.append(make("span","pmm-lock","locked")); }
+      if(r.lock){ name.title=tr("Locked in this exercise"); name.append(make("span","pmm-lock",tr("locked"))); }
       const steps=make("div","pmm-steps");
       const els=[];
       for(let i=0;i<this.len;i++){
@@ -251,7 +252,7 @@ class Mini{
     this.rulerCells.forEach((c,i)=>c.classList.toggle("now",i===s));
     this.counter.textContent=s<0?"1 . 1":`${this.vis.bar} . ${Math.floor(s/4)+1} . ${s%4+1}`;
     this.led.classList.toggle("on",s>=0);
-    this.headLabel.textContent=s<0?(this.playing?"Starting…":"Ready"):`Step ${s+1} · beat ${Math.floor(s/4)+1}`;
+    this.headLabel.textContent=s<0?(this.playing?tr("Starting…"):tr("Ready")):`${tr("Step")} ${s+1} · ${tr("beat")} ${Math.floor(s/4)+1}`;
   }
   paintTransport(){
     this.playBtn.classList.toggle("on",this.playing);
@@ -265,16 +266,16 @@ class Mini{
   paintTiming(){
     const box=this.timingEl; if(!box) return;
     const last=this.timing.slice(-6);
-    if(!last.length){ box.innerHTML='<p class="pmm-tl">Your timing appears here as you record: how early or late each hit was, in milliseconds.</p>'; return; }
-    const word=ms=>ms===0?"right on":ms<0?`${-ms} ms early`:`${ms} ms late`;
+    if(!last.length){ box.innerHTML=`<p class="pmm-tl">${tr("Your timing appears here as you record: how early or late each hit was, in milliseconds.")}</p>`; return; }
+    const word=ms=>ms===0?tr("right on"):ms<0?`${-ms} ms ${tr("early")}`:`${ms} ms ${tr("late")}`;
     const cls=ms=>Math.abs(ms)<=20?"tight":Math.abs(ms)<=50?"near":"off";
     const x=ms=>Math.max(0,Math.min(100,50+ms/2));   // da -100 a +100 ms
     // distanza media dallo step (anticipi e ritardi non si compensano) e da che parte si tende a cadere
     const off=Math.round(last.reduce((s,t)=>s+Math.abs(t.ms),0)/last.length), bias=last.reduce((s,t)=>s+t.ms,0)/last.length;
-    box.innerHTML=`<div class="pmm-meter" aria-hidden="true"><span class="pmm-meter-l">early</span><span class="pmm-meter-c">on time</span><span class="pmm-meter-r">late</span>`
+    box.innerHTML=`<div class="pmm-meter" aria-hidden="true"><span class="pmm-meter-l">${tr("early")}</span><span class="pmm-meter-c">${tr("on time")}</span><span class="pmm-meter-r">${tr("late")}</span>`
       +last.map((t,i)=>`<i class="${cls(t.ms)}${i===last.length-1?" last":""}" style="left:${x(t.ms)}%"></i>`).join("")+`</div>`
       +`<ul class="pmm-hits">${last.map(t=>`<li class="${cls(t.ms)}">${t.label} · step ${t.step+1} · ${word(t.ms)}</li>`).join("")}</ul>`
-      +`<p class="pmm-tl">Last ${last.length} ${last.length===1?"hit":"hits"}: on average <b>${off} ms</b> from the step${bias>10?", mostly late":bias<-10?", mostly early":""}. Within 20 ms is tight; past 50 ms you can hear it.</p>`;
+      +`<p class="pmm-tl">${tr("Last")} ${last.length} ${last.length===1?tr("hit"):tr("hits")}: ${tr("on average")} <b>${off} ms</b> ${tr("from the step")}${bias>10?", "+tr("mostly late"):bias<-10?", "+tr("mostly early"):""}. ${tr("Within 20 ms is tight; past 50 ms you can hear it.")}</p>`;
   }
   say(text){ this.msg.textContent=text||""; }
 
@@ -282,10 +283,10 @@ class Mini{
   check(initial){
     const g=this.o.goal; if(!g) return;
     const res=L.checkGoal(this.row(g.row).levels,g), items=res.items.slice();
-    if(g.live) items.push({id:"live", text:"Recorded live with Rec (not clicked)", ok:g.steps.every(i=>this.live.has(g.row+":"+i))});
+    if(g.live) items.push({id:"live", text:tr("Recorded live with Rec (not clicked)"), ok:g.steps.every(i=>this.live.has(g.row+":"+i))});
     const solved=items.every(x=>x.ok);
     this.checksEl.innerHTML=items.map(x=>`<li class="${x.ok?"ok":"todo"}"><span class="pmm-tick" aria-hidden="true">${x.ok?"&#10003;":"&#9675;"}</span>`
-      +`<span>${x.text}${x.note&&!x.ok?` <em>(${x.note})</em>`:""}</span><span class="pmm-sr">${x.ok?" done":" to do"}</span></li>`).join("");
+      +`<span>${tr(x.text)}${x.note&&!x.ok?` <em>(${tr(x.note)})</em>`:""}</span><span class="pmm-sr">${x.ok?tr(" done"):tr(" to do")}</span></li>`).join("");
     this.host.classList.toggle("pmm-solved",solved);
     if(solved && !this.solved && !initial){
       this.say(this.o.solvedText||"Well done!");

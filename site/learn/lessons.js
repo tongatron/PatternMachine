@@ -91,16 +91,17 @@ const toTab = levels => levels.map(v=>["-","x","X","g"][v]||"-").join("");
 const COUNT=["","e","&","a"];
 const beatOf = i => Math.floor(i/4)+1;
 const countOf = i => i%4 ? `${beatOf(i)} ${COUNT[i%4]}` : String(beatOf(i));
-const stepName = i => i%4 ? `“${countOf(i)}” (step ${i+1})` : `beat ${beatOf(i)} (step ${i+1})`;
+const stepName = i => { const beat=window.PMLang?.lang==="it"?"movimento":"beat"; return i%4 ? `“${countOf(i)}” (step ${i+1})` : `${beat} ${beatOf(i)} (step ${i+1})`; };
 
 // Verifica di un obiettivo su una riga: un colpo su ciascuno degli step richiesti e, con exact,
 // nessun altro colpo sulla riga (spuntato solo quando la riga ha dei colpi: vuota non vale come fatto).
 // `levels` = livelli della riga (0 spento, 1 normale, 2 accento, 3 ghost).
 function checkGoal(levels, goal){
   const a=levels||[];
-  const items=goal.steps.map(i=>({id:"s"+i, text:`${goal.label} on ${stepName(i)}`, ok:!!a[i]}));
+  const italian=window.PMLang?.lang==="it", label=italian?({Kick:"Cassa",Snare:"Rullante","Hi-hat":"Hi-hat"}[goal.label]||goal.label):goal.label;
+  const items=goal.steps.map(i=>({id:"s"+i, text:italian?`${label} su ${stepName(i)}`:`${label} on ${stepName(i)}`, ok:!!a[i]}));
   const extra=a.map((v,i)=>v&&!goal.steps.includes(i)?i:-1).filter(i=>i>=0);
-  if(goal.exact) items.push({id:"clean", text:`No other ${goal.label.toLowerCase()} hits`, ok:!extra.length && a.some(Boolean),
+  if(goal.exact) items.push({id:"clean", text:italian?`Nessun altro colpo di ${label.toLowerCase()}`:`No other ${goal.label.toLowerCase()} hits`, ok:!extra.length && a.some(Boolean),
     note:extra.length?`remove ${extra.map(i=>"step "+(i+1)).join(", ")}`:""});
   return {items, extra, solved:items.every(x=>x.ok)};
 }

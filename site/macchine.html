@@ -179,6 +179,7 @@ table.cmp button.playing{background:var(--key-primary); color:var(--on-accent);}
 <footer class="site-footer"><a class="report-link" href="./#segnala">Report a problem</a><span class="site-version"><!--build-->version of day month year HH:MM<!--/build--></span><a class="site-badge" href="https://tongatron.org/"><span class="mark"></span><span>tongatron.org</span></a></footer>
 </div>
 
+<script src="engine/machine-art.js?v=2026-09-29.59"></script>
 <script>
 "use strict";
 // ---------- dati ----------
@@ -191,111 +192,97 @@ const MACHINES=[
    specs:["analog sounds","preset rhythms","user rhythms in memory","microprocessor"],
    story:[`The CompuRhythm CR-78 was built as an accompaniment for organ players: you pick a rhythm (rock, bossa nova, waltz…) and it plays it. The novelty is inside: it is one of the first drum machines with a microprocessor, which lets you program and store your own rhythms.`,
      `The sound is soft and &ldquo;woody&rdquo;: short kicks, hissy hi-hats, congas, guiro and a &ldquo;metal beat&rdquo; instead of cymbals. It has no clap.`],
-   heard:["Phil Collins, “In the Air Tonight” (1981)","Blondie, “Heart of Glass” (1978)"],
-   look:{body:"#d9d2bf", panel:"#e8e2d0", wood:"#7a4a26", keys:["#c86a2a","#e8e2d0","#3a3833"], knobs:6, lcd:null, faders:0, steps:6, text:"#3a3833"}},
+   heard:["Phil Collins, “In the Air Tonight” (1981)","Blondie, “Heart of Glass” (1978)"],},
   {id:"tr808", name:"Roland TR-808", short:"TR-808", maker:"Roland", year:1980, gen:"Analog",
    wiki:"https://en.wikipedia.org/wiki/Roland_TR-808",
    dir:"machines/tr808/", files:{kick:"BD1",snare:"SD1",hat:"HH1",open:"HHo",clap:"Clap",tom:"Tom1",cow:"Cow"},
    specs:["analog sounds","16-step sequencer","accent","individual outputs"],
    story:[`Roland pitched it as a tool for rehearsals and demos: the sounds don't resemble a real drum kit and it sold poorly at launch. About twelve thousand were made, until 1983. Precisely because it was cheap second-hand, it ended up in the hands of the people who invented electro and hip hop.`,
      `Its trademark is the kick: a falling tone that can last for seconds, almost a bass. Then the clap, the cowbell and the metallic hi-hat. Its 16-step sequencer with colored buttons became the standard way to program a beat, the same one used on this page.`],
-   heard:["Afrika Bambaataa, “Planet Rock” (1982)","Marvin Gaye, “Sexual Healing” (1982)"],
-   look:{body:"#2a2927", panel:"#3a3835", wood:null, keys:["#d6402a","#e8672a","#f0a23a","#f1ead6"], knobs:10, lcd:null, faders:0, steps:16, text:"#e8672a"}},
+   heard:["Afrika Bambaataa, “Planet Rock” (1982)","Marvin Gaye, “Sexual Healing” (1982)"],},
   {id:"tr606", name:"Roland TR-606 Drumatix", short:"TR-606", maker:"Roland", year:1981, gen:"Analog",
    wiki:"https://en.wikipedia.org/wiki/Roland_TR-606",
    dir:"machines/tr606/", files:{kick:"Kick1",snare:"Snare1",hat:"HiHat1",open:"HiHatOpen1",clap:"Clap1",tom:"TomHigh1",cow:"Rim"},
    specs:["analog sounds","16-step sequencer","battery-powered, portable","syncs with the TB-303"],
    story:[`The 808's little sister: same idea, fewer sounds (kick, snare, two toms, hi-hat and cymbal) and a book-sized silver box, designed to pair with the TB-303 bass line released the same year.`,
      `It sounds dry and thin, with a sharp metallic hi-hat. When the 303 and 606 turned up cheap second-hand a few years later, they became the backbone of acid and a lot of industrial music. The original has no clap or rimshot, but Logic's kit includes them anyway.`],
-   heard:["acid house (paired with the TB-303)","'80s electro and industrial music"],
-   look:{body:"#b9bbbe", panel:"#2a2a2d", wood:null, keys:["#e8e6e0","#e8e6e0","#d6402a"], knobs:8, lcd:null, faders:0, steps:16, text:"#e8e6e0"}},
+   heard:["acid house (paired with the TB-303)","'80s electro and industrial music"],},
   {id:"cr8000", name:"Roland CR-8000", short:"CR-8000", maker:"Roland", year:1981, gen:"Analog",
    dir:"machines/cr8000/", files:{kick:"Kick1",snare:"Snare1",hat:"HiHat",open:"HiHatOpen",clap:"Clap1",tom:"TomHigh",cow:"Cowbell"},
    specs:["analog sounds","preset and user rhythms","accent","clap"],
    story:[`The CR-78's successor: still a CompuRhythm with preset rhythms, but with more memory for your own, fills and a more modern sound. It arrived at the same time as the 808 and stayed somewhat in its shadow.`,
      `Its tone sits halfway between the two: softer than the 808, fuller than the CR-78, with a clap of its own and well-defined congas.`],
-   heard:["early-'80s synth pop"],
-   look:{body:"#2c2b29", panel:"#3a3936", wood:null, keys:["#e8a33a","#e8e2d0","#e8e2d0"], knobs:8, lcd:null, faders:0, steps:12, text:"#e8a33a"}},
+   heard:["early-'80s synth pop"],},
   {id:"dmx", name:"Oberheim DMX", short:"DMX", maker:"Oberheim", year:1981, gen:"Digital samples",
    wiki:"https://en.wikipedia.org/wiki/Oberheim_DMX",
    dir:"machines/dmx/", files:{kick:"BD1",snare:"SD2",hat:"HH1",open:"HHo1",clap:"SD2",tom:"Tom1",cow:"Tamb1"},
    specs:["8-bit samples","recorded acoustic drums","one fader per sound","swing"],
    story:[`It came out almost alongside the LinnDrum and competed with the same idea: real drum sounds stored in memory. It was cheaper, had a fader for every sound and a swing that dance producers loved right away.`,
      `Its hard, dry kick and snare are the sound of the first rap records: the rapper DMX took his name from it. Logic's kit has no clap or rimshot, so the snare stands in here.`],
-   heard:["New Order, “Blue Monday” (1983)","Run-DMC, “It's Like That” (1983)"],
-   look:{body:"#1e1e20", panel:"#2a2a2d", wood:null, keys:["#d9d6cc"], knobs:0, lcd:null, faders:12, steps:10, text:"#d9d6cc"}},
+   heard:["New Order, “Blue Monday” (1983)","Run-DMC, “It's Like That” (1983)"],},
   {id:"sdsv", name:"Simmons SDS-V", short:"SDS-V", maker:"Simmons", year:1981, gen:"Electronic drum kit",
    wiki:"https://en.wikipedia.org/wiki/Simmons_SDSV",
    dir:"machines/sdsv/", files:{kick:"Kick",snare:"Snare1",hat:"HiHat1",open:"HiHatOpen",clap:"Clap1",tom:"TomHigh1",cow:"Snap"},
    specs:["analog synthesis","playable hexagonal pads","one module per drum","no sequencer"],
    story:[`It isn't a drum machine: it's an electronic drum kit played with sticks, on hexagonal pads connected to a rack of analog modules. Each module generates a drum with an oscillator and a noise generator.`,
      `Its trademark is the toms: an unmistakable falling &ldquo;pew&rdquo;, heard all over '80s pop. Here the sounds come from a Logic kit that recreates it.`],
-   heard:["early-'80s British pop","Bill Bruford with King Crimson (1981–84)"],
-   look:{body:"#1b1b1d", panel:"#262629", wood:null, keys:["#c8302a"], knobs:10, lcd:null, faders:0, steps:5, text:"#c8302a"}},
+   heard:["early-'80s British pop","Bill Bruford with King Crimson (1981–84)"],},
   {id:"linn", name:"Linn LinnDrum", short:"LinnDrum", maker:"Linn Electronics", year:1982, gen:"Digital samples",
    wiki:"https://en.wikipedia.org/wiki/LinnDrum",
    dir:"machines/linn/", files:{kick:"Kick1",snare:"Snare1",hat:"HiHat1",open:"HiHatOpen",clap:"Clap",tom:"TomHigh",cow:"Cowbell"},
    specs:["8-bit samples","recorded acoustic drums","one fader per sound","swing"],
    story:[`Roger Linn had already built the LM-1 (1980), the first drum machine with real recorded drum sounds in memory. The LinnDrum is the fuller version, with sampled cymbals too: it still cost as much as a used car.`,
      `It is the sound of '80s pop: dry snares, tuned toms, a bright clap. Its adjustable swing is one reason so many beats of the time &ldquo;groove&rdquo; instead of march.`],
-   heard:["a-ha, “Take On Me” (1985)","Jan Hammer, “Miami Vice Theme” (1984)"],
-   look:{body:"#1f1f22", panel:"#2c2c30", wood:"#6b4226", keys:["#e9e5da","#e9e5da","#c83a2a"], knobs:0, lcd:null, faders:15, steps:8, text:"#e9e5da"}},
+   heard:["a-ha, “Take On Me” (1985)","Jan Hammer, “Miami Vice Theme” (1984)"],},
   {id:"tr909", name:"Roland TR-909", short:"TR-909", maker:"Roland", year:1983, gen:"Hybrid",
    wiki:"https://en.wikipedia.org/wiki/Roland_TR-909",
    dir:"machines/tr909/", files:{kick:"BD1",snare:"SD1",hat:"HH1",open:"HHo1",clap:"ClapST",tom:"Tom1",cow:"Perc3"},
    specs:["analog kick, snare and toms","6-bit sampled cymbals","MIDI","individual outputs"],
    story:[`Half analog, half digital: kick, snare, toms and clap are circuits as on the 808, hi-hats and cymbals are 6-bit samples. It's also one of the first drum machines with MIDI. Like the 808, it sold poorly at first and soon disappeared from the shops.`,
      `In Chicago and Detroit it became the heart of house and techno: the short, full kick, the off-beat open hat, the clap. Almost every drum machine today still has a &ldquo;909&rdquo; sound.`],
-   heard:["Chicago house and Detroit techno, from the mid-'80s"],
-   look:{body:"#c9c7c0", panel:"#d8d6cf", wood:null, keys:["#d6402a","#f1ead6","#f1ead6","#3a3833"], knobs:14, lcd:null, faders:0, steps:16, text:"#2a2927"}},
+   heard:["Chicago house and Detroit techno, from the mid-'80s"],},
   {id:"drumulator", name:"E-mu Drumulator", short:"Drumulator", maker:"E-mu Systems", year:1983, gen:"Digital samples",
    wiki:"https://en.wikipedia.org/wiki/E-mu_Drumulator",
    dir:"machines/drumulator/", files:{kick:"BD1",snare:"SD",hat:"Ride",open:"Ride",clap:"Clap",tom:"Tom1",cow:"Cow"},
    specs:["8-bit samples","affordable","swappable sound chips","individual outputs"],
    story:[`E-mu designed it to bring sampled sounds to people who couldn't afford a LinnDrum: it cost a fraction. It was a success, and the experience led E-mu to the SP-12 and then the SP-1200.`,
      `The sound is raw and lively, with a fat snare and a solid clap. Logic's kit has no hi-hats, so the ride stands in here.`],
-   heard:["mid-'80s pop and rock"],
-   look:{body:"#2d2f33", panel:"#3a3d42", wood:null, keys:["#3a6ea5","#d8d6cf"], knobs:0, lcd:"#e0432a", faders:0, steps:16, text:"#d8d6cf"}},
+   heard:["mid-'80s pop and rock"],},
   {id:"drumtraks", name:"Sequential DrumTraks", short:"DrumTraks", maker:"Sequential Circuits", year:1984, gen:"Digital samples",
    wiki:"https://en.wikipedia.org/wiki/Drumtraks",
    dir:"machines/drumtraks/", files:{kick:"Kick1",snare:"Snare1",hat:"HiHat",open:"HiHatOpen",clap:"Clap1",tom:"TomHigh",cow:"Cowbell"},
    specs:["samples","per-sound tuning and level","one of the first with MIDI","individual outputs"],
    story:[`From the makers of the Prophet-5 synthesizer, who had just helped invent MIDI: the DrumTraks is one of the first drum machines to have it. Every sound can be tuned and leveled step by step.`,
      `Clean sounds, a little softer than the Linn and DMX, easy to blend with synthesizers.`],
-   heard:["mid-'80s synth pop and new wave"],
-   look:{body:"#1f1f22", panel:"#2c2c30", wood:"#6b4226", keys:["#d8d6cf"], knobs:0, lcd:"#e0432a", faders:0, steps:13, text:"#d8d6cf"}},
+   heard:["mid-'80s synth pop and new wave"],},
   {id:"tr707", name:"Roland TR-707", short:"TR-707", maker:"Roland", year:1985, gen:"Digital samples",
    wiki:"https://en.wikipedia.org/wiki/Roland_TR-707",
    dir:"machines/tr707/", files:{kick:"Kick1",snare:"Snare1",hat:"HiHat",open:"HiHatOpen",clap:"Clap1",tom:"TomHigh",cow:"Cowbell"},
    specs:["all sounds sampled","pattern grid on the display","memory cartridges","MIDI"],
    story:[`After the 808 and 909, Roland switched entirely to samples: real drum sounds, cheaper to produce. The 707 is compact, inexpensive and has a display that shows the pattern as a grid of dots.`,
      `Designed for pop bands, it also ended up in Chicago house and Italo disco: clean, slightly plasticky sounds that sit easily in a mix.`],
-   heard:["Chicago house, Italo disco, mid-'80s pop"],
-   look:{body:"#3b3c40", panel:"#4a4b50", wood:null, keys:["#e46a2a","#e46a2a","#d8d6cf","#d8d6cf"], knobs:3, lcd:"#9fb89a", faders:0, steps:16, text:"#e46a2a"}},
+   heard:["Chicago house, Italo disco, mid-'80s pop"],},
   {id:"tr727", name:"Roland TR-727", short:"TR-727", maker:"Roland", year:1985, gen:"Digital samples",
    wiki:"https://en.wikipedia.org/wiki/Roland_TR-707",
    dir:"machines/tr727/", files:{kick:"CongaLow",snare:"TimbaleHigh",hat:"Maracas",open:"Quijada",clap:"Cabasa",tom:"BongoHigh",cow:"AgogoHigh"},
    specs:["Latin percussion only","samples","same case as the 707","MIDI"],
    story:[`The 707's Latin twin: same case and same sequencer, but percussion only: bongos, congas, timbales, agogô, cabasa, maracas, quijada, whistle. It was used alongside another drum machine.`,
      `On its own it has no kick, snare or hi-hat: here congas, timbales and maracas stand in, so comparisons still work. Its congas ended up in a lot of house music.`],
-   heard:["late-'80s Chicago and New York house"],
-   look:{body:"#3b3c40", panel:"#4a4b50", wood:null, keys:["#3aa0a0","#3aa0a0","#d8d6cf","#d8d6cf"], knobs:3, lcd:"#9fb89a", faders:0, steps:16, text:"#3aa0a0"}},
+   heard:["late-'80s Chicago and New York house"],},
   {id:"rx5", name:"Yamaha RX5", short:"RX5", maker:"Yamaha", year:1986, gen:"Digital samples",
    wiki:"https://en.wikipedia.org/wiki/Yamaha_RX-5",
    dir:"machines/rx5/", files:{kick:"BDrum1-RX5",snare:"SDrum1-RX5",hat:"CHat-RX5",open:"OHat-RX5",clap:"Clap-RX5",tom:"Tom1-RX5",cow:"Cowbell-RX5"},
    specs:["12-bit samples","per-sound tuning and envelope","sound cartridges","individual outputs"],
    story:[`Yamaha's flagship in the DX7 synthesizer era: 12-bit samples, each sound with its own tuning, attack and decay, plus cartridges to load more. On this site it's the machine with the most sounds, including basses and FM percussion.`,
      `The tone is bright and &ldquo;studio-polished&rdquo;, very '80s: snares with short reverb, electronic toms, metallic percussion.`],
-   heard:["late-'80s pop and film music"],
-   look:{body:"#2e3033", panel:"#3a3d41", wood:null, keys:["#d8d6cf"], knobs:0, lcd:"#e0432a", faders:0, steps:12, text:"#d8d6cf"}},
+   heard:["late-'80s pop and film music"],},
   {id:"sp1200", name:"E-mu SP-1200", short:"SP-1200", maker:"E-mu Systems", year:1987, gen:"Sampler",
    wiki:"https://en.wikipedia.org/wiki/E-mu_SP-1200",
    dir:null, files:{kick:"Kick 1",snare:"Snare 1",hat:"Closed Hat 1",open:"Open Hat 1",clap:"Finger Snap",tom:"Tom 1",cow:"Cowbell 1"},
    specs:["samples at 12 bit, about 26 kHz","10 seconds of memory in total","analog filters on some outputs","8 faders"],
    story:[`The successor to the SP-12 (1985), it isn't just a drum machine: it samples from any source, including records. It has ten seconds of memory in total, so producers played vinyl at 45 rpm to fit more in and then pitched it back down: the result is even grittier.`,
      `The 12 bits, the low sample rate and the filters give golden-age rap its grit and weight: for many it is still the sound of boom bap. It's also the machine this site was born from.`],
-   heard:["Pete Rock & CL Smooth, “They Reminisce Over You (T.R.O.Y.)” (1992)","New York rap from the late '80s into the '90s"],
-   look:{body:"#8f9194", panel:"#a3a5a8", wood:null, keys:["#d8d6cf"], knobs:0, lcd:"#5b7fb8", faders:8, steps:8, text:"#1f2a44"}},
+   heard:["Pete Rock & CL Smooth, “They Reminisce Over You (T.R.O.Y.)” (1992)","New York rap from the late '80s into the '90s"],},
 ];
 const byId=Object.fromEntries(MACHINES.map(m=>[m.id,m]));
 const VOICES=[["kick","Kick"],["snare","Snare"],["hat","Closed hat"],["open","Open hat"],["clap","Clap"],["tom","Tom"],["cow","Cowbell"]];
@@ -347,44 +334,13 @@ function drawWave(canvas, layers, seconds){
   });
 }
 
-// ---------- illustrazioni (SVG stilizzati) ----------
-function machineSvg(m){
-  const L=m.look, W=320, H=150, x0=L.wood?16:0, w=W-2*x0, g=`g-${m.id}`;
-  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${m.name}, stylized illustration">`+
-    `<defs><linearGradient id="${g}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset="1" stop-color="#000" stop-opacity=".22"/></linearGradient></defs>`;
-  if(L.wood) s+=`<rect width="${W}" height="${H}" rx="6" fill="${L.wood}"/>`;
-  s+=`<rect x="${x0}" width="${w}" height="${H}" rx="${L.wood?2:6}" fill="${L.body}"/>`+
-     `<rect x="${x0+8}" y="8" width="${w-16}" height="${H-16}" rx="3" fill="${L.panel}"/>`+
-     `<text x="${x0+16}" y="31" font-family="Helvetica,Arial,sans-serif" font-weight="700" font-size="17" fill="${L.text}">${m.short}</text>`+
-     `<text x="${x0+16}" y="44" font-family="Helvetica,Arial,sans-serif" font-size="8" letter-spacing="1.5" fill="${L.text}" opacity=".75">${m.maker.toUpperCase()} · ${m.year}</text>`;
-  // manopole: una o due file nella parte alta a destra
-  const kn=L.knobs, perRow=Math.ceil(kn/(kn>7?2:1)), kxs=x0+130, kw=w-146;
-  for(let i=0;i<kn;i++){
-    const r=Math.floor(i/perRow), k=i%perRow, cx=kxs+(k+.5)*kw/perRow, cy=kn>7?(26+r*26):34;
-    s+=`<circle cx="${cx}" cy="${cy}" r="7" fill="#1b1b1b"/><circle cx="${cx}" cy="${cy-3}" r="1.6" fill="#ddd"/>`;
-  }
-  if(L.lcd) s+=`<rect x="${x0+w-118}" y="18" width="92" height="28" rx="2" fill="#111"/><rect x="${x0+w-113}" y="23" width="82" height="18" rx="1" fill="${L.lcd}" opacity=".9"/>`;
-  // cursori
-  for(let i=0;i<L.faders;i++){
-    const fx=x0+22+i*((w-44)/L.faders)+((w-44)/L.faders)/2;
-    s+=`<rect x="${fx-1.5}" y="58" width="3" height="40" fill="#111"/><rect x="${fx-6}" y="${64+(i*13)%26}" width="12" height="8" rx="1" fill="#e6e3da"/>`;
-  }
-  // tasti in basso
-  const n=L.steps, gap=4, bw=(w-36-(n-1)*gap)/n, by=L.faders?108:96, bh=L.faders?24:34;
-  for(let i=0;i<n;i++){
-    const col=L.keys[Math.min(L.keys.length-1,Math.floor(i*L.keys.length/n))];
-    s+=`<rect x="${x0+18+i*(bw+gap)}" y="${by}" width="${bw}" height="${bh}" rx="2" fill="${col}" stroke="rgba(0,0,0,.35)"/>`;
-  }
-  if(!L.faders) s+=`<rect x="${x0+18}" y="62" width="${w-36}" height="22" rx="2" fill="rgba(0,0,0,.1)"/>`;
-  s+=`<rect x="${x0}" width="${w}" height="${H}" rx="${L.wood?2:6}" fill="url(#${g})"/></svg>`;
-  return s;
-}
+// ---------- illustrazioni: engine/machine-art.js ----------
 
 // ---------- linea del tempo, schede, tabella ----------
 const $=id=>document.getElementById(id);
 $("cards").innerHTML=MACHINES.map(m=>`
   <article class="card" id="m-${m.id}">
-    <div>${machineSvg(m)}</div>
+    <div>${PMMachineArt.svg(m.id)}</div>
     <div>
       <div class="meta">${m.year} · ${m.maker} · ${m.gen}</div>
       <h3>${m.name}</h3>

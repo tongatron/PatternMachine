@@ -17,7 +17,12 @@ if (process.env.PM_USERDATA) app.setPath("userData", process.env.PM_USERDATA);  
 const SITE_DIR = app.isPackaged ? path.join(process.resourcesPath, "site") : path.join(__dirname, "..", "site");
 const BRIDGE_DIR = path.join(__dirname, "bridge");
 const HOME_DIR = process.env.PM_HOME || path.join(app.getPath("music"), "PatternMachine");   // PM_HOME: per le prove
-const PROJECTS_DIR = path.join(HOME_DIR, "Progetti");
+const PROJECTS_DIR = path.join(HOME_DIR, "Projects");
+// Fino alla 0.2 la cartella si chiamava "Progetti": al primo avvio si rinomina (con i file e il legame all'account).
+function migrateProjectsDir() {
+  const old = path.join(HOME_DIR, "Progetti");
+  try { if (fs.existsSync(old) && !fs.existsSync(PROJECTS_DIR)) fs.renameSync(old, PROJECTS_DIR); } catch (e) {}
+}
 const EXPORT_DIR = path.join(HOME_DIR, "Export");
 const DRAG_DIR = path.join(app.getPath("temp"), "PatternMachine-drag");
 const KITS_DIR = path.join(app.getPath("userData"), "drum-machines");
@@ -47,7 +52,7 @@ function registerAppProtocol() {
   protocol.handle("app", async (req) => {
     const { pathname } = new URL(req.url);
     const file = resolveAppPath(pathname);
-    if (!file || !fs.existsSync(file) || fs.statSync(file).isDirectory()) return new Response("non trovato", { status: 404 });
+    if (!file || !fs.existsSync(file) || fs.statSync(file).isDirectory()) return new Response("not found", { status: 404 });
     if (file === path.join(SITE_DIR, "index.html")) {
       // niente statistiche Umami nell'app (lo script conta solo sul dominio del sito, ma non serve caricarlo)
       const html = fs.readFileSync(file, "utf8").replace(/<script[^>]*analytics\.tongatron\.org[^>]*><\/script>\n?/g, "").replace("</body>",
@@ -99,7 +104,7 @@ ipcMain.handle("midi:status", () => ({ ok: !!midiOut, name: PORT_NAME, error: mi
 
 // ---------- progetti su file ----------
 const projectFile = id => {
-  if (!/^[A-Za-z0-9_-]+$/.test(String(id))) throw new Error("id non valido");
+  if (!/^[A-Za-z0-9_-]+$/.test(String(id))) throw new Error("invalid id");
   return path.join(PROJECTS_DIR, id + ".json");
 };
 ipcMain.handle("projects:list", () => {
@@ -135,7 +140,7 @@ ipcMain.handle("projects:delete", async (_e, id) => {
 
 // ---------- account e sincronizzazione dei progetti ----------
 // Si entra con nome e password del sito: la password va solo al server, si tiene il cookie di sessione
-// cifrato col portachiavi di macOS (safeStorage). La cartella Progetti resta la copia di lavoro: si
+// cifrato col portachiavi di macOS (safeStorage). La cartella Projects resta la copia di lavoro: si
 // confronta coi progetti dell'account (/api/projects) guardando i file, quindi valgono anche i file
 // aggiunti, cambiati o tolti dal Finder. Per ogni progetto sync-<utente>.json ricorda la rev del server
 // e l'impronta del file all'ultima sincronizzazione:
@@ -331,7 +336,7 @@ function listKitAudio(root) {
   walk(root);
   return out.sort((a, b) => a.file.localeCompare(b.file, undefined, { numeric: true, sensitivity: "base" }));
 }
-function kitPath(id) { if (!safeKitId(id)) throw new Error("kit non valido"); return path.join(KITS_DIR, id); }
+function kitPath(id) { if (!safeKitId(id)) throw new Error("invalid kit"); return path.join(KITS_DIR, id); }
 function kitMeta(id) { return JSON.parse(fs.readFileSync(path.join(kitPath(id), "kit.json"), "utf8")); }
 
 ipcMain.handle("kits:list", () => {
@@ -343,10 +348,10 @@ ipcMain.handle("kits:list", () => {
 ipcMain.handle("kits:pick", async () => {
   fs.mkdirSync(KITS_DIR, { recursive: true });
   const result = await dialog.showOpenDialog(win, {
-    title: "Importa Drum Machine",
-    buttonLabel: "Scegli campioni",
+    title: "Import Drum Machine",
+    buttonLabel: "Choose samples",
     properties: ["openFile", "openDirectory"],
-    filters: [{ name: "Cartella o archivio ZIP", extensions: ["zip"] }],
+    filters: [{ name: "Folder or ZIP archive", extensions: ["zip"] }],
   });
   if (result.canceled || !result.filePaths[0]) return null;
   const source = result.filePaths[0], stagingId = `.staging-${randomUUID()}`, staging = path.join(KITS_DIR, stagingId);
@@ -360,35 +365,35 @@ ipcMain.handle("kits:pick", async () => {
       }
     } else if (/\.zip$/i.test(source)) {
       execFileSync("/usr/bin/ditto", ["-x", "-k", source, staging], { stdio: "pipe" });
-    } else throw new Error("scegli una cartella o un file ZIP");
+    } else throw new Error("choose a folder or a ZIP file");
     const files = listKitAudio(staging);
-    if (!files.length) throw new Error("non ho trovato campioni audio (WAV, AIFF, MP3, OGG, FLAC o M4A)");
+    if (!files.length) throw new Error("no audio samples found (WAV, AIFF, MP3, OGG, FLAC or M4A)");
     return { stagingId, files };
   } catch (e) {
     fs.rmSync(staging, { recursive: true, force: true });
-    throw new Error(e.message || "importazione non riuscita");
+    throw new Error(e.message || "import failed");
   }
 });
 function normalizeKitSlots(id, slots) {
-  if (!Array.isArray(slots) || !slots.length || slots.length > 42) throw new Error("un kit deve contenere da 1 a 42 campioni");
+  if (!Array.isArray(slots) || !slots.length || slots.length > 42) throw new Error("a kit must have 1 to 42 samples");
   const root = kitPath(id), seen = new Set();
   return slots.map(s => {
     const file = String(s.file || "").replaceAll("\\", "/");
-    if (!file || file.startsWith("/") || file.includes("../") || !AUDIO_EXT.test(file) || seen.has(file)) throw new Error("campione non valido");
+    if (!file || file.startsWith("/") || file.includes("../") || !AUDIO_EXT.test(file) || seen.has(file)) throw new Error("invalid sample");
     const full = path.normalize(path.join(root, file));
-    if (!full.startsWith(root + path.sep) || !fs.existsSync(full)) throw new Error("campione non trovato");
+    if (!full.startsWith(root + path.sep) || !fs.existsSync(full)) throw new Error("sample not found");
     seen.add(file);
     return { slot: String(s.slot || "").slice(0, 80), file, label: String(s.label || s.slot || file).trim().slice(0, 80) || file };
   });
 }
 ipcMain.handle("kits:create", (_e, stagingId, data) => {
-  if (!/^\.staging-[A-Za-z0-9-]+$/.test(String(stagingId))) throw new Error("importazione non valida");
+  if (!/^\.staging-[A-Za-z0-9-]+$/.test(String(stagingId))) throw new Error("invalid import");
   const staging = path.join(KITS_DIR, stagingId);
-  if (!fs.existsSync(staging)) throw new Error("importazione scaduta");
+  if (!fs.existsSync(staging)) throw new Error("import expired");
   const id = `custom-${Date.now()}-${randomUUID().slice(0, 8)}`, target = kitPath(id);
   fs.renameSync(staging, target);
   try {
-    const meta = { id, label: String(data?.label || "Drum Machine").trim().slice(0, 80) || "Drum Machine", source: "campioni personali", slots: normalizeKitSlots(id, data?.slots) };
+    const meta = { id, label: String(data?.label || "Drum Machine").trim().slice(0, 80) || "Drum Machine", source: "your own samples", slots: normalizeKitSlots(id, data?.slots) };
     fs.writeFileSync(path.join(target, "kit.json"), JSON.stringify(meta, null, 2));
     return meta;
   } catch (e) { fs.rmSync(target, { recursive: true, force: true }); throw e; }
@@ -422,9 +427,9 @@ ipcMain.handle("export:file", async (_e, filename, bytes) => {
   const safe = cleanName(filename);
   const ext = path.extname(safe).slice(1).toLowerCase();
   const result = await dialog.showSaveDialog(win, {
-    title: "Esporta PatternMachine",
+    title: "Export from PatternMachine",
     defaultPath: path.join(EXPORT_DIR, safe),
-    filters: ext ? [{ name: ext.toUpperCase(), extensions: [ext] }, { name: "Tutti i file", extensions: ["*"] }] : undefined,
+    filters: ext ? [{ name: ext.toUpperCase(), extensions: [ext] }, { name: "All files", extensions: ["*"] }] : undefined,
   });
   if (result.canceled || !result.filePath) return { canceled: true };
   fs.writeFileSync(result.filePath, Buffer.from(bytes));
@@ -434,7 +439,7 @@ ipcMain.handle("export:file", async (_e, filename, bytes) => {
 ipcMain.handle("export:folder", async (_e, files) => {
   fs.mkdirSync(EXPORT_DIR, { recursive: true });
   const result = await dialog.showOpenDialog(win, {
-    title: "Scegli dove esportare il pacchetto",
+    title: "Choose where to export the package",
     defaultPath: EXPORT_DIR,
     properties: ["openDirectory", "createDirectory"],
   });
@@ -479,10 +484,10 @@ function fetchAppMessage() {
       res.setEncoding("utf8");
       res.on("data", chunk => {
         raw += chunk;
-        if (raw.length > 64 * 1024) req.destroy(new Error("messaggio troppo grande"));
+        if (raw.length > 64 * 1024) req.destroy(new Error("message too large"));
       });
       res.on("end", () => {
-        if (res.statusCode < 200 || res.statusCode >= 300) return reject(new Error("risposta non valida"));
+        if (res.statusCode < 200 || res.statusCode >= 300) return reject(new Error("invalid response"));
         try { resolve(JSON.parse(raw)); } catch (e) { reject(e); }
       });
     });
@@ -534,25 +539,26 @@ function buildMenu() {
   Menu.setApplicationMenu(Menu.buildFromTemplate([
     { role: "appMenu" },
     { label: "File", submenu: [
-      { label: "Apri cartella Progetti", click: open(PROJECTS_DIR) },
-      { label: "Apri cartella Export", click: open(EXPORT_DIR) },
+      { label: "Open Projects Folder", click: open(PROJECTS_DIR) },
+      { label: "Open Export Folder", click: open(EXPORT_DIR) },
       { type: "separator" },
       { role: "close" },
     ] },
     { role: "editMenu" },
-    { label: "Vista", submenu: [
+    { label: "View", submenu: [
       { role: "reload" }, { role: "toggleDevTools" }, { type: "separator" },
       { role: "resetZoom" }, { role: "zoomIn" }, { role: "zoomOut" }, { type: "separator" }, { role: "togglefullscreen" },
     ] },
     { role: "windowMenu" },
     { role: "help", submenu: [
-      { label: "Sito PatternMachine", click: () => shell.openExternal("https://patternmachine.tongatron.org") },
+      { label: "PatternMachine Website", click: () => shell.openExternal("https://patternmachine.tongatron.org") },
     ] },
   ]));
 }
 
 app.setName("PatternMachine");
 app.whenReady().then(() => {
+  migrateProjectsDir();
   registerAppProtocol();
   openMidi();
   buildMenu();

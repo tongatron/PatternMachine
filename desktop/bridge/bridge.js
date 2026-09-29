@@ -16,10 +16,10 @@
     d.innerHTML=`<form method="dialog">
       <h3 id="pmUpdateTitle"></h3>
       <p class="pm-update-message"></p>
-      <a class="pm-update-link" target="_blank" rel="noopener" hidden>Apri il link</a>
+      <a class="pm-update-link" target="_blank" rel="noopener" hidden>Open the link</a>
       <div class="pm-update-actions">
-        <button type="submit" value="ignore">ignora</button>
-        <button type="submit" value="later" class="primary">chiudi e ricordamelo più tardi</button>
+        <button type="submit" value="ignore">Ignore</button>
+        <button type="submit" value="later" class="primary">Close and remind me later</button>
       </div>
     </form>`;
     document.body.appendChild(d);
@@ -38,7 +38,7 @@
   const customKitSlots=42;
   function registerCustomKit(meta){
     const bySlot=Object.fromEntries((meta.slots||[]).map(s=>[s.slot,s]));
-    KITS[meta.id]={label:meta.label, source:"campioni personali", custom:true,
+    KITS[meta.id]={label:meta.label, source:"your own samples", custom:true,
       url:x=>`__kits/${meta.id}/${bySlot[x.name]?.file||""}`,
       name:x=>bySlot[x.name]?.label||x.name,
       has:x=>!!bySlot[x.name]};
@@ -57,13 +57,13 @@
     const slots=meta ? meta.slots : kitDraftFromFiles(files);
     const d=document.createElement("dialog"); d.className="pm-kit-dialog"; d.setAttribute("aria-labelledby","pmKitTitle");
     d.innerHTML=`<form>
-      <h3 id="pmKitTitle">${meta?"Modifica":"Importa"} Drum Machine</h3>
-      <p>${meta?"Modifica il nome della macchina e i nomi degli strumenti.":`Sono stati trovati ${files.length} campioni. I primi ${Math.min(files.length,customKitSlots)} verranno assegnati ai pad in ordine.`}</p>
-      <label>Nome della macchina<input type="text" id="pmKitName" maxlength="80" required></label>
-      <label>Nome degli strumenti</label>
+      <h3 id="pmKitTitle">${meta?"Edit":"Import"} Drum Machine</h3>
+      <p>${meta?"Edit the name of the machine and the names of the instruments.":`Found ${files.length} samples. The first ${Math.min(files.length,customKitSlots)} will be assigned to the pads in order.`}</p>
+      <label>Machine name<input type="text" id="pmKitName" maxlength="80" required></label>
+      <label>Instrument names</label>
       <div class="pm-kit-slots"></div>
       <p class="pm-kit-status" role="status"></p>
-      <div class="pm-kit-actions"><button type="button" value="cancel">Annulla</button><button type="button" value="save" class="primary">Salva macchina</button></div>
+      <div class="pm-kit-actions"><button type="button" value="cancel">Cancel</button><button type="button" value="save" class="primary">Save machine</button></div>
     </form>`;
     d.querySelector("#pmKitName").value=meta?.label||"Drum Machine";
     const list=d.querySelector(".pm-kit-slots");
@@ -77,15 +77,15 @@
     d.querySelector('[value="save"]').onclick=async()=>{
       const label=d.querySelector("#pmKitName").value.trim();
       const edited=[...list.querySelectorAll(".pm-kit-slot")].map(row=>({slot:row.dataset.slot,file:row.dataset.file,label:row.querySelector("input").value.trim()}));
-      if(!label){ status.textContent="Inserisci un nome per la macchina."; status.className="pm-kit-status err"; return; }
-      if(!edited.length){ status.textContent="Il kit non contiene campioni."; status.className="pm-kit-status err"; return; }
-      const save=d.querySelector('[value="save"]'); save.disabled=true; status.textContent="salvataggio…";
+      if(!label){ status.textContent="Enter a name for the machine."; status.className="pm-kit-status err"; return; }
+      if(!edited.length){ status.textContent="The kit has no samples."; status.className="pm-kit-status err"; return; }
+      const save=d.querySelector('[value="save"]'); save.disabled=true; status.textContent="saving…";
       try{
         const saved=meta ? await D.kits.update(meta.id,{label,slots:edited}) : await D.kits.create(stagingId,{label,slots:edited});
         registerCustomKit(saved); refreshCustomKitMenus();
         setSampleSet(saved.id); localStorage.setItem(KIT_KEY,saved.id);
-        d.close("saved"); setStatus(`${saved.label} importata`);
-      }catch(e){ status.textContent=e.message||"salvataggio non riuscito"; status.className="pm-kit-status err"; save.disabled=false; }
+        d.close("saved"); setStatus(`${saved.label} imported`);
+      }catch(e){ status.textContent=e.message||"saving failed"; status.className="pm-kit-status err"; save.disabled=false; }
     };
     d.addEventListener("click",e=>{if(e.target===d)d.close("cancel")});
     d.addEventListener("close",()=>{ if(stagingId && d.returnValue!=="saved") D.kits.discard(stagingId); d.remove(); });
@@ -93,7 +93,7 @@
   }
   async function importCustomKit(){
     try{ const picked=await D.kits.pick(); if(picked) showKitEditor({stagingId:picked.stagingId,files:picked.files}); }
-    catch(e){ setStatus(e.message||"importazione Drum Machine non riuscita","err"); }
+    catch(e){ setStatus(e.message||"Drum Machine import failed","err"); }
   }
   function updateKitEditorButton(){
     const b=el("pmEditMachine"); if(!b) return;
@@ -104,19 +104,19 @@
   const machineBar=el("machinePanel")?.querySelector(".machine-bar");
   if(machineBar){
     const tools=document.createElement("div"); tools.className="pm-machine-tools";
-    tools.innerHTML=`<button type="button" id="pmImportMachine" class="mini">Importa Drum Machine</button><button type="button" id="pmEditMachine" class="mini" hidden>Modifica macchina</button><button type="button" id="pmDeleteMachine" class="mini danger" hidden>Elimina macchina</button><span class="pm-machine-note">cartella o ZIP con campioni audio</span>`;
+    tools.innerHTML=`<button type="button" id="pmImportMachine" class="mini">Import Drum Machine</button><button type="button" id="pmEditMachine" class="mini" hidden>Edit machine</button><button type="button" id="pmDeleteMachine" class="mini danger" hidden>Delete machine</button><span class="pm-machine-note">folder or ZIP of audio samples</span>`;
     machineBar.appendChild(tools);
     el("pmImportMachine").onclick=importCustomKit;
     el("pmEditMachine").onclick=()=>{ const m=KITS[sampleSet]; D.kits.list().then(list=>{ const meta=list.find(x=>x.id===sampleSet); if(meta) showKitEditor({meta}); }); };
     el("pmDeleteMachine").onclick=async()=>{
       const id=sampleSet, kit=KITS[id];
       if(!kit?.custom) return;
-      if(!await ask({title:"Elimina macchina",message:`Eliminare “${kit.label}”? I file importati verranno rimossi dall'app.`,ok:"Elimina",cancel:"Annulla",danger:true})) return;
+      if(!await ask({title:"Delete machine",message:`Delete “${kit.label}”? The imported files will be removed from the app.`,ok:"Delete",cancel:"Cancel",danger:true})) return;
       try{
         await D.kits.delete(id); delete KITS[id];
         localStorage.setItem(KIT_KEY,"tr808"); setSampleSet("tr808"); refreshCustomKitMenus();
-        setStatus(`${kit.label} eliminata`);
-      }catch(e){ setStatus(e.message||"eliminazione non riuscita","err"); }
+        setStatus(`${kit.label} deleted`);
+      }catch(e){ setStatus(e.message||"delete failed","err"); }
     };
     el("kitSelect").addEventListener("change",updateKitEditorButton);
     updateKitEditorButton();
@@ -256,7 +256,7 @@
   };
 
   const siteSetStatus=setStatus;
-  setStatus=(msg,kind)=>siteSetStatus(String(msg).replace("· cloud","· su file"),kind);
+  setStatus=(msg,kind)=>siteSetStatus(String(msg).replace("· cloud","· to file"),kind);
 
   // ---------- esportazioni con dialogo nativo ----------
   // Il pacchetto per Logic esce come cartella gia' scompattata: si intercettano i file passati a makeZip.
@@ -268,11 +268,11 @@
       if(zipFiles && /\.zip$/.test(filename)){
         const files=zipFiles; zipFiles=null;
         const result=await D.exportFolder(files);
-        if(result?.canceled){ const e=new Error("salvataggio annullato"); e.code="declined"; throw e; }
+        if(result?.canceled){ const e=new Error("save cancelled"); e.code="declined"; throw e; }
         lastExport=result.path;
       } else {
         const result=await D.exportFile(filename, new Uint8Array(await data.arrayBuffer()));
-        if(result?.canceled){ const e=new Error("salvataggio annullato"); e.code="declined"; throw e; }
+        if(result?.canceled){ const e=new Error("save cancelled"); e.code="declined"; throw e; }
         lastExport=result.path;
       }
       paintExport();
@@ -427,38 +427,38 @@
   }
   async function dragOut(kind){
     const w=which();
-    if(w==="song" && !project.song.length) return setStatus("la canzone e' vuota","err");
+    if(w==="song" && !project.song.length) return setStatus("the song is empty","err");
     if(kind==="midi"){
       const multi=settings.midiRouting==="multi" && settings.noteMap!=="sp";
-      D.startDrag(exportBase(w)+(multi?" - multitraccia.mid":".mid"), multi?buildMultiMidi(w):(settings.noteMap==="sp"?buildMidi(w):buildLogicMidi(w)));
+      D.startDrag(exportBase(w)+(multi?" - multitrack.mid":".mid"), multi?buildMultiMidi(w):(settings.noteMap==="sp"?buildMidi(w):buildLogicMidi(w)));
     } else {
       const r=await wavJob;
-      if(!r) return setStatus("niente da trascinare: il pattern e' vuoto o tutto in mute","err");
+      if(!r) return setStatus("nothing to drag: the pattern is empty or all muted","err");
       D.startDrag(r.name, new Uint8Array(await r.blob.arrayBuffer()));
     }
   }
 
   // ---------- pannello ----------
-  const dawNames={logic:"Logic Pro", ableton:"Ableton Live", reaper:"REAPER", fl:"FL Studio", cubase:"Cubase", bitwig:"Bitwig", studioone:"Studio One", garageband:"GarageBand", other:"altra DAW"};
+  const dawNames={logic:"Logic Pro", ableton:"Ableton Live", reaper:"REAPER", fl:"FL Studio", cubase:"Cubase", bitwig:"Bitwig", studioone:"Studio One", garageband:"GarageBand", other:"your DAW"};
   const panel=document.createElement("div");
   panel.className="panel pm-desk";
   panel.innerHTML=`
     <div class="flexline">
       <span class="pm-desk-title">DAW</span>
-      <span class="pm-drag" draggable="true" data-kind="midi" title="Trascina nella timeline della DAW: una regione MIDI">&#10303; MIDI</span>
-      <span class="pm-drag" draggable="true" data-kind="wav" title="Trascina nella timeline della DAW: una regione audio con mixer ed effetti">&#10303; WAV</span>
+      <span class="pm-drag" draggable="true" data-kind="midi" title="Drag onto the DAW timeline: a MIDI region">&#10303; MIDI</span>
+      <span class="pm-drag" draggable="true" data-kind="wav" title="Drag onto the DAW timeline: an audio region with mixer and effects">&#10303; WAV</span>
       <span class="pm-sep"></span>
-      <label class="fld" title="Scegli la DAW che invia il MIDI Clock; la selezione serve per indicare la sorgente nello stato del collegamento"><select data-set="daw">
-        <option value="logic">Logic Pro</option><option value="ableton">Ableton Live</option><option value="reaper">REAPER</option><option value="fl">FL Studio</option><option value="cubase">Cubase</option><option value="bitwig">Bitwig</option><option value="studioone">Studio One</option><option value="garageband">GarageBand</option><option value="other">Altra DAW</option>
+      <label class="fld" title="Choose the DAW that sends MIDI Clock; it is used to name the source in the connection status"><select data-set="daw">
+        <option value="logic">Logic Pro</option><option value="ableton">Ableton Live</option><option value="reaper">REAPER</option><option value="fl">FL Studio</option><option value="cubase">Cubase</option><option value="bitwig">Bitwig</option><option value="studioone">Studio One</option><option value="garageband">GarageBand</option><option value="other">Other DAW</option>
       </select></label>
-      <label class="fld" title="Le note escono sulla porta MIDI virtuale PatternMachine: nella DAW arrivano come da una tastiera"><input type="checkbox" data-set="midiOut"> Uscita MIDI</label>
-      <label class="fld" title="Canale 10 mantiene la compatibilita' con i drum rack; Canali separati assegna un canale a ogni riga"><select data-set="midiRouting"><option value="drums">Canale 10</option><option value="multi">Canali separati</option></select></label>
-      <label class="fld" title="General MIDI per i drum rack e gli strumenti compatibili, oppure il kit SP-1200 di PatternMachine (36 + numero del campione)">Note
+      <label class="fld" title="Notes go out on the PatternMachine virtual MIDI port: the DAW receives them like a keyboard"><input type="checkbox" data-set="midiOut"> MIDI output</label>
+      <label class="fld" title="Channel 10 stays compatible with drum racks; Separate channels gives each row its own channel"><select data-set="midiRouting"><option value="drums">Channel 10</option><option value="multi">Separate channels</option></select></label>
+      <label class="fld" title="General MIDI for drum racks and compatible instruments, or the PatternMachine SP-1200 kit (36 + sample number)">Notes
         <select data-set="noteMap"><option value="gm">General MIDI</option><option value="sp">Kit SP-1200 (36+)</option></select></label>
-      <label class="fld" title="Spegni per sentire solo gli strumenti della DAW"><input type="checkbox" data-set="internalAudio"> Suono interno</label>
-      <label class="fld" title="Play, stop, posizione e tempo arrivano dal MIDI Clock che la DAW manda a PatternMachine"><input type="checkbox" data-set="follow"> Segui il clock della DAW</label>
+      <label class="fld" title="Turn off to hear only the DAW instruments"><input type="checkbox" data-set="internalAudio"> Internal sound</label>
+      <label class="fld" title="Play, stop, position and tempo come from the MIDI Clock the DAW sends to PatternMachine"><input type="checkbox" data-set="follow"> Follow the DAW clock</label>
       <span class="tiny pm-clock" id="pmClock"></span>
-      <button class="mini" id="pmReveal" style="margin-left:auto" disabled>Mostra ultimo export</button>
+      <button class="mini" id="pmReveal" style="margin-left:auto" disabled>Show last export</button>
       <span class="tiny pm-port" id="pmPort"></span>
     </div>`;
   document.querySelector(".wrap > .panel").after(panel);
@@ -487,17 +487,17 @@
   function paintClock(){
     const c=el("pmClock");
     if(!settings.follow) c.textContent="";
-    else if(following && playing) c.textContent=`▶ agganciato a ${dawNames[settings.daw]||"DAW"}`;
-    else c.textContent=performance.now()-lastClockAt<1000 ? `clock presente: premi Play in ${dawNames[settings.daw]||"DAW"}` : `in attesa del clock di ${dawNames[settings.daw]||"DAW"}`;
+    else if(following && playing) c.textContent=`▶ locked to ${dawNames[settings.daw]||"DAW"}`;
+    else c.textContent=performance.now()-lastClockAt<1000 ? `clock received: press Play in ${dawNames[settings.daw]||"DAW"}` : `waiting for the clock from ${dawNames[settings.daw]||"DAW"}`;
   }
   setInterval(()=>{ if(settings.follow && !following) paintClock(); },1000);
   D.midi.status().then(s=>{
-    el("pmPort").textContent=s.ok ? `porta MIDI: ${s.name}` : "MIDI non disponibile";
+    el("pmPort").textContent=s.ok ? `MIDI port: ${s.name}` : "MIDI not available";
     if(!s.ok) el("pmPort").title=s.error||"";
   });
 
   const lb=el("logicBtn");
-  lb.textContent="Logic (cartella)";
-  lb.title="Cartella per Logic Pro in ~/Music/PatternMachine/Export: MIDI General MIDI, uno stem WAV per strumento, campioni del kit. Segue Pattern/Canzone";
+  lb.textContent="Logic (folder)";
+  lb.title="Folder for Logic Pro in ~/Music/PatternMachine/Export: General MIDI file, one WAV stem per instrument, kit samples. Follows Pattern/Song";
   paintClock();
 })();

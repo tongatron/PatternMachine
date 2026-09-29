@@ -911,7 +911,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       <button id="playBtn" title="Play / Stop (space bar)"><span class="ico">&#9654;</span> Play</button>
       <div class="transport-mode" role="group" aria-label="Playback mode">
         <button type="button" id="modePatternBtn" class="on" aria-pressed="true">Pattern</button>
-        <button type="button" id="modeSongBtn" aria-pressed="false">Canzone</button>
+        <button type="button" id="modeSongBtn" aria-pressed="false">Song</button>
       </div>
       <button id="synthPlayBtn" type="button" hidden title="Play"><span class="ico">&#9654;</span> Play</button>
       <button id="drumsPlayBtn" type="button" hidden title="Play"><span class="ico">&#9654;</span> Play</button>
@@ -1270,19 +1270,19 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-29.55"></script>
-<script src="engine/styles-punk.js?v=2026-09-29.55"></script>
-<script src="engine/styles-post.js?v=2026-09-29.55"></script>
-<script src="engine/styles-machines.js?v=2026-09-29.55"></script>
-<script src="engine/styles-alt.js?v=2026-09-29.55"></script>
-<script src="engine/styles-groove.js?v=2026-09-29.55"></script>
-<script src="engine/styles-dub.js?v=2026-09-29.55"></script>
-<script src="engine/styles-break.js?v=2026-09-29.55"></script>
-<script src="engine/styles-soul.js?v=2026-09-29.55"></script>
-<script src="engine/styles-metal.js?v=2026-09-29.55"></script>
-<script src="engine/styles-electro.js?v=2026-09-29.55"></script>
-<script src="engine/variations.js?v=2026-09-29.55"></script>
-<script src="engine/import.js?v=2026-09-29.55"></script>
+<script src="engine/core.js?v=2026-09-29.56"></script>
+<script src="engine/styles-punk.js?v=2026-09-29.56"></script>
+<script src="engine/styles-post.js?v=2026-09-29.56"></script>
+<script src="engine/styles-machines.js?v=2026-09-29.56"></script>
+<script src="engine/styles-alt.js?v=2026-09-29.56"></script>
+<script src="engine/styles-groove.js?v=2026-09-29.56"></script>
+<script src="engine/styles-dub.js?v=2026-09-29.56"></script>
+<script src="engine/styles-break.js?v=2026-09-29.56"></script>
+<script src="engine/styles-soul.js?v=2026-09-29.56"></script>
+<script src="engine/styles-metal.js?v=2026-09-29.56"></script>
+<script src="engine/styles-electro.js?v=2026-09-29.56"></script>
+<script src="engine/variations.js?v=2026-09-29.56"></script>
+<script src="engine/import.js?v=2026-09-29.56"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -3264,7 +3264,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || document.getElementById("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-29.55";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-29.56";
   document.body.appendChild(s);
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth")) loadSynth();
@@ -5859,7 +5859,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-29.55";
+const SW_VERSION="2026-09-29.56";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -5878,7 +5878,7 @@ const SW_VERSION="2026-09-29.55";
   });
 })();
 </script>
-<script src="engine/midi.js?v=2026-09-29.55"></script>
+<script src="engine/midi.js?v=2026-09-29.56"></script>
 
 </body>
 </html>

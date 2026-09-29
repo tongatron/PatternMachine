@@ -14,7 +14,7 @@ const LEVELS=[
     {id:"kit", title:"The drum kit", titleIt:"La batteria", url:"kit.html", minutes:8, summary:"Meet kick, snare and hi-hat, then build a first beat."},
     {id:"tour", title:"A tour of PATTERN-MACHINE", titleIt:"Un giro di PATTERN-MACHINE", url:"tour.html", minutes:10, summary:"Use the grid, transport and keyboard together."}]},
   {id:"steps", title:"Step programming", lessons:[
-    {id:"four-on-the-floor", title:"Four on the floor"},
+    {id:"four-on-the-floor", title:"Four on the floor", titleIt:"Four on the floor", url:"four-on-the-floor.html", minutes:10, summary:"Put the kick on every quarter note and feel the steady pulse."},
     {id:"backbeat", title:"The backbeat", titleIt:"Il backbeat", url:"backbeat.html", minutes:10,
       summary:"Snare or clap on beats 2 and 4: hear it, place it, play it with the keys, build it in the drum machine."},
     {id:"hihats", title:"Hi-hats: eighths, sixteenths, open", titleIt:"Hi-hat: ottavi, sedicesimi, aperti", url:"hihats.html", minutes:10, summary:"Make the hi-hat move from eighths to sixteenths and open it on the offbeat."},
@@ -54,7 +54,7 @@ const PARTS={
   time:["listen","copy","play"],
   kit:["listen","copy","play"],
   tour:["listen","copy","play"],
-  backbeat:["listen","copy","record","mission"]
+  backbeat:["listen","copy","record","mission"], "four-on-the-floor":["listen","copy","play"]
   ,hihats:["listen","copy","play"], "classic-beats":["listen","copy","play"], syncopation:["listen","copy","play"],
   accents:["listen","copy","play"], "hihat-dynamics":["listen","copy","play"], "ghost-snare":["listen","copy","play"], levels:["listen","copy","play"]
 };

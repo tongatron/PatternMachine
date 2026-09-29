@@ -75,6 +75,19 @@ for d in ("samples", "samples12"):
     have = {f.replace(" SP-1200.wav", "") for f in os.listdir(site(d)) if f.endswith(".wav")}
     check(have == names, f"{d}: file diversi dall'elenco della cache offline: {sorted(have ^ names)}")
 
+# 4) il corso (learn/): le lezioni pronte esistono, suonano solo slot SP-1200 (le mini drum machine e le
+# missioni nell'app li cercano per nome) e i file del corso nella cache offline esistono
+learn = read(site("learn", "lessons.js"))
+for url in re.findall(r'url:"([^"]+)"', learn):
+    check(os.path.isfile(site("learn", url)), f"learn/lessons.js: la lezione {url} non esiste in site/learn/")
+sounds = set(re.findall(r'sample:"([^"]+)"', learn))
+for page in sorted(f for f in os.listdir(site("learn")) if f.endswith(".html")):
+    sounds |= set(re.findall(r'sample:"([^"]+)"', read(site("learn", page))))
+check(sounds and sounds <= names, f"corso: suoni che non sono slot SP-1200: {sorted(sounds - names)}")
+shell = re.search(r"const SHELL = \[(.*?)\];", sw, re.S).group(1)
+for path in re.findall(r'"(/learn/[^"]+)"', shell):
+    check(os.path.isfile(site(path.lstrip("/"))), f"sw.js: {path} e' nella cache offline ma non esiste")
+
 print(f"{len(failures)} problemi" if failures else f"ok: {len(used)} suoni RX-5, cartelle servite {sorted(served)}")
 for f in failures:
     print("  -", f)

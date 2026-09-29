@@ -41,7 +41,8 @@ PATTERN_ID_RE = re.compile(r"^/api/patterns/([A-Za-z0-9\-]+)$")
 STATIC_FILES = {"index.html", "landing.html", "funzioni.html", "macchine.html", "synth.html", "app.html", "plugin.html", "manifest.json", "sw.js"}
 # download/: le app (zip da ~100 MB) e app.json con versione e dimensione, scritti da desktop/scripts/release.sh;
 # il plug-in per Logic e plugin.json, scritti da plugin/scripts/release.sh.
-STATIC_DIRS = ("engine/", "icons/", "samples/", "samples12/", "machines/", "assets/", "download/")
+# learn/: il corso (lezioni e mini drum machine), come il resto del sito solo per chi ha l'accesso.
+STATIC_DIRS = ("engine/", "icons/", "samples/", "samples12/", "machines/", "assets/", "download/", "learn/")
 DOWNLOAD_PLATFORMS = {
     "PatternMachine-macOS.zip": "macOS",
     "PatternMachine-Windows.exe": "Windows",

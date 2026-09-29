@@ -220,6 +220,30 @@ HH 1 ▾  M S │■□■□ ■□■□ ■□■□ ■□■□│ ⋯
 Ordine consigliato: salvataggio automatico, bug degli step più piccoli, trasporto fisso e unico, generatore,
 riga compatta.
 
+## Corso (learn/)
+Dal 30 settembre 2026 il sito ha la sezione **Learn** (`site/learn/`): lezioni brevi, in inglese, solo per chi ha
+l'accesso. Ogni lezione: ascolta → copia sulla mini drum machine con verifica → suona e registra con i tasti →
+missione nella drum machine vera (`/?lesson=<id>`, scheda in `learn/coach.js`, bozza separata). Elenco dei livelli,
+lezioni pronte e missioni in `learn/lessons.js`; la mini drum machine è `learn/mini.js`.
+- [x] Prototipo: lezione **The backbeat** (livello 2), indice del corso, link "Learn" nella barra in alto.
+- [ ] Livelli 1–4 (primi passi, programmare a step, dinamica, tastiera). Nella tastiera: mappa dei tasti con
+  quiz, "suona a tempo" con misura in ms, eco (la macchina suona, tu ripeti), registrazione a strati, Live View
+  con ⌥+tasto, griglia senza mouse (sfida con il mouse disattivato), pad MIDI.
+- [ ] Livelli 5–6 (groove e suono, dal pattern al brano) e una **palestra** di esercizi ripetibili con record personali.
+- [ ] Livello 7 (stili, una lezione per genere con "genera altri in questo stile"), progetto finale, glossario.
+- [ ] Avanzamento legato all'account (oggi solo nel browser, chiave `pm.learn`).
+- [ ] Tour dell'interfaccia con schermate numerate, rifatte da uno script quando cambia l'interfaccia.
+
+Emerso preparando le lezioni sulla tastiera:
+- [ ] **Accento da tastiera sul Mac**: sullo step col focus Invio accende e ⇧+Invio mette il ghost, ma ⌥+Invio non
+  fa niente e il menu del tasto destro si apre solo col tasto Menu (⇧F10 non lo apre): gestire ⌥+Invio nello step.
+- [ ] **La registrazione scrive sempre colpi normali**: anche dai pad MIDI la velocity si sente ma non diventa
+  accento o ghost (`recordHit` scrive 1). Si può fare come l'import MIDI (forte = accento, piano = ghost).
+- [x] **Rec metteva un colpo a tempo sullo step prima**: `recordHit` partiva da `visible`, aggiornato solo al frame
+  dopo; un colpo nei ~16 ms dopo l'inizio dello step finiva su quello prima. Ora usa la coda audio.
+- [ ] La registrazione non toglie il ritardo dell'uscita audio (cuffie Bluetooth: 150–250 ms, i colpi finiscono
+  sullo step dopo). La mini drum machine del corso lo toglie già (`outputLatency`).
+
 ## Interfaccia in inglese
 Dal 28 settembre 2026 `index.html`, `funzioni.html`, `macchine.html` e `plugin.html` sono scritte in inglese
 (niente più switch ITA/ENG: si è provato e poi tolto). Il codice sorgente (commenti, nomi di variabili) resta

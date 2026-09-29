@@ -830,6 +830,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <h1>PATTERN-MACHINE</h1>
     <span class="tagline">Step drum machine, pattern &amp; song generator, MIDI/WAV/MP3 export</span>
     <a class="linkbtn help-link" href="funzioni.html" title="how to use it and what every feature does">Guide and features</a>
+    <a class="linkbtn" href="learn/index.html" title="Short hands-on lessons: how to program beats and play the grid with your keyboard">Learn</a>
     <a class="linkbtn" id="desktopAppLink" href="app.html" title="PATTERN-MACHINE as an app for macOS, Windows and Linux: MIDI, clock sync and drag and drop">App for Mac, Win, Linux</a>
     <a class="linkbtn" id="pluginLink" href="plugin.html" title="PATTERN-MACHINE as an Audio Unit plug-in inside Logic, locked to the transport">Logic plug-in</a>
     <button type="button" class="theme-toggle" id="themeToggle" role="switch" aria-checked="false" aria-label="Dark theme" title="Switch between light and dark theme">
@@ -1297,20 +1298,20 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-09-29.67"></script>
-<script src="engine/core.js?v=2026-09-29.67"></script>
-<script src="engine/styles-punk.js?v=2026-09-29.67"></script>
-<script src="engine/styles-post.js?v=2026-09-29.67"></script>
-<script src="engine/styles-machines.js?v=2026-09-29.67"></script>
-<script src="engine/styles-alt.js?v=2026-09-29.67"></script>
-<script src="engine/styles-groove.js?v=2026-09-29.67"></script>
-<script src="engine/styles-dub.js?v=2026-09-29.67"></script>
-<script src="engine/styles-break.js?v=2026-09-29.67"></script>
-<script src="engine/styles-soul.js?v=2026-09-29.67"></script>
-<script src="engine/styles-metal.js?v=2026-09-29.67"></script>
-<script src="engine/styles-electro.js?v=2026-09-29.67"></script>
-<script src="engine/variations.js?v=2026-09-29.67"></script>
-<script src="engine/import.js?v=2026-09-29.67"></script>
+<script src="engine/machine-art.js?v=2026-09-30.1"></script>
+<script src="engine/core.js?v=2026-09-30.1"></script>
+<script src="engine/styles-punk.js?v=2026-09-30.1"></script>
+<script src="engine/styles-post.js?v=2026-09-30.1"></script>
+<script src="engine/styles-machines.js?v=2026-09-30.1"></script>
+<script src="engine/styles-alt.js?v=2026-09-30.1"></script>
+<script src="engine/styles-groove.js?v=2026-09-30.1"></script>
+<script src="engine/styles-dub.js?v=2026-09-30.1"></script>
+<script src="engine/styles-break.js?v=2026-09-30.1"></script>
+<script src="engine/styles-soul.js?v=2026-09-30.1"></script>
+<script src="engine/styles-metal.js?v=2026-09-30.1"></script>
+<script src="engine/styles-electro.js?v=2026-09-30.1"></script>
+<script src="engine/variations.js?v=2026-09-30.1"></script>
+<script src="engine/import.js?v=2026-09-30.1"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -3294,11 +3295,13 @@ function recordHit(track){
   const pat=playingPattern();
   if(!pat) return;
   const now=actx().currentTime;
-  let step=visible.step, ref=null;
-  for(const q of queue){ if(q.time>now){ ref=q; break; } }
-  if(ref && (ref.time-now) < stepDur(step)/2) step=ref.step;
+  // Lo step in corso e' l'ultimo gia' partito nella coda: `visible` si aggiorna solo al frame dopo, e un colpo
+  // a tempo appena dopo l'inizio dello step finiva su quello prima. Il prossimo vince se e' a meno di mezzo step.
+  let at=visible, ref=null;
+  for(const q of queue){ if(q.time<=now) at=q; else { ref=q; break; } }
+  if(ref && (ref.time-now) < stepDur(at.step)/2) at=ref;
   const arr=pat.grid[track.id]||(pat.grid[track.id]=new Array(pat.len).fill(0));
-  const i=stepIdx(pat,track.id,(step+pat.len)%pat.len,visible.cycle||0);
+  const i=stepIdx(pat,track.id,(at.step+pat.len)%pat.len,at.cycle||0);
   arr[i]=1;
   if(pat.id===curPattern().id){
     const els=stepEls.get(track.id);
@@ -3317,7 +3320,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || document.getElementById("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-29.67";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-30.1";
   document.body.appendChild(s);
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth")) loadSynth();
@@ -3815,7 +3818,11 @@ el("sDel").onclick=()=>{
 // ---------- storage ----------
 let db=null, downloadsCap=null, currentProjectId=null, unsubRecent=null;
 const LS_KEY="sp1200.projects";
-const DRAFT_KEY="sp1200.autodraft";
+// Missione di una lezione del corso (?lesson=<id>, learn/coach.js): il beat della lezione ha una bozza sua,
+// cosi' non sovrascrive quella del lavoro vero; coach.js rimette DRAFT_MAIN se si apre un altro progetto.
+const LESSON_ID=new URLSearchParams(location.search).get("lesson");
+const DRAFT_MAIN="sp1200.autodraft";
+let DRAFT_KEY=LESSON_ID?DRAFT_MAIN+".lesson":DRAFT_MAIN;
 const lsAll=()=>{ try{ return JSON.parse(localStorage.getItem(LS_KEY)||"{}"); }catch(e){ return {}; } };
 const lsWrite=o=>{ try{ localStorage.setItem(LS_KEY,JSON.stringify(o)); }catch(e){} };
 
@@ -5873,7 +5880,7 @@ renderAll();
 paintSwing(); paintHuman();
 setView("grid");
 markSaved(false);
-checkDraft();
+if(!LESSON_ID) checkDraft();   // con una lezione si apre il suo beat (learn/coach.js), la bozza resta per dopo
 addEventListener("beforeunload",e=>{
   if(draftPending){ e.preventDefault(); e.returnValue=""; }
 });
@@ -5926,7 +5933,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-29.67";
+const SW_VERSION="2026-09-30.1";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -5944,8 +5951,13 @@ const SW_VERSION="2026-09-29.67";
     }catch(e){}
   });
 })();
+
+// Corso: con ?lesson=<id> si caricano le lezioni e la scheda della missione (learn/), in quest'ordine.
+if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
+  const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
+});
 </script>
-<script src="engine/midi.js?v=2026-09-29.67"></script>
+<script src="engine/midi.js?v=2026-09-30.1"></script>
 
 </body>
 </html>

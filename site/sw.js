@@ -1,13 +1,14 @@
 // Service worker della PWA PATTERN-MACHINE.
 // - pagine: rete prima (cosi' online arriva sempre l'ultima versione), cache se offline
-// - script del motore (engine/*.js): rete prima, cache se offline, cosi' pagina e motore restano allineati
+// - script e fogli di stile (engine/*.js, learn/*.js, learn/*.css): rete prima, cache se offline, cosi' pagina e
+//   motore restano allineati
 // - campioni, icone, immagini: cache prima (non cambiano)
 // - /api/: sempre rete
 // Ad ogni rilascio aumentare VERSION e il ?v= della registrazione in index.html:
 // Cloudflare tiene in cache i .js, l'URL nuovo lo scavalca.
 // Il worker nuovo si attiva subito (skipWaiting): la pagina aperta e' gia' quella
 // presa dalla rete, quindi non serve ricaricarla e non si perde lavoro non salvato.
-const VERSION = "2026-09-29.67";
+const VERSION = "2026-09-30.1";
 const SHELL_CACHE = `sp1200-shell-${VERSION}`;
 const SAMPLE_CACHE = "sp1200-samples-v1"; // non versionata: i campioni non si riscaricano ad ogni rilascio
 
@@ -37,6 +38,13 @@ const SHELL = [
   "/engine/import.js",
   "/engine/midi.js",
   "/engine/lame.min.js",
+  // corso: indice, lezioni pronte, mini drum machine e scheda della missione
+  "/learn/index.html",
+  "/learn/backbeat.html",
+  "/learn/learn.css",
+  "/learn/lessons.js",
+  "/learn/mini.js",
+  "/learn/coach.js",
 ];
 
 const SAMPLE_NAMES = [
@@ -95,7 +103,7 @@ self.addEventListener("fetch", event => {
     event.respondWith(networkFirst(req));
     return;
   }
-  if (url.pathname.endsWith(".js")) {
+  if (/\.(js|css)$/.test(url.pathname)) {
     event.respondWith(networkFirstAsset(req));
     return;
   }

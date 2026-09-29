@@ -1,0 +1,117 @@
+// Corso di PATTERN-MACHINE (learn/): livelli, lezioni, missioni nell'app e avanzamento.
+// Lo usano le pagine del corso, la mini drum machine (mini.js) e la scheda della missione dentro
+// l'app (coach.js, caricata da index.html solo con ?lesson=<id>).
+// I pattern si scrivono come drum tab, il formato che l'Import dell'app sa gia' leggere:
+// uno step per carattere (16 = una battuta), X accento, x normale, g ghost, - pausa.
+(function(){
+"use strict";
+
+// Il percorso completo. Una lezione con `url` e' pronta; le altre compaiono nell'indice come "soon".
+const LEVELS=[
+  {id:"basics", title:"First steps", lessons:[
+    {id:"drum-machine", title:"What a drum machine does"},
+    {id:"time", title:"Tempo, bars and steps"},
+    {id:"kit", title:"The drum kit"},
+    {id:"tour", title:"A tour of PATTERN-MACHINE"}]},
+  {id:"steps", title:"Step programming", lessons:[
+    {id:"four-on-the-floor", title:"Four on the floor"},
+    {id:"backbeat", title:"The backbeat", url:"backbeat.html", minutes:10,
+      summary:"Snare or clap on beats 2 and 4: hear it, place it, play it with the keys, build it in the drum machine."},
+    {id:"hihats", title:"Hi-hats: eighths, sixteenths, open"},
+    {id:"classic-beats", title:"Classic beats: rock and boom bap"},
+    {id:"syncopation", title:"Rests and syncopation"}]},
+  {id:"dynamics", title:"Dynamics", lessons:[
+    {id:"accents", title:"Accents and ghost notes"},
+    {id:"hihat-dynamics", title:"Hi-hat dynamics"},
+    {id:"ghost-snare", title:"Ghost notes on the snare"},
+    {id:"levels", title:"Levels and the Mixer"}]},
+  {id:"keys", title:"Playing with the keyboard", lessons:[
+    {id:"key-map", title:"The key map"},
+    {id:"timing", title:"Playing in time"},
+    {id:"recording", title:"Recording with Rec"},
+    {id:"no-mouse", title:"The grid without a mouse"},
+    {id:"midi-pads", title:"MIDI pads"}]},
+  {id:"groove", title:"Groove and sound", lessons:[
+    {id:"swing", title:"Swing and humanize"},
+    {id:"step-params", title:"Probability, ratchets and flams"},
+    {id:"polyrhythm", title:"Polyrhythms and Euclidean rhythms"},
+    {id:"kit-shaping", title:"Shaping the kit"}]},
+  {id:"song", title:"From pattern to song", lessons:[
+    {id:"sections", title:"Verse, chorus and break"},
+    {id:"fills", title:"Fills"},
+    {id:"sequencer", title:"The Sequencer"},
+    {id:"form", title:"Song form"}]},
+  {id:"styles", title:"Styles", lessons:[
+    {id:"boom-bap", title:"Boom bap"}, {id:"electro", title:"Electro"}, {id:"house", title:"House"},
+    {id:"techno", title:"Techno"}, {id:"trap", title:"Trap"}, {id:"breakbeat", title:"Breakbeat and drum & bass"},
+    {id:"funk", title:"Funk"}, {id:"reggae", title:"Reggae"}, {id:"dembow", title:"Dembow"},
+    {id:"afrobeat", title:"Afrobeat"}, {id:"bossa", title:"Bossa nova and samba"}, {id:"synth-pop", title:"Synth pop"}]},
+];
+
+// Le parti di una lezione, nell'ordine in cui si fanno: la lezione e' finita quando ci sono tutte.
+const PARTS={backbeat:["listen","copy","record","mission"]};
+
+// Missioni nell'app: il beat di partenza (righe nell'ordine dei tasti 1, 2, 3...) e l'obiettivo.
+// `sample` e' il nome dello slot (lo stesso su tutte le macchine), `back` la pagina a cui tornare.
+const MISSIONS={
+  backbeat:{
+    title:"The backbeat", task:"Put the snare on 2 and 4", project:"Lesson · The backbeat", bpm:92, back:"learn/backbeat.html#mission",
+    rows:[
+      {role:"kick", label:"Kick", sample:"Kick 1", tab:"X-------X-x-----", vol:0.95},
+      {role:"snare", label:"Snare", sample:"Snare 1", tab:"----------------", vol:0.9},
+      {role:"hat", label:"Closed hat", sample:"Closed Hat 1", tab:"x-x-x-x-x-x-x-x-", vol:0.55, choke:1},
+    ],
+    goal:{row:"snare", label:"Snare", steps:[4,12], exact:true},
+  },
+};
+
+// ---------- drum tab ----------
+const LEVEL_OF={X:2, x:1, g:3, G:3, o:1, O:2};
+function parseTab(tab, len=16){
+  const out=new Array(len).fill(0);
+  [...String(tab||"").replace(/[|\s]/g,"")].slice(0,len).forEach((c,i)=>{ out[i]=LEVEL_OF[c]||0; });
+  return out;
+}
+const toTab = levels => levels.map(v=>["-","x","X","g"][v]||"-").join("");
+
+// ---------- nomi degli step ----------
+// 16 step = una battuta di 4/4: i quattro sedicesimi di ogni movimento si contano "1 e & a".
+const COUNT=["","e","&","a"];
+const beatOf = i => Math.floor(i/4)+1;
+const countOf = i => i%4 ? `${beatOf(i)} ${COUNT[i%4]}` : String(beatOf(i));
+const stepName = i => i%4 ? `“${countOf(i)}” (step ${i+1})` : `beat ${beatOf(i)} (step ${i+1})`;
+
+// Verifica di un obiettivo su una riga: un colpo su ciascuno degli step richiesti e, con exact,
+// nessun altro colpo sulla riga (spuntato solo quando la riga ha dei colpi: vuota non vale come fatto).
+// `levels` = livelli della riga (0 spento, 1 normale, 2 accento, 3 ghost).
+function checkGoal(levels, goal){
+  const a=levels||[];
+  const items=goal.steps.map(i=>({id:"s"+i, text:`${goal.label} on ${stepName(i)}`, ok:!!a[i]}));
+  const extra=a.map((v,i)=>v&&!goal.steps.includes(i)?i:-1).filter(i=>i>=0);
+  if(goal.exact) items.push({id:"clean", text:`No other ${goal.label.toLowerCase()} hits`, ok:!extra.length && a.some(Boolean),
+    note:extra.length?`remove ${extra.map(i=>"step "+(i+1)).join(", ")}`:""});
+  return {items, extra, solved:items.every(x=>x.ok)};
+}
+
+// ---------- avanzamento ----------
+// Nel browser (localStorage "pm.learn"): {<lezione>: {<parte>: data ISO}}. La scheda della missione
+// scrive qui dall'app, la pagina della lezione lo rilegge (evento storage se e' aperta in un'altra scheda).
+const KEY="pm.learn";
+function readAll(){ try{ return JSON.parse(localStorage.getItem(KEY)||"{}")||{}; }catch(e){ return {}; } }
+function writeAll(all){ try{ localStorage.setItem(KEY,JSON.stringify(all)); }catch(e){} }
+const progress={
+  get:id=>readAll()[id]||{},
+  mark(id, part){
+    const all=readAll(), p=all[id]||(all[id]={});
+    if(!p[part]){ p[part]=new Date().toISOString(); writeAll(all); }
+    document.dispatchEvent(new CustomEvent("pmlearn:progress",{detail:{id, part}}));
+    return p;
+  },
+  done(id){ const p=readAll()[id]||{}, parts=PARTS[id]||[]; return parts.length>0 && parts.every(k=>p[k]); },
+  reset(id){ const all=readAll(); delete all[id]; writeAll(all); document.dispatchEvent(new CustomEvent("pmlearn:progress",{detail:{id}})); },
+};
+
+const lesson = id => { for(const lv of LEVELS){ const l=lv.lessons.find(x=>x.id===id); if(l) return {...l, level:lv}; } return null; };
+
+window.PMLearn={levels:LEVELS, parts:PARTS, missions:MISSIONS, lesson, parseTab, toTab, countOf, stepName, checkGoal, progress};
+})();

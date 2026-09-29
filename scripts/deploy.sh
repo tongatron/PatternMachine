@@ -26,12 +26,13 @@ python3 tests/server_test.py | tail -1
 python3 tests/site_test.py
 
 echo "== versioni"
-# Service worker, pagina e script del motore devono avere la stessa versione.
+# Service worker, pagina, script del motore e file del corso (learn/) devono avere la stessa versione.
 sw=$(sed -n 's/^const VERSION = "\(.*\)";$/\1/p' site/sw.js)
 page=$(sed -n 's/^const SW_VERSION="\(.*\)";$/\1/p' site/index.html)
-tags=$(grep -oh 'engine/[a-z-]*\.js?v=[0-9.-]*' site/index.html site/funzioni.html | sed 's/.*?v=//' | sort -u)
+tags=$( { grep -oh 'engine/[a-z-]*\.js?v=[0-9.-]*' site/index.html site/funzioni.html
+          grep -ohE '[a-z-]+\.(js|css)\?v=[0-9.-]+' site/learn/*.html; } | sed 's/.*?v=//' | sort -u)
 if [ -z "$sw" ] || [ "$sw" != "$page" ] || [ "$tags" != "$sw" ]; then
-  echo "versioni non allineate: sw.js=$sw  SW_VERSION=$page  engine ?v=$tags" >&2
+  echo "versioni non allineate: sw.js=$sw  SW_VERSION=$page  engine e learn ?v=$tags" >&2
   exit 1
 fi
 echo "ok $sw"
@@ -47,13 +48,13 @@ rsync -a --exclude .DS_Store ${EXCLUDE_LOGIC[@]+"${EXCLUDE_LOGIC[@]}"} site/ "$S
 # non cambia niente il confronto con il server resta vuoto).
 build=$(python3 - <<'PY'
 import glob, os, time
-files = glob.glob("site/*.html") + glob.glob("site/*.js") + glob.glob("site/engine/*.js")
+files = glob.glob("site/*.html") + glob.glob("site/*.js") + glob.glob("site/engine/*.js") + glob.glob("site/learn/*")
 t = time.localtime(max(os.path.getmtime(f) for f in files))
 mesi = "gennaio febbraio marzo aprile maggio giugno luglio agosto settembre ottobre novembre dicembre".split()
 print(f"versione del {t.tm_mday} {mesi[t.tm_mon - 1]} {t.tm_year} {t.tm_hour:02d}:{t.tm_min:02d}")
 PY
 )
-for f in "$STAGE/index.html" "$STAGE/funzioni.html" "$STAGE/macchine.html" "$STAGE/synth.html"; do
+for f in "$STAGE/index.html" "$STAGE/funzioni.html" "$STAGE/macchine.html" "$STAGE/synth.html" "$STAGE"/learn/*.html; do
   sed -i '' "s|<!--build-->[^<]*<!--/build-->|<!--build-->$build<!--/build-->|" "$f"
 done
 echo "footer: $build"
@@ -83,7 +84,7 @@ fi
 
 ts=$(date +%Y%m%d-%H%M%S)
 echo "== backup in $BACKUPS/$ts"
-ssh "$HOST" "mkdir -p '$BACKUPS/$ts' && cd '$REMOTE' && cp -a index.html toolkit.html server.py sw.js manifest.json engine '$BACKUPS/$ts/' 2>/dev/null || true"
+ssh "$HOST" "mkdir -p '$BACKUPS/$ts' && cd '$REMOTE' && cp -a index.html toolkit.html server.py sw.js manifest.json engine learn '$BACKUPS/$ts/' 2>/dev/null || true"
 
 echo "== upload"
 ssh "$HOST" "rm -f '$REMOTE/toolkit.html'"

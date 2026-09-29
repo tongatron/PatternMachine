@@ -7,8 +7,8 @@
 <title>Learn · PATTERN-MACHINE</title>
 <meta name="description" content="Learn drum programming with PATTERN-MACHINE: short hands-on lessons with a drum machine in the page, keyboard playing and missions in the app.">
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
-<link rel="stylesheet" href="learn.css?v=2026-09-30.13">
-<script src="lang.js?v=2026-09-30.13"></script><script src="it.js?v=2026-09-30.13"></script>
+<link rel="stylesheet" href="learn.css?v=2026-09-30.14">
+<script src="lang.js?v=2026-09-30.14"></script><script src="it.js?v=2026-09-30.14"></script>
 <script defer src="https://analytics.tongatron.org/script.js" data-website-id="9daa93b6-2afb-494a-89fb-288437a030d1" data-domains="patternmachine.tongatron.org"></script>
 </head>
 <body>
@@ -60,7 +60,7 @@
 <footer class="site-footer"><a class="report-link" href="../#segnala">Report a problem</a><span class="site-version"><!--build-->version of day month year HH:MM<!--/build--></span><a class="site-badge" href="https://tongatron.org/"><span class="mark"></span><span>tongatron.org</span></a></footer>
 </div>
 
-<script src="lessons.js?v=2026-09-30.13"></script>
+<script src="lessons.js?v=2026-09-30.14"></script>
 <script>
 // Indice del corso: livelli e lezioni da learn/lessons.js; le lezioni pronte hanno un link e lo stato.
 (function(){
@@ -72,7 +72,7 @@
   };
   const label=(x,it)=>window.PMLang.lang==="it"?(x.titleIt||x.title):x.title;
   function paint(){
-    $("levels").innerHTML=L.levels.map((lv,li)=>`<div class="level"><h3><span>${window.PMLang.lang==="it"?"Livello":"Level"} ${li+1}</span> · ${esc(window.PMLang.lang==="it"?(lv.titleIt||lv.title):lv.title)}</h3><ol>`
+    $("levels").innerHTML=L.levels.map((lv,li)=>`<div class="level${lv.id==="styles"?" level-styles":""}"><h3><span>${window.PMLang.lang==="it"?"Livello":"Level"} ${li+1}</span> · ${esc(window.PMLang.lang==="it"?(lv.titleIt||lv.title):lv.title)}</h3><ol>`
       +lv.lessons.map(l=>{
         if(!l.url) return `<li class="soon">${esc(l.title)}<span class="st">soon</span></li>`;
         const s=state(l);

@@ -122,6 +122,8 @@ h1.title{font-size:34px; line-height:1.1; font-weight:800; letter-spacing:-.01em
 .how li b::before{counter-increment:how; content:counter(how) " · ";}
 .levels{display:grid; grid-template-columns:repeat(auto-fill,minmax(290px,1fr)); gap:10px;}
 .level{background:var(--paper); border:1px solid var(--edge-soft); border-radius:3px; padding:12px 14px 10px;}
+.level-styles{grid-column:1 / -1;}
+.level-styles ol{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); column-gap:28px;}
 .level h3{margin:0 0 8px; font:700 11px/1.4 var(--mono); letter-spacing:.1em; text-transform:uppercase; color:var(--dim);}
 .level h3 span{color:var(--accent);}
 .level ol{margin:0; padding:0; list-style:none;}
@@ -132,6 +134,7 @@ h1.title{font-size:34px; line-height:1.1; font-weight:800; letter-spacing:-.01em
 .level li.ready .st{color:var(--accent);}
 .level li.done .st{color:var(--ok);}
 .level li.soon{color:#6d6a62;}
+@media (max-width:760px){.level-styles ol{grid-template-columns:1fr; column-gap:0;}}
 
 /* ---------- mini drum machine (mini.js) ---------- */
 .pmm{--cols:16; background:var(--plate); border:1px solid var(--edge); border-radius:3px; box-shadow:var(--shadow);

@@ -298,9 +298,20 @@ label.fld input[type=number]{width:54px;}
 .pattern-dot{width:10px; height:10px; border-radius:50%; flex:0 0 auto;}
 .machine-bar{display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-top:12px; padding-top:11px; border-top:1px solid var(--edge-soft);}
 .machine-art{display:block; flex:0 0 auto; line-height:0; border-radius:4px;}
-.machine-art svg{display:block; width:128px; height:auto; border-radius:4px; box-shadow:0 1px 4px rgba(0,0,0,.3);}
+.machine-art svg{display:block; width:190px; height:auto; border-radius:4px; box-shadow:0 1px 4px rgba(0,0,0,.3);}
 .machine-art:hover svg, .machine-art:focus-visible svg{box-shadow:0 0 0 2px var(--accent);}
-@media (max-width:700px){ .machine-art svg{width:96px;} }
+/* Drum Machine: a sinistra selettore e dati, a destra "About the machines" in alto e l'illustrazione */
+.drum-bar{align-items:flex-start; gap:12px 16px;}
+.drum-bar .machine-main{flex:1 1 0; min-width:260px; display:flex; flex-direction:column; gap:8px;}
+.drum-bar .machine-pick{display:flex; flex-wrap:wrap; align-items:center; gap:10px;}
+.drum-bar .machine-info{margin-left:0; text-align:left; line-height:1.5;}
+.drum-bar .machine-side{flex:0 0 auto; display:flex; align-items:flex-start; gap:10px; margin-left:auto;}
+.drum-bar .machine-more{margin-left:0;}
+@media (max-width:700px){
+  .drum-bar .machine-main{min-width:0; flex-basis:100%;}
+  .drum-bar .machine-side{width:100%; justify-content:space-between;}
+  .machine-art svg{width:150px;}
+}
 .machine-info{margin-left:auto; font-size:11px; color:var(--text-dim); letter-spacing:.02em; text-align:right;}
 .transport-extra{display:contents;}
 .vol-group{display:inline-flex; flex-wrap:wrap; align-items:center; gap:6px 14px; padding:5px 10px; border:1px solid var(--edge-soft); border-radius:8px;}
@@ -876,12 +887,18 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
   </div>
 
   <div class="panel" id="machinePanel">
-    <div class="machine-bar">
-      <a class="machine-art" id="machineArt" href="macchine.html" title="History and sounds of this machine" hidden></a>
-      <label class="machine-label" for="kitSelect">Drum Machine</label>
-      <select id="kitSelect" class="machine-select"></select>
-      <span class="machine-info" id="machineInfo"></span>
-      <a class="linkbtn machine-more" href="macchine.html" title="History of the machines, with side-by-side listening">About the machines →</a>
+    <div class="machine-bar drum-bar">
+      <div class="machine-main">
+        <div class="machine-pick">
+          <label class="machine-label" for="kitSelect">Drum Machine</label>
+          <select id="kitSelect" class="machine-select"></select>
+        </div>
+        <span class="machine-info" id="machineInfo"></span>
+      </div>
+      <div class="machine-side">
+        <a class="linkbtn machine-more" href="macchine.html" title="History of the machines, with side-by-side listening">About the machines →</a>
+        <a class="machine-art" id="machineArt" href="macchine.html" title="History and sounds of this machine" hidden></a>
+      </div>
     </div>
   </div>
 
@@ -1275,20 +1292,20 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-09-29.59"></script>
-<script src="engine/core.js?v=2026-09-29.59"></script>
-<script src="engine/styles-punk.js?v=2026-09-29.59"></script>
-<script src="engine/styles-post.js?v=2026-09-29.59"></script>
-<script src="engine/styles-machines.js?v=2026-09-29.59"></script>
-<script src="engine/styles-alt.js?v=2026-09-29.59"></script>
-<script src="engine/styles-groove.js?v=2026-09-29.59"></script>
-<script src="engine/styles-dub.js?v=2026-09-29.59"></script>
-<script src="engine/styles-break.js?v=2026-09-29.59"></script>
-<script src="engine/styles-soul.js?v=2026-09-29.59"></script>
-<script src="engine/styles-metal.js?v=2026-09-29.59"></script>
-<script src="engine/styles-electro.js?v=2026-09-29.59"></script>
-<script src="engine/variations.js?v=2026-09-29.59"></script>
-<script src="engine/import.js?v=2026-09-29.59"></script>
+<script src="engine/machine-art.js?v=2026-09-29.60"></script>
+<script src="engine/core.js?v=2026-09-29.60"></script>
+<script src="engine/styles-punk.js?v=2026-09-29.60"></script>
+<script src="engine/styles-post.js?v=2026-09-29.60"></script>
+<script src="engine/styles-machines.js?v=2026-09-29.60"></script>
+<script src="engine/styles-alt.js?v=2026-09-29.60"></script>
+<script src="engine/styles-groove.js?v=2026-09-29.60"></script>
+<script src="engine/styles-dub.js?v=2026-09-29.60"></script>
+<script src="engine/styles-break.js?v=2026-09-29.60"></script>
+<script src="engine/styles-soul.js?v=2026-09-29.60"></script>
+<script src="engine/styles-metal.js?v=2026-09-29.60"></script>
+<script src="engine/styles-electro.js?v=2026-09-29.60"></script>
+<script src="engine/variations.js?v=2026-09-29.60"></script>
+<script src="engine/import.js?v=2026-09-29.60"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -3294,7 +3311,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || document.getElementById("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-29.59";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-29.60";
   document.body.appendChild(s);
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth")) loadSynth();
@@ -5902,7 +5919,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-29.59";
+const SW_VERSION="2026-09-29.60";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -5921,7 +5938,7 @@ const SW_VERSION="2026-09-29.59";
   });
 })();
 </script>
-<script src="engine/midi.js?v=2026-09-29.59"></script>
+<script src="engine/midi.js?v=2026-09-29.60"></script>
 
 </body>
 </html>

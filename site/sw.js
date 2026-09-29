@@ -15,6 +15,7 @@ const SAMPLE_CACHE = "sp1200-samples-v1"; // non versionata: i campioni non si r
 const SHELL = [
   "/",
   "/manifest.json",
+  "/privacy.html",
   "/funzioni.html",
   "/synth.html",
   "/icons/icon-192.png",

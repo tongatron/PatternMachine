@@ -38,7 +38,7 @@ PATTERN_ID_RE = re.compile(r"^/api/patterns/([A-Za-z0-9\-]+)$")
 
 # Si serve solo cio' che fa parte del sito: server.py, mail.json, data/ e qualunque altro
 # file lasciato nella cartella (backup, appunti) restano fuori.
-STATIC_FILES = {"index.html", "landing.html", "funzioni.html", "macchine.html", "synth.html", "app.html", "plugin.html", "manifest.json", "sw.js"}
+STATIC_FILES = {"index.html", "landing.html", "funzioni.html", "macchine.html", "synth.html", "app.html", "plugin.html", "privacy.html", "manifest.json", "sw.js"}
 # download/: le app (zip da ~100 MB) e app.json con versione e dimensione, scritti da desktop/scripts/release.sh;
 # il plug-in per Logic e plugin.json, scritti da plugin/scripts/release.sh.
 # learn/: il corso (lezioni e mini drum machine), come il resto del sito solo per chi ha l'accesso.
@@ -52,7 +52,7 @@ DOWNLOAD_PLATFORMS = {
 
 # Visibili senza password: servono al browser per installare la PWA e alle anteprime dei link;
 # landing.html presenta il progetto a chi non ha ancora un account (con le sue schermate).
-OPEN_PATHS = {"/landing.html", "/login", "/logout", "/register", "/forgot", "/reset", "/manifest.json", "/api/app-message", "/assets/og-sp1200.png", "/assets/og-drum-machine-lab.jpg", "/assets/patternmachine-preview.jpg"}
+OPEN_PATHS = {"/landing.html", "/privacy.html", "/login", "/logout", "/register", "/forgot", "/reset", "/manifest.json", "/api/app-message", "/assets/og-sp1200.png", "/assets/og-drum-machine-lab.jpg", "/assets/patternmachine-preview.jpg"}
 OPEN_DIRS = ("/icons/", "/assets/landing/")
 
 # Dietro la password niente cache condivise (Cloudflare): "private" tiene la copia solo nel
@@ -921,7 +921,7 @@ class Handler(BaseHTTPRequestHandler):
 
     # ---------- accesso ----------
     def _page(self, status, title, body, badge=True):
-        footer = f'<footer class="site-footer">{TONGATRON_BADGE}</footer>' if badge else ""
+        footer = f'<footer class="site-footer"><a href="/privacy.html">Privacy policy</a>{TONGATRON_BADGE}</footer>' if badge else ""
         self._send_html(status, PAGE_SHELL.replace("{title}", html.escape(title)).replace("{body}", body).replace("{footer}", footer))
 
     def _form(self):

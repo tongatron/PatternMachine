@@ -1255,19 +1255,19 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-29.51"></script>
-<script src="engine/styles-punk.js?v=2026-09-29.51"></script>
-<script src="engine/styles-post.js?v=2026-09-29.51"></script>
-<script src="engine/styles-machines.js?v=2026-09-29.51"></script>
-<script src="engine/styles-alt.js?v=2026-09-29.51"></script>
-<script src="engine/styles-groove.js?v=2026-09-29.51"></script>
-<script src="engine/styles-dub.js?v=2026-09-29.51"></script>
-<script src="engine/styles-break.js?v=2026-09-29.51"></script>
-<script src="engine/styles-soul.js?v=2026-09-29.51"></script>
-<script src="engine/styles-metal.js?v=2026-09-29.51"></script>
-<script src="engine/styles-electro.js?v=2026-09-29.51"></script>
-<script src="engine/variations.js?v=2026-09-29.51"></script>
-<script src="engine/import.js?v=2026-09-29.51"></script>
+<script src="engine/core.js?v=2026-09-29.52"></script>
+<script src="engine/styles-punk.js?v=2026-09-29.52"></script>
+<script src="engine/styles-post.js?v=2026-09-29.52"></script>
+<script src="engine/styles-machines.js?v=2026-09-29.52"></script>
+<script src="engine/styles-alt.js?v=2026-09-29.52"></script>
+<script src="engine/styles-groove.js?v=2026-09-29.52"></script>
+<script src="engine/styles-dub.js?v=2026-09-29.52"></script>
+<script src="engine/styles-break.js?v=2026-09-29.52"></script>
+<script src="engine/styles-soul.js?v=2026-09-29.52"></script>
+<script src="engine/styles-metal.js?v=2026-09-29.52"></script>
+<script src="engine/styles-electro.js?v=2026-09-29.52"></script>
+<script src="engine/variations.js?v=2026-09-29.52"></script>
+<script src="engine/import.js?v=2026-09-29.52"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -3221,7 +3221,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || document.getElementById("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-29.51";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-29.52";
   document.body.appendChild(s);
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth")) loadSynth();
@@ -3300,9 +3300,8 @@ el("askInput").addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDef
 el("askDialog").addEventListener("click",e=>{ if(e.target===el("askDialog")) el("askDialog").close("cancel"); });
 
 // L'aiuto della griglia resta aperto solo alla prima visita; ? lo riapre quando serve.
-const HELP_KEYS_SEEN="pm.help.keys.seen", helpKeys=el("helpKeys");
-try{ if(localStorage.getItem(HELP_KEYS_SEEN)) helpKeys.open=false; }catch(e){}
-helpKeys.addEventListener("toggle",()=>{ if(!helpKeys.open){ try{ localStorage.setItem(HELP_KEYS_SEEN,"1"); }catch(e){} } });
+// Aperta a ogni caricamento: chiuderla vale solo per la sessione.
+const helpKeys=el("helpKeys");
 
 document.addEventListener("keydown",(e)=>{
   if(document.querySelector("dialog[open]")) return;   // conferma, import, segnalazione: i tasti restano alla finestra
@@ -5682,7 +5681,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-29.51";
+const SW_VERSION="2026-09-29.52";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -5701,7 +5700,7 @@ const SW_VERSION="2026-09-29.51";
   });
 })();
 </script>
-<script src="engine/midi.js?v=2026-09-29.51"></script>
+<script src="engine/midi.js?v=2026-09-29.52"></script>
 
 </body>
 </html>

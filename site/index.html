@@ -305,8 +305,8 @@ label.fld input[type=number]{width:54px;}
 .drum-bar .machine-main{flex:1 1 0; min-width:260px; display:flex; flex-direction:column; gap:8px;}
 .drum-bar .machine-pick{display:flex; flex-wrap:wrap; align-items:center; gap:10px;}
 .drum-bar .machine-info{margin:0; text-align:left; line-height:1.5;}
-.drum-bar .machine-more{color:var(--accent); text-decoration:none; white-space:nowrap; font:inherit;}
-.drum-bar .machine-more:hover, .drum-bar .machine-more:focus-visible{text-decoration:underline;}
+.drum-bar .machine-more{color:var(--text-dim); text-decoration:underline; text-underline-offset:3px; text-transform:uppercase; letter-spacing:.08em; white-space:nowrap; font:inherit;}
+.drum-bar .machine-more:hover, .drum-bar .machine-more:focus-visible{color:var(--text);}
 .drum-bar .machine-side{flex:0 0 auto; display:flex; align-items:flex-start; gap:10px; margin-left:auto;}
 @media (max-width:700px){
   .drum-bar .machine-main{min-width:0; flex-basis:100%;}
@@ -894,7 +894,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
           <label class="machine-label" for="kitSelect">Drum Machine</label>
           <select id="kitSelect" class="machine-select"></select>
         </div>
-        <p class="machine-info"><span id="machineInfo"></span> <a class="machine-more" id="machineMore" href="macchine.html" target="_blank" rel="noopener" title="History of the machines, with side-by-side listening (opens in a new window)">→ About the machines</a></p>
+        <p class="machine-info"><span id="machineInfo"></span><br><a class="machine-more" id="machineMore" href="macchine.html" target="_blank" rel="noopener" title="History of the machines, with side-by-side listening (opens in a new window)">→ About the machines</a></p>
       </div>
       <div class="machine-side">
         <a class="machine-art" id="machineArt" href="macchine.html" target="_blank" rel="noopener" title="History and sounds of this machine (opens in a new window)" hidden></a>
@@ -1292,20 +1292,20 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-09-29.61"></script>
-<script src="engine/core.js?v=2026-09-29.61"></script>
-<script src="engine/styles-punk.js?v=2026-09-29.61"></script>
-<script src="engine/styles-post.js?v=2026-09-29.61"></script>
-<script src="engine/styles-machines.js?v=2026-09-29.61"></script>
-<script src="engine/styles-alt.js?v=2026-09-29.61"></script>
-<script src="engine/styles-groove.js?v=2026-09-29.61"></script>
-<script src="engine/styles-dub.js?v=2026-09-29.61"></script>
-<script src="engine/styles-break.js?v=2026-09-29.61"></script>
-<script src="engine/styles-soul.js?v=2026-09-29.61"></script>
-<script src="engine/styles-metal.js?v=2026-09-29.61"></script>
-<script src="engine/styles-electro.js?v=2026-09-29.61"></script>
-<script src="engine/variations.js?v=2026-09-29.61"></script>
-<script src="engine/import.js?v=2026-09-29.61"></script>
+<script src="engine/machine-art.js?v=2026-09-29.62"></script>
+<script src="engine/core.js?v=2026-09-29.62"></script>
+<script src="engine/styles-punk.js?v=2026-09-29.62"></script>
+<script src="engine/styles-post.js?v=2026-09-29.62"></script>
+<script src="engine/styles-machines.js?v=2026-09-29.62"></script>
+<script src="engine/styles-alt.js?v=2026-09-29.62"></script>
+<script src="engine/styles-groove.js?v=2026-09-29.62"></script>
+<script src="engine/styles-dub.js?v=2026-09-29.62"></script>
+<script src="engine/styles-break.js?v=2026-09-29.62"></script>
+<script src="engine/styles-soul.js?v=2026-09-29.62"></script>
+<script src="engine/styles-metal.js?v=2026-09-29.62"></script>
+<script src="engine/styles-electro.js?v=2026-09-29.62"></script>
+<script src="engine/variations.js?v=2026-09-29.62"></script>
+<script src="engine/import.js?v=2026-09-29.62"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -3312,7 +3312,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || document.getElementById("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-29.61";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-29.62";
   document.body.appendChild(s);
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth")) loadSynth();
@@ -5920,7 +5920,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-29.61";
+const SW_VERSION="2026-09-29.62";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -5939,7 +5939,7 @@ const SW_VERSION="2026-09-29.61";
   });
 })();
 </script>
-<script src="engine/midi.js?v=2026-09-29.61"></script>
+<script src="engine/midi.js?v=2026-09-29.62"></script>
 
 </body>
 </html>

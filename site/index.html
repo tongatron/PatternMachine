@@ -1266,19 +1266,19 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-29.53"></script>
-<script src="engine/styles-punk.js?v=2026-09-29.53"></script>
-<script src="engine/styles-post.js?v=2026-09-29.53"></script>
-<script src="engine/styles-machines.js?v=2026-09-29.53"></script>
-<script src="engine/styles-alt.js?v=2026-09-29.53"></script>
-<script src="engine/styles-groove.js?v=2026-09-29.53"></script>
-<script src="engine/styles-dub.js?v=2026-09-29.53"></script>
-<script src="engine/styles-break.js?v=2026-09-29.53"></script>
-<script src="engine/styles-soul.js?v=2026-09-29.53"></script>
-<script src="engine/styles-metal.js?v=2026-09-29.53"></script>
-<script src="engine/styles-electro.js?v=2026-09-29.53"></script>
-<script src="engine/variations.js?v=2026-09-29.53"></script>
-<script src="engine/import.js?v=2026-09-29.53"></script>
+<script src="engine/core.js?v=2026-09-29.54"></script>
+<script src="engine/styles-punk.js?v=2026-09-29.54"></script>
+<script src="engine/styles-post.js?v=2026-09-29.54"></script>
+<script src="engine/styles-machines.js?v=2026-09-29.54"></script>
+<script src="engine/styles-alt.js?v=2026-09-29.54"></script>
+<script src="engine/styles-groove.js?v=2026-09-29.54"></script>
+<script src="engine/styles-dub.js?v=2026-09-29.54"></script>
+<script src="engine/styles-break.js?v=2026-09-29.54"></script>
+<script src="engine/styles-soul.js?v=2026-09-29.54"></script>
+<script src="engine/styles-metal.js?v=2026-09-29.54"></script>
+<script src="engine/styles-electro.js?v=2026-09-29.54"></script>
+<script src="engine/variations.js?v=2026-09-29.54"></script>
+<script src="engine/import.js?v=2026-09-29.54"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -3260,7 +3260,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || document.getElementById("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-29.53";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-29.54";
   document.body.appendChild(s);
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth")) loadSynth();
@@ -5217,10 +5217,6 @@ function patternRoles(src){
   });
   return {roles,trackOf};
 }
-function variationPreview(type,src=curPattern()){
-  const {roles}=patternRoles(src);
-  return SPEngine.vary({code:"preview", style:Object.keys(SPEngine.styles)[0], len:src.len, section:"verse", fill:false, tag:"", roles},type,SPEngine.randomSeed(16));
-}
 
 function forkPatternVariant(src, out, suffix){
   const p=makePattern(`${src.name} · ${suffix}`,src.len);
@@ -5524,17 +5520,20 @@ function disableGridVariation(){
   setStatus("variation off");
 }
 
+// Click su una variazione: la applica e la fa sentire subito; un secondo click la toglie.
+// Si varia sempre l'originale: passando da una variazione all'altra non si sommano.
 function varyCurrent(type){
-  const pat=curPattern(), roles={}, trackOf={};
+  if(activeGridVariationId===type){ disableGridVariation(); return; }
+  const pat=curPattern(), base=gridVariationBase, src=base?base.grid:pat.grid, len=base?base.len:pat.len;
+  const roles={}, trackOf={};
   project.tracks.forEach(t=>{
     const role=ROLE_OF_SAMPLE[t.sampleIndex];
     if(!role || trackOf[role]) return;
     trackOf[role]=t;
-    const g=pat.grid[t.id];
-    if(g && g.some(v=>v)) roles[role]=g.slice(0,pat.len);
+    const g=src[t.id];
+    if(g && g.some(v=>v)) roles[role]=g.slice(0,len);
   });
   if(!Object.keys(roles).length){ setStatus("empty pattern: nothing to vary","err"); return; }
-  if(activeGridVariationId===type){ disableGridVariation(); return; }
   if(!gridVariationBase){
     gridVariationBase={
       name:pat.name, len:pat.len,
@@ -5546,29 +5545,32 @@ function varyCurrent(type){
   const parent={code:"griglia", style:Object.keys(SPEngine.styles)[0], len:pat.len, section:"verse", fill:false, tag:"", roles};
   const out=SPEngine.vary(parent,type,SPEngine.randomSeed(16));
   pushUndo();
+  if(base){
+    pat.len=base.len;
+    pat.grid=JSON.parse(JSON.stringify(base.grid));
+    pat.mods=JSON.parse(JSON.stringify(base.mods||{}));
+    pat.lens=JSON.parse(JSON.stringify(base.lens||{}));
+  }
   Object.values(trackOf).forEach(t=>{ pat.grid[t.id]=new Array(pat.len).fill(0); });
   Object.entries(out.roles).forEach(([role,arr])=>{ pat.grid[(trackOf[role]||trackForRole(role)).id]=arr.slice(0,pat.len); });
   activeGridVariationId=type;
   normalize(); renderAll();
   paintGridVariationState();
   const meta=SPEngine.variationTypes.find(x=>x.id===type), note=(/\(([^)]+)\)$/.exec(out.tag)||[])[1];
-  setStatus(`${meta.label}${note?` (${note})`:""} · cmd+Z to undo`);
+  setStatus(`${meta.label}${note?` (${note})`:""} · click again to turn it off`);
+  // da fermo parte il pattern che si sta variando, in loop
+  if(!playing){ synthOnly=false; drumsOnly=false; ui.mode="pattern"; paintTransport(); play(); }
 }
 function initGridVary(){
   const box=el("pVaryPanel"), btn=el("pVary");
   const hint=document.createElement("span"); hint.className="tiny";
-  hint.textContent="replaces the current pattern; Undo restores it. Choose one group below.";
+  hint.textContent="click a variation to apply it and hear it; click it again to go back to the original.";
   box.appendChild(hint);
   const off=document.createElement("button"); off.type="button"; off.id="pVaryOff"; off.className="mini";
   off.textContent="Turn variation off"; off.hidden=true; off.onclick=disableGridVariation;
   box.appendChild(off);
   const sections=makeVariationSections(box);
   SPEngine.variationTypes.forEach(t=>{
-    const previewItem=variationPreview(t.id);
-    const preview=document.createElement("button"); preview.type="button"; preview.className="mini"; preview.textContent="▶ Preview";
-    preview.title="listen before applying this variation";
-    preview.onclick=()=>audition.item===previewItem?stopAudition():startAudition(previewItem);
-    (sections.get(t.group)||box).appendChild(preview);
     const b=document.createElement("button"); b.type="button"; b.className="mini";
     b.dataset.variationId=t.id; b.textContent=t.label; b.title=t.hint; b.setAttribute("aria-pressed","false");
     b.onclick=()=>varyCurrent(t.id);
@@ -5720,7 +5722,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-29.53";
+const SW_VERSION="2026-09-29.54";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -5739,7 +5741,7 @@ const SW_VERSION="2026-09-29.53";
   });
 })();
 </script>
-<script src="engine/midi.js?v=2026-09-29.53"></script>
+<script src="engine/midi.js?v=2026-09-29.54"></script>
 
 </body>
 </html>

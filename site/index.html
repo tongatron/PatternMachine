@@ -904,8 +904,8 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       <div class="transport-extra">
         <button id="recBtn" class="live-keep"><span class="rec-dot" aria-hidden="true">&#9679;</span> Rec</button>
         <label class="fld live-keep">BPM
-          <input type="range" id="bpmRange" min="40" max="240" value="93">
-        <input type="number" id="bpmNum" min="40" max="240" value="93">
+          <input type="range" id="bpmRange" min="40" max="240" value="95">
+        <input type="number" id="bpmNum" min="40" max="240" value="95">
         </label>
         <button id="tapBtn" class="mini live-keep">Tap</button>
         <button id="viewSound" class="mini live-keep" type="button" aria-pressed="false" title="For playing live: the grid, Play, Rec, tempo and metronome">Live View</button>
@@ -1255,19 +1255,19 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-29.50"></script>
-<script src="engine/styles-punk.js?v=2026-09-29.50"></script>
-<script src="engine/styles-post.js?v=2026-09-29.50"></script>
-<script src="engine/styles-machines.js?v=2026-09-29.50"></script>
-<script src="engine/styles-alt.js?v=2026-09-29.50"></script>
-<script src="engine/styles-groove.js?v=2026-09-29.50"></script>
-<script src="engine/styles-dub.js?v=2026-09-29.50"></script>
-<script src="engine/styles-break.js?v=2026-09-29.50"></script>
-<script src="engine/styles-soul.js?v=2026-09-29.50"></script>
-<script src="engine/styles-metal.js?v=2026-09-29.50"></script>
-<script src="engine/styles-electro.js?v=2026-09-29.50"></script>
-<script src="engine/variations.js?v=2026-09-29.50"></script>
-<script src="engine/import.js?v=2026-09-29.50"></script>
+<script src="engine/core.js?v=2026-09-29.51"></script>
+<script src="engine/styles-punk.js?v=2026-09-29.51"></script>
+<script src="engine/styles-post.js?v=2026-09-29.51"></script>
+<script src="engine/styles-machines.js?v=2026-09-29.51"></script>
+<script src="engine/styles-alt.js?v=2026-09-29.51"></script>
+<script src="engine/styles-groove.js?v=2026-09-29.51"></script>
+<script src="engine/styles-dub.js?v=2026-09-29.51"></script>
+<script src="engine/styles-break.js?v=2026-09-29.51"></script>
+<script src="engine/styles-soul.js?v=2026-09-29.51"></script>
+<script src="engine/styles-metal.js?v=2026-09-29.51"></script>
+<script src="engine/styles-electro.js?v=2026-09-29.51"></script>
+<script src="engine/variations.js?v=2026-09-29.51"></script>
+<script src="engine/import.js?v=2026-09-29.51"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -1698,16 +1698,10 @@ function starterProject(){
   p.grid[tracks[2].id]=[2,0,1,1, 2,0,1,0, 2,0,1,0, 2,1,1,0];
   p.grid[tracks[3].id]=[0,0,0,0, 0,0,0,1, 0,0,0,0, 0,0,0,0];
   p.grid[tracks[4].id]=[0,0,0,0, 0,0,0,0, 0,0,0,0, 0,1,0,0];
-  const sp=makeSynthPattern("Synth 1",16);
-  sp.synth=[
-    {s:0,n:57,l:1,a:1},{s:1,n:69,l:1},{s:3,n:60,l:1},
-    {s:4,n:57,l:1,a:1},{s:5,n:69,l:1},{s:7,n:60,l:1},
-    {s:8,n:65,l:1,a:1},{s:9,n:77,l:1},{s:11,n:69,l:1},
-    {s:12,n:65,l:1,a:1},{s:13,n:77,l:1},{s:15,n:76,l:1}
-  ];
-  return {name:"New Mix", bpm:93, swing:0, human:0, sampleSet:"12bit", tracks,
+  const sp=makeSynthPattern("Synth 1",16);   // synth vuoto e senza blocchi: le note le scrive l'utente
+  return {name:"New Mix", bpm:95, swing:0, human:0, sampleSet:"12bit", tracks,
     patterns:[p], song:[{id:uid(), patternId:p.id, repeats:4, section:"verse"}],
-    synthPatterns:[sp], synthSong:[{id:uid(), synthId:sp.id, repeats:1, len:16}],
+    synthPatterns:[sp], synthSong:[],
     synth:{preset:"Tone Square Bass", engine:"tone", key:9, scale:"minor", mute:false, solo:false,
       params:{o1Wave:"square",o1Shape:0,o1Oct:0,o2Wave:"saw",o2Shape:0,o2Oct:0,o2Semi:0,o2Fine:7,o2Ring:0,mType:"sub",mShape:0,mUnit:"waves",o1Lvl:100,o2Lvl:0,mLvl:0,fType:"lp12",cutoff:55,reso:74,fEnv:40,fKey:50,fVelo:30,drive:0,aA:54,aD:79,aS:24,aR:68,eA:0,eD:40,eS:0,eR:20,lWave:"tri",lTgt:"pitch",lSync:"off",lRate:40,lAmt:0,mode:"poly",glide:0,accent:50,uDet:30,gate:100,trans:0,chorus:0,delay:0,dTime:"3/16",dFb:35,reverb:0,vol:50,uParams:{}}}};
 }
@@ -3227,7 +3221,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || document.getElementById("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-29.50";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-29.51";
   document.body.appendChild(s);
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth")) loadSynth();
@@ -5688,7 +5682,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-29.50";
+const SW_VERSION="2026-09-29.51";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -5707,7 +5701,7 @@ const SW_VERSION="2026-09-29.50";
   });
 })();
 </script>
-<script src="engine/midi.js?v=2026-09-29.50"></script>
+<script src="engine/midi.js?v=2026-09-29.51"></script>
 
 </body>
 </html>

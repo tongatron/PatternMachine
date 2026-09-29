@@ -8,40 +8,40 @@
 
 // Il percorso completo. Una lezione con `url` e' pronta; le altre compaiono nell'indice come "soon".
 const LEVELS=[
-  {id:"basics", title:"First steps", lessons:[
+  {id:"basics", title:"First steps", titleIt:"Primi passi", lessons:[
     {id:"drum-machine", title:"What a drum machine does", titleIt:"Cosa fa una drum machine", url:"drum-machine.html", minutes:8, summary:"Hear sounds become a beat: rows, steps and playback."},
     {id:"time", title:"Tempo, bars and steps", titleIt:"Tempo, battute e step", url:"time.html", minutes:8, summary:"Count a bar of 4/4 and place four quarter-note kicks."},
     {id:"kit", title:"The drum kit", titleIt:"La batteria", url:"kit.html", minutes:8, summary:"Meet kick, snare and hi-hat, then build a first beat."},
     {id:"tour", title:"A tour of PATTERN-MACHINE", titleIt:"Un giro di PATTERN-MACHINE", url:"tour.html", minutes:10, summary:"Use the grid, transport and keyboard together."}]},
-  {id:"steps", title:"Step programming", lessons:[
+  {id:"steps", title:"Step programming", titleIt:"Programmazione step", lessons:[
     {id:"four-on-the-floor", title:"Four on the floor", titleIt:"Four on the floor", url:"four-on-the-floor.html", minutes:10, summary:"Put the kick on every quarter note and feel the steady pulse."},
     {id:"backbeat", title:"The backbeat", titleIt:"Il backbeat", url:"backbeat.html", minutes:10,
       summary:"Snare or clap on beats 2 and 4: hear it, place it, play it with the keys, build it in the drum machine."},
     {id:"hihats", title:"Hi-hats: eighths, sixteenths, open", titleIt:"Hi-hat: ottavi, sedicesimi, aperti", url:"hihats.html", minutes:10, summary:"Make the hi-hat move from eighths to sixteenths and open it on the offbeat."},
     {id:"classic-beats", title:"Classic beats: rock and boom bap", titleIt:"Beat classici: rock e boom bap", url:"classic-beats.html", minutes:10, summary:"Build two familiar grooves and hear what changes between them."},
     {id:"syncopation", title:"Rests and syncopation", titleIt:"Pause e sincopi", url:"syncopation.html", minutes:10, summary:"Leave space, then move a kick away from the obvious beats."}]},
-  {id:"dynamics", title:"Dynamics", lessons:[
+  {id:"dynamics", title:"Dynamics", titleIt:"Dinamica", lessons:[
     {id:"accents", title:"Accents and ghost notes", titleIt:"Accenti e ghost notes", url:"accents.html", minutes:10, summary:"Use three hit levels to make a pattern speak."},
     {id:"hihat-dynamics", title:"Hi-hat dynamics", titleIt:"La dinamica degli hi-hat", url:"hihat-dynamics.html", minutes:10, summary:"Shape a steady hi-hat line with accents and ghost hits."},
     {id:"ghost-snare", title:"Ghost notes on the snare", titleIt:"Ghost notes sul rullante", url:"ghost-snare.html", minutes:10, summary:"Add quiet snare notes without taking over the backbeat."},
     {id:"levels", title:"Levels and the Mixer", titleIt:"Livelli e Mixer", url:"levels.html", minutes:10, summary:"Balance rows with levels and the Mixer."}]},
-  {id:"keys", title:"Playing with the keyboard", lessons:[
+  {id:"keys", title:"Playing with the keyboard", titleIt:"Suonare con la tastiera", lessons:[
     {id:"key-map", title:"The key map", titleIt:"La mappa dei tasti", url:"key-map.html", minutes:10, summary:"Learn the 4×4 keyboard layout and find every drum row."},
     {id:"timing", title:"Playing in time", titleIt:"Suonare a tempo", url:"timing.html", minutes:10, summary:"Listen, count and land hits on the nearest step."},
     {id:"recording", title:"Recording with Rec", titleIt:"Registrare con Rec", url:"recording.html", minutes:10, summary:"Record a pattern from the keyboard while the loop plays."},
     {id:"no-mouse", title:"The grid without a mouse", titleIt:"La griglia senza mouse", url:"no-mouse.html", minutes:10, summary:"Navigate, edit and undo with the keyboard."},
     {id:"midi-pads", title:"MIDI pads", titleIt:"Pad MIDI", url:"midi-pads.html", minutes:10, summary:"Use pads for rows and transport, then remap a control."}]},
-  {id:"groove", title:"Groove and sound", lessons:[
+  {id:"groove", title:"Groove and sound", titleIt:"Groove e suono", lessons:[
     {id:"swing", title:"Swing and humanize", titleIt:"Swing e humanize", url:"swing.html", minutes:10, summary:"Move the offbeats and add controlled variation."},
     {id:"step-params", title:"Probability, ratchets and flams", titleIt:"Probabilità, ratchet e flam", url:"step-params.html", minutes:10, summary:"Make steps repeat, split and surprise you."},
     {id:"polyrhythm", title:"Polyrhythms and Euclidean rhythms", titleIt:"Poliritmi e ritmi euclidei", url:"polyrhythm.html", minutes:10, summary:"Fit different repeating cycles into the same bar."},
     {id:"kit-shaping", title:"Shaping the kit", titleIt:"Dare forma al kit", url:"kit-shaping.html", minutes:10, summary:"Choose sounds, tune them and make a kit your own."}]},
-  {id:"song", title:"From pattern to song", lessons:[
+  {id:"song", title:"From pattern to song", titleIt:"Dal pattern alla canzone", lessons:[
     {id:"sections", title:"Verse, chorus and break", titleIt:"Strofa, ritornello e break", url:"sections.html", minutes:10, summary:"Give patterns a role and arrange contrasting sections."},
     {id:"fills", title:"Fills", titleIt:"Fill", url:"fills.html", minutes:10, summary:"Use a short fill to lead into the next section."},
     {id:"sequencer", title:"The Sequencer", titleIt:"Il Sequencer", url:"sequencer.html", minutes:10, summary:"Chain blocks, repeats and pattern changes into a timeline."},
     {id:"form", title:"Song form", titleIt:"La forma della canzone", url:"form.html", minutes:10, summary:"Plan an intro, build, drop and ending that make musical sense."}]},
-  {id:"styles", title:"Styles", lessons:[
+  {id:"styles", title:"Styles", titleIt:"Stili", lessons:[
     {id:"boom-bap", title:"Boom bap"}, {id:"electro", title:"Electro"}, {id:"house", title:"House"},
     {id:"techno", title:"Techno"}, {id:"trap", title:"Trap"}, {id:"breakbeat", title:"Breakbeat and drum & bass"},
     {id:"funk", title:"Funk"}, {id:"reggae", title:"Reggae"}, {id:"dembow", title:"Dembow"},

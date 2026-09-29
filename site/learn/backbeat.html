@@ -7,8 +7,8 @@
 <title>The backbeat · Learn · PATTERN-MACHINE</title>
 <meta name="description" content="Lesson: the backbeat, snare or clap on beats 2 and 4. Hear it, place it on the grid, play it with the keyboard and build it in PATTERN-MACHINE.">
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
-<link rel="stylesheet" href="learn.css?v=2026-09-30.5">
-<script src="lang.js?v=2026-09-30.5"></script>
+<link rel="stylesheet" href="learn.css?v=2026-09-30.6">
+<script src="lang.js?v=2026-09-30.6"></script>
 <script defer src="https://analytics.tongatron.org/script.js" data-website-id="9daa93b6-2afb-494a-89fb-288437a030d1" data-domains="patternmachine.tongatron.org"></script>
 </head>
 <body>
@@ -127,8 +127,8 @@
 <footer class="site-footer"><a class="report-link" href="../#segnala">Report a problem</a><span class="site-version"><!--build-->version of day month year HH:MM<!--/build--></span><a class="site-badge" href="https://tongatron.org/"><span class="mark"></span><span>tongatron.org</span></a></footer>
 </div>
 
-<script src="lessons.js?v=2026-09-30.5"></script>
-<script src="mini.js?v=2026-09-30.5"></script>
+<script src="lessons.js?v=2026-09-30.6"></script>
+<script src="mini.js?v=2026-09-30.6"></script>
 <script>
 // Lezione "The backbeat": tre mini drum machine (ascolto, copia, registrazione) e la missione nell'app.
 // L'avanzamento sta nel browser (PMLearn.progress); la parte "mission" la segna coach.js dentro l'app.
@@ -190,7 +190,7 @@
   }
   paint();
   const lessons=L.levels.flatMap(lv=>lv.lessons), pos=lessons.findIndex(l=>l.id===ID), nav=$("lessonNavTop");
-  if(nav){ const prev=lessons[pos-1], next=lessons[pos+1]; nav.innerHTML=(prev?`<a href="${prev.url||'index.html'}">← Previous: ${prev.title}</a>`:'<span></span>')+(next?`<a href="${next.url||'index.html'}">Next: ${next.title} →</a>`:''); }
+  if(nav){ const prev=lessons[pos-1], next=lessons[pos+1], it=PMLang.lang==="it", title=x=>it?(x.titleIt||x.title):x.title; nav.innerHTML=(prev?`<a href="${prev.url||'index.html'}">← ${it?"Precedente":"Previous"}: ${title(prev)}</a>`:'<span></span>')+(next?`<a href="${next.url||'index.html'}">${it?"Successiva":"Next"}: ${title(next)} →</a>`:''); }
   // la missione si completa nell'app: si ridisegna al ritorno (anche dalla cache del browser) o dall'altra scheda
   addEventListener("storage",e=>{ if(e.key==="pm.learn") paint(); });
   addEventListener("pageshow",paint);

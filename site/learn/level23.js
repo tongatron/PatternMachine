@@ -21,6 +21,6 @@
   function paint(){const p=P.get(id);document.querySelectorAll(".parts li").forEach(x=>x.classList.toggle("done",!!p[x.dataset.part]));document.querySelectorAll("[data-done]").forEach(x=>x.hidden=!p[x.dataset.done]);}
   paint();
   const lessons=L.levels.flatMap(lv=>lv.lessons), pos=lessons.findIndex(x=>x.id===id), nav=$("#lessonNavTop");
-  if(nav){const prev=lessons[pos-1],next=lessons[pos+1];nav.innerHTML=(prev?`<a href="${prev.url||'index.html'}">← Previous: ${prev.title}</a>`:'<span></span>')+(next?`<a href="${next.url||'index.html'}">Next: ${next.title} →</a>`:'');}
+  if(nav){const prev=lessons[pos-1],next=lessons[pos+1],it=PMLang.lang==="it",title=x=>it?(x.titleIt||x.title):x.title;nav.innerHTML=(prev?`<a href="${prev.url||'index.html'}">← ${it?"Precedente":"Previous"}: ${title(prev)}</a>`:'<span></span>')+(next?`<a href="${next.url||'index.html'}">${it?"Successiva":"Next"}: ${title(next)} →</a>`:'');}
   addEventListener("storage",e=>{if(e.key==="pm.learn")paint();}); addEventListener("pmlangchange",()=>location.reload());
 })();

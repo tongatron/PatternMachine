@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="it">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
-<title>App per Mac · PATTERN-MACHINE</title>
+<title>Desktop app · PATTERN-MACHINE</title>
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
 <style>
 /* Pagina di consultazione: stessi colori e materiali del tema chiaro della home
@@ -82,54 +82,54 @@ th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-sp
 <body>
 <div class="wrap">
 <header>
-  <h1>PATTERN-MACHINE per Mac, Win, Linux</h1>
-  <span class="muted">app desktop · prototipo</span>
-  <a class="back" href="./">&larr; Torna alla drum machine</a>
+  <h1>PATTERN-MACHINE for Mac, Win, Linux</h1>
+  <span class="muted">desktop app · prototype</span>
+  <a class="back" href="./">&larr; Back to the drum machine</a>
 </header>
 
 <section>
-  <h2>Scarica</h2>
+  <h2>Download</h2>
   <div class="download-grid">
-    <div class="download-item"><span class="tag tested">testato</span><a class="dl" data-platform="mac" href="#" download aria-disabled="true">Scarica per Mac</a><div class="facts" data-facts="mac"><span>in preparazione…</span></div></div>
-    <div class="download-item"><span class="tag untested">non testato</span><a class="dl" data-platform="windows" href="#" download aria-disabled="true">Scarica per Windows</a><div class="facts" data-facts="windows"><span>in preparazione…</span></div></div>
-    <div class="download-item"><span class="tag untested">non testato</span><a class="dl" data-platform="linux" href="#" download aria-disabled="true">Scarica per Linux</a><div class="facts" data-facts="linux"><span>in preparazione…</span></div></div>
+    <div class="download-item"><span class="tag tested">tested</span><a class="dl" data-platform="mac" href="#" download aria-disabled="true">Download for Mac</a><div class="facts" data-facts="mac"><span>preparing…</span></div></div>
+    <div class="download-item"><span class="tag untested">untested</span><a class="dl" data-platform="windows" href="#" download aria-disabled="true">Download for Windows</a><div class="facts" data-facts="windows"><span>preparing…</span></div></div>
+    <div class="download-item"><span class="tag untested">untested</span><a class="dl" data-platform="linux" href="#" download aria-disabled="true">Download for Linux</a><div class="facts" data-facts="linux"><span>preparing…</span></div></div>
   </div>
   <p class="muted sha" id="sha"></p>
-  <p class="muted">La build macOS è per Apple Silicon; Windows e Linux sono build x64. Le tre versioni funzionano offline e includono MIDI virtuale dove il sistema lo supporta.</p>
+  <p class="muted">The macOS build is for Apple Silicon; Windows and Linux are x64 builds. All three work offline and include virtual MIDI where the system supports it.</p>
 </section>
 
 <section>
-  <h2>Cosa fa in più del sito</h2>
+  <h2>Install</h2>
+  <ol>
+    <li><b>macOS:</b> open the zip and drag <b>PatternMachine</b> into the <b>Applications</b> folder. This version is not notarized by Apple: if macOS refuses to open it the first time, open Terminal, run <code>xattr -dr com.apple.quarantine /Applications/PatternMachine.app</code> and launch the app again. Alternatively, Ctrl-click the app, choose <b>Open</b> and confirm.</li>
+    <li><b>Windows:</b> run the <code>.exe</code> installer and follow the wizard. If SmartScreen shows <b>Windows protected your PC</b>, check that the file came from this page, choose <b>More info</b> and then <b>Run anyway</b>.</li>
+    <li><b>Linux:</b> download the AppImage, make it executable with <code>chmod +x PatternMachine*.AppImage</code> and run it. If your distribution reports that FUSE is missing, install the FUSE package it requires and try again.</li>
+  </ol>
+  <p class="muted">These warnings appear because the packages are not yet signed with a commercial certificate for each operating system. Only accept the installation if you downloaded the file from this private page.</p>
+</section>
+
+<section>
+  <h2>What it adds to the website</h2>
   <div class="table-wrap"><table>
-    <tr><th>Nel browser</th><th>Nell'app</th></tr>
-    <tr><td>Esporti uno zip, lo scompatti, lo importi nella DAW</td><td><b>Trascini</b> il pattern (MIDI o WAV) dall'app direttamente nella timeline della DAW</td></tr>
-    <tr><td>Nessuna uscita MIDI dal vivo</td><td><b>Porta MIDI "PatternMachine"</b>: i pattern suonano Drum Kit Designer, Drum Machine Designer o qualsiasi strumento di Logic, e si registrano</td></tr>
-    <tr><td>Play e BPM impostati a mano</td><td><b>Segue il MIDI Clock della DAW</b>: parte, si ferma, salta e cambia tempo insieme alla DAW</td></tr>
-    <tr><td>Progetti salvati nel browser</td><td>Progetti come <b>file</b> in Musica › PatternMachine › Progetti, esportazioni in Musica › PatternMachine › Export</td></tr>
-    <tr><td>Serve la rete e la password</td><td>Funziona in locale, anche offline</td></tr>
+    <tr><th>In the browser</th><th>In the app</th></tr>
+    <tr><td>Export a zip, unpack it, import it into the DAW</td><td><b>Drag</b> the pattern (MIDI or WAV) from the app straight onto the DAW timeline</td></tr>
+    <tr><td>No live MIDI output</td><td><b>"PatternMachine" MIDI port</b>: patterns play Drum Kit Designer, Drum Machine Designer or any Logic instrument, and can be recorded</td></tr>
+    <tr><td>Play and BPM set by hand</td><td><b>Follows the DAW's MIDI Clock</b>: starts, stops, jumps and changes tempo together with the DAW</td></tr>
+    <tr><td>Projects saved in the browser</td><td>Projects as <b>files</b> in Music › PatternMachine › Projects, exports in Music › PatternMachine › Export</td></tr>
+    <tr><td>Needs the network and the password</td><td>Runs locally, even offline</td></tr>
   </table></div>
 </section>
 
 <section>
-  <h2>Installare</h2>
-  <ol>
-    <li><b>macOS:</b> apri lo zip e trascina <b>PatternMachine</b> nella cartella <b>Applicazioni</b>. Questa versione non è notarizzata da Apple: al primo avvio, se macOS impedisce l'apertura, apri Terminale ed esegui <code>xattr -dr com.apple.quarantine /Applications/PatternMachine.app</code>, poi avvia di nuovo l'app. In alternativa fai Ctrl-clic sull'app, scegli <b>Apri</b> e conferma.</li>
-    <li><b>Windows:</b> avvia l'installer `.exe` e segui la procedura guidata. Se SmartScreen mostra <b>Windows ha protetto il computer</b>, verifica che il file provenga da questa pagina, scegli <b>Ulteriori informazioni</b> e poi <b>Esegui comunque</b>.</li>
-    <li><b>Linux:</b> scarica l'AppImage, rendila eseguibile con <code>chmod +x PatternMachine*.AppImage</code> e avviala. Se la distribuzione segnala che manca FUSE, installa il pacchetto FUSE richiesto dalla tua distribuzione e riprova.</li>
-  </ol>
-  <p class="muted">Gli avvisi compaiono perché i pacchetti non hanno ancora una firma commerciale del rispettivo sistema operativo. Accetta l'installazione solo se hai scaricato il file da questa pagina privata.</p>
-</section>
-
-<section>
-  <h2>Collegarla alla DAW</h2>
+  <h2>Connecting it to the DAW</h2>
   <ul>
-    <li><b>Note MIDI</b>: nel pannello DAW dell'app lascia attiva "Uscita MIDI" con note General MIDI. Nella DAW crea una traccia di batteria e seleziona la porta "PatternMachine".</li>
-    <li><b>Clock</b>: abilita nella DAW l'invio del MIDI Clock verso "PatternMachine". Nell'app seleziona la DAW, attiva "Segui il clock della DAW" e premi Play nella DAW.</li>
-    <li><b>Trascinare</b>: afferra <b>⠿ MIDI</b> o <b>⠿ WAV</b> nel pannello DAW e rilascia sulla timeline. Segue il selettore Pattern/Canzone.</li>
-    <li>Suono solo da Logic: spegni "Suono interno".</li>
+    <li><b>MIDI notes</b>: in the app's DAW panel leave "MIDI output" on, with General MIDI notes. In the DAW create a drum track and select the "PatternMachine" port.</li>
+    <li><b>Clock</b>: in the DAW, enable sending MIDI Clock to "PatternMachine". In the app select the DAW, turn on "Follow the DAW clock" and press Play in the DAW.</li>
+    <li><b>Dragging</b>: grab <b>⠿ MIDI</b> or <b>⠿ WAV</b> in the DAW panel and drop it on the timeline. It follows the Pattern/Song selector.</li>
+    <li>Sound from Logic only: turn off "Internal sound".</li>
   </ul>
 </section>
-<footer class="site-footer">PATTERN-MACHINE è un progetto di <a class="site-badge" href="https://tongatron.org/"><span class="mark"></span><span>tongatron.org</span></a></footer>
+<footer class="site-footer">PATTERN-MACHINE is a project by <a class="site-badge" href="https://tongatron.org/"><span class="mark"></span><span>tongatron.org</span></a></footer>
 </div>
 
 <script>
@@ -142,17 +142,17 @@ th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-sp
     if(!r.ok) throw new Error(r.status);
     const a=await r.json();
     const platforms=a.platforms||{mac:a};
-    const d=new Date(a.date+"T12:00:00"), date=d.toLocaleDateString("it-IT",{day:"numeric",month:"long",year:"numeric"});
+    const d=new Date(a.date+"T12:00:00"), date=d.toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"});
     const archLabel={mac:"Apple Silicon · macOS 12+",windows:"Windows x64",linux:"Linux x64"};
     links.forEach(link=>{
       const p=platforms[link.dataset.platform], box=document.querySelector(`[data-facts="${link.dataset.platform}"]`);
-      if(!p){ link.setAttribute("aria-disabled","true"); box.replaceChildren(span("non disponibile")); return; }
+      if(!p){ link.setAttribute("aria-disabled","true"); box.replaceChildren(span("not available")); return; }
       link.href="download/"+encodeURIComponent(p.file)+"?v="+p.sha256.slice(0,12); link.removeAttribute("aria-disabled");
-      box.replaceChildren(span("versione "+a.version),span(Math.round(p.bytes/1048576)+" MB"),span(date),span(archLabel[link.dataset.platform]||p.arch||""));
+      box.replaceChildren(span("version "+a.version),span(Math.round(p.bytes/1048576)+" MB"),span(date),span(archLabel[link.dataset.platform]||p.arch||""));
     });
-    sha.textContent="SHA-256 disponibili per ogni file nella scheda di release.";
+    sha.textContent="SHA-256 available for each file in the release sheet.";
   }catch(e){
-    links.forEach(link=>{ document.querySelector(`[data-facts="${link.dataset.platform}"]`).replaceChildren(span("app non ancora pubblicata")); });
+    links.forEach(link=>{ document.querySelector(`[data-facts="${link.dataset.platform}"]`).replaceChildren(span("app not published yet")); });
   }
 })();
 // Plug-in per Logic: la scheda download/plugin.json la scrive plugin/scripts/release.sh.
@@ -163,10 +163,10 @@ th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-sp
     const r=await fetch("download/plugin.json",{cache:"no-store"});
     if(!r.ok) throw new Error(r.status);
     const p=await r.json();
-    const date=new Date(p.date+"T12:00:00").toLocaleDateString("it-IT",{day:"numeric",month:"long",year:"numeric"});
+    const date=new Date(p.date+"T12:00:00").toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"});
     link.href="download/"+encodeURIComponent(p.file)+"?v="+p.sha256.slice(0,12); link.removeAttribute("aria-disabled");
-    box.replaceChildren(span("versione "+p.version),span(Math.round(p.bytes/1048576)+" MB"),span(date),span("AU + VST3 · Apple Silicon"));
-  }catch(e){ box.replaceChildren(span("plug-in non ancora pubblicato")); }
+    box.replaceChildren(span("version "+p.version),span(Math.round(p.bytes/1048576)+" MB"),span(date),span("AU + VST3 · Apple Silicon"));
+  }catch(e){ box.replaceChildren(span("plug-in not published yet")); }
 })();
 </script>
 </body>

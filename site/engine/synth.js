@@ -388,7 +388,7 @@
   }
   // Chiamata da scheduler() per ogni step messo in coda.
   function step(pat, s, time) {
-    if (!allowed || !pat || !pat.synth || !pat.synth.length || project.synth?.mute) return;
+    if (!allowed || !pat || !pat.synth || !pat.synth.length || project.synth?.mute || (project.drumsSolo && !project.synth?.solo)) return;
     const p = params();
     if (engineOf() === "tone") {
       if (!toneSynth) { ensureTone().catch(() => {}); return; }
@@ -1118,8 +1118,8 @@
         <a href="https://github.com/korginc/logue-sdk" target="_blank" rel="noopener">KORG logue-sdk</a> (NTS-1 mkII, BSD-3-Clause),
         compiled to WebAssembly, one instance per voice. To record: turn on Rec, press Play and play the keys.</p>`;
 
-    el("synOn").onclick = () => { pushUndo(); const s = ensure(); s.mute = !s.mute; if (s.mute) allOff(); paintTop(); };
-    el("synSolo").onclick = () => { pushUndo(); const s = ensure(); s.solo = !s.solo; paintTop(); };
+    el("synOn").onclick = () => { pushUndo(); const s = ensure(); s.mute = !s.mute; if (s.mute) allOff(); paintTop(); window.paintGroupMS?.(); };
+    el("synSolo").onclick = () => { pushUndo(); const s = ensure(); s.solo = !s.solo; paintTop(); window.paintGroupMS?.(); };
     el("synEngine").onchange = async e => {
       const next = e.target.value === "tone" ? "tone" : "custom";
       if (next === engineOf()) return;
@@ -1628,6 +1628,7 @@
   const debug = () => ({ audio: !!node, sampleRate: node ? node.context.sampleRate : null,
     unitsSent: [...unitsSent], unitsReady: [...unitsReady], unitErrors: unitErrors.slice(-3) });
 
-  window.PMSynth = { step, allOff, show, setAllowed, renderOffline, hasNotes, exportMidi, level, debug, midiNote, knob, knobTargets };
+  window.PMSynth = { step, allOff, show, paint: paintTop, setAllowed, renderOffline, hasNotes, exportMidi, level, debug, midiNote, knob, knobTargets };
   setAllowed(true);
+  window.paintGroupMS?.();   // M/S del synth nel trasporto: compaiono ora che il synth c'e'
 })();

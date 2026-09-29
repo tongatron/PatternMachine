@@ -17,14 +17,14 @@ const LEVELS=[
     {id:"four-on-the-floor", title:"Four on the floor"},
     {id:"backbeat", title:"The backbeat", titleIt:"Il backbeat", url:"backbeat.html", minutes:10,
       summary:"Snare or clap on beats 2 and 4: hear it, place it, play it with the keys, build it in the drum machine."},
-    {id:"hihats", title:"Hi-hats: eighths, sixteenths, open"},
-    {id:"classic-beats", title:"Classic beats: rock and boom bap"},
-    {id:"syncopation", title:"Rests and syncopation"}]},
+    {id:"hihats", title:"Hi-hats: eighths, sixteenths, open", titleIt:"Hi-hat: ottavi, sedicesimi, aperti", url:"hihats.html", minutes:10, summary:"Make the hi-hat move from eighths to sixteenths and open it on the offbeat."},
+    {id:"classic-beats", title:"Classic beats: rock and boom bap", titleIt:"Beat classici: rock e boom bap", url:"classic-beats.html", minutes:10, summary:"Build two familiar grooves and hear what changes between them."},
+    {id:"syncopation", title:"Rests and syncopation", titleIt:"Pause e sincopi", url:"syncopation.html", minutes:10, summary:"Leave space, then move a kick away from the obvious beats."}]},
   {id:"dynamics", title:"Dynamics", lessons:[
-    {id:"accents", title:"Accents and ghost notes"},
-    {id:"hihat-dynamics", title:"Hi-hat dynamics"},
-    {id:"ghost-snare", title:"Ghost notes on the snare"},
-    {id:"levels", title:"Levels and the Mixer"}]},
+    {id:"accents", title:"Accents and ghost notes", titleIt:"Accenti e ghost notes", url:"accents.html", minutes:10, summary:"Use three hit levels to make a pattern speak."},
+    {id:"hihat-dynamics", title:"Hi-hat dynamics", titleIt:"La dinamica degli hi-hat", url:"hihat-dynamics.html", minutes:10, summary:"Shape a steady hi-hat line with accents and ghost hits."},
+    {id:"ghost-snare", title:"Ghost notes on the snare", titleIt:"Ghost notes sul rullante", url:"ghost-snare.html", minutes:10, summary:"Add quiet snare notes without taking over the backbeat."},
+    {id:"levels", title:"Levels and the Mixer", titleIt:"Livelli e Mixer", url:"levels.html", minutes:10, summary:"Balance rows with levels and the Mixer."}]},
   {id:"keys", title:"Playing with the keyboard", lessons:[
     {id:"key-map", title:"The key map"},
     {id:"timing", title:"Playing in time"},
@@ -55,6 +55,8 @@ const PARTS={
   kit:["listen","copy","play"],
   tour:["listen","copy","play"],
   backbeat:["listen","copy","record","mission"]
+  ,hihats:["listen","copy","play"], "classic-beats":["listen","copy","play"], syncopation:["listen","copy","play"],
+  accents:["listen","copy","play"], "hihat-dynamics":["listen","copy","play"], "ghost-snare":["listen","copy","play"], levels:["listen","copy","play"]
 };
 
 // Missioni nell'app: il beat di partenza (righe nell'ordine dei tasti 1, 2, 3...) e l'obiettivo.

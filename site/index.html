@@ -1270,19 +1270,19 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-29.57"></script>
-<script src="engine/styles-punk.js?v=2026-09-29.57"></script>
-<script src="engine/styles-post.js?v=2026-09-29.57"></script>
-<script src="engine/styles-machines.js?v=2026-09-29.57"></script>
-<script src="engine/styles-alt.js?v=2026-09-29.57"></script>
-<script src="engine/styles-groove.js?v=2026-09-29.57"></script>
-<script src="engine/styles-dub.js?v=2026-09-29.57"></script>
-<script src="engine/styles-break.js?v=2026-09-29.57"></script>
-<script src="engine/styles-soul.js?v=2026-09-29.57"></script>
-<script src="engine/styles-metal.js?v=2026-09-29.57"></script>
-<script src="engine/styles-electro.js?v=2026-09-29.57"></script>
-<script src="engine/variations.js?v=2026-09-29.57"></script>
-<script src="engine/import.js?v=2026-09-29.57"></script>
+<script src="engine/core.js?v=2026-09-29.58"></script>
+<script src="engine/styles-punk.js?v=2026-09-29.58"></script>
+<script src="engine/styles-post.js?v=2026-09-29.58"></script>
+<script src="engine/styles-machines.js?v=2026-09-29.58"></script>
+<script src="engine/styles-alt.js?v=2026-09-29.58"></script>
+<script src="engine/styles-groove.js?v=2026-09-29.58"></script>
+<script src="engine/styles-dub.js?v=2026-09-29.58"></script>
+<script src="engine/styles-break.js?v=2026-09-29.58"></script>
+<script src="engine/styles-soul.js?v=2026-09-29.58"></script>
+<script src="engine/styles-metal.js?v=2026-09-29.58"></script>
+<script src="engine/styles-electro.js?v=2026-09-29.58"></script>
+<script src="engine/variations.js?v=2026-09-29.58"></script>
+<script src="engine/import.js?v=2026-09-29.58"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -2097,12 +2097,22 @@ function frame(){
         synthId:e.synthId, synthStep:e.synthStep, synthIndex:e.synthIndex};
       changed=true;
     }
+    if(changed) followSongPattern();
     if(changed) paintPlayhead();
     paintTimeline();
   }
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
+
+// In Song la griglia (anche nella Vista Live) segue il pattern che suona, fill compresi.
+function followSongPattern(){
+  const id=visible.patternId;
+  if(ui.mode!=="song" || !id || id===ui.patternId || el("panelGrid").hidden || !patternById(id)) return;
+  resetGridVariationState();
+  ui.patternId=id; el("pLen").value=curPattern().len;
+  renderPatterns(); renderRuler(); renderTracks();
+}
 
 async function play(){
   stopAudition();
@@ -3275,7 +3285,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || document.getElementById("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-29.57";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-29.58";
   document.body.appendChild(s);
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth")) loadSynth();
@@ -3634,7 +3644,7 @@ function copyPattern(src, name){
 }
 el("pDup").onclick=()=>{
   pushUndo();
-  const p=copyPattern(curPattern(), curPattern().name+" copia");
+  const p=copyPattern(curPattern(), curPattern().name+" copy");
   selectPattern(p.id);
 };
 async function renamePattern(p){
@@ -5883,7 +5893,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-29.57";
+const SW_VERSION="2026-09-29.58";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -5902,7 +5912,7 @@ const SW_VERSION="2026-09-29.57";
   });
 })();
 </script>
-<script src="engine/midi.js?v=2026-09-29.57"></script>
+<script src="engine/midi.js?v=2026-09-29.58"></script>
 
 </body>
 </html>

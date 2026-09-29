@@ -42,10 +42,10 @@ const LEVELS=[
     {id:"sequencer", title:"The Sequencer", titleIt:"Il Sequencer", url:"sequencer.html", minutes:10, summary:"Chain blocks, repeats and pattern changes into a timeline."},
     {id:"form", title:"Song form", titleIt:"La forma della canzone", url:"form.html", minutes:10, summary:"Plan an intro, build, drop and ending that make musical sense."}]},
   {id:"styles", title:"Styles", titleIt:"Stili", lessons:[
-    {id:"boom-bap", title:"Boom bap"}, {id:"electro", title:"Electro"}, {id:"house", title:"House"},
-    {id:"techno", title:"Techno"}, {id:"trap", title:"Trap"}, {id:"breakbeat", title:"Breakbeat and drum & bass"},
-    {id:"funk", title:"Funk"}, {id:"reggae", title:"Reggae"}, {id:"dembow", title:"Dembow"},
-    {id:"afrobeat", title:"Afrobeat"}, {id:"bossa", title:"Bossa nova and samba"}, {id:"synth-pop", title:"Synth pop"}]},
+    {id:"boom-bap", title:"Boom bap", titleIt:"Boom bap", url:"boom-bap.html", minutes:10, summary:"Leave space around the snare and let the kick answer."}, {id:"electro", title:"Electro", titleIt:"Electro", url:"electro.html", minutes:10, summary:"Combine a precise drum-machine pulse with syncopated accents."}, {id:"house", title:"House", titleIt:"House", url:"house.html", minutes:10, summary:"Build the four-on-the-floor pulse and keep the hats moving."},
+    {id:"techno", title:"Techno", titleIt:"Techno", url:"techno.html", minutes:10, summary:"Make repetition evolve through hats, accents and space."}, {id:"trap", title:"Trap", titleIt:"Trap", url:"trap.html", minutes:10, summary:"Use half-time weight, hats and a late kick response."}, {id:"breakbeat", title:"Breakbeat and drum & bass", titleIt:"Breakbeat e drum & bass", url:"breakbeat.html", minutes:10, summary:"Break the regular pulse and keep the loop driving forward."},
+    {id:"funk", title:"Funk", titleIt:"Funk", url:"funk.html", minutes:10, summary:"Lock kick, snare and ghost notes into a pocket."}, {id:"reggae", title:"Reggae", titleIt:"Reggae", url:"reggae.html", minutes:10, summary:"Put the emphasis behind the beat and leave room around it."}, {id:"dembow", title:"Dembow", titleIt:"Dembow", url:"dembow.html", minutes:10, summary:"Hear the characteristic two-bar kick and snare conversation."},
+    {id:"afrobeat", title:"Afrobeat", titleIt:"Afrobeat", url:"afrobeat.html", minutes:10, summary:"Layer interlocking percussion over a patient groove."}, {id:"bossa", title:"Bossa nova and samba", titleIt:"Bossa nova e samba", url:"bossa.html", minutes:10, summary:"Use syncopation and cross-rhythms without losing the bar."}, {id:"synth-pop", title:"Synth pop", titleIt:"Synth pop", url:"synth-pop.html", minutes:10, summary:"Make a clean, memorable machine groove around the synth."}]},
 ];
 
 // Le parti di una lezione, nell'ordine in cui si fanno: la lezione e' finita quando ci sono tutte.
@@ -60,6 +60,7 @@ const PARTS={
   "key-map":["listen","copy","play"], timing:["listen","copy","play"], recording:["listen","copy","play"], "no-mouse":["listen","copy","play"], "midi-pads":["listen","copy","play"],
   swing:["listen","copy","play"], "step-params":["listen","copy","play"], polyrhythm:["listen","copy","play"], "kit-shaping":["listen","copy","play"],
   sections:["listen","copy","play"], fills:["listen","copy","play"], sequencer:["listen","copy","play"], form:["listen","copy","play"]
+  ,"boom-bap":["listen","copy","play"], electro:["listen","copy","play"], house:["listen","copy","play"], techno:["listen","copy","play"], trap:["listen","copy","play"], breakbeat:["listen","copy","play"], funk:["listen","copy","play"], reggae:["listen","copy","play"], dembow:["listen","copy","play"], afrobeat:["listen","copy","play"], bossa:["listen","copy","play"], "synth-pop":["listen","copy","play"]
 };
 
 // Missioni nell'app: il beat di partenza (righe nell'ordine dei tasti 1, 2, 3...) e l'obiettivo.

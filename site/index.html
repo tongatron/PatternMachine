@@ -234,6 +234,8 @@ input[type=text], input[type=email], input[type=number], select{
   font-family:inherit; background:var(--panel-2); color:var(--text);
   border:1px solid var(--edge); border-radius:6px; padding:6px 8px; font-size:11px;
 }
+.linkbtn.learn-link{background:var(--key-primary,var(--accent)); color:var(--on-accent); border-color:var(--accent-dim); box-shadow:0 0 0 2px rgba(200,71,31,.16);}
+.linkbtn.learn-link:hover{background:var(--accent); border-color:var(--accent-dim); color:#fff;}
 input[type=range]{accent-color:var(--accent);}
 label.fld{display:flex; align-items:center; gap:6px; font-size:10.5px; color:var(--text-dim);
   text-transform:uppercase; letter-spacing:0.05em;}
@@ -843,7 +845,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <h1>PATTERN-MACHINE</h1>
     <span class="tagline">Step drum machine, pattern &amp; song generator, MIDI/WAV/MP3 export</span>
     <a class="linkbtn help-link" href="funzioni.html" title="how to use it and what every feature does">Guide and features</a>
-    <a class="linkbtn" href="learn/index.html" title="Short hands-on lessons: how to program beats and play the grid with your keyboard">Learn</a>
+    <a class="linkbtn learn-link" href="learn/index.html" title="Short hands-on lessons: how to program beats and play the grid with your keyboard">Learn</a>
     <a class="linkbtn" id="desktopAppLink" href="app.html" title="PATTERN-MACHINE as an app for macOS, Windows and Linux: MIDI, clock sync and drag and drop">App for Mac, Win, Linux</a>
     <a class="linkbtn" id="pluginLink" href="plugin.html" title="PATTERN-MACHINE as an Audio Unit plug-in inside Logic, locked to the transport">Logic plug-in</a>
     <button type="button" class="theme-toggle" id="themeToggle" role="switch" aria-checked="false" aria-label="Dark theme" title="Switch between light and dark theme">

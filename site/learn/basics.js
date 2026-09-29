@@ -10,7 +10,7 @@
   const d=D[id]||D["drum-machine"];
   const esc=s=>String(s).replace(/[&<>\"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
   $("#lesson").innerHTML=`<section class="hero"><p class="kicker">${esc(d.kicker)}</p><h1 class="title">${esc(d.title)}</h1><p class="lead">${esc(d.lead)}</p><ol class="parts"><li data-part="listen"><a href="#listen">Listen</a></li><li data-part="copy"><a href="#copy">Try it</a></li><li data-part="play"><a href="#play">Play it</a></li></ol></section>
-  <section id="listen"><h2>1 · Listen <span class="done-mark" data-done="listen" hidden>✓ done</span></h2><p class="prose">${esc(d.intro)}</p><div id="wListen"></div><p class="tip"><b>Try it</b> Press Play and let the loop run for one full bar before changing anything.</p></section>
+  <nav class="lesson-nav lesson-nav-top" id="lessonNavTop" aria-label="Lesson navigation"></nav><section id="listen"><h2>1 · Listen <span class="done-mark" data-done="listen" hidden>✓ done</span></h2><p class="prose">${esc(d.intro)}</p><div id="wListen"></div><p class="tip"><b>Try it</b> Press Play and let the loop run for one full bar before changing anything.</p></section>
   <section id="copy"><h2>2 · Try it <span class="done-mark" data-done="copy" hidden>✓ done</span></h2><p class="prose">Click the marked squares on the editable row, then press Play. You can also use Tab and Enter when the grid has focus.</p><div id="wCopy"></div></section>
   <section id="play"><h2>3 · Play it <span class="done-mark" data-done="play" hidden>✓ done</span></h2><p class="prose">Use the row keys: <kbd>1</kbd> kick, <kbd>2</kbd> snare, <kbd>3</kbd> hi-hat. With Rec on, your hit is written on the nearest step.</p><div id="wPlay"></div><p class="prose">You can now open the full drum machine and explore the same ideas with every sound and control.</p><a class="btn-app" href="../">Open in PATTERN-MACHINE <span aria-hidden="true">→</span></a></section>
   <div class="lesson-nav"><a href="index.html">← All lessons</a><span class="soon">Level 1 · First steps</span></div>`;
@@ -20,5 +20,7 @@
   PMMini.create($("#wPlay"),{label:`Play it: ${d.title}`,bpm:84,rows:d.rows.map(r=>({...r,lock:r.id!==d.goal.row})),hint:d.hint,goal:d.goal,controls:d.controls||{rec:true,undo:true,clear:true},solvedText:d.solved,onSolved:()=>mark("play")});
   function paint(){const p=P.get(id);document.querySelectorAll(".parts li").forEach(x=>x.classList.toggle("done",!!p[x.dataset.part]));document.querySelectorAll("[data-done]").forEach(x=>x.hidden=!p[x.dataset.done]);}
   paint(); addEventListener("storage",e=>{if(e.key==="pm.learn")paint();});
+  const lessons=L.levels.flatMap(lv=>lv.lessons), pos=lessons.findIndex(x=>x.id===id), nav=$("#lessonNavTop");
+  if(nav){const prev=lessons[pos-1],next=lessons[pos+1];nav.innerHTML=(prev?`<a href="${prev.url||'index.html'}">← Previous: ${prev.title}</a>`:'<span></span>')+(next?`<a href="${next.url||'index.html'}">Next: ${next.title} →</a>`:'');}
   addEventListener("pmlangchange",()=>location.reload());
 })();

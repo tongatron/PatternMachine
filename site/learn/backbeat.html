@@ -16,6 +16,7 @@
 <header>
   <a class="brand" href="index.html">Learn</a>
   <span class="muted">drum programming course · PATTERN-MACHINE</span>
+  <a class="back" href="index.html">← Back to Learn</a>
   <a class="back" href="../">← Back to the drum machine</a>
 </header>
 
@@ -29,6 +30,7 @@
     <li data-part="record"><a href="#record">Play it</a></li>
     <li data-part="mission"><a href="#mission">In the app</a></li>
   </ol>
+  <nav class="lesson-nav lesson-nav-top" id="lessonNavTop" aria-label="Lesson navigation"></nav>
 </section>
 
 <section id="listen" aria-labelledby="hListen">
@@ -187,6 +189,8 @@
     m.classList.toggle("done",!!p.mission);
   }
   paint();
+  const lessons=L.levels.flatMap(lv=>lv.lessons), pos=lessons.findIndex(l=>l.id===ID), nav=$("lessonNavTop");
+  if(nav){ const prev=lessons[pos-1], next=lessons[pos+1]; nav.innerHTML=(prev?`<a href="${prev.url||'index.html'}">← Previous: ${prev.title}</a>`:'<span></span>')+(next?`<a href="${next.url||'index.html'}">Next: ${next.title} →</a>`:''); }
   // la missione si completa nell'app: si ridisegna al ritorno (anche dalla cache del browser) o dall'altra scheda
   addEventListener("storage",e=>{ if(e.key==="pm.learn") paint(); });
   addEventListener("pageshow",paint);

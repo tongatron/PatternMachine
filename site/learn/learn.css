@@ -26,6 +26,7 @@ header{display:flex; flex-wrap:wrap; align-items:baseline; gap:8px 16px; margin-
 .back{margin-left:auto;}
 .lang-switch{display:inline-flex; gap:3px; align-items:center; margin-left:auto;}
 .lang-switch button{padding:5px 7px; font-size:10px;}
+.lang-switch button.active{background:var(--key-primary); color:var(--on-accent); border-color:var(--accent-dim);}
 .lang-switch + .back{margin-left:0;}
 .back:hover, nav a:hover{border-color:var(--accent); color:var(--accent);}
 nav{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px;}

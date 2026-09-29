@@ -1050,6 +1050,10 @@
 .syn-gen-grid{display:grid; grid-template-columns:1fr 1fr; gap:4px;}
 .syn-gen-grid button{font-size:10.5px; padding:6px 8px;}
 .syn-gen-grid button{min-width:0; white-space:normal;}
+#synGenAgain{min-height:42px; padding:11px 18px; font-size:13.5px;}
+.syn-pattern-actions{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px;}
+.syn-pattern-actions .syn-pattern-group{display:flex; flex-wrap:wrap; gap:6px;}
+.syn-pattern-actions button{min-width:92px;}
 @media (max-width:560px){ .export-list.syn-gen{min-width:0; width:calc(100vw - 32px);} .syn-gen-grid{grid-template-columns:1fr;} .syn-gen-opts{grid-template-columns:1fr 1fr;} }
 .synth-credits{font-size:10px; color:var(--text-faint); margin:10px 0 0; line-height:1.5;}
 .synth-credits a{color:inherit;}
@@ -1069,6 +1073,7 @@
         <label class="machine-label" for="synPreset">Preset</label>
         <select id="synPreset" class="machine-select syn-preset-select"></select>
         <button id="synSavePreset" class="mini" type="button" title="Save the current sound as a preset in this browser">Save preset</button>
+        <button id="synRenamePreset" class="mini" type="button" title="Rename the current preset">Rename preset</button>
         <button id="synDelPreset" class="mini danger" type="button" hidden>Delete preset</button>
         <span class="syn-links">
           <svg class="syn-brand" viewBox="-1.2368859 -1.2368859 127.3011518 43.7033018" role="img" aria-label="KORG"><title>KORG logue units: oscillators from the KORG logue-sdk</title><path fill="currentColor" d="${KORG_LOGO}"/></svg>
@@ -1085,10 +1090,10 @@
       <div class="flexline">
         <button id="synPatBrowse" class="mini primary" type="button" title="Suggestions from the generators: listen and apply">✦ Generate</button>
         <button id="synPatNew" class="mini" type="button" title="A new empty synth pattern">+ New</button>
-        <button id="synPatDup" class="mini" type="button">Duplicate</button>
-        <button id="synPatRename" class="mini" type="button">Rename</button>
-        <button id="synClear" class="mini" type="button" title="Remove every note of this synth pattern">Clear</button>
-        <button id="synPatDel" class="mini danger" type="button">Delete</button>
+        <span class="syn-pattern-actions">
+          <span class="syn-pattern-group"><button id="synPatDup" class="mini" type="button">Duplicate</button><button id="synPatRename" class="mini" type="button">Rename</button></span>
+          <span class="syn-pattern-group"><button id="synClear" class="mini" type="button" title="Remove every note of this synth pattern">Clear</button><button id="synPatDel" class="mini danger" type="button">Delete</button></span>
+        </span>
         <label class="fld" style="margin-left:auto;">Steps <select id="synPatLen"><option value="8">8</option><option value="16">16</option><option value="32">32</option></select></label>
       </div>`;
     el("synthEnginePanel").hidden = el("synthPatternPanel").hidden = el("panelSynth").hidden;
@@ -1119,6 +1124,10 @@
         <span class="tiny" id="synRange"></span>
       </div>
       <div class="synth-roll-wrap"><div class="synth-roll" id="synRoll"></div></div>
+      <details class="wave-panel" id="waveSynth" open>
+        <summary>Audio waveform <span class="wave-caption" id="waveSynthCaption">selected synth pattern</span></summary>
+        <canvas id="waveSynthCanvas" height="124" aria-label="Waveform of the selected synth pattern"></canvas>
+      </details>
       <div class="synth-kbd" id="synKbd" aria-label="Keyboard"></div>
       <div class="synth-under">
         <span class="tiny" id="synKbdInfo"></span>
@@ -1173,6 +1182,18 @@
       const all = userPresets(); all[clean] = JSON.parse(JSON.stringify(params())); writeUserPresets(all);
       const s = ensure(); s.preset = clean; s.params = presetParams(clean);
       paintTop(); setStatus("preset saved: " + clean);
+    };
+    el("synRenamePreset").onclick = async () => {
+      const old = project.synth?.preset || "My sound";
+      const name = await ask({ title: "Rename synth preset", message: "The renamed sound is saved in this browser.", ok: "Rename", input: old });
+      if (name === null || !name.trim()) return;
+      const clean = name.trim().slice(0, 40), all = userPresets();
+      if (PRESETS[clean] || TONE_PRESETS[clean]) { setStatus("that name belongs to a factory preset", "err"); return; }
+      all[clean] = JSON.parse(JSON.stringify(params()));
+      if (old !== clean && all[old]) delete all[old];
+      writeUserPresets(all);
+      const s = ensure(); s.preset = clean; s.params = presetParams(clean);
+      paintTop(); setStatus("preset renamed: " + clean);
     };
     el("synDelPreset").onclick = async () => {
       const name = project.synth?.preset, all = userPresets();
@@ -1450,6 +1471,7 @@
       }
     }
     roll.innerHTML = parts.join("");
+    window.paintWaveforms?.();
     rollCols = Array.from({ length: len }, () => []);
     roll.querySelectorAll(".sr-cell").forEach(c => rollCols[+c.dataset.s].push(c));
     lastPh = -1;
@@ -1648,7 +1670,7 @@
   const debug = () => ({ audio: !!node, sampleRate: node ? node.context.sampleRate : null,
     unitsSent: [...unitsSent], unitsReady: [...unitsReady], unitErrors: unitErrors.slice(-3) });
 
-  window.PMSynth = { step, allOff, show, paint: paintTop, setAllowed, renderOffline, hasNotes, exportMidi, level, debug, midiNote, knob, knobTargets };
+  window.PMSynth = { step, allOff, show, paint: paintTop, setAllowed, renderOffline, hasNotes, exportMidi, level, debug, midiNote, knob, knobTargets, currentPattern: () => curSynth() };
   setAllowed(true);
   window.paintGroupMS?.();   // M/S del synth nel trasporto: compaiono ora che il synth c'e'
 })();

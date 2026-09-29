@@ -273,7 +273,7 @@ label.fld input[type=number]{width:54px;}
   border-radius:var(--r-key,6px); padding:5px 11px; min-width:104px; text-align:center;
 }
 .transport-mode{display:inline-flex; border:1px solid var(--edge); border-radius:6px; overflow:hidden;}
-.transport-mode button{border:0; border-radius:0; padding:7px 9px; font-size:9.5px;}
+.transport-mode button{border:0; border-radius:0; min-width:108px; min-height:44px; padding:11px 18px; font-size:13.5px;}
 .transport-mode button.on{background:var(--key-primary,var(--accent)); color:var(--on-accent); border-color:var(--accent-dim); font-weight:700;}
 #panelTransport{position:sticky; top:8px; z-index:20;}
 #synthPlayBtn, #drumsPlayBtn{display:none !important;}
@@ -319,6 +319,7 @@ label.fld input[type=number]{width:54px;}
 .vol-group{display:inline-flex; flex-wrap:wrap; align-items:center; gap:6px 14px; padding:5px 10px; border:1px solid var(--edge-soft); border-radius:8px;}
 .vol-group input[type=range]{width:90px;}
 .vol-ch{display:inline-flex; align-items:center; gap:4px;}
+.feel-group{display:inline-flex; flex-wrap:wrap; align-items:center; gap:7px 12px;}
 /* i volumi stanno nel trasporto in ogni scheda tranne il Mixer, che ha gli stessi cursori nelle sue strisce */
 body.mix-view .transport-extra>.vol-group{display:none;}
 /* Vista Live: la griglia dei beat (con le sue opzioni), Play/Stop, Rec, tempo e metronomo. */
@@ -575,6 +576,17 @@ button.danger-fill{background:var(--danger); border-color:var(--danger); color:#
 .variation-section[open]>summary::before{transform:rotate(90deg);}
 .variation-section[open]>summary{color:var(--text); border-bottom:1px dashed var(--edge-soft);}
 .variation-options{display:flex; flex-wrap:wrap; gap:5px; padding:7px 9px 9px;}
+.pattern-actions{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px;}
+.pattern-actions .pattern-action-group{display:flex; flex-wrap:wrap; gap:6px; align-items:center;}
+.pattern-actions .pattern-action-group button{min-width:92px;}
+.wave-panel{margin-top:10px; border:1px solid var(--edge-soft); border-radius:8px; background:color-mix(in srgb,var(--panel-2) 72%,transparent); overflow:hidden;}
+.wave-panel>summary{display:flex; align-items:center; gap:8px; cursor:pointer; list-style:none; padding:8px 10px; color:var(--text-dim); font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase;}
+.wave-panel>summary::-webkit-details-marker{display:none;}
+.wave-panel>summary::before{content:"▸"; transition:transform .12s;}
+.wave-panel[open]>summary::before{transform:rotate(90deg);}
+.wave-panel[open]>summary{color:var(--text); border-bottom:1px dashed var(--edge-soft);}
+.wave-panel canvas{display:block; width:100%; height:124px; min-height:124px;}
+.wave-caption{margin-left:auto; font-size:9px; font-weight:400; letter-spacing:.03em; text-transform:none; color:var(--text-faint);}
 .lib-manage{display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin:0 0 9px; padding-top:9px; border-top:1px solid var(--edge-soft);}
 .lib-manage .tiny{margin-right:auto;}
 .tempo-note{flex-basis:100%; display:flex; align-items:center; flex-wrap:wrap; gap:6px 9px; margin-top:-4px; padding:7px 9px; border:1px solid var(--accent-dim); border-radius:6px; color:var(--text-dim); font-size:10px; line-height:1.35;}
@@ -795,6 +807,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 #recBtn{font-size:13.5px; padding:11px 18px; min-height:44px;}
 #bpmNum{height:44px; width:72px; font-size:14px;}
 #tapBtn, #viewSound{min-height:44px; padding:11px 18px; font-size:13.5px;}
+#tapBtn{width:44px; height:44px; padding:0; border-radius:50%; display:inline-flex; align-items:center; justify-content:center;}
 .topbar #accountLinks{display:inline-flex; align-items:baseline; gap:10px; margin-left:auto;}
 @media (max-width:560px){
   #viewGrid, #viewSeq, #viewSynth, #viewMix, #viewRecent{padding:10px 14px;}
@@ -802,7 +815,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 /* Mixer: una striscia per traccia, poi i gruppi e il master. */
 .mix-strips{display:flex; gap:6px; overflow-x:auto; padding:2px 2px 10px; align-items:stretch;}
 .mx{flex:0 0 auto; width:74px; display:flex; flex-direction:column; align-items:center; gap:6px;
-  background:var(--plate,var(--panel-2)); border:1px solid var(--edge); border-radius:var(--r-panel,9px); padding:8px 5px;}
+  background:var(--plate,var(--panel-2)); border:1px solid var(--edge); border-radius:var(--r-panel,9px); padding:8px 5px; min-height:294px; justify-content:space-between;}
 .mx.group{background:var(--panel-3);}
 .mx.master{width:96px; border-color:var(--accent-dim);}
 .mx.off{opacity:.5;}
@@ -915,10 +928,10 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       <button id="pChoose" class="mini primary">✦ Generate</button>
       <button id="pVary" class="mini" aria-expanded="false" title="apply or remove a variation on the pattern you are editing">✦ Vary</button>
       <button id="pNew" class="mini">+ New</button>
-      <button id="pDup" class="mini">Duplicate</button>
-      <button id="pRename" class="mini">Rename</button>
-      <button id="pClear" class="mini">Clear</button>
-      <button id="pDel" class="mini danger">Delete</button>
+      <span class="pattern-actions">
+        <span class="pattern-action-group"><button id="pDup" class="mini">Duplicate</button><button id="pRename" class="mini">Rename</button></span>
+        <span class="pattern-action-group"><button id="pClear" class="mini">Clear</button><button id="pDel" class="mini danger">Delete</button></span>
+      </span>
       <label class="fld" style="margin-left:auto;">Steps
         <select id="pLen">
           <option value="8">8</option>
@@ -949,18 +962,18 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
           <input type="range" id="bpmRange" min="40" max="240" value="95">
         <input type="number" id="bpmNum" min="40" max="240" value="95">
         </label>
-        <button id="tapBtn" class="mini live-keep">Tap</button>
+        <button id="tapBtn" class="mini live-keep" aria-label="Tap tempo" title="Tap tempo">Tap</button>
         <button id="viewSound" class="mini live-keep" type="button" aria-pressed="false" title="For playing live: the grid, Play, Rec, tempo and metronome">Live View</button>
-        <button id="metronomeBtn" class="mini live-keep" type="button" aria-pressed="false" title="Metronome on/off"><svg class="metro-ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.5h4l5.5 17h-15z"/><path d="M7.2 15.5h9.6" stroke-width="1.3"/><g class="rod"><path d="M12 19V2.5"/><rect x="10.2" y="7" width="3.6" height="2.6" rx=".6" fill="currentColor" stroke="none"/></g></svg>Metronome</button>
+        <button id="metronomeBtn" class="mini live-keep" type="button" aria-label="Metronome on/off" aria-pressed="false" title="Metronome on/off"><svg class="metro-ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.5h4l5.5 17h-15z"/><path d="M7.2 15.5h9.6" stroke-width="1.3"/><g class="rod"><path d="M12 19V2.5"/><rect x="10.2" y="7" width="3.6" height="2.6" rx=".6" fill="currentColor" stroke="none"/></g></svg></button>
         <button id="liveKeysBtn" class="mini live-keep" type="button" title="Show the instrument keys">Keys</button>
-        <label class="fld" title="MPC-style swing: 50% straight, 66% triplet feel, 75% maximum">Swing <input type="range" id="swingRange" min="0" max="100" value="0"> <span id="swingPct" class="tiny">50%</span></label>
-        <label class="fld" title="humanize: small random variations in timing (up to 10 ms) and velocity (up to 15%)">Humanize <input type="range" id="humanRange" min="0" max="100" value="0"> <span id="humanPct" class="tiny">0%</span></label>
+        <span class="feel-group"><label class="fld" title="MPC-style swing: 50% straight, 66% triplet feel, 75% maximum">Swing <input type="range" id="swingRange" min="0" max="100" value="0"> <span id="swingPct" class="tiny">50%</span></label>
+        <label class="fld" title="humanize: small random variations in timing (up to 10 ms) and velocity (up to 15%)">Humanize <input type="range" id="humanRange" min="0" max="100" value="0"> <span id="humanPct" class="tiny">0%</span></label></span>
         <div class="vol-group live-keep" role="group" aria-label="Volumes">
-          <span class="vol-ch"><label class="fld" title="Volume of the drums (saved in the project)">Vol. drums <input type="range" id="drumsVol" min="0" max="100" value="100"></label>
+          <span class="vol-ch"><label class="fld" title="Volume of the drums (saved in the project)">V. drums <input type="range" id="drumsVol" min="0" max="100" value="100"></label>
             <button type="button" id="drumsMuteBtn" class="chip-btn m" aria-pressed="false" title="Mute the drums" aria-label="Mute drums">M</button><button type="button" id="drumsSoloBtn" class="chip-btn s" aria-pressed="false" title="Solo the drums: the synth stays silent" aria-label="Solo drums">S</button></span>
-          <span class="vol-ch"><label class="fld" title="Volume of the synth (saved in the project)">Vol. synth <input type="range" id="synthVol" min="0" max="100" value="100"></label>
+          <span class="vol-ch"><label class="fld" title="Volume of the synth (saved in the project)">V. synth <input type="range" id="synthVol" min="0" max="100" value="100"></label>
             <button type="button" id="synthMuteBtn" class="chip-btn m" aria-pressed="false" title="Mute the synth (also in exports)" aria-label="Mute synth">M</button><button type="button" id="synthSoloBtn" class="chip-btn s" aria-pressed="false" title="Solo the synth: the drums stay silent" aria-label="Solo synth">S</button></span>
-          <label class="fld" title="General volume: drums, synth and metronome">Vol. general <input type="range" id="masterVol" min="0" max="100" value="85"></label>
+          <label class="fld" title="General volume: drums, synth and metronome">V. general <input type="range" id="masterVol" min="0" max="100" value="85"></label>
         </div>
         <div class="counter" id="counter">1 . 1</div>
       </div>
@@ -986,6 +999,10 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <div class="grid-headline"><span id="playheadLed" class="playhead-led" aria-hidden="true"></span><span id="playheadLabel">Ready</span></div>
     <div class="ruler" id="ruler"></div>
     <div class="rows" id="rows"></div>
+    <details class="wave-panel" id="waveDrums" open>
+      <summary>Audio waveform <span class="wave-caption" id="waveDrumsCaption">selected drum pattern</span></summary>
+      <canvas id="waveDrumsCanvas" height="124" aria-label="Waveform of the selected drum pattern"></canvas>
+    </details>
     <div class="flexline" style="margin-top:9px;">
       <span class="tiny">Add instrument</span>
       <select id="sampleSelect"></select>
@@ -1034,6 +1051,10 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       <span class="tiny" id="synthLaneInfo" style="margin-left:auto;"></span>
     </div>
     <div class="seq-track seq-synth-track" id="seqSynthTrack"></div>
+    <details class="wave-panel" id="waveSequencer" open>
+      <summary>Audio waveform <span class="wave-caption" id="waveSequencerCaption">song arrangement</span></summary>
+      <canvas id="waveSequencerCanvas" height="124" aria-label="Waveform of the song arrangement"></canvas>
+    </details>
     <p class="hint" style="margin-top:0;">
       Drag blocks to reorder them · pick the section right on the block · double-click opens the beat in the grid (the synth block in the Synthesizer) · the synth blocks play under the drums at the same bars · click the line to choose where playback starts.
     </p>
@@ -1042,6 +1063,10 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
   <div class="panel" id="panelMix" role="tabpanel" aria-label="Mixer" hidden>
     <h2>Mixer</h2>
     <div class="mix-strips" id="mixStrips"></div>
+    <details class="wave-panel" id="waveMixer" open>
+      <summary>Audio waveform <span class="wave-caption" id="waveMixerCaption">complete mix</span></summary>
+      <canvas id="waveMixerCanvas" height="124" aria-label="Waveform of the complete mix"></canvas>
+    </details>
     <p class="hint" style="margin-top:0;">
       One strip per row of the drum grid, then the drums and synth groups and the master · the faders are the same volumes as the grid and the top bar · double-click a pan to center it · the limiter keeps the master under 0 dB, live and in the WAV export (not in the stems) · pan, synth pan and limiter are saved in the project.
     </p>
@@ -1052,8 +1077,8 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <p class="tiny sync-state" id="syncState" hidden></p>
     <div class="recent-wrap">
       <table class="recent">
-        <thead><tr><th>Preview</th><th>Name</th><th>Machine</th><th>Updated</th><th>BPM</th><th>Pattern</th><th></th></tr></thead>
-        <tbody id="recentBody"><tr class="empty"><td colspan="7">no saved projects yet: use Save</td></tr></tbody>
+        <thead><tr><th>Preview</th><th>Name</th><th>Origin</th><th>Machine</th><th>Updated</th><th>BPM</th><th>Pattern</th><th></th></tr></thead>
+        <tbody id="recentBody"><tr class="empty"><td colspan="8">no saved projects yet: use Save</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -2546,6 +2571,7 @@ function paintStep(b,v,i,m){
   const state=v===2?" accent":v===3?" ghost":v?" normal":" empty";
   b.setAttribute("aria-label",`${b.dataset.instrument?b.dataset.instrument+", ":""}step ${i+1}${state}${label?" "+label:""}`);
   b.setAttribute("aria-pressed",String(!!v));
+  paintWaveforms?.();
 }
 
 function paintPlayhead(){
@@ -3063,6 +3089,7 @@ function renderSynthLane(){
   el("synthLaneInfo").textContent = L.blocks.length
     ? `${L.total/16} ${L.total===16?"bar":"bars"}` + (L.total>drumTotal ? ` · the last ${(L.total-drumTotal)/16} past the end of the drums are not played` : L.total<drumTotal ? ` · silent for the last ${(drumTotal-L.total)/16}` : " · same length as the drums")
     : "";
+  paintWaveforms?.();
 }
 function insertSynthBlock(block){
   pushUndo();
@@ -3127,7 +3154,52 @@ function fmtDuration(sec){
   const s=Math.round(sec);
   return `${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`;
 }
-function renderAll(){ paintGroupMS(); renderPatterns(); renderRuler(); renderTracks(); renderSong(); if(!el("panelMix").hidden) renderMixer(); }
+function waveSeries(kind){
+  const N=720, out=new Float32Array(N), pat=curPattern();
+  const add=(pos,amp,width=4)=>{ const x=Math.max(0,Math.min(N-1,Math.round(pos))); for(let j=-width;j<=width;j++){ const k=x+j; if(k>=0&&k<N) out[k]=Math.max(out[k],amp*(1-Math.abs(j)/(width+1))); } };
+  if(kind==="drums" || kind==="mix"){
+    const source=kind==="mix" && project.song.length ? project.song : [{patternId:pat.id,repeats:1}];
+    let cursor=0, total=Math.max(1,source.reduce((n,b)=>n+((patternById(b.patternId)?.len||pat.len)*(b.repeats||1)),0));
+    source.forEach(b=>{ const p=patternById(b.patternId); if(!p)return; const reps=b.repeats||1;
+      for(let rep=0;rep<reps;rep++) project.tracks.forEach(t=>{ const g=p.grid[t.id]||[]; g.forEach((v,s)=>{ if(v) add((cursor+rep*p.len+s)/total*N, (v===2?1:.72)*(t.vol??.8)); }); });
+      cursor+=p.len*reps;
+    });
+  }
+  if(kind==="synth" || kind==="mix"){
+    const sp=window.PMSynth?.currentPattern?.();
+    (sp?.synth||[]).forEach(n=>{ const len=sp.len||16, x=n.s/len*N, w=Math.max(3,Math.round((n.l||1)/len*N)); add(x,.55+(n.v||.7)*.35,Math.min(18,w)); add(x+w*.65,.25,Math.min(12,w)); });
+  }
+  if(kind==="sequencer"){
+    let cursor=0, total=Math.max(1,project.song.reduce((n,b)=>n+((patternById(b.patternId)?.len||16)*(b.repeats||1)),0));
+    project.song.forEach(b=>{ const p=patternById(b.patternId); if(!p)return; const reps=b.repeats||1;
+      for(let rep=0;rep<reps;rep++) (p.grid[project.tracks[0]?.id]||[]).forEach((v,s)=>{ if(v) add((cursor+rep*p.len+s)/total*N,.9); });
+      cursor+=p.len*reps;
+    });
+  }
+  return out;
+}
+function paintWave(id,caption,kind){
+  const cv=el(id); if(!cv) return;
+  const rect=cv.getBoundingClientRect(), dpr=window.devicePixelRatio||1, W=Math.max(320,Math.round(rect.width||720)), H=124;
+  cv.width=W*dpr; cv.height=H*dpr; const c=cv.getContext("2d"); c.scale(dpr,dpr);
+  const cs=getComputedStyle(document.documentElement), edge=cs.getPropertyValue("--edge-soft").trim()||"#666", accent=cs.getPropertyValue("--accent").trim()||"#e65c2f", text=cs.getPropertyValue("--text-faint").trim()||"#888";
+  c.clearRect(0,0,W,H); c.fillStyle="rgba(0,0,0,.08)"; c.fillRect(0,0,W,H);
+  c.strokeStyle=edge; c.globalAlpha=.55; c.lineWidth=1; c.beginPath(); c.moveTo(0,H/2+.5); c.lineTo(W,H/2+.5);
+  for(let i=0;i<=16;i++){ const x=i/16*W; c.moveTo(x,8); c.lineTo(x,H-8); } c.stroke(); c.globalAlpha=1;
+  const data=waveSeries(kind), grad=c.createLinearGradient(0,0,0,H); grad.addColorStop(0,accent); grad.addColorStop(1,"rgba(0,0,0,.15)");
+  c.fillStyle=grad; c.beginPath(); c.moveTo(0,H/2); for(let i=0;i<data.length;i++){ const x=i/(data.length-1)*W, y=H/2-data[i]*(H*.39); c.lineTo(x,y); } for(let i=data.length-1;i>=0;i--){ const x=i/(data.length-1)*W, y=H/2+data[i]*(H*.39); c.lineTo(x,y); } c.closePath(); c.fill();
+  c.strokeStyle=accent; c.lineWidth=1.2; c.beginPath(); for(let i=0;i<data.length;i++){ const x=i/(data.length-1)*W,y=H/2-data[i]*(H*.39); i?c.lineTo(x,y):c.moveTo(x,y); } c.stroke();
+  c.fillStyle=text; c.font="9px ui-monospace,monospace"; c.fillText("0",5,12); c.fillText("1",W/4-2,12); c.fillText("2",W/2-2,12); c.fillText("3",W*3/4-2,12); c.fillText("4",W-10,12);
+  const cap=el(caption); if(cap) cap.textContent=kind==="drums"?`selected · ${curPattern().name}`:kind==="synth"?`selected · ${window.PMSynth?.currentPattern?.()?.name||"synth pattern"}`:kind==="sequencer"?`${project.song.length} blocks · song arrangement`:"complete mix";
+}
+function paintWaveforms(){
+  paintWave("waveDrumsCanvas","waveDrumsCaption","drums");
+  paintWave("waveSequencerCanvas","waveSequencerCaption","sequencer");
+  paintWave("waveSynthCanvas","waveSynthCaption","synth");
+  paintWave("waveMixerCanvas","waveMixerCaption","mix");
+}
+addEventListener("resize",()=>{ clearTimeout(window.__pmWaveResize); window.__pmWaveResize=setTimeout(paintWaveforms,120); });
+function renderAll(){ paintGroupMS(); renderPatterns(); renderRuler(); renderTracks(); renderSong(); if(!el("panelMix").hidden) renderMixer(); paintWaveforms(); }
 
 // ---------- mixer: interfaccia ----------
 // Le strisce leggono e scrivono gli stessi valori della griglia (t.vol, mute, solo) e dei cursori in alto
@@ -3333,7 +3405,7 @@ fetch("/api/me",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(me=>{
   if(isMember && me.id && !db && !window.pmDesktop && !window.claude){
     db=serverProjects(me.id);
     if(unsubRecent) unsubRecent();
-    unsubRecent=db.collection("projects").onSnapshot(s=>renderRecent(s.docs.map(d=>({id:d.id,...d.data()}))));
+    unsubRecent=db.collection("projects").onSnapshot(s=>renderRecent(s.docs.map(d=>({id:d.id,...d.data(),origin:"web"}))));
   }
   document.body.classList.toggle("guest",isGuest);
   el("whoami").textContent=me.name; el("whoami").hidden=false;
@@ -4124,7 +4196,7 @@ async function refreshRecent(){
   } else {
     list=Object.entries(lsAll()).map(([id,v])=>({id,...v})).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
   }
-  renderRecent(list);
+  renderRecent(list.map(p=>({...p, origin:p.origin||(db?"web":"local")})));
 }
 function fmtDate(ts){
   if(!ts) return "–";
@@ -4196,7 +4268,7 @@ function renderRecent(list){
   if(audition.item&&audition.item.projectId) stopAudition();
   body.innerHTML="";
   if(!list.length){
-    body.innerHTML='<tr class="empty"><td colspan="7">no saved projects yet: use Save</td></tr>';
+    body.innerHTML='<tr class="empty"><td colspan="8">no saved projects yet: use Save</td></tr>';
     el("recentCount").textContent="";
     return;
   }
@@ -4222,6 +4294,9 @@ function renderRecent(list){
     drawThumb(cv,p);
 
     tr.appendChild(td(p.name||"Untitled","nm"));
+    const origin=td(p.origin==="web"?"☁ Web":"▣ App locale","origin");
+    origin.title=p.origin==="web"?"Saved in the web account":"Saved in local app/browser storage";
+    tr.appendChild(origin);
     tr.appendChild(td((KITS[p.sampleSet]||KITS.std).label));
     tr.appendChild(td(fmtDate(p.updatedAt)));
     tr.appendChild(td(p.bpm||"–"));
@@ -5314,6 +5389,7 @@ function makeVariationSections(host){
   const sections=new Map();
   VARIATION_GROUP_ORDER.forEach(group=>{
     const section=document.createElement("details"); section.className="variation-section";
+    section.open=true;
     const summary=document.createElement("summary"); summary.textContent=VARIATION_GROUP_LABEL[group]||group;
     const options=document.createElement("div"); options.className="variation-options";
     section.append(summary,options); host.appendChild(section); sections.set(group,options);
@@ -5905,7 +5981,7 @@ window.addEventListener("resize",()=>{
   downloadsCap=await window.claude.use("downloads");
   if(db){
     unsubRecent=db.collection("projects").orderBy("updatedAt","desc").limit(50)
-      .onSnapshot(s=>renderRecent(s.docs.map(d=>({id:d.id,...d.data()}))),()=>{});
+      .onSnapshot(s=>renderRecent(s.docs.map(d=>({id:d.id,...d.data(),origin:"web"}))),()=>{});
   }
 })();
 

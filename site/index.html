@@ -779,7 +779,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 #machinePanel .machine-bar, #synthEnginePanel .machine-bar{margin-top:0; padding-top:0; border-top:none;}
 /* barra Engine: logo KORG (sempre) e link ai motori, a destra, tutto centrato in verticale */
 #synthEnginePanel .machine-bar{align-items:center;}
-.syn-links{display:inline-flex; align-items:center; gap:14px; margin-left:auto;}
+.syn-links{display:inline-flex; flex-direction:column; align-items:flex-end; gap:5px; margin-left:auto;}
 .syn-brand{display:block; height:22px; width:auto; color:var(--text);}
 #viewGrid, #viewSeq, #viewSynth, #viewMix, #viewRecent{font-size:14px; padding:11px 22px; min-height:44px;}
 #viewGrid, #viewSeq, #viewSynth, #viewMix{
@@ -1297,20 +1297,20 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-09-29.65"></script>
-<script src="engine/core.js?v=2026-09-29.65"></script>
-<script src="engine/styles-punk.js?v=2026-09-29.65"></script>
-<script src="engine/styles-post.js?v=2026-09-29.65"></script>
-<script src="engine/styles-machines.js?v=2026-09-29.65"></script>
-<script src="engine/styles-alt.js?v=2026-09-29.65"></script>
-<script src="engine/styles-groove.js?v=2026-09-29.65"></script>
-<script src="engine/styles-dub.js?v=2026-09-29.65"></script>
-<script src="engine/styles-break.js?v=2026-09-29.65"></script>
-<script src="engine/styles-soul.js?v=2026-09-29.65"></script>
-<script src="engine/styles-metal.js?v=2026-09-29.65"></script>
-<script src="engine/styles-electro.js?v=2026-09-29.65"></script>
-<script src="engine/variations.js?v=2026-09-29.65"></script>
-<script src="engine/import.js?v=2026-09-29.65"></script>
+<script src="engine/machine-art.js?v=2026-09-29.66"></script>
+<script src="engine/core.js?v=2026-09-29.66"></script>
+<script src="engine/styles-punk.js?v=2026-09-29.66"></script>
+<script src="engine/styles-post.js?v=2026-09-29.66"></script>
+<script src="engine/styles-machines.js?v=2026-09-29.66"></script>
+<script src="engine/styles-alt.js?v=2026-09-29.66"></script>
+<script src="engine/styles-groove.js?v=2026-09-29.66"></script>
+<script src="engine/styles-dub.js?v=2026-09-29.66"></script>
+<script src="engine/styles-break.js?v=2026-09-29.66"></script>
+<script src="engine/styles-soul.js?v=2026-09-29.66"></script>
+<script src="engine/styles-metal.js?v=2026-09-29.66"></script>
+<script src="engine/styles-electro.js?v=2026-09-29.66"></script>
+<script src="engine/variations.js?v=2026-09-29.66"></script>
+<script src="engine/import.js?v=2026-09-29.66"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -1749,8 +1749,8 @@ function starterProject(){
   return {name:"New Mix", bpm:95, swing:0, human:0, sampleSet:"12bit", tracks,
     patterns:[p], song:[{id:uid(), patternId:p.id, repeats:4, section:"verse"}],
     synthPatterns:[sp], synthSong:[],
-    synth:{preset:"Tone Square Bass", engine:"tone", key:9, scale:"minor", mute:false, solo:false,
-      params:{o1Wave:"square",o1Shape:0,o1Oct:0,o2Wave:"saw",o2Shape:0,o2Oct:0,o2Semi:0,o2Fine:7,o2Ring:0,mType:"sub",mShape:0,mUnit:"waves",o1Lvl:100,o2Lvl:0,mLvl:0,fType:"lp12",cutoff:55,reso:74,fEnv:40,fKey:50,fVelo:30,drive:0,aA:54,aD:79,aS:24,aR:68,eA:0,eD:40,eS:0,eR:20,lWave:"tri",lTgt:"pitch",lSync:"off",lRate:40,lAmt:0,mode:"poly",glide:0,accent:50,uDet:30,gate:100,trans:0,chorus:0,delay:0,dTime:"3/16",dFb:35,reverb:0,vol:50,uParams:{}}}};
+    // synth: motore KORG con il preset "KORG waves" (i parametri li riempie engine/synth.js dal preset)
+    synth:{preset:"KORG waves", engine:"custom", key:9, scale:"minor", mute:false, solo:false, params:{}}};
 }
 
 function normalize(){
@@ -3317,7 +3317,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || document.getElementById("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-29.65";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-29.66";
   document.body.appendChild(s);
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth")) loadSynth();
@@ -5925,7 +5925,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-29.65";
+const SW_VERSION="2026-09-29.66";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -5944,7 +5944,7 @@ const SW_VERSION="2026-09-29.65";
   });
 })();
 </script>
-<script src="engine/midi.js?v=2026-09-29.65"></script>
+<script src="engine/midi.js?v=2026-09-29.66"></script>
 
 </body>
 </html>

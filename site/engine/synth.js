@@ -165,6 +165,8 @@
   function ensure() {
     if (!project.synth) project.synth = { preset: DEFAULT_PRESET, key: 9, scale: "minor", mute: false, solo: false, params: presetParams(DEFAULT_PRESET) };
     if (!project.synth.params || typeof project.synth.params !== "object") project.synth.params = {};
+    // progetto con il solo nome del preset (il New Mix): i parametri si prendono dal preset
+    if (!Object.keys(project.synth.params).length) project.synth.params = presetParams(project.synth.preset);
     if (project.synth.solo == null) project.synth.solo = false;
     return project.synth;
   }

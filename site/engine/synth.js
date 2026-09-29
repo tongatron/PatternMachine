@@ -112,6 +112,10 @@
       uParams: { pluck: { 0: 380, 1: 820 } } },
   };
   const DEFAULT_PRESET = "Acid 303";
+  const DEFAULT_KORG_PRESET = "KORG waves";
+  // Logo KORG (marchio di KORG Inc.) dal file di Wikimedia Commons "Korg_logo.svg" (logo di solo testo, pubblico dominio
+  // per il diritto d'autore): mostra da dove vengono gli oscillatori delle unita' logue.
+  const KORG_LOGO = "m 123.28,0.2057815 -17.9625,0 c -8.71375,0 -9.32625,8.525 -9.32625,8.525 l 0,23.6762505 c 0.0125,7.605 8.675,8.58375 8.675,8.58375 l 18.61375,0 0,-22.1025 c 2.1375,0 1.9875,-3.98625 0,-3.98625 -1.8,0 -11.8375,0 -11.8375,0 l 0,15.1025 c 0,2.8075 -4.075,2.8075 -4.075,0 0,-2.84875 0,-18.7775 0,-18.7775 0,-1.8175005 2.0375,-2.0412505 2.0375,-2.0412505 l 13.875,0 0,-8.98 M 79.20375,14.494532 c 0,2.41625 -4.0875,2.6825 -4.0875,0 l 0,-4.0825 c -0.1125,-2.8025005 4.1,-2.8512505 4.0875,0 l 0,4.0825 z m 9.7875,7.34625 -4.9,-1.22375 c 3.825,-1.005 5.9125,-3.1075 5.975,-6.5575 l 0,-7.9487505 c 0,-1.35 -1.7125,-5.70125 -7.2,-5.90375 l -19.175,0 0,40.8212505 11.425,0 0,-15.51375 c -0.2625,-0.8025 1.8375,-2.605 2.425,-0.24875 l 3.2875,15.7625 12.6625,0 -4.5,-19.1875 m -41.63875,8.16375 c 0,2.55125 -4.075,2.595 -4.075,0 l 0,-18.7775 c 0,-2.5687505 4.075,-2.5500005 4.075,0 0,2.55125 0,16.22875 0,18.7775 z m 11.4,-21.3462505 c 0,0 -0.4,-8.25 -9.35,-8.657499998 l -8.1625,0 C 40.19,-0.0354185 31.95125,1.1582815 31.83875,9.3907815 l 0,23.2012505 c 0,0 0.7125,8.61875 9.40125,8.6375 l 8.1625,0 c 0,0 9.4,-0.31875 9.3875,-9.38625 L 58.7525,8.6582815 M 0,41.027032 0,0.2057815 l 11.4375,0 0,15.1025005 c 0.1875,2.05125 2.275,1.14 2.425,0.195 l 2.475,-15.2975005 12.65125,0 -4.4875,18.7775005 -4.9,1.2225 5.3,1.22625 4.5,19.595 -12.6625,0 -2.87625,-16.53875 c -0.1375,-1.28 -2.3875,-1.29125 -2.425,0.21 -0.0375,1.49875 0,16.32875 0,16.32875 l -11.4375,0";
   const TONE_PRESETS = {
     "Tone Soft Pad": { vol: 70, o1Wave: "saw", o1Lvl: 100, fType: "lp12", cutoff: 48, reso: 10, aA: 62, aD: 60, aS: 82, aR: 68, gate: 100 },
     "Tone Square Bass": { vol: 88, o1Wave: "square", o1Lvl: 100, fType: "lp12", cutoff: 32, reso: 18, aA: 0, aD: 35, aS: 58, aR: 12, gate: 78 },
@@ -151,6 +155,10 @@
   // Finche' non si tocca niente il progetto resta senza "synth" (e i progetti degli altri non cambiano).
   const params = () => project.synth ? { ...presetParams(project.synth.preset), ...project.synth.params } : presetParams(DEFAULT_PRESET, PRESETS);
   const engineOf = () => project.synth?.engine === "tone" ? "tone" : "custom";
+  // Motore nel menu Engine: KORG e Custom sono lo stesso motore audio ("custom"); KORG e' quello con un'unita'
+  // KORG logue come oscillatore (i preset "KORG ..."), Custom gli altri.
+  const engineUi = () => engineOf() === "tone" ? "tone" : (params().mType === "logue" ? "korg" : "custom");
+  const ENGINE_LABEL = { korg: "KORG", tone: "Tone.js", custom: "Custom" };
   const TONE_KEYS = new Set(["o1Wave", "o1Lvl", "fType", "cutoff", "reso", "aA", "aD", "aS", "aR", "gate", "trans", "vol"]);
   const keyOf = () => project.synth?.key ?? 9;               // La
   const scaleOf = () => SCALES[project.synth?.scale] ? project.synth.scale : "minor";
@@ -1055,12 +1063,15 @@
     el("synthEnginePanel").innerHTML = `
       <div class="machine-bar">
         <label class="machine-label" for="synEngine">Engine</label>
-        <select id="synEngine" class="machine-select"><option value="custom">Custom + KORG</option><option value="tone">Tone.js</option></select>
+        <select id="synEngine" class="machine-select"><option value="korg">KORG</option><option value="tone">Tone.js</option><option value="custom">Custom</option></select>
         <label class="machine-label" for="synPreset">Preset</label>
         <select id="synPreset" class="machine-select syn-preset-select"></select>
         <button id="synSavePreset" class="mini" type="button" title="Save the current sound as a preset in this browser">Save preset</button>
         <button id="synDelPreset" class="mini danger" type="button" hidden>Delete preset</button>
-        <a class="linkbtn machine-more" href="synth.html" title="How the synth engines work">Synth engines and methods →</a>
+        <span class="syn-links">
+          <svg class="syn-brand" viewBox="-1.2368859 -1.2368859 127.3011518 43.7033018" role="img" aria-label="KORG"><title>KORG logue units: oscillators from the KORG logue-sdk</title><path fill="currentColor" d="${KORG_LOGO}"/></svg>
+          <a class="text-link" href="synth.html" target="_blank" rel="noopener" title="How the synth engines work (opens in a new window)">→ Synth engines and methods</a>
+        </span>
       </div>`;
     el("synthPatternPanel").innerHTML = `
       <h2>Pattern</h2>
@@ -1121,20 +1132,26 @@
     el("synOn").onclick = () => { pushUndo(); const s = ensure(); s.mute = !s.mute; if (s.mute) allOff(); paintTop(); window.paintGroupMS?.(); };
     el("synSolo").onclick = () => { pushUndo(); const s = ensure(); s.solo = !s.solo; paintTop(); window.paintGroupMS?.(); };
     el("synEngine").onchange = async e => {
-      const next = e.target.value === "tone" ? "tone" : "custom";
-      if (next === engineOf()) return;
+      const ui = e.target.value, next = ui === "tone" ? "tone" : "custom", prev = engineOf();
+      if (ui === engineUi()) return;
       pushUndo();
       const s = ensure(); s.engine = next;
-      const bank = presetBank(), fallback = next === "tone" ? DEFAULT_TONE_PRESET : DEFAULT_PRESET;
-      if (!bank[s.preset]) { s.preset = fallback; s.params = presetParams(fallback, bank); }
+      if (next === "tone") {
+        if (!TONE_PRESETS[s.preset]) { s.preset = DEFAULT_TONE_PRESET; s.params = presetParams(DEFAULT_TONE_PRESET, TONE_PRESETS); }
+      } else {
+        // KORG parte da "KORG waves", Custom dal suo preset iniziale
+        const start = ui === "korg" ? DEFAULT_KORG_PRESET : DEFAULT_PRESET;
+        s.preset = start; s.params = presetParams(start, PRESETS);
+      }
       allOff();
       if (next === "tone") {
         stopCustom();
         try { await ensureTone(); setStatus("synth engine: Tone.js"); }
         catch (err) { s.engine = "custom"; s.preset = DEFAULT_PRESET; s.params = presetParams(DEFAULT_PRESET, PRESETS); setStatus("Tone.js could not load", "err"); }
       } else {
-        stopTone();
-        try { await ensureAudio(); setStatus("synth engine: Custom + KORG"); } catch (err) {}
+        if (prev === "tone") stopTone();
+        try { await ensureAudio(); pushParams(); setStatus("synth engine: " + ENGINE_LABEL[ui]); } catch (err) {}
+        if (ui === "korg") primeUnit();
       }
       renderParams(); paintTop();
     };
@@ -1215,14 +1232,15 @@
     solo.classList.toggle("on", !!s?.solo); solo.setAttribute("aria-pressed", String(!!s?.solo));
     const bank = presetBank(), users = userPresets(), cur = s?.preset || (engineOf() === "tone" ? DEFAULT_TONE_PRESET : DEFAULT_PRESET);
     const opt = n => `<option value="${esc(n)}"${n === cur ? " selected" : ""}>${esc(n)}</option>`;
-    // suoni di fabbrica: prima quelli con le unita' KORG logue, poi quelli del motore custom
-    const names = Object.keys(bank), korg = names.filter(n => bank[n].mType === "logue"), custom = names.filter(n => bank[n].mType !== "logue");
+    // KORG mostra i suoni con un'unita' KORG logue, Custom gli altri (anche tra i miei)
+    const ui = engineUi(), isKorg = x => x && x.mType === "logue";
+    const fits = x => ui === "tone" || (ui === "korg") === isKorg(x);
+    const factory = Object.keys(bank).filter(n => fits(bank[n])), mine = Object.keys(users).filter(n => fits(users[n]));
     const group = (label, list) => list.length ? `<optgroup label="${label}">${list.map(opt).join("")}</optgroup>` : "";
-    el("synPreset").innerHTML = (engineOf() === "tone" ? group("Tone.js", names) : group("KORG logue", korg) + group("Custom", custom))
-      + (Object.keys(users).length ? `<optgroup label="Mine">${Object.keys(users).map(opt).join("")}</optgroup>` : "")
-      + (!bank[cur] && !users[cur] ? `<optgroup label="This project">${opt(cur)}</optgroup>` : "");
+    el("synPreset").innerHTML = group(ENGINE_LABEL[ui] + (ui === "korg" ? " logue" : ""), factory) + group("Mine", mine)
+      + (!factory.includes(cur) && !mine.includes(cur) ? `<optgroup label="This project">${opt(cur)}</optgroup>` : "");
     el("synDelPreset").hidden = !users[cur];
-    el("synEngine").value = engineOf();
+    el("synEngine").value = ui;
     el("synKey").value = keyOf(); el("synScale").value = scaleOf();
     el("synFold").checked = !!view.fold;
     el("synPatName").textContent = "— " + curSynth().name;
@@ -1325,7 +1343,7 @@
       s.onchange = () => {
         const v = typeof spec.def === "number" ? +s.value : s.value;
         setParam(spec.k, v, true);
-        if (spec.k === "mType" || spec.k === "mUnit") { renderParams(); primeUnit(); }
+        if (spec.k === "mType" || spec.k === "mUnit") { renderParams(); primeUnit(); if (spec.k === "mType") paintTop(); }   // KORG/Custom nel menu Engine
       };
       row.appendChild(s);
     } else {

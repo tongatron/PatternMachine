@@ -181,14 +181,17 @@ def main():
         check("login da altro sito", anon.call("/login", "POST", form={"name": ADMIN, "password": TEST_PASSWORD},
                                                headers={"Sec-Fetch-Site": "cross-site"})[0], 403)
         check("/login da loggato -> sito", user.call("/login?next=/toolkit.html")[1].get("location"), "/toolkit.html")
-        check("/api/me admin", json.loads(user.call("/api/me")[2]), {"name": ADMIN, "role": "admin", "email": ""})
+        me = json.loads(user.call("/api/me")[2])
+        check("/api/me admin", {k: v for k, v in me.items() if k != "id"}, {"name": ADMIN, "role": "admin", "email": ""})
+        check("/api/me porta l'id dell'utente", bool(re.fullmatch(r"[0-9a-f]{32}", me.get("id", ""))), True)
 
         # --- registrazione e mail di benvenuto (senza mail.json le mail non partono, qui vanno in outbox/) ---
         mario = Client(port)
         s, h, _ = mario.call("/register", "POST", form={"name": "  Mario   Rossi ", "password": "x", "email": "mario@example.com"}, headers=same)
         check("registrazione -> dentro subito", (s, h.get("location"), "set-cookie" in h), (303, "/", True))
         mario.cookie = h["set-cookie"].split(";")[0]
-        check("/api/me utente", json.loads(mario.call("/api/me")[2]), {"name": "Mario Rossi", "role": "user", "email": "mario@example.com"})
+        check("/api/me utente", {k: v for k, v in json.loads(mario.call("/api/me")[2]).items() if k != "id"},
+              {"name": "Mario Rossi", "role": "user", "email": "mario@example.com"})
         mails = outbox(stage)
         check("mail di benvenuto", [(m[0], m[1]) for m in mails], [("mario@example.com", "Welcome to PatternMachine")])
         check("benvenuto con credenziali e pulsante", ("Mario Rossi" in mails[0][3], "Password" in mails[0][3], ">x<" in mails[0][3],
@@ -332,6 +335,50 @@ def main():
         check("PUT same-origin", user.call(f"/api/patterns/{pid}", "PUT", {"name": "r"}, same)[0], 200)
         check("DELETE same-origin", user.call(f"/api/patterns/{pid}", "DELETE", None, same)[0], 204)
         check("dati integri", [p["id"] for p in json.loads(user.call("/api/patterns")[2])], ["abc"])
+
+        # --- progetti degli utenti (sincronizzati tra browser e dispositivi) ---
+        proj = lambda c, pid, body, h=same: c.call(f"/api/projects/{pid}", "PUT", body, h)   # noqa: E731
+        listing = lambda c: {p["id"]: p for p in json.loads(c.call("/api/projects")[2])["projects"]}   # noqa: E731
+        check("anonimo: niente progetti", anon.call("/api/projects")[0], 401)
+        check("ospite: niente elenco", guest.call("/api/projects")[0], 403)
+        check("ospite: non salva progetti", proj(guest, "p1", {"data": {"name": "g"}})[0], 403)
+        check("elenco vuoto", json.loads(user.call("/api/projects")[2]), {"projects": []})
+        s, _, b = proj(user, "p1", {"data": {"name": "Uno", "bpm": 90}, "base": None})
+        r1 = json.loads(b)
+        check("nuovo progetto", (s, r1["id"], r1["conflict"]), (200, "p1", False))
+        check("elenco con id e rev, senza contenuto", listing(user), {"p1": {"id": "p1", "rev": r1["rev"]}})
+        check("progetto letto", json.loads(user.call("/api/projects/p1")[2])["data"], {"name": "Uno", "bpm": 90})
+        s, _, b = proj(user, "p1", {"data": {"name": "Uno", "bpm": 95}, "base": r1["rev"]})
+        r2 = json.loads(b)
+        check("aggiornato dalla rev giusta", (s, r2["id"], r2["conflict"], r2["rev"] != r1["rev"]), (200, "p1", False, True))
+        s, _, b = proj(user, "p1", {"data": {"name": "Uno", "bpm": 120}, "base": r1["rev"]})
+        r3 = json.loads(b)
+        check("rev vecchia: salvato come copia", (s, r3["conflict"], r3["id"] != "p1", r3["name"]), (200, True, True, "Uno (copy)"))
+        check("l'originale resta com'era", json.loads(user.call("/api/projects/p1")[2])["data"]["bpm"], 95)
+        check("la copia ha la versione in arrivo", json.loads(user.call(f"/api/projects/{r3['id']}")[2])["data"]["bpm"], 120)
+        check("scrittura da altro sito", proj(user, "p1", {"data": {}}, {"Sec-Fetch-Site": "cross-site"})[0], 403)
+        check("senza data", proj(user, "p1", {"base": None})[0], 400)
+        check("id non valido", user.call("/api/projects/..%2Fusers", "PUT", {"data": {}}, same)[0], 404)
+        check("progetto grande (oltre il limite dei pattern) accettato",
+              proj(user, "big", {"data": {"name": "big", "x": "y" * 400_000}})[0], 200)
+        limit, mod.MAX_PROJECT_BODY = mod.MAX_PROJECT_BODY, 500_000   # piu' piccolo: il test non manda 2 MB
+        check("progetto troppo grande", proj(user, "huge", {"data": {"x": "y" * 520_000}})[0], 413)
+        mod.MAX_PROJECT_BODY = limit
+        luigi = Client(port)
+        s, h, _ = luigi.call("/register", "POST", form={"name": "Luigi", "password": "z", "email": "luigi@example.com"}, headers=same)
+        luigi.cookie = h["set-cookie"].split(";")[0]
+        check("ogni utente vede solo i suoi progetti", (listing(luigi), luigi.call("/api/projects/p1")[0]), ({}, 404))
+        check("stesso id, utenti diversi: indipendenti", json.loads(proj(luigi, "p1", {"data": {"name": "L"}})[2])["conflict"], False)
+        check("DELETE progetto", user.call("/api/projects/big", "DELETE", None, same)[0], 200)
+        check("cancellato: resta una lapide", listing(user)["big"].get("deleted"), True)
+        check("cancellato: non si legge piu'", user.call("/api/projects/big")[0], 404)
+        s, _, b = proj(user, "big", {"data": {"name": "big again"}, "base": "vecchia"})
+        check("riscritto dopo la cancellazione: torna, senza copia", (s, json.loads(b)["id"], json.loads(b)["conflict"]), (200, "big", False))
+        check("il progetto di Luigi e' intatto", json.loads(luigi.call("/api/projects/p1")[2])["data"], {"name": "L"})
+        pfile = stage / "data" / "projects"
+        check("file dei progetti leggibili solo dal proprietario",
+              sorted(oct(stat.S_IMODE(f.stat().st_mode)) for f in pfile.glob("*.json")), ["0o600", "0o600"])
+        check("cartella dei progetti non servita", user.call("/data/projects/")[0], 404)
 
         # --- segnalazioni ("Segnala un problema"): Telegram, altrimenti 503 se non c'e' niente di configurato ---
         del os.environ["PATTERNMACHINE_TELEGRAM_OUTBOX"]

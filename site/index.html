@@ -420,6 +420,9 @@ body.sound-view #liveKeysBtn{display:inline-flex; align-items:center;}
 .step-legend .legend-normal{background:var(--step-on,var(--led-on));}
 .step-legend .legend-acc{background:var(--step-acc,var(--led-accent));}
 .step-legend .legend-ghost{background:var(--step-gho,var(--led-on)); opacity:.7;}
+.sync-state{margin:-4px 0 10px;}
+.sync-state.dirty{color:var(--text-dim);}
+.sync-state.err{color:var(--danger);}
 .step-menu{position:fixed; z-index:200; display:flex; flex-direction:column; min-width:120px; padding:4px;
   background:var(--panel-2); border:1px solid var(--edge); border-radius:6px; box-shadow:0 6px 18px rgba(0,0,0,.35);}
 .step-menu button{display:flex; align-items:center; gap:8px; justify-content:flex-start; border:0; background:none;
@@ -1018,6 +1021,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 
   <div class="panel" id="panelRecent" role="tabpanel" aria-label="Saved projects" hidden>
     <h2 id="recentTitle">Saved projects</h2>
+    <p class="tiny sync-state" id="syncState" hidden></p>
     <div class="recent-wrap">
       <table class="recent">
         <thead><tr><th>Preview</th><th>Name</th><th>Machine</th><th>Updated</th><th>BPM</th><th>Pattern</th><th></th></tr></thead>
@@ -1266,19 +1270,19 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-29.54"></script>
-<script src="engine/styles-punk.js?v=2026-09-29.54"></script>
-<script src="engine/styles-post.js?v=2026-09-29.54"></script>
-<script src="engine/styles-machines.js?v=2026-09-29.54"></script>
-<script src="engine/styles-alt.js?v=2026-09-29.54"></script>
-<script src="engine/styles-groove.js?v=2026-09-29.54"></script>
-<script src="engine/styles-dub.js?v=2026-09-29.54"></script>
-<script src="engine/styles-break.js?v=2026-09-29.54"></script>
-<script src="engine/styles-soul.js?v=2026-09-29.54"></script>
-<script src="engine/styles-metal.js?v=2026-09-29.54"></script>
-<script src="engine/styles-electro.js?v=2026-09-29.54"></script>
-<script src="engine/variations.js?v=2026-09-29.54"></script>
-<script src="engine/import.js?v=2026-09-29.54"></script>
+<script src="engine/core.js?v=2026-09-29.55"></script>
+<script src="engine/styles-punk.js?v=2026-09-29.55"></script>
+<script src="engine/styles-post.js?v=2026-09-29.55"></script>
+<script src="engine/styles-machines.js?v=2026-09-29.55"></script>
+<script src="engine/styles-alt.js?v=2026-09-29.55"></script>
+<script src="engine/styles-groove.js?v=2026-09-29.55"></script>
+<script src="engine/styles-dub.js?v=2026-09-29.55"></script>
+<script src="engine/styles-break.js?v=2026-09-29.55"></script>
+<script src="engine/styles-soul.js?v=2026-09-29.55"></script>
+<script src="engine/styles-metal.js?v=2026-09-29.55"></script>
+<script src="engine/styles-electro.js?v=2026-09-29.55"></script>
+<script src="engine/variations.js?v=2026-09-29.55"></script>
+<script src="engine/import.js?v=2026-09-29.55"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -3260,7 +3264,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || document.getElementById("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-29.54";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-29.55";
   document.body.appendChild(s);
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth")) loadSynth();
@@ -3269,6 +3273,12 @@ fetch("/api/me",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(me=>{
   window.__me=me;
   isGuest=me.role==="guest"; isMember=!isGuest;
   if(isMember){ el("recentLabel").textContent="Saved projects"; el("recentTitle").textContent="Saved projects"; }
+  // Progetti sul server per gli utenti registrati; l'app per Mac li tiene nei suoi file.
+  if(isMember && me.id && !db && !window.pmDesktop && !window.claude){
+    db=serverProjects(me.id);
+    if(unsubRecent) unsubRecent();
+    unsubRecent=db.collection("projects").onSnapshot(s=>renderRecent(s.docs.map(d=>({id:d.id,...d.data()}))));
+  }
   document.body.classList.toggle("guest",isGuest);
   el("whoami").textContent=me.name; el("whoami").hidden=false;
   el("adminLink").hidden=me.role!=="admin";
@@ -3742,6 +3752,133 @@ const LS_KEY="sp1200.projects";
 const DRAFT_KEY="sp1200.autodraft";
 const lsAll=()=>{ try{ return JSON.parse(localStorage.getItem(LS_KEY)||"{}"); }catch(e){ return {}; } };
 const lsWrite=o=>{ try{ localStorage.setItem(LS_KEY,JSON.stringify(o)); }catch(e){} };
+
+// ---------- progetti sincronizzati con il server ----------
+// Per gli utenti registrati i progetti stanno sul server (uguali in ogni browser e dispositivo) e in una
+// copia qui, per utente: si salva sempre prima nel browser (funziona anche offline), poi si manda al server.
+// Ogni progetto ricorda la rev del server da cui e' partito: se nel frattempo un altro dispositivo l'ha
+// cambiato, il server tiene entrambe le versioni (quella in arrivo come "copy") e nessuna si perde.
+// Ha la stessa forma dell'aggancio "db" (doc/collection/onSnapshot) che usano l'app e window.claude.
+function serverProjects(uid){
+  const KEY="sp1200.projects."+uid, META=KEY+".sync";
+  const read=k=>{ try{ return JSON.parse(localStorage.getItem(k)||"{}")||{}; }catch(e){ return {}; } };
+  const write=(k,o)=>{ try{ localStorage.setItem(k,JSON.stringify(o)); }catch(e){} };
+  const local=read(KEY), meta=Object.assign({rev:{}, dirty:{}, gone:{}}, read(META));
+  const persist=()=>{ write(KEY,local); write(META,meta); };
+  // I progetti salvati in questo browser prima della sincronizzazione vanno al primo account che entra qui.
+  const legacy=lsAll();
+  if(Object.keys(legacy).length){
+    Object.entries(legacy).forEach(([id,d])=>{ if(!local[id]){ local[id]=d; meta.dirty[id]=1; } });
+    persist();
+    try{ localStorage.removeItem(LS_KEY); }catch(e){}
+  } else persist();
+
+  const listeners=new Set();
+  const snapshot=()=>({docs:Object.entries(local).sort((a,b)=>(b[1].updatedAt||0)-(a[1].updatedAt||0)).map(([id,d])=>({id, data:()=>d}))});
+  const notify=()=>{ const snap=snapshot(); listeners.forEach(cb=>cb(snap)); };
+  const api=(path,opts={})=>fetch(path,{cache:"no-store", ...opts, headers:{"Content-Type":"application/json"}});
+  const url=id=>"/api/projects/"+encodeURIComponent(id);
+  const newId=()=>"p"+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+
+  let running=null, again=false, retry=null;
+  function paint(label,kind=""){
+    const x=el("syncState"); if(!x) return;
+    x.hidden=false; x.textContent=label; x.className="tiny sync-state"+(kind?" "+kind:"");
+  }
+  async function pushAndPull(){
+    for(const id of Object.keys(meta.gone)){
+      const r=await api(url(id),{method:"DELETE"});
+      if(!r.ok && r.status!==404) throw new Error("delete "+r.status);
+      delete meta.gone[id]; delete meta.rev[id]; persist();
+    }
+    for(const id of Object.keys(meta.dirty)){
+      const d=local[id];
+      if(!d){ delete meta.dirty[id]; continue; }
+      const r=await api(url(id),{method:"PUT", body:JSON.stringify({data:d, base:meta.rev[id]||null})});
+      if(!r.ok) throw new Error("save "+r.status);
+      const res=await r.json();
+      if(res.conflict){
+        // cambiato su un altro dispositivo: questa versione e' diventata una copia, l'originale arriva sotto
+        local[res.id]={...d, name:res.name}; meta.rev[res.id]=res.rev;
+        if(local[id]===d) delete meta.dirty[id];
+        if(currentProjectId===id){
+          const clean=projectSnap()===savedSnap;
+          currentProjectId=res.id; el("projectName").value=res.name; project.name=res.name;
+          if(clean) markSaved();
+        }
+        setStatus(`"${d.name||"Untitled"}" changed on another device: yours is saved as "${res.name}"`);
+      } else {
+        meta.rev[id]=res.rev;
+        if(local[id]===d) delete meta.dirty[id];   // cambiato durante l'invio: resta da mandare
+      }
+      persist();
+    }
+    const r=await api("/api/projects");
+    if(!r.ok) throw new Error("list "+r.status);
+    const remote=(await r.json()).projects||[], seen=new Set();
+    for(const p of remote){
+      seen.add(p.id);
+      if(meta.dirty[p.id] || meta.gone[p.id]) continue;
+      if(p.deleted){
+        if(local[p.id]){ delete local[p.id]; if(currentProjectId===p.id) currentProjectId=null; }
+        delete meta.rev[p.id]; continue;
+      }
+      if(meta.rev[p.id]===p.rev && local[p.id]) continue;
+      // il progetto aperto con modifiche non salvate resta com'e': al salvataggio diventera' una copia
+      const open=currentProjectId===p.id, clean=projectSnap()===savedSnap;
+      if(open && !clean) continue;
+      const g=await api(url(p.id));
+      if(!g.ok) continue;
+      const got=await g.json();
+      local[p.id]=got.data; meta.rev[p.id]=got.rev;
+      if(open){ deserialize(got.data,true); markSaved(); setStatus("updated from another device"); }
+    }
+    // gia' sincronizzato ma non piu' sul server (archivio ripristinato): si rimanda
+    Object.keys(local).forEach(id=>{ if(!seen.has(id) && !meta.dirty[id]){ meta.dirty[id]=1; again=true; } });
+    persist(); notify(); markCurrentRecent();
+  }
+  function sync(){
+    clearTimeout(retry);
+    if(running){ again=true; return running; }
+    paint("syncing…");
+    running=(async()=>{
+      try{
+        do{ again=false; await pushAndPull(); }while(again);
+        const n=Object.keys(meta.dirty).length+Object.keys(meta.gone).length;
+        paint(n?`${n} to sync`:"synced with your account ✓", n?"dirty":"");
+      }catch(e){
+        const n=Object.keys(meta.dirty).length+Object.keys(meta.gone).length;
+        paint(navigator.onLine===false ? `offline: ${n} saved in this browser, will sync` : `sync failed: ${n} saved in this browser, retrying`,"err");
+        retry=setTimeout(sync,30000);
+      }finally{ running=null; }
+    })();
+    return running;
+  }
+  const changed=()=>{ persist(); notify(); sync(); };
+  const query={
+    orderBy:()=>query, limit:()=>query,
+    get:async()=>snapshot(),
+    onSnapshot(cb){ listeners.add(cb); cb(snapshot()); return ()=>listeners.delete(cb); },
+  };
+  window.addEventListener("online",sync);
+  document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") sync(); });
+  setInterval(()=>{ if(document.visibilityState==="visible") sync(); },60000);
+  sync();
+  return {
+    server:true, sync,
+    collection:()=>Object.assign({}, query, {
+      async add(data){ const id=newId(); local[id]=data; meta.dirty[id]=1; changed(); return {id}; },
+    }),
+    doc(path){
+      const id=String(path).split("/")[1];
+      return {
+        async get(){ return {exists:!!local[id], data:()=>local[id]}; },
+        async set(data){ local[id]=data; meta.dirty[id]=1; changed(); },
+        async delete(){ delete local[id]; delete meta.dirty[id]; if(meta.rev[id]) meta.gone[id]=1; changed(); },
+      };
+    },
+  };
+}
 let draftTimer=null, draftPending=false, lastDraftSnap="";
 function paintSaveState(label="saved ✓",kind=""){
   const s=el("saveState"); if(!s) return;
@@ -3882,7 +4019,7 @@ async function saveProject(asNew){
       all[key]=data; lsWrite(all); currentProjectId=key; refreshRecent();
     }
     markSaved();
-    setStatus(db?"saved · cloud":isMember?"saved":"saved · local");
+    setStatus(db?.server?"saved":db?"saved · cloud":isMember?"saved":"saved · local");
   }catch(e){ setStatus("error while saving","err"); }
 }
 async function loadProject(id){
@@ -5722,7 +5859,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-29.54";
+const SW_VERSION="2026-09-29.55";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -5741,7 +5878,7 @@ const SW_VERSION="2026-09-29.54";
   });
 })();
 </script>
-<script src="engine/midi.js?v=2026-09-29.54"></script>
+<script src="engine/midi.js?v=2026-09-29.55"></script>
 
 </body>
 </html>

@@ -149,6 +149,76 @@ def save_patterns(patterns):
     os.replace(tmp, DATA_FILE)
 
 
+# ---------- progetti degli utenti ----------
+# Un file per utente, data/projects/<id utente>.json (mai servito):
+#   {"<id progetto>": {"rev": "...", "updated_at": "...", "data": {...progetto...}}}
+# Un progetto cancellato resta come lapide {"rev", "updated_at", "deleted": true}: gli altri dispositivi
+# lo tolgono invece di ricaricarlo. La rev cambia a ogni scrittura e chi scrive manda quella da cui e'
+# partito ("base"): se nel frattempo un altro dispositivo l'ha cambiata, la versione in arrivo si salva
+# come copia accanto all'altra, cosi' nessuna delle due si perde.
+PROJECTS_DIR = os.environ.get("PATTERNMACHINE_PROJECTS") or os.path.join(DATA_DIR, "projects")
+PROJECTS_LOCK = threading.Lock()
+PROJECT_ID_RE = re.compile(r"^/api/projects/([A-Za-z0-9_-]{1,64})$")
+SAFE_ID_RE = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
+MAX_PROJECT_BODY = 2 * 1024 * 1024
+MAX_PROJECTS = 500           # progetti vivi per utente
+MAX_TOMBSTONES = 1000        # lapidi per utente: oltre, cadono le piu' vecchie
+
+
+def projects_file(uid):
+    if not SAFE_ID_RE.match(uid or ""):
+        raise ValueError("id utente non valido")
+    return os.path.join(PROJECTS_DIR, uid + ".json")
+
+
+def load_projects(uid):
+    try:
+        with open(projects_file(uid), "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def save_projects(uid, projects):
+    os.makedirs(PROJECTS_DIR, mode=0o700, exist_ok=True)
+    tombs = sorted((k for k, v in projects.items() if v.get("deleted")), key=lambda k: projects[k].get("updated_at", ""))
+    for k in tombs[:max(0, len(tombs) - MAX_TOMBSTONES)]:
+        del projects[k]
+    path = projects_file(uid)
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(projects, f, ensure_ascii=False, separators=(",", ":"))
+    os.chmod(tmp, 0o600)
+    os.replace(tmp, path)
+
+
+def delete_user_projects(uid):
+    try:
+        os.remove(projects_file(uid))
+    except (FileNotFoundError, ValueError):
+        pass
+
+
+def put_project(uid, pid, data, base):
+    """Salva un progetto; ritorna (id, rev, conflict) o None se l'archivio e' pieno."""
+    with PROJECTS_LOCK:
+        projects = load_projects(uid)
+        cur = projects.get(pid)
+        conflict = bool(cur and not cur.get("deleted") and cur.get("rev") != base)
+        if conflict:
+            # cambiato altrove dopo "base": la versione in arrivo diventa una copia
+            while pid in projects:
+                pid = (pid[:52] + "-" + secrets.token_hex(5))
+            data = dict(data, name=(str(data.get("name") or "Untitled")[:100] + " (copy)"))
+        if (not cur or cur.get("deleted") or conflict) and sum(not v.get("deleted") for v in projects.values()) >= MAX_PROJECTS:
+            return None
+        rev = secrets.token_hex(8)
+        projects[pid] = {"rev": rev, "updated_at": now_iso(), "data": data}
+        save_projects(uid, projects)
+    return pid, rev, conflict, data.get("name")
+
+
 def is_public(rel):
     if any(part.startswith(".") for part in rel.split("/")):
         return False
@@ -722,17 +792,17 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
 
     # ---------- richieste ----------
-    def _read_body(self):
+    def _read_body(self, limit=MAX_BODY):
         try:
             length = int(self.headers.get("Content-Length", 0))
         except ValueError:
             return None
-        if length > MAX_BODY:
+        if length > limit:
             raise BodyTooLarge()
         return self.rfile.read(length) if length > 0 else b""
 
-    def _read_json_body(self):
-        raw = self._read_body()
+    def _read_json_body(self, limit=MAX_BODY):
+        raw = self._read_body(limit)
         if raw is None:
             return None
         if not raw:
@@ -841,9 +911,9 @@ class Handler(BaseHTTPRequestHandler):
             return False
         return True
 
-    def _body_or_error(self):
+    def _body_or_error(self, limit=MAX_BODY):
         try:
-            return self._read_json_body(), False
+            return self._read_json_body(limit), False
         except BodyTooLarge:
             self._send_json(413, {"error": "richiesta troppo grande"})
             return None, True
@@ -1184,6 +1254,8 @@ class Handler(BaseHTTPRequestHandler):
                 token = make_reset(db, target)
             save_users(db)
         if action == "delete":
+            with PROJECTS_LOCK:
+                delete_user_projects(target["id"])
             self._admin_page(message=f"User {target['name']} deleted.")
         elif target.get("email") and mail_config():
             send_reset(target, token)
@@ -1302,7 +1374,7 @@ class Handler(BaseHTTPRequestHandler):
             return
         if path == "/api/me":
             u = self._user()
-            self._send_json(200, {"name": u["name"], "role": u.get("role", "user"), "email": u.get("email", "")})
+            self._send_json(200, {"id": u.get("id", ""), "name": u["name"], "role": u.get("role", "user"), "email": u.get("email", "")})
             return
         if path == "/api/app-message":
             self._send_json(200, load_app_message())
@@ -1319,7 +1391,70 @@ class Handler(BaseHTTPRequestHandler):
                 patterns = load_patterns()
             self._send_json(200, patterns)
             return
+        if path == "/api/projects" or PROJECT_ID_RE.match(path):
+            self._get_projects(path)
+            return
         self._serve_static()
+
+    # ---------- progetti degli utenti ----------
+    def _project_owner(self):
+        """L'id dell'utente registrato, o None se ha gia' risposto (ospite)."""
+        u = self._user() or {}
+        if u.get("role") == "guest" or not SAFE_ID_RE.match(u.get("id") or ""):
+            self._send_json(403, {"error": "gli ospiti non hanno progetti salvati: registrati"})
+            return None
+        return u["id"]
+
+    def _get_projects(self, path):
+        uid = self._project_owner()
+        if not uid:
+            return
+        with PROJECTS_LOCK:
+            projects = load_projects(uid)
+        m = PROJECT_ID_RE.match(path)
+        if m:
+            p = projects.get(m.group(1))
+            if not p or p.get("deleted"):
+                self._send_json(404, {"error": "progetto non trovato"})
+                return
+            self._send_json(200, {"id": m.group(1), "rev": p["rev"], "data": p["data"]})
+            return
+        # l'elenco porta solo id e rev: i contenuti si chiedono uno per uno, solo quelli cambiati
+        self._send_json(200, {"projects": [{"id": k, "rev": v.get("rev"), **({"deleted": True} if v.get("deleted") else {})}
+                                           for k, v in projects.items()]})
+
+    def _put_project(self, pid):
+        if not self._guard_write():
+            return
+        uid = self._project_owner()
+        if not uid:
+            return
+        body, failed = self._body_or_error(MAX_PROJECT_BODY)
+        if failed:
+            return
+        if not isinstance(body, dict) or not isinstance(body.get("data"), dict):
+            self._send_json(400, {"error": "richiede {data, base}"})
+            return
+        base = body.get("base")
+        out = put_project(uid, pid, body["data"], base if isinstance(base, str) else None)
+        if out is None:
+            self._send_json(507, {"error": f"troppi progetti salvati (massimo {MAX_PROJECTS})"})
+            return
+        new_id, rev, conflict, name = out
+        self._send_json(200, {"id": new_id, "rev": rev, "conflict": conflict, "name": name})
+
+    def _delete_project(self, pid):
+        if not self._guard_write():
+            return
+        uid = self._project_owner()
+        if not uid:
+            return
+        with PROJECTS_LOCK:
+            projects = load_projects(uid)
+            if pid in projects and not projects[pid].get("deleted"):
+                projects[pid] = {"rev": secrets.token_hex(8), "updated_at": now_iso(), "deleted": True}
+                save_projects(uid, projects)
+        self._send_json(200, {"id": pid, "deleted": True})
 
     def _do_report(self):
         if self._cross_site():
@@ -1410,6 +1545,10 @@ class Handler(BaseHTTPRequestHandler):
         path = urlparse(self.path).path
         if not self._gate(path):
             return
+        pm = PROJECT_ID_RE.match(path)
+        if pm:
+            self._put_project(pm.group(1))
+            return
         m = PATTERN_ID_RE.match(path)
         if not m:
             self.send_error(404, "Not found")
@@ -1445,6 +1584,10 @@ class Handler(BaseHTTPRequestHandler):
             return
         path = urlparse(self.path).path
         if not self._gate(path):
+            return
+        pm = PROJECT_ID_RE.match(path)
+        if pm:
+            self._delete_project(pm.group(1))
             return
         m = PATTERN_ID_RE.match(path)
         if not m:

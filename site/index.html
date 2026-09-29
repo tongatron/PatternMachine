@@ -420,6 +420,17 @@ body.sound-view #liveKeysBtn{display:inline-flex; align-items:center;}
 .step-legend .legend-normal{background:var(--step-on,var(--led-on));}
 .step-legend .legend-acc{background:var(--step-acc,var(--led-accent));}
 .step-legend .legend-ghost{background:var(--step-gho,var(--led-on)); opacity:.7;}
+.step-menu{position:fixed; z-index:200; display:flex; flex-direction:column; min-width:120px; padding:4px;
+  background:var(--panel-2); border:1px solid var(--edge); border-radius:6px; box-shadow:0 6px 18px rgba(0,0,0,.35);}
+.step-menu button{display:flex; align-items:center; gap:8px; justify-content:flex-start; border:0; background:none;
+  padding:6px 9px; font-size:11px; text-align:left; box-shadow:none;}
+.step-menu button:hover, .step-menu button:focus-visible{background:var(--panel-3); outline:none;}
+.step-menu button[aria-checked="true"]{color:var(--accent); font-weight:700;}
+.step-menu i{width:10px; height:10px; border-radius:2px; border:1px solid var(--edge); flex:0 0 auto;}
+.step-menu .lv1{background:var(--step-on,var(--led-on));}
+.step-menu .lv2{background:var(--step-acc,var(--led-accent));}
+.step-menu .lv3{background:var(--step-gho,var(--led-on)); opacity:.7;}
+.step-menu .lv0{background:transparent;}
 .step.mod::after{content:attr(data-label); position:absolute; left:2px; right:2px; bottom:2px; font-size:9.5px; font-weight:800;
   line-height:1; text-align:center; letter-spacing:0; text-transform:none; color:var(--text); background:var(--panel-2); padding:1px 0; pointer-events:none;}
 .step-mode-line{margin:-2px 0 9px;}
@@ -1098,7 +1109,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
         <ul>
           <li>Click = on/off.</li>
           <li><kbd>Tab</kbd> enters the grid; use the arrow keys to move between steps and instruments.</li>
-          <li>Right-click (or <kbd>alt</kbd>+click) = accent.</li>
+          <li>Right-click = menu to choose normal, accent, ghost or off; <kbd>alt</kbd>+click = accent.</li>
           <li><kbd>shift</kbd>+click = ghost note (soft).</li>
           <li><b>Probability</b>, <b>Ratchets</b>, <b>Flam</b>, <b>Tuning</b>, <b>Decay</b> and <b>Filter</b> (above the grid): in the selected mode, clicking an active step changes that hit only.</li>
         </ul>
@@ -1255,19 +1266,19 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/core.js?v=2026-09-29.52"></script>
-<script src="engine/styles-punk.js?v=2026-09-29.52"></script>
-<script src="engine/styles-post.js?v=2026-09-29.52"></script>
-<script src="engine/styles-machines.js?v=2026-09-29.52"></script>
-<script src="engine/styles-alt.js?v=2026-09-29.52"></script>
-<script src="engine/styles-groove.js?v=2026-09-29.52"></script>
-<script src="engine/styles-dub.js?v=2026-09-29.52"></script>
-<script src="engine/styles-break.js?v=2026-09-29.52"></script>
-<script src="engine/styles-soul.js?v=2026-09-29.52"></script>
-<script src="engine/styles-metal.js?v=2026-09-29.52"></script>
-<script src="engine/styles-electro.js?v=2026-09-29.52"></script>
-<script src="engine/variations.js?v=2026-09-29.52"></script>
-<script src="engine/import.js?v=2026-09-29.52"></script>
+<script src="engine/core.js?v=2026-09-29.53"></script>
+<script src="engine/styles-punk.js?v=2026-09-29.53"></script>
+<script src="engine/styles-post.js?v=2026-09-29.53"></script>
+<script src="engine/styles-machines.js?v=2026-09-29.53"></script>
+<script src="engine/styles-alt.js?v=2026-09-29.53"></script>
+<script src="engine/styles-groove.js?v=2026-09-29.53"></script>
+<script src="engine/styles-dub.js?v=2026-09-29.53"></script>
+<script src="engine/styles-break.js?v=2026-09-29.53"></script>
+<script src="engine/styles-soul.js?v=2026-09-29.53"></script>
+<script src="engine/styles-metal.js?v=2026-09-29.53"></script>
+<script src="engine/styles-electro.js?v=2026-09-29.53"></script>
+<script src="engine/variations.js?v=2026-09-29.53"></script>
+<script src="engine/import.js?v=2026-09-29.53"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -2369,7 +2380,7 @@ function renderTracks(){
       b.oncontextmenu=(ev)=>{ ev.preventDefault();
         // sul Mac ctrl+click arriva come click destro: nella Vista Live accende/spegne lo step come cmd+click
         if(isLive()){ if(ev.ctrlKey){ pushUndo(); arr[i]= arr[i]?0:1; paintStep(b,arr[i],i,modOf(pat,t.id,i)); lanePaint.get(t.id)?.(); } return; }
-        pushUndo(); arr[i]= arr[i]===2?0:2; paintStep(b,arr[i],i,modOf(pat,t.id,i)); lanePaint.get(t.id)?.(); };
+        stepMenu(ev, arr[i], v=>{ pushUndo(); arr[i]=v; paintStep(b,arr[i],i,modOf(pat,t.id,i)); lanePaint.get(t.id)?.(); }, b); };
       steps.appendChild(b); els.push(b);
     }
     stepEls.set(t.id,els);
@@ -2378,6 +2389,34 @@ function renderTracks(){
     host.appendChild(wrap);
   });
   paintPlayhead();
+}
+
+// Menu del tasto destro su uno step: normale, accento, ghost o spento. Frecce e invio per sceglierlo da tastiera.
+function stepMenu(ev, cur, choose, back){
+  document.getElementById("stepMenu")?.remove();
+  const m=document.createElement("div"); m.id="stepMenu"; m.className="step-menu"; m.setAttribute("role","menu");
+  const items=[[1,"Normal"],[2,"Accent"],[3,"Ghost"],[0,"Off"]].map(([v,label])=>{
+    const b=document.createElement("button"); b.type="button"; b.setAttribute("role","menuitemradio");
+    b.setAttribute("aria-checked",String(cur===v)); b.innerHTML=`<i class="lv${v}"></i>${label}`;
+    b.onclick=()=>{ close(); if(cur!==v) choose(v); };
+    m.appendChild(b); return b;
+  });
+  const close=()=>{ m.remove(); document.removeEventListener("pointerdown",outside,true); window.removeEventListener("scroll",close,true); back?.focus(); };
+  const outside=e=>{ if(!m.contains(e.target)) close(); };
+  m.onkeydown=e=>{
+    const k=items.indexOf(document.activeElement);
+    if(e.key==="Escape"){ e.preventDefault(); close(); }
+    else if(e.key==="ArrowDown"||e.key==="ArrowUp"){ e.preventDefault(); items[(k+(e.key==="ArrowDown"?1:items.length-1))%items.length].focus(); }
+  };
+  document.body.appendChild(m);
+  // da tastiera (tasto menu) non c'e' il punto del mouse: si apre sotto lo step
+  const r=back.getBoundingClientRect();
+  const x=ev.clientX||r.left, y=ev.clientY||r.bottom;
+  m.style.left=Math.max(4,Math.min(x, innerWidth-m.offsetWidth-4))+"px";
+  m.style.top=Math.max(4,Math.min(y, innerHeight-m.offsetHeight-4))+"px";
+  document.addEventListener("pointerdown",outside,true);
+  window.addEventListener("scroll",close,true);
+  (items.find(b=>b.getAttribute("aria-checked")==="true")||items[0]).focus();
 }
 
 // ---------- riga espansa: tutte le opzioni della strip ----------
@@ -3221,7 +3260,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || document.getElementById("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-29.52";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-29.53";
   document.body.appendChild(s);
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth")) loadSynth();
@@ -5681,7 +5720,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-29.52";
+const SW_VERSION="2026-09-29.53";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -5700,7 +5739,7 @@ const SW_VERSION="2026-09-29.52";
   });
 })();
 </script>
-<script src="engine/midi.js?v=2026-09-29.52"></script>
+<script src="engine/midi.js?v=2026-09-29.53"></script>
 
 </body>
 </html>

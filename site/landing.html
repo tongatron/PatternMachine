@@ -111,6 +111,32 @@ p{margin:6px 0;}
 .beta{font:700 9px/1 var(--mono); letter-spacing:.1em; text-transform:uppercase; border:1px solid var(--accent); color:var(--accent);
   border-radius:2px; padding:2px 4px; vertical-align:middle; margin-left:4px;}
 
+/* tastiere MIDI */
+.midi{display:grid; grid-template-columns:1fr 1fr; gap:24px; align-items:start;}
+.midi-list{margin:10px 0 0; padding-left:18px; font-size:15px;}
+.midi-list li{margin:6px 0;}
+.ctrl{background:#2a2825; border:1px solid #111; border-radius:6px; padding:14px; box-shadow:inset 0 1px 0 rgba(255,255,255,.08), 0 2px 0 rgba(0,0,0,.3); color:#e8e4da;}
+.ctrl-head{display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:8px; margin-bottom:12px;
+  font:700 10px/1.3 var(--mono); letter-spacing:.14em; text-transform:uppercase; color:#b9b4a8;}
+.ctrl-switch{display:inline-flex; border:1px solid #111; border-radius:3px; overflow:hidden;}
+.ctrl-switch button{border:0; background:#3b3935; color:#d9d4c8; font:700 10px/1 var(--mono); letter-spacing:.06em; text-transform:uppercase; padding:7px 9px; cursor:pointer;}
+.ctrl-switch button.on{background:var(--key-primary); color:var(--on-accent);}
+.knobs{display:grid; grid-template-columns:repeat(4,1fr); gap:10px 8px; margin-bottom:14px;}
+.knob{display:flex; flex-direction:column; align-items:center; gap:5px; text-align:center;}
+.knob i{width:30px; height:30px; border-radius:50%; background:radial-gradient(circle at 40% 35%,#5b5853,#1e1d1b 70%); border:1px solid #000;
+  position:relative; box-shadow:0 2px 3px rgba(0,0,0,.5);}
+.knob i::after{content:""; position:absolute; left:50%; top:3px; width:2px; height:9px; margin-left:-1px; background:#f58a4c; border-radius:1px;
+  transform-origin:50% 12px; transform:rotate(var(--r,0deg));}
+.knob.fader i{width:12px; height:30px; border-radius:2px; background:linear-gradient(180deg,#1e1d1b,#3b3935);}
+.knob.fader i::after{top:auto; bottom:var(--f,40%); left:-5px; width:20px; height:5px; margin:0; background:#d9d4c8; transform:none;}
+.knob span{font:700 9.5px/1.25 var(--mono); color:#d9d4c8;}
+.knob small{font:9px/1.2 var(--mono); color:#8f8a80;}
+.pads{display:grid; grid-template-columns:repeat(4,1fr); gap:6px;}
+.mpad{display:grid; place-items:center; min-height:44px; padding:4px; border-radius:4px; text-align:center;
+  background:linear-gradient(180deg,#4a4843,#35332f); border:1px solid #111; font:700 10px/1.2 var(--mono); color:#e8e4da; box-shadow:inset 0 1px 0 rgba(255,255,255,.1);}
+.mpad:not(.act){background:linear-gradient(180deg,#f58a4c,#c9531f); color:#fff6ee; border-color:#7a2e10;}
+.ctrl-note{margin:12px 0 0; font:11px/1.5 var(--mono); color:#b9b4a8;}
+
 /* macchine */
 .chips{display:flex; flex-wrap:wrap; gap:6px;}
 .chip{border:1px solid var(--edge); border-radius:3px; padding:5px 10px; background:var(--key); box-shadow:var(--key-shadow);
@@ -158,6 +184,7 @@ footer{display:flex; flex-direction:column; align-items:center; gap:10px; margin
 @media (max-width:900px){
   .hero{grid-template-columns:1fr; padding:22px 18px;}
   .features{grid-template-columns:repeat(2,1fr);}
+  .midi{grid-template-columns:1fr;}
   .forms{grid-template-columns:1fr;}
   .stats{grid-template-columns:repeat(2,1fr);}
 }
@@ -183,6 +210,7 @@ footer{display:flex; flex-direction:column; align-items:center; gap:10px; margin
   <a class="logo" href="#">Pattern-Machine</a>
   <nav>
     <a class="btn small" href="#features">Features</a>
+    <a class="btn small" href="#midi">MIDI</a>
     <a class="btn small" href="#machines">Machines</a>
     <a class="btn small" href="#screens">Screenshots</a>
     <a class="btn small" href="#access">Access</a>
@@ -195,7 +223,7 @@ footer{display:flex; flex-direction:column; align-items:center; gap:10px; margin
   <div>
     <div class="lcd">SP-1200 · 93 BPM</div>
     <h1>A step drum machine that <em>writes the beat with you</em>.</h1>
-    <p class="lead">Pick a classic machine, generate a groove in one of 67 styles, shape it step by step, chain patterns into a song and take it to your DAW as MIDI, WAV or MP3.</p>
+    <p class="lead">Pick a classic machine, generate a groove in one of 67 styles, shape it step by step or play it from your MIDI keyboard, chain patterns into a song and take it to your DAW as MIDI, WAV or MP3.</p>
     <div class="cta">
       <a class="btn play big" href="/login?next=/">▶ Open the drum machine</a>
       <a class="btn big" href="#features">See the features</a>
@@ -229,6 +257,7 @@ footer{display:flex; flex-direction:column; align-items:center; gap:10px; margin
       <ul>
         <li>Installable as a web app, ready offline</li>
         <li>MIDI keyboards in Chrome, Edge and Firefox</li>
+        <li>Projects saved to your account, the same on every device</li>
         <li>Shareable links to your patterns</li>
       </ul>
       <a class="btn play" href="/login?next=/">Open it</a>
@@ -242,6 +271,7 @@ footer{display:flex; flex-direction:column; align-items:center; gap:10px; margin
         <li>Follows the DAW's MIDI Clock</li>
         <li>Drag MIDI and WAV onto the timeline</li>
         <li>Your own sample kits, fully offline</li>
+        <li>Projects as files, synced with your account</li>
       </ul>
       <a class="btn" href="/login?next=/app.html">Download the app</a>
     </div>
@@ -267,21 +297,61 @@ footer{display:flex; flex-direction:column; align-items:center; gap:10px; margin
     <div class="feat"><div class="ico">✦</div><h3>Pattern generator</h3>
       <p>67 styles in 10 families, from punk and post-punk to hip hop, dub, DnB, disco and club. One-click variations, automatic fills and 8 suggestions every time you change style.</p></div>
     <div class="feat"><div class="ico">▦</div><h3>Step grid</h3>
-      <p>8, 16 or 32 steps, 40–240 BPM, swing and humanize. Accents and ghost notes, per-step probability, ratchets, flam, pitch, decay and filter.</p></div>
+      <p>8, 16 or 32 steps, 40–240 BPM, swing and humanize. Accents and ghost notes (right-click a step to pick one), per-step probability, ratchets, flam, pitch, decay and filter.</p></div>
+    <div class="feat"><div class="ico">⇆</div><h3>Variations</h3>
+      <p>Half-time, sparse, new fill, ghost notes, syncopated kick and more: click one and hear it right away on your pattern, click again to go back to the original.</p></div>
     <div class="feat"><div class="ico">♫</div><h3>Song mode</h3>
-      <p>Chain patterns into verse, chorus and fill blocks with their own repeats. Drag to reorder, play from any point or solo a block.</p></div>
+      <p>Chain patterns into verse, chorus and fill blocks with their own repeats. Drag to reorder, play from any point, solo a block or loop one pattern; the grid follows the song as it plays.</p></div>
     <div class="feat"><div class="ico">●</div><h3>Live view</h3>
       <p>Just the grid, Play, Rec, tempo and metronome. Play from the keyboard or the pads and record hits while the pattern runs.</p></div>
     <div class="feat"><div class="ico">∿</div><h3>Synthesizer <span class="beta">beta</span></h3>
-      <p>A synth part next to the drums, with its own engines, patterns and notes, and separate volumes for drums, synth and master.</p></div>
+      <p>A synth part next to the drums, with its own engines, patterns and notes, in time with the beat and in its own lane of the song.</p></div>
+    <div class="feat"><div class="ico">≡</div><h3>Mixer</h3>
+      <p>A strip for every row with fader, pan, meter, mute and solo, then drums, synth and master. Volumes, mute and solo for drums and synth stay at hand in the transport, and a limiter keeps the master under 0 dB.</p></div>
     <div class="feat"><div class="ico">⌨</div><h3>MIDI keyboards</h3>
-      <p>Keys play the synth with velocity, pads trigger drums and transport, knobs move any parameter. Ready-made maps for AKAI MPK mini and Arturia MiniLab 3, plus Learn.</p></div>
+      <p>Keys play the synth with velocity, pads trigger drums and transport, knobs move any parameter. Ready-made maps for AKAI MPK mini Play and Arturia MiniLab 3, plus Learn. <a href="#midi">How it works →</a></p></div>
     <div class="feat"><div class="ico">⇪</div><h3>Export anywhere</h3>
       <p>General MIDI or Logic kit mapping, WAV mix and stems, MP3, and ready-made project folders for Logic, Ableton Live and REAPER.</p></div>
     <div class="feat"><div class="ico">⇄</div><h3>Import</h3>
-      <p>Bring in patterns from MIDI files or from plain text in the PatternTXT format. Save projects to your account (the same in every browser and device), as files or as links.</p></div>
+      <p>Drop in MIDI files, drum loops (kick, snare and hats detected from the audio), drum tabs, PatternTXT, Hydrogen, REAPER, Ableton Live and MusicXML files, project files or shared links.</p></div>
+    <div class="feat"><div class="ico">☁</div><h3>Projects everywhere</h3>
+      <p>Saved projects live in your account: the same in every browser, on your phone and in the desktop app. Saving works offline and syncs later; if a project changed elsewhere, your version is kept as a copy.</p></div>
     <div class="feat"><div class="ico">◐</div><h3>Made to play</h3>
       <p>Light and dark themes styled after the SP-1200 front panel, 80 levels of undo and a metronome that runs even with the transport stopped.</p></div>
+  </div>
+</section>
+
+<!-- tastiere MIDI -->
+<section class="panel" id="midi">
+  <p class="label">MIDI keyboards</p>
+  <div class="midi">
+    <div>
+      <h2>Plug in a keyboard and play.</h2>
+      <p class="muted">Connect a USB MIDI keyboard, open the <b>MIDI</b> tab and press <b>Connect</b>. It works in Chrome, Edge and Firefox (Safari can't read MIDI devices) and in the desktop app.</p>
+      <ul class="midi-list">
+        <li><b>Keys</b> play the synth with velocity; with Rec on, what you play is written into the pattern.</li>
+        <li><b>Pads</b> play the drum rows or run the transport: Play, solo drums or synth, Rec, tap tempo, metronome, previous and next pattern.</li>
+        <li><b>Knobs and faders</b> move volumes, BPM, swing, humanize or any synth parameter: cutoff, resonance, envelopes, effects.</li>
+        <li><b>Learn</b>: press it on a pad or knob, then hit the pad or turn the knob to assign it. Each keyboard keeps its own map, recognized by name, and two can be used at once.</li>
+      </ul>
+    </div>
+    <div class="ctrl" aria-label="Factory map of the pads and knobs">
+      <div class="ctrl-head">
+        <span>Factory map</span>
+        <div class="ctrl-switch" role="group" aria-label="Keyboard">
+          <button type="button" class="on" data-kb="mpk" aria-pressed="true">MPK mini Play</button>
+          <button type="button" data-kb="minilab" aria-pressed="false">MiniLab 3</button>
+        </div>
+      </div>
+      <div class="knobs" id="knobs"></div>
+      <div class="pads">
+        <div class="mpad">Row 1</div><div class="mpad">Row 2</div><div class="mpad">Row 3</div><div class="mpad">Row 4</div>
+        <div class="mpad">Row 5</div><div class="mpad">Row 6</div><div class="mpad">Row 7</div><div class="mpad">Row 8</div>
+        <div class="mpad act">Play</div><div class="mpad act">Solo drums</div><div class="mpad act">Solo synth</div><div class="mpad act">Rec</div>
+        <div class="mpad act">Tap</div><div class="mpad act">Metro&shy;nome</div><div class="mpad act">Prev pattern</div><div class="mpad act">Next pattern</div>
+      </div>
+      <p class="ctrl-note">Pads: bank A plays the first 8 rows of the grid, bank B the transport. Keys: the synth. Any other keyboard gets the same layout, and everything can be reassigned with Learn.</p>
+    </div>
   </div>
 </section>
 
@@ -314,11 +384,13 @@ footer{display:flex; flex-direction:column; align-items:center; gap:10px; margin
   <div class="gallery">
     <figure class="wide"><img src="assets/landing/griglia.jpg" alt="Step grid with a Roland TR-808" loading="lazy" width="1440" height="1000"><figcaption>Step grid · Roland TR-808</figcaption></figure>
     <figure><img src="assets/landing/solo-suono.jpg" alt="Live view" loading="lazy" width="1440" height="1000"><figcaption>Live view</figcaption></figure>
-    <figure><img src="assets/landing/sequencer.jpg" alt="Song arranger" loading="lazy" width="1440" height="1000"><figcaption>Song arranger</figcaption></figure>
-    <figure><img src="assets/landing/tema-scuro.jpg" alt="Dark theme" loading="lazy" width="1440" height="1000"><figcaption>Dark theme</figcaption></figure>
+    <figure><img src="assets/landing/sequencer.jpg" alt="Song arranger with the synth lane" loading="lazy" width="1440" height="1000"><figcaption>Song arranger</figcaption></figure>
+    <figure><img src="assets/landing/mixer.jpg" alt="Mixer with meters and limiter" loading="lazy" width="1440" height="1000"><figcaption>Mixer</figcaption></figure>
+    <figure><img src="assets/landing/tema-scuro.jpg" alt="Synthesizer piano roll in the dark theme" loading="lazy" width="1440" height="1000"><figcaption>Synthesizer · dark theme</figcaption></figure>
+    <figure><img src="assets/landing/midi.jpg" alt="MIDI keyboard pads and knobs assignments" loading="lazy" width="1440" height="1000"><figcaption>MIDI keyboard map</figcaption></figure>
     <figure><img src="assets/landing/macchine.jpg" alt="The machines page" loading="lazy" width="1440" height="1000"><figcaption>The machines</figcaption></figure>
     <figure><img src="assets/landing/plugin-logic.jpg" alt="Logic Pro plug-in" loading="lazy" width="1440" height="1000"><figcaption>Inside Logic Pro</figcaption></figure>
-    <figure class="phone"><img src="assets/landing/mobile.jpg" alt="PATTERN-MACHINE on a phone" loading="lazy" width="416" height="900">
+    <figure class="phone"><img src="assets/landing/mobile.jpg" alt="PATTERN-MACHINE on a phone" loading="lazy" width="832" height="1800">
       <div><figcaption style="padding-top:0">On the phone</figcaption><p class="muted">The same drum machine on a phone: install it from the browser and it works offline too.</p></div></figure>
   </div>
 </section>
@@ -369,6 +441,27 @@ footer{display:flex; flex-direction:column; align-items:center; gap:10px; margin
 <div class="lightbox" id="lightbox" role="dialog" aria-label="Screenshot"><img alt=""></div>
 
 <script>
+// Mappa di fabbrica delle manopole (come engine/midi.js): MPK mini Play mk3 8 manopole, MiniLab 3 8 manopole e 4 fader.
+const KNOB_MAPS = {
+  mpk: [["Cutoff","synth"],["Resonance","synth"],["Filter env","synth"],["Vol. synth","mix"],["Delay","synth"],["Reverb","synth"],["BPM","tempo"],["Vol. general","mix"]],
+  minilab: [["Cutoff","synth"],["Resonance","synth"],["Filter env","synth"],["Env decay","synth"],["Delay","synth"],["Reverb","synth"],["Chorus","synth"],["BPM","tempo"],
+    ["Vol. drums","mix · fader",1],["Vol. synth","mix · fader",1],["Vol. general","mix · fader",1],["Swing","tempo · fader",1]],
+};
+function paintKnobs(kb){
+  const host = document.getElementById("knobs");
+  host.innerHTML = "";
+  KNOB_MAPS[kb].forEach(([name, group, fader], i) => {
+    const d = document.createElement("div"); d.className = "knob" + (fader ? " fader" : "");
+    const k = document.createElement("i"); k.style.setProperty("--r", (-120 + (i * 53) % 240) + "deg"); k.style.setProperty("--f", (20 + (i * 17) % 60) + "%");
+    const n = document.createElement("span"); n.textContent = name;
+    const g = document.createElement("small"); g.textContent = group;
+    d.append(k, n, g); host.appendChild(d);
+  });
+  document.querySelectorAll(".ctrl-switch button").forEach(b => { const on = b.dataset.kb === kb; b.classList.toggle("on", on); b.setAttribute("aria-pressed", String(on)); });
+}
+document.querySelectorAll(".ctrl-switch button").forEach(b => b.onclick = () => paintKnobs(b.dataset.kb));
+paintKnobs("mpk");
+
 // Mini sequencer: un groove boom-bap che scorre, solo luci (niente audio).
 const ROWS = [
   ["BD", "x.......x.x....."],

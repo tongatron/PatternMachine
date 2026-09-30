@@ -1046,6 +1046,8 @@
 .sr-cell.black{background:color-mix(in srgb, var(--panel-3) 45%, transparent);}
 .sr-cell.out{background:repeating-linear-gradient(135deg, transparent 0 4px, color-mix(in srgb, var(--edge-soft) 30%, transparent) 4px 5px);}
 .sr-cell.beat{border-left:1px solid var(--edge);}
+.sr-key.live{background:var(--accent); color:var(--on-accent);}
+.sr-cell.live{background:color-mix(in srgb, var(--accent) 16%, transparent);}
 .sr-cell.ph{background:color-mix(in srgb, var(--accent) 20%, transparent);}
 .sr-cell.note, .sr-cell.tie{background:var(--step-on, var(--led-on));}
 .sr-cell.note{border-radius:4px 0 0 4px; box-shadow:inset 2px 0 0 rgba(0,0,0,.25);}
@@ -1625,6 +1627,7 @@
     el("synRange").textContent = `${noteName(bottom)}–${noteName(top)}` + (above ? ` · ${above} above ↑` : "") + (below ? ` · ${below} below ↓` : "")
       + ` · ${all.length} ${all.length === 1 ? "note" : "notes"}`;
     paintTop();
+    paintKeys();
   }
   const cellAt = (x, y) => { const t = document.elementFromPoint(x, y); return t && t.closest ? t.closest("#synRoll .sr-cell") : null; };
   function wireRoll() {
@@ -1718,6 +1721,10 @@
   function paintKeys() {
     if (!built) return;
     el("synKbd").querySelectorAll("[data-n]").forEach(k => k.classList.toggle("on", held.has(+k.dataset.n)));
+    // la nota che si sta suonando si accende anche nel piano roll: nome a sinistra e tutta la riga
+    const roll = el("synRoll");
+    roll.querySelectorAll(".live").forEach(c => c.classList.remove("live"));
+    for (const n of held.keys()) roll.querySelectorAll(`[data-key="${n}"], .sr-cell[data-n="${n}"]`).forEach(c => c.classList.add("live"));
   }
   function wireKeyboard() {
     const box = el("synKbd");

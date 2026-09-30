@@ -313,6 +313,11 @@ label.fld input[type=number]{width:54px;}
 .pattern-btn.on{background:var(--key-primary,var(--accent)); color:var(--on-accent); border-color:var(--accent-dim); font-weight:700;}
 .pattern-btn.on .dot{box-shadow:0 0 0 1.5px var(--on-accent);}
 .pattern-btn.playing{outline:2px solid var(--led-accent); outline-offset:1px;}
+/* pulsante del pattern + "…" per rinominarlo, uniti in un solo tasto */
+.pattern-item{display:inline-flex; max-width:100%;}
+.pattern-item .pattern-btn{min-width:0; border-top-right-radius:0; border-bottom-right-radius:0;}
+.pattern-more{flex:0 0 auto; padding:7px 9px; font-size:12px; letter-spacing:0; border-left-color:var(--edge-soft,var(--edge)); border-top-left-radius:0; border-bottom-left-radius:0; margin-left:-1px;}
+.pattern-item.on .pattern-more{background:var(--key-primary,var(--accent)); color:var(--on-accent); border-color:var(--accent-dim); border-left-color:color-mix(in srgb, var(--on-accent) 40%, transparent);}
 #pVaryPanel[hidden]{display:none;}
 #pVary.on, #pVaryPanel .mini.on{
   background:var(--key-primary,var(--accent));
@@ -3088,7 +3093,13 @@ function renderPatterns(){
     const name=document.createElement("span"); name.className="pattern-btn-name"; name.textContent=`${i+1}. ${p.name}`;
     b.append(dot, name);
     b.onclick=()=>{ if(p.id===ui.patternId) return; resetGridVariationState(); ui.patternId=p.id; el("pLen").value=p.len; renderPatterns(); renderRuler(); renderTracks(); };
-    host.appendChild(b);
+    // "…" attaccato al pulsante: rinomina quel pattern senza doverlo prima scegliere
+    const more=document.createElement("button"); more.type="button"; more.className="pattern-more"; more.textContent="…";
+    more.title=`Rename “${p.name}”`; more.setAttribute("aria-label",`Rename ${p.name}`);
+    more.onclick=()=>renamePattern(p);
+    const item=document.createElement("span"); item.className="pattern-item"+(on?" on":"");
+    item.append(b, more);
+    host.appendChild(item);
   });
   const count=document.createElement("span"); count.className="tiny";
   count.textContent=`${project.patterns.length} ${project.patterns.length===1?"pattern":"patterns"}`;
@@ -4238,7 +4249,7 @@ async function renamePattern(p){
   if(clean===p.name) return;
   pushUndo();
   p.name=clean;
-  renderPatterns(); renderSong(); el("gridTitle").textContent="Grid — "+p.name;
+  renderPatterns(); renderSong(); el("gridTitle").textContent="Grid — "+curPattern().name;   // con "…" si puo' rinominare un pattern che non e' quello aperto
 }
 el("pRename").onclick=()=>renamePattern(curPattern());
 el("pClear").onclick=()=>{

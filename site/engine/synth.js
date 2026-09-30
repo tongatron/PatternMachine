@@ -1331,19 +1331,28 @@
     const cur = curSynth(), n = project.synthPatterns.length;
     el("synPatChips").innerHTML = project.synthPatterns.map((sp, i) => {
       const on = sp.id === cur.id;
-      return `<button type="button" class="pattern-btn${on ? " on" : ""}" data-id="${esc(sp.id)}" aria-pressed="${on}" title="${esc(sp.name)} · ${sp.len} step">`
-        + `<span class="dot" style="background:hsl(${synthHue(sp.id)} 65% 58%)"></span><span class="pattern-btn-name">${i + 1}. ${esc(sp.name)}</span></button>`;
+      return `<span class="pattern-item${on ? " on" : ""}"><button type="button" class="pattern-btn${on ? " on" : ""}" data-id="${esc(sp.id)}" aria-pressed="${on}" title="${esc(sp.name)} · ${sp.len} step">`
+        + `<span class="dot" style="background:hsl(${synthHue(sp.id)} 65% 58%)"></span><span class="pattern-btn-name">${i + 1}. ${esc(sp.name)}</span></button>`
+        + `<button type="button" class="pattern-more" data-rename="${esc(sp.id)}" title="Rename “${esc(sp.name)}”" aria-label="Rename ${esc(sp.name)}">…</button></span>`;
     }).join("") + `<span class="tiny">${n} synth ${n === 1 ? "pattern" : "patterns"}</span>`;
     lastPlayId = undefined;   // il ciclo di disegno rimette il contorno sul pattern che suona
     el("synPatLen").value = cur.len;
     el("synPatDel").disabled = n <= 1;
     el("synPatName").textContent = "— " + cur.name;
   }
+  // Dal tasto Rename (pattern aperto) o dal "…" accanto a ogni pattern.
+  async function renameSynth(sp) {
+    const name = await ask({ title: "Rename synth pattern", ok: "Rename", input: sp.name });
+    if (name === null || !name.trim() || name.trim() === sp.name) return;
+    pushUndo(); sp.name = name.trim().slice(0, 40); paintPatternBar();
+  }
   function selectSynth(id) {
     ui.synthId = id; paintPatternBar(); centerOn(curSynth()); renderRoll();
   }
   function bindPatternBar() {
     el("synPatChips").onclick = e => {
+      const more = e.target.closest(".pattern-more");
+      if (more) { const sp = synthById(more.dataset.rename); if (sp) renameSynth(sp); return; }
       const b = e.target.closest(".pattern-btn");
       if (b && b.dataset.id !== curSynth().id) selectSynth(b.dataset.id);
     };
@@ -1359,12 +1368,7 @@
       sp.synth = src.synth.map(n => ({ ...n }));
       project.synthPatterns.splice(project.synthPatterns.indexOf(src) + 1, 0, sp); selectSynth(sp.id);
     };
-    el("synPatRename").onclick = async () => {
-      const sp = curSynth();
-      const name = await ask({ title: "Rename synth pattern", ok: "Rename", input: sp.name });
-      if (name === null || !name.trim() || name.trim() === sp.name) return;
-      pushUndo(); sp.name = name.trim().slice(0, 40); paintPatternBar();
-    };
+    el("synPatRename").onclick = () => renameSynth(curSynth());
     el("synPatDel").onclick = async () => {
       if (project.synthPatterns.length <= 1) { setStatus("at least one synth pattern is needed", "err"); return; }
       const sp = curSynth(), used = project.synthSong.filter(b => b.synthId === sp.id).length;

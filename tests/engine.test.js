@@ -83,8 +83,12 @@ test("codici: formato e rifiuto di quelli invalidi", () => {
   const p = E.generate({ style: "dbeat", len: 16, section: "chorus", fill: false, seed: 0x7F3A9B });
   ok(p.code === "dbeat-16R-7F3A9B", "formato " + p.code);
   ok(E.decode("dbeat-16r-7f3a9b"), "minuscole accettate");
-  ["", "dbeat", "nope-16S-000000", "dbeat-24S-000000", "dbeat-16S-00000", "dbeat-16S-000000~XYZ"]
+  ["", "dbeat", "nope-16S-000000", "dbeat-20S-000000", "dbeat-16S-00000", "dbeat-16S-000000~XYZ"]
     .forEach(bad => ok(E.decode(bad) === null, "invalido accettato: " + bad));
+  for (const len of [8, 12, 18, 24, 36]) {
+    const q=E.generate({style:"dbeat",len,section:"verse",fill:false,seed:0x123456});
+    ok(q.roles.kick.length===len && E.fromCode(q.code).roles.kick.length===len, `nuova lunghezza ${len}`);
+  }
 });
 
 test("altri così: mutazioni riproducibili, vicine ma diverse", () => {

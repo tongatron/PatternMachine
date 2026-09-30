@@ -180,6 +180,24 @@
     const base = `${style}-${len}${section === "chorus" ? "R" : "S"}${fill ? "F" : ""}-${hex(seed, 6)}`;
     return [base, ...mutations.map(m => hex(m, 4))].join("~");
   }
+  const VALID_LENGTHS = new Set([8, 12, 16, 18, 24, 32, 36]);
+  // Gli stili storici ragionano in battute da 16 sedicesimi. Per le nuove
+  // risoluzioni si genera quella battuta e si ridisegna la griglia sul nuovo
+  // numero di suddivisioni: i codici 16/32 restano byte-per-byte invariati.
+  function resampleRoles(roles, fromLen, toLen) {
+    if(fromLen===toLen) return roles;
+    const out={};
+    Object.entries(roles).forEach(([role,src])=>{
+      const dst=zeros(toLen);
+      src.forEach((v,i)=>{
+        if(!v) return;
+        const j=Math.max(0,Math.min(toLen-1,Math.round(i*toLen/fromLen)));
+        dst[j]=Math.max(dst[j],v);
+      });
+      out[role]=dst;
+    });
+    return out;
+  }
   // Operazioni registrate da altri file (variations.js): ~V<lettera><seed a 4 cifre>.
   const OPS = {};
   function defineOp(letter, fn) { OPS[letter] = fn; }
@@ -193,9 +211,9 @@
   }
   function decode(code) {
     const [base, ...toks] = String(code).trim().split("~");
-    const m = /^([a-z0-9]+)-(16|32)([SR])(F?)-([0-9A-F]{6})$/i.exec(base || "");
+    const m = /^([a-z0-9]+)-([0-9]+)([SR])(F?)-([0-9A-F]{6})$/i.exec(base || "");
     const steps = toks.map(decodeStep);
-    if (!m || !STYLES[m[1].toLowerCase()] || steps.some(s => !s)) return null;
+    if (!m || !VALID_LENGTHS.has(+m[2]) || !STYLES[m[1].toLowerCase()] || steps.some(s => !s)) return null;
     return {
       opts: { style: m[1].toLowerCase(), len: +m[2], section: m[3].toUpperCase() === "R" ? "chorus" : "verse",
         fill: !!m[4], seed: parseInt(m[5], 16) },
@@ -216,7 +234,9 @@
   function generate(opts) {
     const st = STYLES[opts.style];
     if (!st) throw new Error("stile sconosciuto: " + opts.style);
-    const len = opts.len === 32 ? 32 : 16;
+    const requestedLen = VALID_LENGTHS.has(+opts.len) ? +opts.len : 16;
+    const len = requestedLen;
+    const nativeLen = len<=16 ? 16 : 32;
     const section = opts.section === "chorus" ? "chorus" : "verse";
     const seed = (opts.seed ?? randomSeed()) & 0xFFFFFF;
     const fill = !!opts.fill;
@@ -226,7 +246,7 @@
     if (allowed.length) variant = allowed.find(v => v.id === opts.variant) || r.weighted(allowed);
     const bpm = r.between(st.bpm);
     const swing = r.between(st.swing);
-    const c = makeCtx(len, section, r, variant);
+    const c = makeCtx(nativeLen, section, r, variant);
     st.gen(c);
     if (c.chorus && st.group === "groove") c.put("crash", 0, 2);
     if (fill) addFill(c, st.fills);
@@ -235,7 +255,7 @@
       style: st.id, group: st.group, variant: variant ? variant.id : "", section, fill,
       name: `${st.label} ${hex(seed, 6)}`, label: st.label, ref: st.ref,
       tag: `${bpm} bpm · ` + describe(section, fill, variant, c.note),
-      bpm, swing, len, roles: clean(c.R), feel: feelFor(st),
+      bpm, swing, len, roles: clean(resampleRoles(c.R,nativeLen,len)), feel: feelFor(st),
     };
   }
 
@@ -246,6 +266,7 @@
   // Piccole modifiche puntuali: sposta o toglie un colpo non accentato, oppure ne aggiunge uno
   // su un ottavo. Mai prima dello step 1 ne' dentro la finestra del fill.
   function pointMutations(roles, voices, r, safeEnd, count) {
+    if (safeEnd <= 2 || !voices.length) return;
     for (let n = count; n > 0 && voices.length; n--) {
       const arr = roles[r.pick(voices)];
       const i = r.int(1, safeEnd - 1);

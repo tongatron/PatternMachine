@@ -38,7 +38,7 @@ PATTERN_ID_RE = re.compile(r"^/api/patterns/([A-Za-z0-9\-]+)$")
 
 # Si serve solo cio' che fa parte del sito: server.py, mail.json, data/ e qualunque altro
 # file lasciato nella cartella (backup, appunti) restano fuori.
-STATIC_FILES = {"index.html", "landing.html", "funzioni.html", "macchine.html", "synth.html", "app.html", "plugin.html", "privacy.html", "manifest.json", "sw.js"}
+STATIC_FILES = {"index.html", "landing.html", "funzioni.html", "macchine.html", "synth.html", "app.html", "plugin.html", "embed.html", "privacy.html", "manifest.json", "sw.js"}
 # download/: le app (zip da ~100 MB) e app.json con versione e dimensione, scritti da desktop/scripts/release.sh;
 # il plug-in per Logic e plugin.json, scritti da plugin/scripts/release.sh.
 # learn/: il corso (lezioni e mini drum machine), come il resto del sito solo per chi ha l'accesso.
@@ -52,7 +52,7 @@ DOWNLOAD_PLATFORMS = {
 
 # Visibili senza password: servono al browser per installare la PWA e alle anteprime dei link;
 # landing.html presenta il progetto a chi non ha ancora un account (con le sue schermate).
-OPEN_PATHS = {"/landing.html", "/privacy.html", "/login", "/logout", "/register", "/forgot", "/reset", "/manifest.json", "/api/app-message", "/assets/og-sp1200.png", "/assets/og-drum-machine-lab.jpg", "/assets/patternmachine-preview.jpg"}
+OPEN_PATHS = {"/landing.html", "/embed.html", "/privacy.html", "/login", "/logout", "/register", "/forgot", "/reset", "/manifest.json", "/api/app-message", "/assets/og-sp1200.png", "/assets/og-drum-machine-lab.jpg", "/assets/patternmachine-preview.jpg"}
 OPEN_DIRS = ("/icons/", "/assets/landing/")
 
 # Dietro la password niente cache condivise (Cloudflare): "private" tiene la copia solo nel
@@ -869,7 +869,8 @@ class Handler(BaseHTTPRequestHandler):
 
     def _gate(self, path):
         """True se la richiesta puo' proseguire; altrimenti ha gia' risposto."""
-        if path in OPEN_PATHS or path.startswith(OPEN_DIRS) or self._authorized():
+        embed_home = path == "/" and parse_qs(urlparse(self.path).query).get("embed") == ["1"]
+        if path in OPEN_PATHS or embed_home or path.startswith(OPEN_DIRS) or self._authorized():
             return True
         if self.command == "GET" and path.startswith("/download/"):
             self._page(401, "Members-only download", """<div class="card">
@@ -1333,7 +1334,9 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(size))
         self.send_header("Cache-Control", "private, no-cache" if ext in NO_CACHE_EXT else LONG_CACHE)
         self.send_header("X-Content-Type-Options", "nosniff")
-        if ext == ".html":
+        parsed = urlparse(self.path)
+        embed_frame = rel == "embed.html" or (rel == "index.html" and parse_qs(parsed.query).get("embed") == ["1"])
+        if ext == ".html" and not embed_frame:
             self.send_header("X-Frame-Options", "DENY")
         self.end_headers()
         # a pezzi: lo zip dell'app non passa tutto dalla memoria

@@ -398,6 +398,8 @@ body.sound-view #liveKeysBtn{display:inline-flex; align-items:center;}
 .sample-card-actions{display:flex; gap:6px; align-items:center;}
 .sample-card-actions button{flex:1; min-height:32px; padding:6px 8px; font-size:10px;}
 .sample-card-actions .sample-stop{flex:0 0 auto;}
+.sample-card-actions + .sample-card-actions{margin-top:6px;}
+.sample-card-wave{cursor:zoom-in;}
 .sample-card-actions .icon-btn{flex:0 0 32px; padding:0;}
 @media (max-width:560px){.sampler-head{display:block;}.sampler-meter{text-align:left; margin-top:10px;}.sampler-title{font-size:20px;}.sampler-list{grid-template-columns:1fr;}}
 #machinePanel{padding-top:9px; padding-bottom:9px;}
@@ -1487,22 +1489,22 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-09-30.29"></script>
-<script src="engine/core.js?v=2026-09-30.29"></script>
-<script src="engine/styles-punk.js?v=2026-09-30.29"></script>
-<script src="engine/styles-post.js?v=2026-09-30.29"></script>
-<script src="engine/styles-machines.js?v=2026-09-30.29"></script>
-<script src="engine/styles-alt.js?v=2026-09-30.29"></script>
-<script src="engine/styles-groove.js?v=2026-09-30.29"></script>
-<script src="engine/styles-dub.js?v=2026-09-30.29"></script>
-<script src="engine/styles-break.js?v=2026-09-30.29"></script>
-<script src="engine/styles-soul.js?v=2026-09-30.29"></script>
-<script src="engine/styles-metal.js?v=2026-09-30.29"></script>
-<script src="engine/styles-electro.js?v=2026-09-30.29"></script>
-<script src="engine/variations.js?v=2026-09-30.29"></script>
-<script src="engine/import.js?v=2026-09-30.29"></script>
-<script src="engine/rhythm.js?v=2026-09-30.29"></script>
-<script src="engine/share.js?v=2026-09-30.29"></script>
+<script src="engine/machine-art.js?v=2026-09-30.30"></script>
+<script src="engine/core.js?v=2026-09-30.30"></script>
+<script src="engine/styles-punk.js?v=2026-09-30.30"></script>
+<script src="engine/styles-post.js?v=2026-09-30.30"></script>
+<script src="engine/styles-machines.js?v=2026-09-30.30"></script>
+<script src="engine/styles-alt.js?v=2026-09-30.30"></script>
+<script src="engine/styles-groove.js?v=2026-09-30.30"></script>
+<script src="engine/styles-dub.js?v=2026-09-30.30"></script>
+<script src="engine/styles-break.js?v=2026-09-30.30"></script>
+<script src="engine/styles-soul.js?v=2026-09-30.30"></script>
+<script src="engine/styles-metal.js?v=2026-09-30.30"></script>
+<script src="engine/styles-electro.js?v=2026-09-30.30"></script>
+<script src="engine/variations.js?v=2026-09-30.30"></script>
+<script src="engine/import.js?v=2026-09-30.30"></script>
+<script src="engine/rhythm.js?v=2026-09-30.30"></script>
+<script src="engine/share.js?v=2026-09-30.30"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -3844,7 +3846,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || document.getElementById("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-30.29";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-30.30";
   document.body.appendChild(s);
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth")) loadSynth();
@@ -6525,7 +6527,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-30.29";
+const SW_VERSION="2026-09-30.30";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -6549,9 +6551,10 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sampler.js?v=2026-09-30.29"></script>
+<script src="engine/sample-editor.js?v=2026-09-30.30"></script>
+<script src="engine/sampler.js?v=2026-09-30.30"></script>
 <script>PMSampler.init();</script>
-<script src="engine/midi.js?v=2026-09-30.29"></script>
+<script src="engine/midi.js?v=2026-09-30.30"></script>
 
 </body>
 </html>

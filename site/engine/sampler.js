@@ -1,5 +1,6 @@
 // Local browser sampler.
 // Audio blobs stay outside project JSON; they live locally and can optionally sync to the account.
+// Edit opens the full-screen editor (engine/sample-editor.js); Play on synth hands the sound to the synth (engine/synth.js).
 (function(){
   "use strict";
 
@@ -79,6 +80,7 @@
   function formatBytes(n){ if(!n) return "0 B"; return n<1024*1024 ? `${Math.max(1,Math.round(n/1024))} KB` : `${(n/1024/1024).toFixed(1)} MB`; }
   function formatDuration(seconds){
     if(!Number.isFinite(seconds)) return "—";
+    if(seconds<10) return seconds.toFixed(2)+" s";   // i suoni corti: 0.66 s, non 0:01
     const m=Math.floor(seconds/60), s=Math.round(seconds%60);
     return `${m}:${String(s).padStart(2,"0")}`;
   }
@@ -223,6 +225,7 @@
       top.append(name,del); card.appendChild(top);
       const meta=document.createElement("div"); meta.className="sample-card-meta"; meta.textContent=`${formatDuration(r.duration)} · ${formatBytes(r.size||0)} · local`; card.appendChild(meta);
       const canvas=document.createElement("canvas"); canvas.className="sample-card-wave"; canvas.setAttribute("aria-label",`Waveform of ${r.name}`); card.appendChild(canvas);
+      canvas.title="Double-click to open the editor"; canvas.ondblclick=()=>openEditor(r.id);
       const progressRow=document.createElement("div"); progressRow.className="sample-progress-row";
       const progress=document.createElement("progress"); progress.className="sample-progress"; progress.max=Math.max(.01,r.duration||0); progress.value=0; progress.setAttribute("aria-label",`Preview progress for ${r.name}`);
       const time=document.createElement("span"); time.className="sample-time"; time.textContent=`0:00 / ${formatDuration(r.duration)}`;
@@ -248,8 +251,12 @@
       const actions=document.createElement("div"); actions.className="sample-card-actions";
       const preview=document.createElement("button"); preview.type="button"; preview.className="mini sample-preview"; preview.textContent="▶ Preview"; preview.onclick=()=>previewSample(r.id);
       const stop=document.createElement("button"); stop.type="button"; stop.className="mini sample-stop"; stop.textContent="■ Stop"; stop.hidden=true; stop.onclick=()=>stopPreview();
+      const edit=document.createElement("button"); edit.type="button"; edit.className="mini sample-edit"; edit.textContent="✎ Edit"; edit.title="Open the sample full screen: trim, fades, normalize…"; edit.onclick=()=>openEditor(r.id);
+      actions.append(preview,stop,edit); card.appendChild(actions);
+      const actions2=document.createElement("div"); actions2.className="sample-card-actions";
       const assign=document.createElement("button"); assign.type="button"; assign.className="mini primary"; assign.textContent="＋ Add to grid"; assign.onclick=()=>assignSample(r.id);
-      actions.append(preview,stop,assign); card.appendChild(actions); list.appendChild(card);
+      const synth=document.createElement("button"); synth.type="button"; synth.className="mini"; synth.textContent="♪ Play on synth"; synth.title="Use this sound as the synth oscillator (Multi engine → Sample) and open the Synthesizer"; synth.onclick=()=>playOnSynth(r.id);
+      actions2.append(assign,synth); card.appendChild(actions2); list.appendChild(card);
       requestAnimationFrame(()=>drawWave(canvas,buffers.get(r.id)));
     });
   }
@@ -310,7 +317,7 @@
         setNote(`Analysing ${file.name}…`);
         const buffer=await decode(file), defaultName=fallbackName(file.name), name=await chooseName(defaultName);
         if(name===null){ setNote("Import cancelled"); continue; }
-        const id=`s-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,8)}`;
+        const id=newId();
         const r={id,name,blob:file,size:file.size,duration:buffer.duration,mime:file.type,createdAt:Date.now(),updatedAt:Date.now(),settings:defaultSettings()};
         await persistRecord(r); records.push(r); urls.set(id,URL.createObjectURL(file)); r.localUrl=urls.get(id); addEntry(r,buffer);
         setNote(`${r.name} added locally`);
@@ -359,6 +366,52 @@
     setNote(`${r.name} shape saved locally`);
     if(syncEnabled) syncServer();
   }
+  // ---------- editor e synth ----------
+  async function openEditor(id){
+    const r=records.find(x=>x.id===id), i=localIndex(id); if(!r || i<0) return setNote("Sample is not available",true);
+    if(!window.PMSampleEditor) return setNote("The editor is not available",true);
+    stopPreview();
+    try{ PMSampleEditor.open(editorTarget(r, buffers.get(id) || await loadBuffer(i))); }
+    catch(e){ setNote("Could not open the sample",true); }
+  }
+  function editorTarget(r,buffer){
+    return {name:r.name, buffer,
+      save:(blob,audio)=>replaceAudio(r.id,blob,audio),
+      saveAsNew:async(blob,audio,name)=>{ const n=await addRecord(blob,audio,name); return {name:n.name, save:(b,a)=>replaceAudio(n.id,b,a)}; }};
+  }
+  function newId(){ return `s-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,8)}`; }
+  async function addRecord(blob,audio,name){
+    if(recordSize()+blob.size>MAX_BYTES) throw new Error("Local sampler limit reached: 20 MB");
+    const id=newId(), r={id,name:fallbackName(name),blob,size:blob.size,duration:audio.duration,mime:blob.type,createdAt:Date.now(),updatedAt:Date.now(),settings:defaultSettings()};
+    await persistRecord(r); records.push(r); urls.set(id,URL.createObjectURL(blob)); r.localUrl=urls.get(id); addEntry(r,audio);
+    render(); refreshEngine(); setNote(`${r.name} added locally`); if(syncEnabled) syncServer();
+    return r;
+  }
+  // Save dall'editor: stesso id, quindi le righe della griglia e il synth che usano il campione suonano la versione nuova.
+  async function replaceAudio(id,blob,audio){
+    const r=records.find(x=>x.id===id); if(!r) throw new Error("Sample is not available");
+    if(recordSize()-(r.size||0)+blob.size>MAX_BYTES) throw new Error("Local sampler limit reached: 20 MB");
+    const lengthChanged=Math.abs((r.duration||0)-audio.duration)>1e-4;
+    Object.assign(r,{blob,size:blob.size,duration:audio.duration,mime:"audio/wav",updatedAt:Date.now()});
+    if(lengthChanged) r.settings={...settingsOf(r),start:0};    // lo Start in % si riferiva al suono di prima
+    await persistRecord(r);
+    if(urls.has(id)) URL.revokeObjectURL(urls.get(id));
+    urls.set(id,URL.createObjectURL(blob)); r.localUrl=urls.get(id);
+    const s=addEntry(r,audio); Object.assign(s,{duration:r.duration,size:r.size,settings:settingsOf(r)});
+    buffers.set(id,audio);
+    const key="local:"+id;
+    if(typeof bufferCache!=="undefined") bufferCache.set(key,audio);
+    if(typeof revCache!=="undefined") revCache.delete(key);
+    window.PMSynth?.refreshSample?.(key);
+    render(); refreshEngine(); setNote(`${r.name} saved`);
+    if(syncEnabled) syncServer();
+    return true;
+  }
+  function playOnSynth(id){
+    if(localIndex(id)<0) return setNote("Sample is not available",true);
+    if(!window.PMSynth?.useSample) return setNote("The synth is not available",true);
+    stopPreview(); PMSynth.useSample("local:"+id);
+  }
   async function rename(id,name){
     const r=records.find(x=>x.id===id); if(!r) return;
     r.name=fallbackName(name);
@@ -406,5 +459,5 @@
     try{ if(!desktop) await openDb(); bind(); await hydrate(); if(syncEnabled&&!desktop) syncServer(); }
     catch(e){ setNote("Local sample storage is unavailable in this browser",true); $("samplerFile").disabled=true; $("samplerRecord").disabled=true; }
   }
-  window.PMSampler={init};
+  window.PMSampler={init,openEditor};
 })();

@@ -22,6 +22,8 @@ cd "$(dirname "$0")/.."
 
 echo "== test"
 node tests/engine.test.js | tail -1
+node tests/synth.test.js | tail -1
+node tests/sample-editor.test.js | tail -1
 python3 tests/server_test.py | tail -1
 python3 tests/site_test.py
 

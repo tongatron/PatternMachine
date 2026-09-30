@@ -1506,6 +1506,26 @@
     pushParams();
     if (!quiet && node) queueMicrotask(() => sendSample(ref).then(() => { if (!playing) preview(params().sRoot ?? 60); }));
   }
+  // Dal Sampler (pulsante Play on synth): il campione diventa l'oscillatore, da solo nel mixer, e si apre il Synthesizer.
+  function useSample(ref) {
+    if (!allowed) return false;
+    pushUndo();
+    const s = ensure();
+    if (engineOf() === "tone") { stopTone(); s.engine = "custom"; }
+    Object.assign(s.params, { mType: "sample", o1Lvl: 0, o2Lvl: 0, mLvl: s.params.mLvl || 90 });
+    pickSample(ref, true);
+    setView("synth");
+    ensureAudio().then(() => { pushParams(); return sendSample(ref); }).then(() => { if (!playing) preview(params().sRoot ?? 60); }).catch(() => {});
+    setStatus("synth: plays " + sampleName(ref));
+    return true;
+  }
+  // Il campione e' stato modificato nell'editor: il worklet deve ricevere la versione nuova.
+  function refreshSample(ref) {
+    samplesSent.delete(ref); samplesReady.delete(ref);
+    const p = params();
+    if (node && p.mType === "sample" && p.mSample === ref) sendSample(ref);
+    if (built && synthVisible()) renderParams();
+  }
   function setParam(k, v, undo) {
     if (undo) pushUndo();
     ensure().params[k] = v;
@@ -1796,7 +1816,8 @@
     unitsSent: [...unitsSent], unitsReady: [...unitsReady], unitErrors: unitErrors.slice(-3),
     samplesSent: [...samplesSent.keys()], samplesReady: [...samplesReady] });
 
-  window.PMSynth = { step, allOff, show, paint: paintTop, setAllowed, renderOffline, hasNotes, exportMidi, level, debug, midiNote, knob, knobTargets, currentPattern: () => curSynth() };
+  window.PMSynth = { step, allOff, show, paint: paintTop, setAllowed, renderOffline, hasNotes, exportMidi, level, debug, midiNote, knob, knobTargets, currentPattern: () => curSynth(),
+    useSample, refreshSample };
   setAllowed(true);
   window.paintGroupMS?.();   // M/S del synth nel trasporto: compaiono ora che il synth c'e'
 })();

@@ -1037,7 +1037,6 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       <span class="project-name-wrap"><input type="text" id="projectName" value="Untitled" placeholder="Project name" style="width:210px; max-width:100%;"><span id="saveState" class="save-state" aria-live="polite">saved ✓</span></span>
       <div class="project-buttons">
         <button id="saveBtn" class="primary">Save</button>
-        <button id="shareBtn">Share</button>
         <button id="newBtn">New</button>
         <button id="undoBtn" title="Undo the last change (⌘Z)" aria-label="Undo" disabled>↶ Undo</button>
         <button id="redoBtn" title="Redo what you undid (⌘⇧Z)" aria-label="Redo" disabled>↷ Redo</button>
@@ -5144,7 +5143,6 @@ function setStatus(msg,kind){
 }
 
 el("saveBtn").onclick=()=>saveProject(false);
-el("shareBtn").onclick=()=>copyProjectLink(false);
 el("embedBtn").onclick=showEmbedDialog;
 el("copyEmbedUrl").onclick=()=>copyPlainText(el("embedUrl").value,"embed URL");
 el("embedCode").onclick=()=>{ el("embedCode").focus(); el("embedCode").select(); };

@@ -2333,11 +2333,12 @@ async function play(){
     const i=project.song.findIndex(b=>b.id===ui.songSoloBlockId);
     if(i>=0) cursor.blockIndex=i;
   }
-  barCount=1; queue=[]; waveShadow={};
+  barCount=1; queue=[]; resetWaveRecording();
   project.tracks.forEach(t=>loadBuffer(t.sampleIndex));
   nextTime=ctx.currentTime+0.06;
   timer=setInterval(scheduler,25);
   paintTransport();
+  paintWaveforms();
 }
 function stop(){
   playing=false;
@@ -3372,9 +3373,51 @@ function waveSeries(kind){
   }
   return out;
 }
-const waveCache=new Map();
-let waveShadow={};
+const WAVE_POINTS=720;
+const waveCache=new Map(), waveRecord=new Map(), waveAnalyserData=new WeakMap();
+let waveShadow={}, waveCapture=null;
 const waveClamp=(n,a=0,b=1)=>Math.max(a,Math.min(b,n));
+function waveBuffer(kind){
+  let b=waveRecord.get(kind);
+  if(!b){ b=new Float32Array(WAVE_POINTS); waveRecord.set(kind,b); }
+  return b;
+}
+function resetWaveRecording(){
+  waveRecord.forEach(b=>b.fill(0));
+  waveShadow={};
+  waveCapture={mode:ui.mode, last:null, lastIndex:null, done:false};
+}
+function waveAnalyser(kind){
+  const m=audioCtx&&mixBuses.get(audioCtx); if(!m) return null;
+  if(kind==="mix") return m.an;
+  if(kind==="synth") return m.ch.get("synth")?.an||m.an;
+  return m.drumsAn;
+}
+function waveLevel(kind){
+  const a=waveAnalyser(kind); if(!a) return null;
+  let data=waveAnalyserData.get(a);
+  if(!data){ data=new Uint8Array(a.fftSize); waveAnalyserData.set(a,data); }
+  a.getByteTimeDomainData(data);
+  let sum=0, peak=0;
+  for(const sample of data){ const v=Math.abs(sample-128)/128; sum+=v*v; peak=Math.max(peak,v); }
+  return Math.min(1,Math.max(Math.sqrt(sum/data.length)*5.5,peak*1.8));
+}
+function recordWave(kind,p){
+  if(!waveCapture || waveCapture.done || !playing || waveCapture.mode!==ui.mode) return;
+  const previous=waveCapture.last;
+  if(previous!==null && p+0.05<previous){ waveCapture.done=true; return; }
+  const level=waveLevel(kind); if(level===null) return;
+  const b=waveBuffer(kind), ix=Math.max(0,Math.min(WAVE_POINTS-1,Math.round(p*(WAVE_POINTS-1))));
+  if(waveCapture.lastIndex!==null){
+    const from=waveCapture.lastIndex, span=Math.max(1,Math.abs(ix-from));
+    for(let i=0;i<=span;i++){
+      const at=from+(ix>=from?i:-i), mix=i/span, v=waveCapture.lastLevel+(level-waveCapture.lastLevel)*mix;
+      if(at>=0&&at<WAVE_POINTS) b[at]=Math.max(b[at],v);
+    }
+  }else b[ix]=Math.max(b[ix],level);
+  waveCapture.last=p; waveCapture.lastIndex=ix; waveCapture.lastLevel=level;
+  if(waveCapture.mode==="song" && p>=.999) waveCapture.done=true;
+}
 function waveShape(c,data,W,H,last=data.length-1){
   c.beginPath();
   for(let i=0;i<=last;i++){
@@ -3416,6 +3459,7 @@ function paintWaveAnimation(){
   const now=audioCtx?.currentTime||0;
   waveCache.forEach((w,kind)=>{
     const p=waveProgress(kind,now); if(p==null) return;
+    recordWave(kind,p);
     drawWaveBase(w);
     const x=waveClamp(p)*w.W;
     w.c.save();
@@ -3438,7 +3482,7 @@ function paintWave(id,caption,kind){
   const rect=cv.getBoundingClientRect(), dpr=window.devicePixelRatio||1, W=Math.max(320,Math.round(rect.width||720)), H=124;
   cv.width=W*dpr; cv.height=H*dpr; const c=cv.getContext("2d"); c.scale(dpr,dpr);
   const cs=getComputedStyle(document.documentElement), edge=cs.getPropertyValue("--edge-soft").trim()||"#666", accent=cs.getPropertyValue("--accent").trim()||"#e65c2f", text=cs.getPropertyValue("--text-faint").trim()||"#888";
-  const w={c,data:waveSeries(kind),W,H,edge,accent,text}; waveCache.set(kind,w); drawWaveBase(w);
+  const w={c,data:waveBuffer(kind),W,H,edge,accent,text}; waveCache.set(kind,w); drawWaveBase(w);
   const cap=el(caption); if(cap) cap.textContent=kind==="drums"?`selected · ${curPattern().name}`:kind==="synth"?`selected · ${window.PMSynth?.currentPattern?.()?.name||"synth pattern"}`:kind==="sequencer"?`${project.song.length} blocks · song arrangement`:"complete mix";
 }
 function paintWaveforms(){

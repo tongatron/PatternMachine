@@ -81,6 +81,16 @@ Pulsante **Chop…** nel gruppo Cut dell'editor: lavora sulla selezione o su tut
   "code" o "taglio"; si apre nell'editor. Usa `renderWav(which, loops, {drums, synth})` dell'export WAV (`makeZip`
   non si tocca).
 
+### 3b. Voce sulla canzone
+- [x] **● Record vocal** nel Sequencer (`site/engine/vocal.js`): il microfono registra mentre la canzone suona
+  (dall'inizio o dalla battuta scelta sulla timeline, count-in di 1 o 2 battute, senza il blocco in solo); cattura
+  con un AudioWorklet nello stesso AudioContext del Play, quindi la ripresa si allinea a `nextTime`; latenza
+  automatica (uscita + ingresso) o a mano, anche dopo la ripresa. Ascolto con la canzone, livello della voce e
+  salvataggio nel Sampler: solo voce (mono, dal primo colpo) o voce + canzone (`renderWav`). Usa `play()`,
+  `stop()` e `nextTime` senza cambiarli.
+- [ ] Più riprese sulla stessa canzone (comping) e una corsia audio nel Sequencer che le suona al loro posto.
+- [ ] Attacco prima del primo colpo (le note in levare durante il count-in oggi restano fuori).
+
 ### 4. Suono per riga, in tempo reale
 Tocca `trigger()`, che l'app desktop sostituisce: l'app andrà allineata al suo prossimo aggiornamento.
 - [ ] Filtro multimodo per riga (passa-alto e passa-banda oltre al passa-basso).

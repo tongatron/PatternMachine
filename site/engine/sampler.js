@@ -3,6 +3,7 @@
 // Edit opens the full-screen editor (engine/sample-editor.js); Play on synth hands the sound to the synth (engine/synth.js).
 // Chop in the editor cuts a sound into slices: new samples, and with "Slices → grid" one row each plus a pattern.
 // Resample renders the beat as it sounds (the WAV export's offline render) into a new sample.
+// The vocal recorded over the song in the Sequencer (engine/vocal.js) arrives here through PMSampler.add.
 (function(){
   "use strict";
 
@@ -649,5 +650,6 @@
     try{ if(!desktop) await openDb(); bind(); await hydrate(); if(syncEnabled&&!desktop) syncServer(); }
     catch(e){ setNote("Local sample storage is unavailable in this browser",true); $("samplerFile").disabled=true; $("samplerRecord").disabled=true; $("samplerResampleBtn").disabled=true; }
   }
-  window.PMSampler={init,openEditor};
+  // add, room e menu servono alla voce del Sequencer (engine/vocal.js)
+  window.PMSampler={init,openEditor,add:addRecord,room:()=>MAX_BYTES-recordSize(),menu:siteMenu};
 })();

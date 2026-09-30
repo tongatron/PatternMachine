@@ -412,6 +412,18 @@ body.sound-view #liveKeysBtn{display:inline-flex; align-items:center;}
 .resample-foot{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px 14px; margin-top:10px;}
 .resample-info{font-size:10px; color:var(--text-dim); font-variant-numeric:tabular-nums;}
 .resample-info.err{color:var(--danger);}
+.vocal-panel{margin:0 0 10px;}
+.vocal-level{display:flex; align-items:center; gap:8px; min-height:36px;}
+.vocal-meter{position:relative; width:150px; height:8px; border:1px solid var(--edge); border-radius:2px; background:var(--panel-2,rgba(0,0,0,.08)); overflow:hidden;}
+.vocal-meter i{position:absolute; left:0; top:0; bottom:0; width:0; background:var(--ok,#3aa655);}
+.vocal-meter i.hot{background:var(--danger);}
+.vocal-level output, .vocal-range output{min-width:52px; font-size:10px; letter-spacing:0; text-transform:none; color:var(--text-dim); font-variant-numeric:tabular-nums;}
+.vocal-range{display:flex; align-items:center; gap:8px; min-height:36px;}
+.vocal-range input{width:150px;}
+.vocal-take{margin-top:10px;}
+.vocal-take canvas{display:block; width:100%; height:56px; margin-bottom:10px; border:1px solid var(--edge-soft); border-radius:var(--r-key,6px);}
+#vocalRec.on{background:var(--danger); border-color:var(--danger); color:#fff;}
+#vocalRec.on .rec-dot{color:#fff; animation:pm-record-pulse 1s infinite;}
 .sampler-list{display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:8px;}
 .sampler-empty{grid-column:1/-1; padding:20px 16px; border:1px solid var(--edge-soft); border-radius:var(--r-panel,8px); color:var(--text-faint); text-align:center; font-size:11px;}
 .sample-card{position:relative; min-width:0; padding:10px; background:linear-gradient(145deg,var(--panel-2),var(--panel)); border:1px solid var(--edge); border-radius:var(--r-panel,8px); box-shadow:var(--shadow);}
@@ -1247,6 +1259,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       <select id="seqPattern"></select>
       <button id="sAdd" class="mini primary">+ Insert</button>
       <button id="sPlay" class="mini" title="Play the song from the start" aria-label="Play the song from the start">▶ From the start</button>
+      <button id="vocalBtn" class="mini" type="button" aria-expanded="false" aria-controls="vocalPanel" title="Record your voice over the song and keep it as a sample"><span class="rec-dot" aria-hidden="true">●</span> Record vocal</button>
       <button id="seqRename" class="mini" title="Rename the pattern used by the selected block">Rename pattern</button>
       <button id="sDup" class="mini">Duplicate</button>
       <button id="sLeft" class="mini" title="Move left">&larr;</button>
@@ -1254,6 +1267,29 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       <button id="sDel" class="mini danger">Remove</button>
       <button id="seqClear" class="mini danger">Clear</button>
       <span class="tiny" id="songInfo" style="margin-left:auto;"></span>
+    </div>
+    <div class="sampler-resample vocal-panel" id="vocalPanel" role="group" aria-label="Record vocal" hidden>
+      <p><b>Record vocal</b>Sing or play over the song: the take is lined up with the beat and can be kept in the Sampler. Use headphones, so the microphone does not pick up the beat.</p>
+      <div class="resample-fields">
+        <div class="resample-field">Microphone <div id="vocalInput"></div></div>
+        <div class="resample-field">Level <span class="vocal-level"><span class="vocal-meter"><i id="vocalMeter"></i></span><output id="vocalMeterDb">off</output></span></div>
+        <div class="resample-field">Start <div class="resample-seg" id="vocalFrom" role="group" aria-label="Where the recording starts"><button type="button" data-from="start">From the start</button><button type="button" data-from="pos" title="Click the timeline to choose the bar">From bar 1</button></div></div>
+        <div class="resample-field">Count-in <div class="resample-seg" id="vocalCount" role="group" aria-label="Count-in"><button type="button" data-count="0">Off</button><button type="button" data-count="1">1 bar</button><button type="button" data-count="2">2 bars</button></div></div>
+        <label title="How late the voice arrives: output plus microphone. Raise it if the take sounds late, lower it if early. Double-click: automatic">Latency <span class="vocal-range"><input type="range" id="vocalLatency" min="0" max="400" step="1"><output id="vocalLatencyOut">0 ms</output></span></label>
+      </div>
+      <div class="vocal-take" id="vocalTake" hidden>
+        <canvas id="vocalWave" height="56" aria-label="Waveform of the take"></canvas>
+        <div class="resample-fields">
+          <label>Voice level <span class="vocal-range"><input type="range" id="vocalGain" min="0" max="200" step="1" value="100"><output id="vocalGainOut">100%</output></span></label>
+          <div class="resample-field">Save <div class="resample-seg" id="vocalWhat" role="group" aria-label="What to save"><button type="button" data-what="voice" title="Only the voice, mono, starting on the first beat">Voice only</button><button type="button" data-what="mix" title="The voice over the song, stereo">Voice + song</button></div></div>
+          <label>Name <input type="text" id="vocalName" maxlength="60" autocomplete="off"></label>
+          <label class="resample-check"><input type="checkbox" id="vocalEdit"> Open it in the editor</label>
+        </div>
+      </div>
+      <div class="resample-foot">
+        <span class="resample-info" id="vocalInfo" role="status" aria-live="polite"></span>
+        <span class="flexline"><button type="button" id="vocalClose">Close</button> <button type="button" id="vocalListen" hidden>▶ Listen with the song</button> <button type="button" id="vocalRec" class="sampler-record"><span class="rec-dot" aria-hidden="true">●</span> Record</button> <button type="button" id="vocalSave" class="primary" hidden>Save as sample</button></span>
+      </div>
     </div>
     <div class="tl-info">
       <span class="tl-time" id="tlTime">0:00 / 0:00</span>
@@ -1568,22 +1604,22 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-09-30.40"></script>
-<script src="engine/core.js?v=2026-09-30.40"></script>
-<script src="engine/styles-punk.js?v=2026-09-30.40"></script>
-<script src="engine/styles-post.js?v=2026-09-30.40"></script>
-<script src="engine/styles-machines.js?v=2026-09-30.40"></script>
-<script src="engine/styles-alt.js?v=2026-09-30.40"></script>
-<script src="engine/styles-groove.js?v=2026-09-30.40"></script>
-<script src="engine/styles-dub.js?v=2026-09-30.40"></script>
-<script src="engine/styles-break.js?v=2026-09-30.40"></script>
-<script src="engine/styles-soul.js?v=2026-09-30.40"></script>
-<script src="engine/styles-metal.js?v=2026-09-30.40"></script>
-<script src="engine/styles-electro.js?v=2026-09-30.40"></script>
-<script src="engine/variations.js?v=2026-09-30.40"></script>
-<script src="engine/import.js?v=2026-09-30.40"></script>
-<script src="engine/rhythm.js?v=2026-09-30.40"></script>
-<script src="engine/share.js?v=2026-09-30.40"></script>
+<script src="engine/machine-art.js?v=2026-09-30.41"></script>
+<script src="engine/core.js?v=2026-09-30.41"></script>
+<script src="engine/styles-punk.js?v=2026-09-30.41"></script>
+<script src="engine/styles-post.js?v=2026-09-30.41"></script>
+<script src="engine/styles-machines.js?v=2026-09-30.41"></script>
+<script src="engine/styles-alt.js?v=2026-09-30.41"></script>
+<script src="engine/styles-groove.js?v=2026-09-30.41"></script>
+<script src="engine/styles-dub.js?v=2026-09-30.41"></script>
+<script src="engine/styles-break.js?v=2026-09-30.41"></script>
+<script src="engine/styles-soul.js?v=2026-09-30.41"></script>
+<script src="engine/styles-metal.js?v=2026-09-30.41"></script>
+<script src="engine/styles-electro.js?v=2026-09-30.41"></script>
+<script src="engine/variations.js?v=2026-09-30.41"></script>
+<script src="engine/import.js?v=2026-09-30.41"></script>
+<script src="engine/rhythm.js?v=2026-09-30.41"></script>
+<script src="engine/share.js?v=2026-09-30.41"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -4070,7 +4106,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || document.getElementById("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-30.40";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-30.41";
   document.body.appendChild(s);
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth")) loadSynth();
@@ -6767,7 +6803,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-30.40";
+const SW_VERSION="2026-09-30.41";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -6791,10 +6827,11 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sample-editor.js?v=2026-09-30.40"></script>
-<script src="engine/sampler.js?v=2026-09-30.40"></script>
-<script>PMSampler.init();</script>
-<script src="engine/midi.js?v=2026-09-30.40"></script>
+<script src="engine/sample-editor.js?v=2026-09-30.41"></script>
+<script src="engine/sampler.js?v=2026-09-30.41"></script>
+<script src="engine/vocal.js?v=2026-09-30.41"></script>
+<script>PMSampler.init(); PMVocal.init();</script>
+<script src="engine/midi.js?v=2026-09-30.41"></script>
 
 </body>
 </html>

@@ -1443,7 +1443,7 @@
     }
     return row;
   }
-  // Menu Sound, come il menu Instrument della batteria: solo i suoni delle righe attive. Il suono scelto resta anche se
+  // Menu Sound, come il menu Instrument della batteria: i suoni delle righe attive e i campioni del Sampler. Il suono scelto resta anche se
   // poi la riga cambia suono o si carica un'altra macchina (compare sotto "Current sound").
   function sampleControl(spec) {
     const row = document.createElement("div");            // non un <label>: il clic sull'etichetta premerebbe il primo suono
@@ -1463,12 +1463,16 @@
     };
     const head = text => { const h = document.createElement("div"); h.className = "export-head"; h.textContent = text; return h; };
     const fill = () => {
-      const now = params().mSample, rows = window.synthSampleList?.() || [];
+      const now = params().mSample, { rows = [], sampler = [] } = window.synthSampleList?.() || {};
       list.innerHTML = "";
       list.appendChild(head("Drum rows"));
       rows.forEach(x => list.appendChild(button(x.ref, x.row + ". " + x.name, x.ref === now)));
       if (!rows.length) { const e = document.createElement("div"); e.className = "syn-note"; e.textContent = "No drum rows yet: add one in the grid."; list.appendChild(e); }
-      if (now && !rows.some(x => x.ref === now)) {
+      if (sampler.length) {
+        list.appendChild(head("Sampler"));
+        sampler.forEach(x => list.appendChild(button(x.ref, x.name, x.ref === now)));
+      }
+      if (now && ![...rows, ...sampler].some(x => x.ref === now)) {
         const i = window.synthSampleInfo?.(now);
         list.appendChild(head("Current sound"));
         list.appendChild(button(now, i ? i.name + (i.kitLabel ? " · " + i.kitLabel : "") : sampleName(now) + " (missing)", true));
@@ -1489,7 +1493,7 @@
   function startSample() {
     const s = ensure(), p = s.params;
     if (!p.mSample || !window.synthSampleInfo?.(p.mSample)) {
-      const rows = window.synthSampleList?.() || [], kick = rows.find(x => /^Kick/.test(x.slot)) || rows[0];
+      const rows = window.synthSampleList?.().rows || [], kick = rows.find(x => /^Kick/.test(x.slot)) || rows[0];
       if (kick) pickSample(kick.ref, true);
     }
     if (!p.mLvl) p.mLvl = 90;

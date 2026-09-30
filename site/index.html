@@ -1487,22 +1487,22 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-09-30.26"></script>
-<script src="engine/core.js?v=2026-09-30.26"></script>
-<script src="engine/styles-punk.js?v=2026-09-30.26"></script>
-<script src="engine/styles-post.js?v=2026-09-30.26"></script>
-<script src="engine/styles-machines.js?v=2026-09-30.26"></script>
-<script src="engine/styles-alt.js?v=2026-09-30.26"></script>
-<script src="engine/styles-groove.js?v=2026-09-30.26"></script>
-<script src="engine/styles-dub.js?v=2026-09-30.26"></script>
-<script src="engine/styles-break.js?v=2026-09-30.26"></script>
-<script src="engine/styles-soul.js?v=2026-09-30.26"></script>
-<script src="engine/styles-metal.js?v=2026-09-30.26"></script>
-<script src="engine/styles-electro.js?v=2026-09-30.26"></script>
-<script src="engine/variations.js?v=2026-09-30.26"></script>
-<script src="engine/import.js?v=2026-09-30.26"></script>
-<script src="engine/rhythm.js?v=2026-09-30.26"></script>
-<script src="engine/share.js?v=2026-09-30.26"></script>
+<script src="engine/machine-art.js?v=2026-09-30.27"></script>
+<script src="engine/core.js?v=2026-09-30.27"></script>
+<script src="engine/styles-punk.js?v=2026-09-30.27"></script>
+<script src="engine/styles-post.js?v=2026-09-30.27"></script>
+<script src="engine/styles-machines.js?v=2026-09-30.27"></script>
+<script src="engine/styles-alt.js?v=2026-09-30.27"></script>
+<script src="engine/styles-groove.js?v=2026-09-30.27"></script>
+<script src="engine/styles-dub.js?v=2026-09-30.27"></script>
+<script src="engine/styles-break.js?v=2026-09-30.27"></script>
+<script src="engine/styles-soul.js?v=2026-09-30.27"></script>
+<script src="engine/styles-metal.js?v=2026-09-30.27"></script>
+<script src="engine/styles-electro.js?v=2026-09-30.27"></script>
+<script src="engine/variations.js?v=2026-09-30.27"></script>
+<script src="engine/import.js?v=2026-09-30.27"></script>
+<script src="engine/rhythm.js?v=2026-09-30.27"></script>
+<script src="engine/share.js?v=2026-09-30.27"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -1856,16 +1856,18 @@ function loadBuffer(i){
 // Suoni per l'oscillatore Sample del synth (engine/synth.js). Riferimento: "kit:<macchina>/<slot>" (slot come in
 // SAMPLES, vale anche se ora e' caricata un'altra macchina) oppure "local:<id>" (campione del sampler locale).
 const synthSampleRef = i => SAMPLES[i]?.local ? "local:"+SAMPLES[i].localId : "kit:"+sampleSet+"/"+SAMPLES[i].name;
-// I suoni delle righe della batteria, come nel menu Instrument: {ref, name, row (1..), slot}; una riga per suono.
+// rows: i suoni delle righe della batteria, come nel menu Instrument ({ref, name, row (1..), slot}, una volta per suono);
+// sampler: i campioni del Sampler che non sono gia' su una riga ({ref, name}).
 function synthSampleList(){
-  const out=[], seen=new Set();
+  const rows=[], sampler=[], seen=new Set();
   project.tracks.forEach((t,r)=>{
     if(!sampleAvailable(t.sampleIndex)) return;
     const ref=synthSampleRef(t.sampleIndex);
     if(seen.has(ref)) return;
-    seen.add(ref); out.push({ref, name:sampleLabel(t.sampleIndex), row:r+1, slot:SAMPLES[t.sampleIndex].name});
+    seen.add(ref); rows.push({ref, name:sampleLabel(t.sampleIndex), row:r+1, slot:SAMPLES[t.sampleIndex].name});
   });
-  return out;
+  SAMPLES.forEach((s,i)=>{ if(s.local && sampleAvailable(i) && !seen.has(synthSampleRef(i))) sampler.push({ref:synthSampleRef(i), name:s.name}); });
+  return {rows, sampler};
 }
 function synthSampleInfo(ref){
   const k=/^kit:([^/]+)\/(.+)$/.exec(ref||""), l=/^local:(.+)$/.exec(ref||"");
@@ -3841,7 +3843,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || document.getElementById("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-30.26";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-30.27";
   document.body.appendChild(s);
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth")) loadSynth();
@@ -6522,7 +6524,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-30.26";
+const SW_VERSION="2026-09-30.27";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -6546,9 +6548,9 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sampler.js?v=2026-09-30.26"></script>
+<script src="engine/sampler.js?v=2026-09-30.27"></script>
 <script>PMSampler.init();</script>
-<script src="engine/midi.js?v=2026-09-30.26"></script>
+<script src="engine/midi.js?v=2026-09-30.27"></script>
 
 </body>
 </html>

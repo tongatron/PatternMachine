@@ -1050,7 +1050,7 @@
 .syn-gen-grid{display:grid; grid-template-columns:1fr 1fr; gap:4px;}
 .syn-gen-grid button{font-size:10.5px; padding:6px 8px;}
 .syn-gen-grid button{min-width:0; white-space:normal;}
-#synGenAgain{min-height:42px; padding:11px 18px; font-size:13.5px;}
+#synGenAgain{min-height:0; padding:6px 10px; font-size:10.5px;}
 .syn-pattern-actions{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px;}
 .syn-pattern-actions .syn-pattern-group{display:flex; flex-wrap:wrap; gap:6px;}
 .syn-pattern-actions button{min-width:92px;}

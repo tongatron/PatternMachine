@@ -1108,6 +1108,7 @@
 .syn-gen-grid button{font-size:10.5px; padding:6px 8px;}
 .syn-gen-grid button{min-width:0; white-space:normal;}
 #synGenAgain{min-height:0; padding:6px 10px; font-size:10.5px;}
+#synPatChips{align-items:center; gap:7px;}
 .syn-pattern-actions{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px;}
 .syn-pattern-actions .syn-pattern-group{display:flex; flex-wrap:wrap; gap:6px;}
 .syn-pattern-actions button{min-width:92px;}
@@ -1139,11 +1140,7 @@
       </div>`;
     el("synthPatternPanel").innerHTML = `
       <h2>Pattern</h2>
-      <div class="chips" id="synPatChips">
-        <span class="dot pattern-dot" id="synPatDot"></span>
-        <select id="synPatSel" class="pattern-select" aria-label="Synth pattern to edit"></select>
-        <span class="tiny" id="synPatCount"></span>
-      </div>
+      <div class="chips" id="synPatChips" role="group" aria-label="Synth pattern to edit"></div>
       <div class="flexline">
         <button id="synPatBrowse" class="mini primary" type="button" title="Suggestions from the generators: listen and apply">✦ Generate</button>
         <button id="synPatNew" class="mini" type="button" title="A new empty synth pattern">+ New</button>
@@ -1328,14 +1325,16 @@
   }
 
   // ---------- pattern del synth (come il pannello Pattern di Drum Grid) ----------
+  // Un pulsante per pattern, come in Drum Grid: quello scelto resta acceso, il pallino e' il colore nel Sequencer.
   function paintPatternBar() {
     if (!built) return;
-    const cur = curSynth(), sel = el("synPatSel");
-    sel.innerHTML = project.synthPatterns.map((sp, i) => `<option value="${esc(sp.id)}">${i + 1}. ${esc(sp.name)} · ${sp.len} step</option>`).join("");
-    sel.value = cur.id;
-    el("synPatDot").style.background = `hsl(${synthHue(cur.id)} 65% 58%)`;
-    const n = project.synthPatterns.length;
-    el("synPatCount").textContent = `${n} synth ${n === 1 ? "pattern" : "patterns"}`;
+    const cur = curSynth(), n = project.synthPatterns.length;
+    el("synPatChips").innerHTML = project.synthPatterns.map((sp, i) => {
+      const on = sp.id === cur.id;
+      return `<button type="button" class="pattern-btn${on ? " on" : ""}" data-id="${esc(sp.id)}" aria-pressed="${on}" title="${esc(sp.name)} · ${sp.len} step">`
+        + `<span class="dot" style="background:hsl(${synthHue(sp.id)} 65% 58%)"></span><span class="pattern-btn-name">${i + 1}. ${esc(sp.name)}</span></button>`;
+    }).join("") + `<span class="tiny">${n} synth ${n === 1 ? "pattern" : "patterns"}</span>`;
+    lastPlayId = undefined;   // il ciclo di disegno rimette il contorno sul pattern che suona
     el("synPatLen").value = cur.len;
     el("synPatDel").disabled = n <= 1;
     el("synPatName").textContent = "— " + cur.name;
@@ -1344,7 +1343,10 @@
     ui.synthId = id; paintPatternBar(); centerOn(curSynth()); renderRoll();
   }
   function bindPatternBar() {
-    el("synPatSel").onchange = e => selectSynth(e.target.value);
+    el("synPatChips").onclick = e => {
+      const b = e.target.closest(".pattern-btn");
+      if (b && b.dataset.id !== curSynth().id) selectSynth(b.dataset.id);
+    };
     el("synPatBrowse").onclick = openLib;
     el("synPatNew").onclick = () => {
       pushUndo();
@@ -1353,7 +1355,7 @@
     };
     el("synPatDup").onclick = () => {
       pushUndo();
-      const src = curSynth(), sp = makeSynthPattern(src.name + " copy", src.len);
+      const src = curSynth(), sp = makeSynthPattern(copyName(src.name, project.synthPatterns.map(x => x.name)), src.len);
       sp.synth = src.synth.map(n => ({ ...n }));
       project.synthPatterns.splice(project.synthPatterns.indexOf(src) + 1, 0, sp); selectSynth(sp.id);
     };
@@ -1573,7 +1575,7 @@
   }
 
   // ---------- piano roll ----------
-  let rollCols = [], drag = null, lastPh = -1;
+  let rollCols = [], drag = null, lastPh = -1, lastPlayId;
   function rowsFor() {
     const sc = scaleNotes(), k = keyOf();
     const inScale = n => sc.includes(((n - k) % 12 + 12) % 12);
@@ -1780,6 +1782,11 @@
       if (rollCols[lastPh]) rollCols[lastPh].forEach(c => c.classList.remove("ph"));
       if (rollCols[ph]) rollCols[ph].forEach(c => c.classList.add("ph"));
       lastPh = ph;
+    }
+    const playId = playing ? visible.synthId : null;
+    if (playId !== lastPlayId) {
+      lastPlayId = playId;
+      el("synPatChips").querySelectorAll(".pattern-btn").forEach(b => b.classList.toggle("playing", b.dataset.id === playId));
     }
     if (analyser) {
       const cv = el("synScope");

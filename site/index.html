@@ -305,7 +305,13 @@ label.fld input[type=number]{width:54px;}
 }
 
 .chips{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:9px;}
-#patternChips{align-items:center; gap:9px;}
+#patternChips{align-items:center; gap:7px;}
+.pattern-btn{display:inline-flex; align-items:center; gap:7px; max-width:100%; padding:7px 12px; font-size:11px;}
+.pattern-btn .dot{width:8px; height:8px; border-radius:50%; flex:0 0 auto;}
+.pattern-btn-name{overflow:hidden; text-overflow:ellipsis; max-width:220px;}
+.pattern-btn.on{background:var(--key-primary,var(--accent)); color:var(--on-accent); border-color:var(--accent-dim); font-weight:700;}
+.pattern-btn.on .dot{box-shadow:0 0 0 1.5px var(--on-accent);}
+.pattern-btn.playing{outline:2px solid var(--led-accent); outline-offset:1px;}
 #pVaryPanel[hidden]{display:none;}
 #pVary.on, #pVaryPanel .mini.on{
   background:var(--key-primary,var(--accent));
@@ -2924,7 +2930,7 @@ function paintPlayhead(){
     : "1 . 1";
   const liveIdx=liveBlockIndex();
   document.querySelectorAll("#seqTrack .seqblock").forEach((b,i)=>b.classList.toggle("playing", i===liveIdx));
-  document.querySelectorAll("#patternChips .chip").forEach(c=>
+  document.querySelectorAll("#patternChips .pattern-btn").forEach(c=>
     c.classList.toggle("playing", playing && c.dataset.id===visible.patternId));
   paintTimeline();
 }
@@ -3065,23 +3071,27 @@ el("timeline").onclick=e=>{
 };
 
 // I pattern del progetto in un menu a tendina (chiuso finche' non lo apri).
+// Un pulsante per pattern: si sceglie con un click quello su cui lavorare, e quello scelto resta acceso.
+// Il pallino e' il colore del pattern nel Sequencer.
 function renderPatterns(){
   const host=el("patternChips");
   host.innerHTML="";
-  const sel=document.createElement("select"); sel.id="patternSelect"; sel.className="pattern-select";
-  sel.setAttribute("aria-label","Pattern to edit");
   project.patterns.forEach((p,i)=>{
-    const o=document.createElement("option"); o.value=p.id;
-    o.textContent=`${i+1}. ${p.name} · ${p.len} step`;
-    sel.appendChild(o);
+    const on=p.id===ui.patternId;
+    const b=document.createElement("button"); b.type="button";
+    b.className="pattern-btn"+(on?" on":""); b.dataset.id=p.id;
+    b.setAttribute("aria-pressed", on?"true":"false");
+    b.title=`${p.name} · ${p.len} step`;
+    const dot=document.createElement("span"); dot.className="dot";
+    dot.style.background=`hsl(${patternHue(p.id)} 70% 55%)`;
+    const name=document.createElement("span"); name.className="pattern-btn-name"; name.textContent=`${i+1}. ${p.name}`;
+    b.append(dot, name);
+    b.onclick=()=>{ if(p.id===ui.patternId) return; resetGridVariationState(); ui.patternId=p.id; el("pLen").value=p.len; renderPatterns(); renderRuler(); renderTracks(); };
+    host.appendChild(b);
   });
-  sel.value=ui.patternId;
-  sel.onchange=()=>{ const p=patternById(sel.value); if(!p) return; resetGridVariationState(); ui.patternId=p.id; el("pLen").value=p.len; renderPatterns(); renderRuler(); renderTracks(); };
-  const dot=document.createElement("span"); dot.className="dot pattern-dot"; dot.title="Pattern color used in the Sequencer"; dot.setAttribute("aria-label","Pattern color used in the Sequencer");
-  dot.style.background=`hsl(${patternHue(ui.patternId)} 70% 55%)`;
   const count=document.createElement("span"); count.className="tiny";
   count.textContent=`${project.patterns.length} ${project.patterns.length===1?"pattern":"patterns"}`;
-  host.append(dot, sel, count);
+  host.append(count);
 }
 
 function blockBars(b){ const p=patternById(b.patternId); return PMRhythm.patternBars(p?p.len:rhythmBarSteps(),rhythm())*b.repeats; }
@@ -4206,9 +4216,18 @@ function copyPattern(src, name){
   project.patterns.push(p); normalize();
   return p;
 }
+// Nome della copia: "Nome 2", poi "Nome 3"... il primo numero libero. Se il nome finisce gia' con un numero
+// ("Beat 2") si riparte da quello: la copia diventa "Beat 3", non "Beat 2 2".
+function copyName(name, taken){
+  const n=String(name||"").trim()||"Pattern", base=n.replace(/\s+\d+$/,"")||n;
+  const used=new Set(taken.map(x=>String(x||"").trim().toLowerCase()));
+  let i=2; while(used.has(`${base} ${i}`.toLowerCase())) i++;
+  return `${base} ${i}`;
+}
 el("pDup").onclick=()=>{
   pushUndo();
-  const p=copyPattern(curPattern(), curPattern().name+" copy");
+  const src=curPattern();
+  const p=copyPattern(src, copyName(src.name, project.patterns.map(x=>x.name)));
   selectPattern(p.id);
 };
 async function renamePattern(p){

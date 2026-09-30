@@ -2483,16 +2483,11 @@ function renderDrumSound(){
   body.innerHTML=`<div class="drum-sound-head"><div class="drum-sound-pick"><span class="tiny">Instrument</span><details class="export-menu drum-sound-menu" id="drumSoundMenu"><summary id="drumSoundMenuSummary"></summary><div class="export-list drum-sound-list" id="drumSoundList"></div></details></div><span class="tiny">Sound shaping for this row · changes are saved in the project</span><button id="drumSoundReset" class="mini drum-sound-reset" type="button">Reset sound</button></div><div class="drum-sound-knobs"></div>`;
   const menu=el("drumSoundMenu"), summary=el("drumSoundMenuSummary"), list=el("drumSoundList");
   summary.textContent=label+" ▾"; summary.title="Choose the instrument for this row";
-  ["A","B","C","D"].forEach(bank=>{
-    const available=SAMPLES.map((sample,i)=>({sample,i})).filter(x=>x.sample.bank===bank&&sampleAvailable(x.i));
-    if(!available.length) return;
-    const head=document.createElement("div"); head.className="export-head"; head.textContent=BANK_LABEL[bank]; list.appendChild(head);
-    available.forEach(({sample,i})=>{
-      const b=document.createElement("button"); b.type="button"; b.textContent=sampleLabel(i); b.dataset.sample=i;
-      b.setAttribute("role","option"); b.setAttribute("aria-selected",String(i===t.sampleIndex)); if(i===t.sampleIndex) b.classList.add("on");
-      b.onclick=()=>{ menu.open=false; pushUndo(); t.sampleIndex=+b.dataset.sample; loadBuffer(t.sampleIndex); renderTracks(); };
-      list.appendChild(b);
-    });
+  project.tracks.forEach((row,i)=>{
+    const b=document.createElement("button"); b.type="button"; b.textContent=`${i+1}. ${sampleLabel(row.sampleIndex)}`; b.dataset.track=row.id;
+    b.setAttribute("role","option"); b.setAttribute("aria-selected",String(row.id===t.id)); if(row.id===t.id) b.classList.add("on");
+    b.onclick=()=>{ menu.open=false; ui.soundTrackId=b.dataset.track; renderDrumSound(); };
+    list.appendChild(b);
   });
   if(!window.__pmDrumSoundMenuEvents){
     window.__pmDrumSoundMenuEvents=true;

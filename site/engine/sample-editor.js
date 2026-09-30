@@ -1,5 +1,6 @@
 // Editor del Sampler a tutto schermo: forma d'onda grande con zoom, selezione, trim, dissolvenze, normalizzazione,
-// guadagno, inversione, pulizia dei silenzi e "12 bit" alla SP-1200. Lavora su una copia: il campione cambia solo con
+// guadagno, inversione, pulizia dei silenzi ed effetti di colore (Crunch alla SP-1200, Drive, Filter, EQ) con
+// ascolto prima di applicarli. Lavora su una copia: il campione cambia solo con
 // Save (stesso suono, anche nei progetti e nel synth che lo usano) o Save as new (un nuovo campione nel Sampler).
 //
 // Lo apre engine/sampler.js: PMSampleEditor.open({name, buffer, save(blob, audio), saveAsNew(blob, audio, name)}).
@@ -57,13 +58,106 @@
       }
       return i;
     },
-    // Il colore della SP-1200: campionamento a 26,04 kHz (ogni valore tenuto fino al successivo) e 12 bit.
-    crunch(chs, sr, a, b, rate = 26040, bits = 12) {
-      const q = Math.pow(2, bits - 1) - 1, step = sr / rate;
+    // Il colore dei campionatori anni '80: campionamento a `rate` Hz (ogni valore tenuto fino al successivo, senza
+    // filtro anti-aliasing) e `bits` bit. law "mu": livelli compandati (mu-law) come l'Emulator II, fitti vicino allo
+    // zero e radi sui picchi: meno fruscio nelle code a parita' di bit. Default: la SP-1200, 26,04 kHz e 12 bit lineari.
+    crunch(chs, sr, a, b, rate = 26040, bits = 12, law = "linear") {
+      const q = Math.pow(2, bits - 1) - 1, step = sr / rate, MU = 255, lmu = Math.log1p(MU);
+      const quant = law === "mu"
+        ? v => { const y = Math.round(Math.log1p(MU * Math.abs(v)) / lmu * q) / q; return (v < 0 ? -1 : 1) * Math.expm1(y * lmu) / MU; }
+        : v => Math.round(v * q) / q;
       return chs.map(c => {
         const o = c.slice();
         let hold = 0, next = a;
-        for (let i = a; i < b; i++) { if (i >= next) { hold = Math.round(clamp(c[i], -1, 1) * q) / q; next += step; } o[i] = hold; }
+        for (let i = a; i < b; i++) { if (i >= next) { hold = quant(clamp(c[i], -1, 1)); next += step; } o[i] = hold; }
+        return o;
+      });
+    },
+    // Saturazione: soft (tanh), tube (tanh asimmetrico: armoniche pari, poi via la continua), hard (clip), fold
+    // (ripiega l'onda su se stessa). Un suono a fondo scala resta con il picco a 1 prima di `out` (dB).
+    drive(chs, sr, a, b, { type = "soft", db = 12, out = 0 } = {}) {
+      const g = Math.pow(10, db / 20), o = Math.pow(10, out / 20), k = 0.2, tk = Math.tanh(k);
+      const norm = Math.max(Math.abs(Math.tanh(g + k) - tk), Math.abs(Math.tanh(k - g) - tk));
+      const fn = type === "hard" ? v => clamp(v * g, -1, 1)
+        : type === "fold" ? v => Math.sin(Math.PI / 2 * v * g)
+        : type === "tube" ? v => (Math.tanh(v * g + k) - tk) / norm
+        : v => Math.tanh(v * g) / Math.tanh(g);
+      // Solo tube: via la continua sotto i 10 Hz, sottraendo la media che segue lentamente il suono. Parte dal
+      // primo valore a inizio suono (di solito silenzio) e dalla media dei primi 20 ms a meta' suono, senza picchi.
+      const tube = type === "tube", w = 2 * Math.PI * 10 / sr, n0 = Math.min(b - a, Math.round(sr * 0.02));
+      return chs.map(c => {
+        const r = c.slice();
+        let dc = 0;
+        if (tube && a < b) { if (a === 0) dc = fn(c[0]); else { for (let i = a; i < a + n0; i++) dc += fn(c[i]); dc /= n0; } }
+        for (let i = a; i < b; i++) {
+          let y = fn(c[i]);
+          if (tube) { dc += (y - dc) * w; y -= dc; }
+          r[i] = y * o;
+        }
+        return r;
+      });
+    },
+    // Coefficienti di un biquad (Robert Bristow-Johnson, "Audio EQ Cookbook"), normalizzati: [b0, b1, b2, a1, a2].
+    // bandpass ha 0 dB al centro; db serve a peaking e agli shelf.
+    coefs(type, hz, q, sr, db = 0) {
+      const w = 2 * Math.PI * clamp(hz, 10, sr * 0.49) / sr, cw = Math.cos(w), al = Math.sin(w) / (2 * q), A = Math.pow(10, db / 40);
+      let b0, b1, b2, a0, a1, a2;
+      if (type === "lowshelf" || type === "highshelf") {
+        const s = 2 * Math.sqrt(A) * al, p = type === "lowshelf" ? 1 : -1;
+        b0 = A * ((A + 1) - p * (A - 1) * cw + s); b1 = 2 * p * A * ((A - 1) - p * (A + 1) * cw); b2 = A * ((A + 1) - p * (A - 1) * cw - s);
+        a0 = (A + 1) + p * (A - 1) * cw + s; a1 = -2 * p * ((A - 1) + p * (A + 1) * cw); a2 = (A + 1) + p * (A - 1) * cw - s;
+      } else {
+        a0 = 1 + al; a1 = -2 * cw; a2 = 1 - al;
+        if (type === "highpass") { b0 = (1 + cw) / 2; b1 = -(1 + cw); b2 = b0; }
+        else if (type === "bandpass") { b0 = al; b1 = 0; b2 = -al; }
+        else if (type === "notch") { b0 = 1; b1 = -2 * cw; b2 = 1; }
+        else if (type === "peaking") { b0 = 1 + al * A; b2 = 1 - al * A; b1 = a1; a0 = 1 + al / A; a2 = 1 - al / A; }
+        else { b0 = (1 - cw) / 2; b1 = 1 - cw; b2 = b0; }       // lowpass
+      }
+      return [b0 / a0, b1 / a0, b2 / a0, a1 / a0, a2 / a0];
+    },
+    // Biquad in cascata sull'intervallo. I `pre` campioni prima di a scaldano il filtro senza essere scritti:
+    // a meta' suono parte gia' a regime, senza il colpo di un filtro che si accende da zero.
+    biquad(chs, a, b, stages, pre = 0) {
+      const p = Math.max(0, a - pre);
+      return chs.map(c => {
+        const o = c.slice(), x = Float64Array.from(c.subarray(p, b));
+        for (const [b0, b1, b2, a1, a2] of stages) {
+          let x1 = 0, x2 = 0, y1 = 0, y2 = 0;
+          for (let i = 0; i < x.length; i++) {
+            const v = x[i], y = b0 * v + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2;
+            x2 = x1; x1 = v; y2 = y1; y1 = y; x[i] = y;
+          }
+        }
+        for (let i = a; i < b; i++) o[i] = x[i - p];
+        return o;
+      });
+    },
+    // Filtro: lowpass, highpass, bandpass, notch; 24 dB/ottava = due stadi (il secondo senza risonanza, come le righe).
+    filter(chs, sr, a, b, { type = "lowpass", hz = 1000, q = Math.SQRT1_2, slope = 24 } = {}) {
+      const st = [dsp.coefs(type, hz, q, sr)];
+      if (+slope === 24) st.push(dsp.coefs(type, hz, type === "lowpass" || type === "highpass" ? Math.SQRT1_2 : q, sr));
+      return dsp.biquad(chs, a, b, st, Math.round(sr * 0.05));
+    },
+    // EQ a 3 bande: shelf a 100 Hz, campana a midHz, shelf a 8 kHz (guadagni in dB).
+    eq(chs, sr, a, b, { low = 0, mid = 0, midHz = 1000, high = 0 } = {}) {
+      const st = [];
+      if (low) st.push(dsp.coefs("lowshelf", 100, Math.SQRT1_2, sr, low));
+      if (mid) st.push(dsp.coefs("peaking", midHz, 0.9, sr, mid));
+      if (high) st.push(dsp.coefs("highshelf", 8000, Math.SQRT1_2, sr, high));
+      return st.length ? dsp.biquad(chs, a, b, st, Math.round(sr * 0.05)) : chs;
+    },
+    // Dal suono originale (dry) all'effetto (wet) nell'intervallo, nella misura `amount` (0-1). Ai bordi
+    // dell'intervallo che non coincidono con quelli del suono, una dissolvenza di `edge` campioni evita i click.
+    mix(dry, wet, a, b, amount = 1, edge = 0) {
+      const n = dry[0].length, e = Math.min(edge, Math.floor((b - a) / 4));
+      return wet.map((w, k) => {
+        const d = dry[k], o = d.slice();
+        for (let i = a; i < b; i++) {
+          let m = amount;
+          if (e > 0) { if (a > 0 && i - a < e) m *= (i - a) / e; if (b < n && b - 1 - i < e) m *= (b - 1 - i) / e; }
+          o[i] = d[i] + (w[i] - d[i]) * m;
+        }
         return o;
       });
     },
@@ -110,6 +204,21 @@ dialog.sed::backdrop{background:rgba(0,0,0,.55);}
 .sed-tool-head{font-size:9px; letter-spacing:.16em; text-transform:uppercase; color:var(--text-faint); margin-right:2px;}
 .sed-check{display:inline-flex; align-items:center; gap:5px; font-size:10px; color:var(--text-dim);}
 .sed button[aria-pressed="true"]{background:var(--key-primary,var(--accent)); color:var(--on-accent); border-color:var(--accent-dim);}
+.sed-tools[hidden], .sed-fx[hidden]{display:none;}
+.sed-fx{display:flex; flex-direction:column; gap:9px; padding-top:9px; border-top:1px solid var(--edge-soft);}
+.sed-fx-head{display:flex; flex-wrap:wrap; align-items:baseline; gap:3px 12px;}
+.sed-fx-head h3{margin:0; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--accent);}
+.sed-fx-lead, .sed-fx-scope{margin:0; font-size:10px; color:var(--text-dim);}
+.sed-fx-scope{color:var(--text-faint);}
+.sed-fx-params{display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:8px 20px;}
+.sed-fx-p{display:grid; grid-template-columns:76px minmax(0,1fr) 70px; align-items:center; gap:8px;}
+.sed-fx-p > span{font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--text-faint);}
+.sed-fx-p input[type=range]{width:100%; margin:0; accent-color:var(--accent);}
+.sed-fx-p select{grid-column:2 / 4; min-width:0; font-size:11px;}
+.sed-fx-p output{font:10px var(--mono,monospace); color:var(--text); text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap;}
+.sed-fx-foot{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px 14px;}
+.sed-fx-info{font-size:10px; color:var(--text-dim); font-variant-numeric:tabular-nums;}
+.sed-fx-info.err{color:var(--danger);}
 .sed-foot{display:flex; flex-wrap:wrap; justify-content:space-between; gap:4px 16px; align-items:baseline;}
 .sed-help{margin:0; font-size:9.5px; color:var(--text-faint); line-height:1.45;}
 .sed-status{font-size:10px; color:var(--text-dim);}
@@ -161,6 +270,7 @@ dialog.sed::backdrop{background:rgba(0,0,0,.55);}
       <button type="button" class="mini" data-tool="delete" data-need-sel title="Remove the selection (Backspace)">Delete</button>
       <button type="button" class="mini" data-tool="silence" data-need-sel title="Replace the selection with silence">Silence</button>
       <button type="button" class="mini" data-tool="autotrim" title="Cut the silence at the start and at the end">Trim silence</button>
+      <label class="sed-check" title="Selection edges move to the nearest point where the wave crosses zero: cuts without clicks"><input type="checkbox" id="sedSnap" checked> Snap to zero crossings</label>
     </div>
     <div class="sed-tool-group"><span class="sed-tool-head">Shape</span>
       <button type="button" class="mini" data-tool="fadein">Fade in</button>
@@ -171,14 +281,28 @@ dialog.sed::backdrop{background:rgba(0,0,0,.55);}
       <button type="button" class="mini" data-tool="reverse">Reverse</button>
     </div>
     <div class="sed-tool-group"><span class="sed-tool-head">Color</span>
-      <button type="button" class="mini" data-tool="crunch" title="Resample at 26 kHz and 12 bit, like the E-mu SP-1200">SP-1200 12-bit</button>
-      <label class="sed-check" title="Selection edges move to the nearest point where the wave crosses zero: cuts without clicks"><input type="checkbox" id="sedSnap" checked> Snap to zero crossings</label>
+      <button type="button" class="mini" data-fx="crunch" title="Fewer kHz and fewer bits, like the samplers of the 80s: SP-1200, MPC60, Emulator II…">Crunch…</button>
+      <button type="button" class="mini" data-fx="drive" title="Saturate, clip or fold the wave">Drive…</button>
+      <button type="button" class="mini" data-fx="filter" title="Low-pass, high-pass, band-pass or notch filter">Filter…</button>
+      <button type="button" class="mini" data-fx="eq" title="Three-band equalizer: low, mid, high">EQ…</button>
+    </div>
+  </div>
+  <div class="sed-fx" id="sedFx" role="group" aria-labelledby="sedFxTitle" hidden>
+    <div class="sed-fx-head"><h3 id="sedFxTitle"></h3><p class="sed-fx-lead" id="sedFxLead"></p><p class="sed-fx-scope" id="sedFxScope"></p></div>
+    <div class="sed-fx-params" id="sedFxParams"></div>
+    <div class="sed-fx-foot">
+      <span class="sed-fx-info" id="sedFxInfo" role="status" aria-live="polite"></span>
+      <div class="sed-group">
+        <button type="button" class="mini" id="sedFxBypass" aria-pressed="false" title="Hear and see the sound without the effect, to compare (B)">Bypass</button>
+        <button type="button" class="mini" id="sedFxCancel" title="Close without changing the sound (Esc)">Cancel</button>
+        <button type="button" class="mini primary" id="sedFxApply" title="Write the effect into the sound (it can be undone)">Apply</button>
+      </div>
     </div>
   </div>
   <div class="sed-foot">
     <p class="sed-help">Drag on the waveform to select, drag the edges to adjust, double-click to select all; click to place the cursor.
       The tools work on the selection, or on the whole sound when nothing is selected. Wheel scrolls, ⌘/Ctrl + wheel or pinch zooms.
-      Space plays · ⌘Z undoes · Esc closes.</p>
+      Color effects play and show the result before Apply. Space plays · B bypasses an effect · ⌘Z undoes · Esc closes.</p>
     <span class="sed-status" id="sedStatus" role="status" aria-live="polite"></span>
   </div>
 </div>`;
@@ -193,6 +317,84 @@ dialog.sed::backdrop{background:rgba(0,0,0,.55);}
     return m ? m + ":" + (r < 10 ? "0" : "") + r.toFixed(3) : r.toFixed(3) + " s";
   };
   const dbfs = p => p > 0 ? (20 * Math.log10(p)).toFixed(1) + " dB" : "−∞ dB";
+
+  // ---------- effetti di colore: definizioni (cursori e menu del pannello li costruisce openFx) ----------
+  const khz = v => +(v / 1000).toFixed(2) + " kHz";            // 26.04 kHz, 27.5 kHz, 40 kHz
+  const hz = v => v < 1000 ? Math.round(v) + " Hz" : khz(v);
+  const db = v => (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v).toFixed(1) + " dB";
+  // Frequenza e bit dei campionatori veri; law "mu" = livelli compandati.
+  const MACHINES = [
+    { id: "sp1200", name: "E-mu SP-1200", rate: 26040, bits: 12, law: "linear" },
+    { id: "sp12", name: "E-mu SP-12", rate: 27500, bits: 12, law: "linear" },
+    { id: "mpc60", name: "Akai MPC60", rate: 40000, bits: 12, law: "linear" },
+    { id: "emu2", name: "E-mu Emulator II", rate: 27700, bits: 8, law: "mu" },
+    { id: "sk1", name: "Casio SK-1", rate: 9380, bits: 8, law: "linear" },
+  ];
+  const machineOf = p => MACHINES.find(m => m.rate === p.rate && m.bits === p.bits && m.law === p.law);
+  const MIX = { k: "mix", label: "Mix", min: 0, max: 100, step: 1, def: 100, fmt: v => v + "%", title: "How much of the effect: 0% is the original sound" };
+  const FX = {
+    crunch: {
+      title: "Crunch", lead: "Resample with fewer kHz and fewer bits, like the samplers of the 80s.",
+      params: [
+        { k: "machine", label: "Machine", options: [...MACHINES.map(m => [m.id, m.name]), ["custom", "Custom"]], def: "sp1200" },
+        { k: "rate", label: "Rate", min: 2000, max: 48000, step: 10, def: 26040, fmt: khz, title: "Sample rate: lower loses the highs and adds aliasing" },
+        { k: "bits", label: "Bits", min: 4, max: 16, step: 1, def: 12, fmt: v => v + " bit", title: "Fewer bits: more grit and more noise in the tails" },
+        { k: "law", label: "Levels", options: [["linear", "Linear"], ["mu", "Companded · quieter tails"]], def: "linear",
+          title: "Companded levels (like the Emulator II) are dense near silence and sparse on the peaks" },
+        { k: "trick", label: "Pitch trick", min: 0, max: 12, step: 1, def: 0, fmt: v => v ? "+" + v + " st" : "off",
+          title: "The SP-1200 trick: sample the record faster (45 rpm instead of 33 is about +5 st), then tune it back down. The pitch stays the same, the sound gets the grit of a lower rate." },
+        MIX,
+      ],
+      change(p, k) {
+        if (k === "machine") { const m = MACHINES.find(x => x.id === p.machine); if (m) Object.assign(p, { rate: m.rate, bits: m.bits, law: m.law }); }
+        else if (k === "rate" || k === "bits" || k === "law") p.machine = machineOf(p)?.id || "custom";
+      },
+      // il trucco del pitch: accelerare di N semitoni e riabbassare equivale a campionare a rate / 2^(N/12)
+      rate: p => p.rate / Math.pow(2, p.trick / 12),
+      info: p => p.trick ? "like sampling at " + khz(FX.crunch.rate(p)) : "",
+      run: (chs, sr, a, b, p) => dsp.crunch(chs, sr, a, b, FX.crunch.rate(p), p.bits, p.law),
+      done: p => "crunch: " + (machineOf(p)?.name || khz(p.rate) + ", " + p.bits + " bit") + (p.trick ? ", pitch trick +" + p.trick + " st" : ""),
+    },
+    drive: {
+      title: "Drive", lead: "Push the sound into saturation: denser, louder, dirtier.",
+      params: [
+        { k: "type", label: "Type", options: [["soft", "Soft · round saturation"], ["tube", "Tube · asymmetric, warmer"], ["hard", "Hard clip · square edges"], ["fold", "Fold · the wave folds back"]], def: "soft" },
+        { k: "db", label: "Drive", min: 0, max: 36, step: 0.5, def: 12, fmt: db },
+        { k: "out", label: "Output", min: -24, max: 6, step: 0.5, def: 0, fmt: db },
+        MIX,
+      ],
+      run: (chs, sr, a, b, p) => dsp.drive(chs, sr, a, b, p),
+      done: p => "drive: " + p.type + ", " + db(p.db),
+    },
+    filter: {
+      title: "Filter", lead: "Take away the lows or the highs, or keep only a band.",
+      params: [
+        { k: "type", label: "Type", options: [["lowpass", "Low-pass"], ["highpass", "High-pass"], ["bandpass", "Band-pass"], ["notch", "Notch"]], def: "lowpass" },
+        { k: "hz", label: "Cutoff", min: 20, max: 20000, log: true, def: 2000, fmt: hz },
+        { k: "q", label: "Resonance", min: 0.5, max: 12, log: true, def: 0.71, fmt: v => "Q " + v.toFixed(2),
+          title: "Low-pass and high-pass: a peak at the cutoff. Band-pass and notch: how narrow the band is" },
+        { k: "slope", label: "Slope", options: [["12", "12 dB/oct · gentle"], ["24", "24 dB/oct · steep"]], def: "24" },
+        MIX,
+      ],
+      run: (chs, sr, a, b, p) => dsp.filter(chs, sr, a, b, p),
+      done: p => "filter: " + p.type + " at " + hz(p.hz),
+    },
+    eq: {
+      title: "EQ", lead: "Three bands: raise or lower the lows, the mids and the highs.",
+      params: [
+        { k: "low", label: "Low 100 Hz", min: -12, max: 12, step: 0.5, def: 0, fmt: db },
+        { k: "mid", label: "Mid", min: -12, max: 12, step: 0.5, def: 0, fmt: db },
+        { k: "midHz", label: "Mid freq.", min: 200, max: 5000, log: true, def: 1000, fmt: hz },
+        { k: "high", label: "High 8 kHz", min: -12, max: 12, step: 0.5, def: 0, fmt: db },
+      ],
+      run: (chs, sr, a, b, p) => dsp.eq(chs, sr, a, b, p),
+      done: p => `EQ: low ${db(p.low)}, mid ${db(p.mid)} at ${hz(p.midHz)}, high ${db(p.high)}`,
+    },
+  };
+  const fxMem = {};      // le ultime regolazioni di ogni effetto, finche' la pagina resta aperta
+  // cursori logaritmici (frequenze, risonanza): posizione 0-1000
+  const fromLog = (q, v) => { const x = q.min * Math.pow(q.max / q.min, v / 1000); return x < 10 ? Math.round(x * 100) / 100 : Math.round(x); };
+  const toLog = (q, x) => Math.round(Math.log(x / q.min) / Math.log(q.max / q.min) * 1000);
 
   function build() {
     if (ui) return;
@@ -223,11 +425,11 @@ dialog.sed::backdrop{background:rgba(0,0,0,.55);}
     return 120;
   }
   function waveLayer(w, h, dpr) {
-    const key = [w, h, dpr, st.view.from, st.view.span, st.id].join();
+    const chs = shownChs(), key = [w, h, dpr, st.view.from, st.view.span, st.id, chs === st.chs ? "" : st.fx.key].join();
     if (st.layer && st.layerKey === key) return st.layer;
     const L = st.layer || document.createElement("canvas");
     L.width = Math.round(w * dpr); L.height = Math.round(h * dpr);
-    const c = L.getContext("2d"), col = colors(), { from, span } = st.view, n = st.chs.length, lane = (h - RULER) / n;
+    const c = L.getContext("2d"), col = colors(), { from, span } = st.view, n = chs.length, lane = (h - RULER) / n;
     c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, w, h);
     // righello in secondi
     const pxs = w / (span / st.sr), step = tickStep(pxs), t0 = from / st.sr, dec = step < 0.01 ? 3 : step < 0.1 ? 2 : step < 1 ? 1 : 0;
@@ -243,7 +445,7 @@ dialog.sed::backdrop{background:rgba(0,0,0,.55);}
     // canali, uno sopra l'altro
     const perPx = span / w;
     for (let k = 0; k < n; k++) {
-      const d = st.chs[k], mid = RULER + lane * (k + 0.5), amp = lane * 0.45;
+      const d = chs[k], mid = RULER + lane * (k + 0.5), amp = lane * 0.45;
       c.strokeStyle = col.edge; c.globalAlpha = 0.8; c.beginPath(); c.moveTo(0, Math.round(mid) + 0.5); c.lineTo(w, Math.round(mid) + 0.5); c.stroke();
       if (k) { c.globalAlpha = 1; c.beginPath(); c.moveTo(0, Math.round(RULER + lane * k) + 0.5); c.lineTo(w, Math.round(RULER + lane * k) + 0.5); c.stroke(); }
       // l'onda e' nell'inchiostro del tema (come nelle schede del Sampler), non nell'arancione
@@ -325,12 +527,14 @@ dialog.sed::backdrop{background:rgba(0,0,0,.55);}
     $("sedInfo").innerHTML = `${fmt(n / st.sr)} · ${(st.sr / 1000).toFixed(1)} kHz · ${st.chs.length === 1 ? "mono" : st.chs.length === 2 ? "stereo" : st.chs.length + " channels"} · peak ${dbfs(dsp.peak(st.chs))}`
       + (dirty ? " · <b>not saved</b>" : "");
     $("sedUndo").disabled = !st.undo.length; $("sedRedo").disabled = !st.redo.length;
-    $("sedSave").disabled = !dirty;
+    $("sedSave").disabled = !dirty || !!st.fx;          // con un effetto aperto si salva dopo Apply o Cancel
+    $("sedSaveNew").disabled = $("sedExport").disabled = !!st.fx;
     for (const b of ui.dlg.querySelectorAll("[data-need-sel]")) b.disabled = !hasSel();
     $("sedZoomSel").disabled = !hasSel(); $("sedNone").disabled = !hasSel();
     $("sedLoop").setAttribute("aria-pressed", String(st.loop));
     $("sedPlay").textContent = st.play ? "■ Stop" : "▶ Play";
     readout();
+    if (st.fx) fxStatus();
   }
   function readout() {
     const { a, b } = st.sel, s = $("sedStart"), e = $("sedEnd");
@@ -383,7 +587,6 @@ dialog.sed::backdrop{background:rgba(0,0,0,.55);}
       case "gainup": return commit(dsp.gain(st.chs, a, b, Math.pow(10, 3 / 20)), keep, "+3 dB");
       case "gaindown": return commit(dsp.gain(st.chs, a, b, Math.pow(10, -3 / 20)), keep, "−3 dB");
       case "reverse": return commit(dsp.reverse(st.chs, a, b), keep, "reversed");
-      case "crunch": return commit(dsp.crunch(st.chs, st.sr, a, b), keep, "SP-1200 color: 26 kHz, 12 bit");
     }
   }
   function selectAll() { st.sel = { a: 0, b: len() }; draw(); refresh(); }
@@ -399,10 +602,118 @@ dialog.sed::backdrop{background:rgba(0,0,0,.55);}
     if (b > a) st.sel = { a, b };
   }
 
+  // ---------- effetti: pannello con anteprima ----------
+  // Con un effetto aperto si sente e si vede il suono con l'effetto (Bypass: l'originale); Apply lo scrive, con undo.
+  const range = () => hasSel() ? [st.sel.a, st.sel.b] : [0, len()];
+  // Il suono da far sentire e vedere. L'effetto si ricalcola quando cambiano regolazioni, selezione o suono;
+  // mentre si trascina la selezione resta l'ultimo calcolato.
+  function shownChs() {
+    const f = st.fx;
+    if (!f || f.bypass) return st.chs;
+    if (drag && f.chs) return f.chs;
+    const [a, b] = range(), key = [st.id, a, b, JSON.stringify(f.p)].join("|");
+    if (f.key !== key) {
+      const wet = FX[f.kind].run(st.chs, st.sr, a, b, f.p), mix = f.p.mix ?? 100;
+      f.chs = mix < 100 || a > 0 || b < len() ? dsp.mix(st.chs, wet, a, b, mix / 100, Math.round(st.sr * 0.003)) : wet;
+      f.key = key; f.peak = dsp.peak(f.chs);
+    }
+    return f.chs;
+  }
+  let fxTimer = 0;
+  const fxBox = () => $("sedFxParams");
+  function openFx(kind) {
+    stop();
+    const def = FX[kind], p = {};
+    for (const q of def.params) p[q.k] = q.def;
+    Object.assign(p, fxMem[kind]);
+    st.fx = { kind, p, bypass: false, key: "", chs: null, peak: 0 };
+    $("sedFxTitle").textContent = def.title; $("sedFxLead").textContent = def.lead;
+    const box = fxBox(); box.textContent = "";
+    for (const q of def.params) {
+      const row = document.createElement("label"), name = document.createElement("span");
+      row.className = "sed-fx-p"; if (q.title) row.title = q.title;
+      name.textContent = q.label; row.appendChild(name);
+      let input;
+      if (q.options) {
+        input = document.createElement("select");
+        for (const [v, t] of q.options) input.add(new Option(t, v));
+        input.onchange = () => fxSet(q.k, input.value);
+        row.appendChild(input);
+      } else {
+        input = document.createElement("input"); input.type = "range";
+        Object.assign(input, q.log ? { min: 0, max: 1000, step: 1 } : { min: q.min, max: q.max, step: q.step });
+        input.oninput = () => fxSet(q.k, q.log ? fromLog(q, +input.value) : +input.value);
+        row.append(input, document.createElement("output"));
+      }
+      input.dataset.k = q.k;
+      box.appendChild(row);
+    }
+    ui.dlg.querySelector(".sed-tools").hidden = true; $("sedFx").hidden = false;
+    syncFx(); previewNow();
+    box.querySelector("select, input").focus({ preventScroll: true });
+  }
+  // cursori, menu e uscite dai valori (un preset cambia piu' cursori insieme)
+  function syncFx() {
+    const f = st.fx;
+    for (const q of FX[f.kind].params) {
+      const input = fxBox().querySelector(`[data-k="${q.k}"]`), v = f.p[q.k];
+      if (q.options) { input.value = String(v); continue; }
+      if (document.activeElement !== input) input.value = q.log ? toLog(q, v) : v;
+      input.nextElementSibling.textContent = q.fmt(v);
+    }
+    $("sedFxBypass").setAttribute("aria-pressed", String(f.bypass));
+  }
+  function fxSet(k, v) {
+    const f = st && st.fx; if (!f) return;
+    f.p[k] = v;
+    if (FX[f.kind].change) FX[f.kind].change(f.p, k);
+    syncFx();
+    clearTimeout(fxTimer); fxTimer = setTimeout(previewNow, 60);
+  }
+  // ricalcola e ridisegna; se sta suonando riparte dallo stesso punto con il suono nuovo
+  function previewNow() {
+    clearTimeout(fxTimer);
+    if (!st || !st.fx) return;
+    draw(); refresh();
+    if (st.play) play(playPos());
+  }
+  function fxBypass() {
+    if (!st.fx) return;
+    st.fx.bypass = !st.fx.bypass;
+    syncFx(); previewNow();
+  }
+  function fxStatus() {
+    const f = st.fx, [a, b] = range(), info = $("sedFxInfo");
+    $("sedFxScope").textContent = hasSel() ? "On the selection · " + fmt((b - a) / st.sr) : "On the whole sound";
+    if (f.bypass) { info.textContent = "Bypass: you hear the original sound"; info.classList.remove("err"); return; }
+    shownChs();
+    const extra = FX[f.kind].info ? FX[f.kind].info(f.p) : "", over = f.peak > 1;
+    info.textContent = [extra, "peak after " + dbfs(f.peak), over ? "over 0 dB: Normalize after Apply, or it clips when saved" : ""].filter(Boolean).join(" · ");
+    info.classList.toggle("err", over);
+  }
+  function closeFx() {
+    if (!st || !st.fx) return;
+    clearTimeout(fxTimer);
+    fxMem[st.fx.kind] = { ...st.fx.p };
+    stop();
+    st.fx = null;
+    $("sedFx").hidden = true; ui.dlg.querySelector(".sed-tools").hidden = false;
+    draw(); refresh();
+    ui.canvas.focus({ preventScroll: true });
+  }
+  function applyFx() {
+    const f = st && st.fx; if (!f) return;
+    f.bypass = false; drag = null;
+    const chs = shownChs(), msg = FX[f.kind].done(f.p) + (hasSel() ? " (selection)" : "");
+    closeFx();
+    if (chs === st.chs) return note("With these settings the effect changes nothing");
+    commit(chs, { ...st.sel }, msg);
+  }
+
   // ---------- ascolto ----------
-  function audioBuffer(ctx = actx()) {
-    const buf = ctx.createBuffer(st.chs.length, len(), st.sr);
-    st.chs.forEach((c, i) => buf.copyToChannel(c, i));
+  function audioBuffer(ctx = actx(), chs = st.chs) {
+    const buf = ctx.createBuffer(chs.length, chs[0].length, st.sr);
+    chs.forEach((c, i) => buf.copyToChannel(c, i));
     return buf;
   }
   function playPos() {
@@ -410,15 +721,18 @@ dialog.sed::backdrop{background:rgba(0,0,0,.55);}
     const el = (p.ctx.currentTime - p.t0) * st.sr;
     return p.loop ? p.from + el % (p.to - p.from) : Math.min(p.to, p.from + el);
   }
-  async function play() {
+  // `at`: il punto da cui ripartire (quando cambia l'anteprima di un effetto mentre suona)
+  async function play(at) {
     stop();
     const ctx = actx(); if (ctx.state === "suspended") await ctx.resume();
+    if (!st) return;
     const n = len(), sel = hasSel(), from = sel ? st.sel.a : (st.sel.a < n - 1 ? st.sel.a : 0), to = sel ? st.sel.b : n;
-    const src = ctx.createBufferSource(); src.buffer = audioBuffer(ctx); src.connect(ctx.destination);
+    const pos = at == null ? from : clamp(Math.round(at), from, Math.max(from, to - 1));
+    const src = ctx.createBufferSource(); src.buffer = audioBuffer(ctx, shownChs()); src.connect(ctx.destination);
     const loop = st.loop && sel;
-    if (loop) { src.loop = true; src.loopStart = from / st.sr; src.loopEnd = to / st.sr; src.start(0, from / st.sr); }
-    else src.start(0, from / st.sr, (to - from) / st.sr);
-    st.play = { src, ctx, t0: ctx.currentTime, from, to, loop };
+    if (loop) { src.loop = true; src.loopStart = from / st.sr; src.loopEnd = to / st.sr; src.start(0, pos / st.sr); }
+    else src.start(0, pos / st.sr, (to - pos) / st.sr);
+    st.play = { src, ctx, t0: ctx.currentTime - (pos - from) / st.sr, from, to, loop };
     src.onended = () => { if (st && st.play && st.play.src === src) { st.play = null; refresh(); draw(); } };
     refresh(); tick();
   }
@@ -500,6 +814,8 @@ dialog.sed::backdrop{background:rgba(0,0,0,.55);}
     $("sedStart").addEventListener("change", fromInput);
     $("sedEnd").addEventListener("change", fromInput);
     for (const b of dlg.querySelectorAll("[data-tool]")) b.onclick = () => apply(b.dataset.tool);
+    for (const b of dlg.querySelectorAll("[data-fx]")) b.onclick = () => openFx(b.dataset.fx);
+    $("sedFxBypass").onclick = fxBypass; $("sedFxCancel").onclick = closeFx; $("sedFxApply").onclick = applyFx;
     $("sedUndo").onclick = undo; $("sedRedo").onclick = redo;
     $("sedSave").onclick = () => save(false);
     $("sedSaveNew").onclick = () => save(true);
@@ -508,15 +824,16 @@ dialog.sed::backdrop{background:rgba(0,0,0,.55);}
       saveBlob(blob, st.name.replace(/[\\/:*?"<>|]+/g, "-") + ".wav", "Sample");
     };
     $("sedClose").onclick = close;
-    dlg.addEventListener("cancel", e => { e.preventDefault(); close(); });
+    dlg.addEventListener("cancel", e => { e.preventDefault(); st && st.fx ? closeFx() : close(); });   // Esc chiude prima l'effetto
     dlg.addEventListener("keydown", e => {
       if (!st) return;
       const t = e.target, typing = t.tagName === "INPUT" && (t.type === "number" || t.type === "text"), mod = e.metaKey || e.ctrlKey, k = e.key.toLowerCase();
       if (mod && k === "z") { e.preventDefault(); e.stopPropagation(); e.shiftKey ? redo() : undo(); return; }
       if (typing || e.altKey) return;
       if (e.key === " ") { e.preventDefault(); if (t.tagName === "BUTTON") t.blur(); st.play ? stop() : play(); }
+      else if (st.fx && !mod && k === "b") { e.preventDefault(); fxBypass(); }
       else if (mod && k === "a") { e.preventDefault(); selectAll(); }
-      else if ((e.key === "Backspace" || e.key === "Delete") && hasSel()) { e.preventDefault(); apply("delete"); }
+      else if ((e.key === "Backspace" || e.key === "Delete") && hasSel() && !st.fx) { e.preventDefault(); apply("delete"); }
       else if (!mod && (e.key === "+" || e.key === "=")) zoom(0.5);
       else if (!mod && e.key === "-") zoom(2);
     });
@@ -551,7 +868,7 @@ dialog.sed::backdrop{background:rgba(0,0,0,.55);}
       const ok = await ask({ title: "Close the editor?", message: "The changes that are not saved will be lost.", ok: "Discard changes", cancel: "Keep editing", danger: true });
       if (!ok) return;
     }
-    stop();
+    stop(); clearTimeout(fxTimer);
     const done = st.opts.onClose;
     st = null; drag = null;
     ui.dlg.close();
@@ -563,7 +880,8 @@ dialog.sed::backdrop{background:rgba(0,0,0,.55);}
     const buf = opts.buffer, chs = [];
     for (let c = 0; c < buf.numberOfChannels; c++) chs.push(buf.getChannelData(c).slice());
     st = { opts, name: opts.name || "Sample", sr: buf.sampleRate, chs, sel: { a: 0, b: 0 }, view: { from: 0, span: chs[0].length },
-      undo: [], redo: [], id: 0, saved: 0, nextId: 1, loop: false, play: null, layer: null, layerKey: "" };
+      undo: [], redo: [], id: 0, saved: 0, nextId: 1, loop: false, play: null, layer: null, layerKey: "", fx: null };
+    $("sedFx").hidden = true; ui.dlg.querySelector(".sed-tools").hidden = false;
     note("");
     if (!ui.dlg.open) ui.dlg.showModal();
     ui.canvas.focus({ preventScroll: true });

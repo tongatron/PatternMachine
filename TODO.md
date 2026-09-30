@@ -40,6 +40,49 @@ In ordine consigliato.
 - [ ] **Nuove lettere di variazione ibrida** quando si aggiungono stili: la lista dei donatori (`X_DONORS` in
   `site/engine/variations.js`) è fissa per non cambiare i codici già condivisi.
 
+## Sampler
+Dal 30 settembre 2026. Oggi: editor a tutto schermo (`site/engine/sample-editor.js`) con taglio, dissolvenze,
+normalizzazione, reverse e "12 bit" SP-1200 fisso; card con Start, Pitch, Tail, REV; riga della griglia con
+passa-basso a 4 poli, decay, pan, choke. In ordine consigliato.
+
+### 1. Pannello "Color" nell'editor
+Effetti che si "stampano" sul campione, con ascolto prima di applicare. Funzioni pure in `dsp` (filtri biquad
+scritti in JS, niente OfflineAudioContext) provate da `tests/sample-editor.test.js`. Non tocca le funzioni che
+l'app desktop sostituisce.
+- [x] **Pannello con anteprima**: i quattro effetti si aprono al posto degli strumenti, con cursori, Bypass per il
+  confronto, Play che ascolta il risultato, forma d'onda aggiornata, picco dopo l'effetto, Cancel / Apply (con
+  undo). Save ed export aspettano che l'effetto sia applicato o annullato. Dissolvenze brevi ai bordi della
+  selezione, per non avere click.
+- [x] **Crunch** (bitcrusher/resampler) al posto del pulsante fisso "SP-1200 12-bit": frequenza 2–48 kHz, bit
+  4–16, quantizzazione lineare o compandata, Mix. Preset: SP-1200 (26,04 kHz, 12 bit), SP-12 (27,5 kHz, 12 bit),
+  MPC60 (40 kHz, 12 bit), Emulator II (27,7 kHz, 8 bit compandati), Casio SK-1 (9,38 kHz, 8 bit).
+- [x] **Trucco del 45 giri** nel Crunch: campionare accelerato di N semitoni e riabbassare equivale a campionare
+  a una frequenza più bassa; il cursore mostra la frequenza che ne risulta.
+- [x] **Drive**: Soft (tanh), Tube (asimmetrico, armoniche pari), Hard clip, Fold; guadagno 0–36 dB, uscita, Mix.
+- [x] **Filter**: passa-basso, passa-alto, passa-banda, notch; cutoff, risonanza, pendenza 12/24 dB.
+- [x] **EQ** a 3 bande: bassi (shelf 100 Hz), medi (campana 200 Hz–5 kHz), alti (shelf 8 kHz), ±12 dB.
+- [ ] Più avanti: **Vinyl** (fruscio, crackle, wow & flutter) e filtro con sweep lungo la selezione.
+
+### 2. Chop: da un break a tanti pad
+- [ ] Dividere in 4/8/16 parti uguali o a battute del BPM del progetto.
+- [ ] Dividere sui transienti (sensibilità regolabile), marker spostabili sulla forma d'onda.
+- [ ] **Fette → righe della griglia**: un campione e una riga per fetta, più un pattern che le risuona in ordine.
+
+### 3. Resampling
+- [ ] Registrare il pattern (batteria + synth) nel Sampler come nuovo campione, da lavorare nell'editor.
+  Funzione nuova: `makeZip` la sostituisce l'app desktop.
+
+### 4. Suono per riga, in tempo reale
+Tocca `trigger()`, che l'app desktop sostituisce: l'app andrà allineata al suo prossimo aggiornamento.
+- [ ] Filtro multimodo per riga (passa-alto e passa-banda oltre al passa-basso).
+- [ ] Modalità "canale SP-1200": canali 1–2 filtro dinamico, 3–6 filtri fissi, 7–8 senza filtro.
+- [ ] Bitcrush per riga, attacco, velocity → filtro, modalità loop.
+
+### 5. Piccole cose
+- [ ] Registrazione che parte da sola sopra una soglia, come sull'SP-1200.
+- [ ] Adattare un loop al BPM (time-stretch).
+- [ ] Dissolvenza incrociata sul punto di loop.
+
 ## Interfaccia
 - [ ] Menù **File ▾** ed **Esporta ▾** al posto dei sette pulsanti in cima.
 - [ ] Riga della traccia essenziale (nome, M, S, step) con gli altri controlli sotto **⋯**.

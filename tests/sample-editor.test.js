@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 // Prove delle funzioni sul suono dell'editor del Sampler (site/engine/sample-editor.js, PMSampleEditor.dsp) fuori dal
-// browser: trim, cancellazione, dissolvenze, normalizzazione, inversione, silenzi ai bordi, zero-crossing, 12 bit e WAV.
+// browser: trim, cancellazione, dissolvenze, normalizzazione, inversione, silenzi ai bordi, zero-crossing, crunch,
+// drive, filtri, EQ, mix con i bordi e WAV.
 // Lo lancia scripts/deploy.sh.
 const fs = require("fs"), vm = require("vm"), path = require("path");
 const src = fs.readFileSync(path.join(__dirname, "..", "site", "engine", "sample-editor.js"), "utf8");
-const g = { window: {}, Math, Float32Array, ArrayBuffer, DataView, Object, Array, String, isFinite };
+const g = { window: {}, Math, Float32Array, Float64Array, ArrayBuffer, DataView, Object, Array, String, isFinite };
 vm.createContext(g); vm.runInContext(src, g);
 const dsp = g.window.PMSampleEditor.dsp;
 let failures = 0, checks = 0;
@@ -74,6 +75,66 @@ const st = [sine(1000), sine(1000, 440, 0.25)];
   check(levels <= 4800 * 26040 / sr + 2, `crunch: ${levels} valori distinti, troppi per 26 kHz`);
   const part = dsp.crunch(st, sr, 200, 300);
   check(part[0][199] === st[0][199] && part[0][300] === st[0][300], "crunch fuori dall'intervallo non deve cambiare");
+}
+// crunch compandato: al massimo 2^bit livelli, e sui suoni piano sbaglia meno del lineare a parita' di bit
+{
+  const quiet = [sine(4800, 440, 0.02)], err = c => { let s = 0; for (let i = 0; i < 4800; i++) s += (c[0][i] - quiet[0][i]) ** 2; return s; };
+  const mu = dsp.crunch(quiet, sr, 0, 4800, sr, 8, "mu"), lin = dsp.crunch(quiet, sr, 0, 4800, sr, 8);
+  check(err(mu) < err(lin) / 4, `crunch mu: errore ${err(mu)} contro ${err(lin)} del lineare`);
+  const full = dsp.crunch([ramp(4800).map(v => v * 2 - 1)], sr, 0, 4800, sr, 8, "mu")[0];
+  check(new Set(full).size <= 256 && Math.max(...full) <= 1 && Math.min(...full) >= -1, `crunch mu: ${new Set(full).size} livelli`);
+}
+// livello di un seno dopo un filtro, in dB, misurato sulla seconda meta' (a regime)
+const level = (hz, fn, amp = 0.5) => {
+  const n = 9600, x = [sine(n, hz, amp)], y = fn(x, n)[0];
+  let sx = 0, sy = 0; for (let i = n / 2; i < n; i++) { sx += x[0][i] ** 2; sy += y[i] ** 2; }
+  return 10 * Math.log10(sy / sx);
+};
+// filtri: passano la banda giusta e tagliano il resto; 24 dB/ottava taglia piu' di 12
+{
+  const lp = (x, n) => dsp.filter(x, sr, 0, n, { type: "lowpass", hz: 1000 }), lp12 = (x, n) => dsp.filter(x, sr, 0, n, { type: "lowpass", hz: 1000, slope: 12 });
+  check(Math.abs(level(100, lp)) < 0.5, `lowpass: 100 Hz a ${level(100, lp).toFixed(1)} dB`);
+  check(level(8000, lp) < -60 && level(8000, lp12) < -30 && level(8000, lp12) > -45, `lowpass: 8 kHz a ${level(8000, lp).toFixed(1)} / ${level(8000, lp12).toFixed(1)} dB`);
+  const hp = (x, n) => dsp.filter(x, sr, 0, n, { type: "highpass", hz: 1000 });
+  check(level(100, hp) < -60 && Math.abs(level(8000, hp)) < 0.5, `highpass: ${level(100, hp).toFixed(1)} / ${level(8000, hp).toFixed(1)} dB`);
+  const bp = (x, n) => dsp.filter(x, sr, 0, n, { type: "bandpass", hz: 1000, q: 2, slope: 12 });
+  check(Math.abs(level(1000, bp)) < 0.5 && level(100, bp) < -20, `bandpass: ${level(1000, bp).toFixed(1)} / ${level(100, bp).toFixed(1)} dB`);
+  const notch = (x, n) => dsp.filter(x, sr, 0, n, { type: "notch", hz: 1000, slope: 12 });
+  check(level(1000, notch) < -30 && Math.abs(level(8000, notch)) < 1, `notch: ${level(1000, notch).toFixed(1)} dB al centro`);
+  const part = dsp.filter(st, sr, 200, 300, { type: "lowpass", hz: 500 });
+  check(part[0][199] === st[0][199] && part[0][300] === st[0][300] && part[0][250] !== st[0][250], "filter: intervallo sbagliato");
+}
+// EQ: ogni banda alza la sua zona e lascia le altre
+{
+  const eq = o => (x, n) => dsp.eq(x, sr, 0, n, o);
+  check(Math.abs(level(30, eq({ low: 12 })) - 12) < 1 && Math.abs(level(5000, eq({ low: 12 }))) < 0.5, `eq low: ${level(30, eq({ low: 12 })).toFixed(1)} dB a 30 Hz`);
+  check(Math.abs(level(1000, eq({ mid: -6, midHz: 1000 })) + 6) < 0.1 && Math.abs(level(100, eq({ mid: -6 }))) < 1, "eq mid: la campana non sta a 1 kHz");
+  check(Math.abs(level(20000, eq({ high: 6 })) - 6) < 1 && Math.abs(level(200, eq({ high: 6 }))) < 0.2, `eq high: ${level(20000, eq({ high: 6 })).toFixed(1)} dB a 20 kHz`);
+  check(dsp.eq(st, sr, 0, 1000, {}) === st, "eq piatto non deve fare niente");
+}
+// drive: il fondo scala resta a 1 (prima di out), i suoni piano salgono; tube senza continua; fold resta in +-1
+{
+  const full = [sine(9600, 100, 1)];
+  for (const type of ["soft", "hard", "fold"]) {
+    const y = dsp.drive(full, sr, 0, 9600, { type, db: 18 });
+    check(dsp.peak(y) <= 1 + 1e-9 && dsp.peak(y) > 0.95, `drive ${type}: picco ${dsp.peak(y)}`);
+  }
+  check(near(dsp.peak(dsp.drive(full, sr, 0, 9600, { db: 12, out: -6 })), Math.pow(10, -6 / 20), 1e-3), "drive: out non abbassa di 6 dB");
+  check(dsp.peak(dsp.drive([sine(9600, 100, 0.1)], sr, 0, 9600, { db: 12 })) > 0.3, "drive: i suoni piano devono salire");
+  const t = dsp.drive(full, sr, 0, 9600, { type: "tube", db: 12 })[0];
+  let mean = 0; for (let i = 4800; i < 9600; i++) mean += t[i] / 4800;
+  check(Math.abs(mean) < 0.01 && dsp.peak([t]) < 1.1, `drive tube: continua ${mean.toFixed(4)}, picco ${dsp.peak([t])}`);
+  const mid = dsp.drive(full, sr, 3000, 9600, { type: "tube", db: 30 });     // a meta' suono: niente picco all'inizio
+  check(dsp.peak(mid, 3000, 3500) < 1.1, `drive tube a meta' suono: picco ${dsp.peak(mid, 3000, 3500)}`);
+}
+// mix: 0 = originale, 1 = effetto; ai bordi interni la dissolvenza parte dall'originale
+{
+  const dry = [new Float32Array(1000)], wet = [new Float32Array(1000).fill(1)];
+  check(dsp.mix(dry, wet, 0, 1000, 0)[0].every(v => v === 0), "mix 0: deve restare l'originale");
+  check(dsp.mix(dry, wet, 0, 1000, 1)[0].every(v => v === 1), "mix 1 sul suono intero: niente dissolvenze");
+  const m = dsp.mix(dry, wet, 100, 900, 1, 50)[0];
+  check(m[99] === 0 && m[100] === 0 && near(m[125], 0.5) && m[500] === 1 && m[899] === 0 && m[900] === 0, `mix: bordi ${m[100]}, ${m[125]}, ${m[899]}`);
+  check(near(dsp.mix(dry, wet, 0, 1000, 0.25)[0][500], 0.25), "mix 25%");
 }
 // WAV 16 bit: intestazione e campioni
 {

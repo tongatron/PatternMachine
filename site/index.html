@@ -164,6 +164,7 @@ html[data-embed="1"] .topbar, html[data-embed="1"] .project-panel, html[data-emb
 html[data-embed="1"] #machinePanel, html[data-embed="1"] #panelPatterns, html[data-embed="1"] #synthEnginePanel,
 html[data-embed="1"] #synthPatternPanel, html[data-embed="1"] #panelSeq, html[data-embed="1"] #panelSynth,
 html[data-embed="1"] #panelMix, html[data-embed="1"] #panelRecent, html[data-embed="1"] #panelMidi,
+html[data-embed="1"] #drumSoundPanel,
 html[data-embed="1"] .site-footer, html[data-embed="1"] #libOverlay, html[data-embed="1"] dialog{display:none!important;}
 html[data-embed="1"] #panelTransport{position:sticky; top:0; z-index:10; margin:0; border-radius:0;}
 html[data-embed="1"] #panelTransport .transport-extra > :not(#counter){display:none;}
@@ -428,6 +429,28 @@ body.sound-view #liveKeysBtn{display:inline-flex; align-items:center;}
   text-transform:uppercase; letter-spacing:0.06em;}
 .vparam input[type=range]{width:74px;}
 .vparam .val{color:var(--text-dim); font-size:9.5px; min-width:38px; text-align:right;}
+.drum-sound-panel{margin-top:10px; border:1px solid var(--edge); border-radius:var(--r-panel,9px); background:var(--plate,var(--panel)); box-shadow:var(--shadow);}
+.drum-sound-panel>summary{list-style:none; cursor:pointer; display:flex; align-items:center; gap:8px; padding:9px 11px; color:var(--text-dim); font-size:10px; font-weight:700; letter-spacing:.14em; text-transform:uppercase;}
+.drum-sound-panel>summary::-webkit-details-marker{display:none;}
+.drum-sound-panel>summary::before{content:"▸"; font-size:12px; color:var(--accent); transition:transform .15s;}
+.drum-sound-panel[open]>summary::before{transform:rotate(90deg);}
+.drum-sound-panel>summary:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+.drum-sound-name{color:var(--text); letter-spacing:.04em;}
+.drum-sound-body{padding:10px 11px 12px; border-top:1px solid var(--edge-soft);}
+.drum-sound-head{display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-bottom:12px;}
+.drum-sound-head select{min-width:180px; font-size:11px; font-weight:700;}
+.drum-sound-head .tiny{margin-left:auto;}
+.drum-sound-knobs{display:grid; grid-template-columns:repeat(8,minmax(54px,1fr)); gap:8px; align-items:start;}
+.sound-knob{position:relative; display:flex; flex-direction:column; align-items:center; gap:5px; min-width:0;}
+.sound-knob-face{--knob-angle:-135deg; position:relative; width:44px; height:44px; border-radius:50%; background:var(--panel-3); border:1px solid var(--edge); box-shadow:inset 0 2px 3px rgba(255,255,255,.14),0 2px 4px rgba(0,0,0,.25);}
+.sound-knob-face::after{content:""; position:absolute; inset:8px; border-radius:50%; background:var(--panel-2); border:1px solid var(--edge-soft);}
+.sound-knob-indicator{position:absolute; z-index:1; left:50%; top:5px; width:2px; height:16px; border-radius:2px; background:var(--text); transform-origin:50% 17px; transform:translateX(-50%) rotate(var(--knob-angle));}
+.sound-knob-face input{position:absolute; inset:0; z-index:3; width:44px; height:44px; margin:0; opacity:0; cursor:pointer;}
+.sound-knob label{max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:9px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.08em;}
+.sound-knob .sound-knob-value{min-height:12px; font:9px var(--mono); color:var(--text-dim); white-space:nowrap;}
+.drum-sound-reset{margin-left:auto;}
+@media (max-width:700px){.drum-sound-knobs{grid-template-columns:repeat(4,minmax(54px,1fr));}}
+@media (max-width:390px){.drum-sound-knobs{grid-template-columns:repeat(2,minmax(54px,1fr));}}
 .voice .rev{margin-left:auto; width:auto; padding:0 9px;}
 
 
@@ -1042,6 +1065,10 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <div class="grid-headline"><span id="playheadLed" class="playhead-led" aria-hidden="true"></span><span id="playheadLabel">Ready</span></div>
     <div class="ruler" id="ruler"></div>
     <div class="rows" id="rows"></div>
+    <details class="drum-sound-panel" id="drumSoundPanel" open>
+      <summary>Drum Sound <span class="drum-sound-name" id="drumSoundName"></span></summary>
+      <div class="drum-sound-body" id="drumSoundBody"></div>
+    </details>
     <details class="wave-panel" id="waveDrums" open>
       <summary>Audio waveform <span class="wave-caption" id="waveDrumsCaption">selected drum pattern</span></summary>
       <canvas id="waveDrumsCanvas" height="124" aria-label="Waveform of the selected drum pattern"></canvas>
@@ -1818,7 +1845,7 @@ const jitterV = ()=> 1+(Math.random()*2-1)*human()*0.15;
 
 const el = id => document.getElementById(id);
 let project=null;
-let ui={patternId:null, synthId:null, synthBlockId:null, blockId:null, mode:"pattern", recording:false, songSoloBlockId:null, songStartPos:0, metronome:false};
+let ui={patternId:null, synthId:null, synthBlockId:null, blockId:null, soundTrackId:null, mode:"pattern", recording:false, songSoloBlockId:null, songStartPos:0, metronome:false};
 
 function starterProject(){
   const tracks=[
@@ -2421,6 +2448,58 @@ function voicePanel(t){
   return box;
 }
 
+const DRUM_SOUND_PARAMS=[
+  {key:"tune", label:"Tune", min:-12, max:12, step:1, get:v=>v===0?"0 st":(v>0?"+":"")+v+" st"},
+  {key:"decay", label:"Decay", min:0, max:100, step:1, get:v=>v>=100?"full":v+"%"},
+  {key:"cutoff", label:"Tone", min:0, max:100, step:1, get:v=>v>=100?"off":Math.round(cutoffHz(v))+" Hz"},
+  {key:"reso", label:"Reso", min:0, max:100, step:1, get:v=>v+"%"},
+  {key:"start", label:"Start", min:0, max:100, step:1, get:v=>v+"%"},
+  {key:"nudge", label:"Feel", min:-30, max:30, step:1, get:v=>v===0?"0 ms":(v>0?"+":"")+v+" ms"},
+  {key:"pan", label:"Pan", min:-100, max:100, step:1, get:v=>v===0?"C":(v<0?"L":"R")+Math.abs(v)},
+  {key:"vol", label:"Volume", min:0, max:100, step:1, get:v=>v+"%"},
+];
+function renderDrumSound(){
+  const name=el("drumSoundName"), body=el("drumSoundBody");
+  if(!name || !body || !project) return;
+  if(!project.tracks.length){
+    ui.soundTrackId=null; name.textContent=""; body.innerHTML='<span class="tiny">No drum rows yet.</span>'; return;
+  }
+  let t=project.tracks.find(x=>x.id===ui.soundTrackId);
+  if(!t){ t=project.tracks[0]; ui.soundTrackId=t.id; }
+  const label=sampleLabel(t.sampleIndex);
+  name.textContent=" · "+label;
+  body.innerHTML=`<div class="drum-sound-head"><label class="fld">Instrument <select id="drumSoundSelect" aria-label="Drum instrument for sound controls"></select></label><span class="tiny">Sound shaping for this row · changes are saved in the project</span><button id="drumSoundReset" class="mini drum-sound-reset" type="button">Reset sound</button></div><div class="drum-sound-knobs"></div>`;
+  const pick=el("drumSoundSelect");
+  project.tracks.forEach((row,i)=>{ const o=document.createElement("option"); o.value=row.id; o.textContent=`${i+1}. ${sampleLabel(row.sampleIndex)}`; pick.appendChild(o); });
+  pick.value=t.id;
+  pick.onchange=()=>{ ui.soundTrackId=pick.value; renderDrumSound(); };
+  const knobs=body.querySelector(".drum-sound-knobs");
+  DRUM_SOUND_PARAMS.forEach(p=>{
+    const wrap=document.createElement("div"); wrap.className="sound-knob";
+    const face=document.createElement("div"); face.className="sound-knob-face";
+    const indicator=document.createElement("span"); indicator.className="sound-knob-indicator";
+    const input=document.createElement("input"); input.type="range"; input.min=p.min; input.max=p.max; input.step=p.step;
+    input.value=p.key==="vol"?Math.round((t.vol??0.8)*100):(t[p.key]??voiceDefaults()[p.key]??0);
+    input.setAttribute("aria-label",`${p.label} for ${label}`); input.title=p.label;
+    const lab=document.createElement("label"); lab.textContent=p.label;
+    const val=document.createElement("span"); val.className="sound-knob-value";
+    face.append(indicator,input); wrap.append(face,lab,val); knobs.appendChild(wrap);
+    const paint=()=>{
+      const n=+input.value, pos=(n-p.min)/(p.max-p.min), sweep=pos*270;
+      face.style.setProperty("--knob-angle",`${-135+sweep}deg`);
+      face.style.background=`conic-gradient(from 225deg,var(--accent) 0deg,var(--accent) ${sweep}deg,var(--panel-3) ${sweep}deg,var(--panel-3) 270deg,transparent 270deg)`;
+      val.textContent=p.get(n);
+    };
+    const write=()=>{ const n=+input.value; if(p.key==="vol") t.vol=n/100; else t[p.key]=n; if(p.key==="pan") applyPan(t.id); scheduleDraft(); paint(); };
+    input.oninput=write;
+    input.onchange=()=>pushUndo();
+    paint();
+  });
+  el("drumSoundReset").onclick=()=>{
+    pushUndo(); Object.assign(t,{vol:.8,tune:0,pan:0,nudge:0},voiceDefaults()); renderTracks();
+  };
+}
+
 function renderTracks(){
   const pat=curPattern();
   const host=el("rows");
@@ -2571,6 +2650,7 @@ function renderTracks(){
     host.appendChild(wrap);
   });
   paintPlayhead();
+  renderDrumSound();
 }
 
 // Menu del tasto destro su uno step: normale, accento, ghost o spento. Frecce e invio per sceglierlo da tastiera.

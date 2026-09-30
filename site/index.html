@@ -1310,6 +1310,8 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       <select id="seqSynthPick" aria-label="Synth pattern to insert"></select>
       <button id="ssAdd" class="mini primary" title="Insert the synth pattern after the selected synth block">+ Insert</button>
       <button id="ssRest" class="mini" title="A silent block: the synth pauses (one bar, the length can be changed on the block)">+ Rest</button>
+      <button id="ssDup" class="mini" title="Duplicate the selected synth pattern as a new independent pattern">Duplicate</button>
+      <button id="ssRename" class="mini" title="Rename the selected synth pattern">Rename</button>
       <button id="ssClear" class="mini danger">Clear</button>
       <span class="tiny" id="synthLaneInfo" style="margin-left:auto;"></span>
     </div>
@@ -3593,6 +3595,20 @@ function insertSynthBlock(block){
 }
 el("ssAdd").onclick=()=>{ const sp=synthById(el("seqSynthPick").value)||curSynth(); insertSynthBlock({id:uid(), synthId:sp.id, repeats:1, len:sp.len}); };
 el("ssRest").onclick=()=>insertSynthBlock({id:uid(), synthId:null, repeats:1, len:16});
+el("ssDup").onclick=()=>{
+  const src=synthById(el("seqSynthPick").value)||curSynth();
+  if(!src) return;
+  pushUndo();
+  const sp=makeSynthPattern(copyName(src.name, project.synthPatterns.map(x=>x.name)), src.len);
+  sp.synth=(src.synth||[]).map(n=>({...n}));
+  project.synthPatterns.splice(project.synthPatterns.indexOf(src)+1,0,sp);
+  ui.synthId=sp.id; el("seqSynthPick").value=sp.id; renderSong();
+  setStatus("synth pattern duplicated: "+sp.name);
+};
+el("ssRename").onclick=()=>{
+  const sp=synthById(el("seqSynthPick").value)||curSynth();
+  if(sp) renameSynthPattern(sp);
+};
 el("ssClear").onclick=async()=>{
   if(!project.synthSong.length) return;
   if(!await ask({title:"Clear the synth lane", message:"Remove every synth block from the song? The synth patterns stay. You can undo with cmd+Z.", ok:"Clear", danger:true})) return;

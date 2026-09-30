@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#a3a097">
 <title>PATTERN-MACHINE — step drum machine, patterns and songs</title>
-<meta name="description" content="Step drum machine with 14 classic machines (SP-1200, RX-5, TR-808, TR-909, LinnDrum, DMX…), a pattern generator with 67 styles, song arranger, synth, MIDI keyboard support and MIDI, WAV and MP3 export. In the browser, as a desktop app and as a Logic Pro plug-in.">
+<meta name="description" content="PATTERN-MACHINE is a browser drum machine with 14 classic machines, 67 pattern styles, 8–36-step grids, per-hit probability, ratchets, flam and sound shaping, song mode, synth, sampler, MIDI and DAW-ready exports.">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="PATTERN-MACHINE">
 <meta property="og:title" content="PATTERN-MACHINE — step drum machine, patterns and songs">
-<meta property="og:description" content="14 classic drum machines, 67 pattern styles, song arranger and export to any DAW. Browser, desktop app and Logic Pro plug-in.">
+<meta property="og:description" content="14 classic machines, 67 styles, deep step editing, song arranger, synth, sampler, MIDI and DAW-ready exports. Browser, desktop app and Logic Pro plug-in.">
 <meta property="og:image" content="https://patternmachine.tongatron.org/assets/patternmachine-preview.jpg">
 <meta property="og:url" content="https://patternmachine.tongatron.org/landing.html">
 <meta name="twitter:card" content="summary_large_image">
@@ -214,6 +214,7 @@ footer{display:flex; flex-direction:column; align-items:center; gap:10px; margin
     <a class="btn small" href="#machines">Machines</a>
     <a class="btn small" href="#learn">Learn</a>
     <a class="btn small" href="#screens">Screenshots</a>
+    <a class="btn small" href="/login?next=/funzioni.html">Guide</a>
     <a class="btn small" href="#access">Access</a>
     <a class="btn small primary" href="/login?next=/">Sign in</a>
   </nav>
@@ -224,7 +225,7 @@ footer{display:flex; flex-direction:column; align-items:center; gap:10px; margin
   <div>
     <div class="lcd">SP-1200 · 93 BPM</div>
     <h1>A step drum machine that <em>writes the beat with you</em>.</h1>
-    <p class="lead">Pick a classic machine, generate a groove in one of 67 styles, shape it step by step or play it from your MIDI keyboard, chain patterns into a song and take it to your DAW as MIDI, WAV or MP3.</p>
+    <p class="lead">Pick one of 14 classic machines, generate a groove from 67 styles, then shape every hit with probability, ratchets, flam, tuning, decay and filter. Arrange patterns into a song, add a synth or your own samples, and take the result to your DAW.</p>
     <div class="cta">
       <a class="btn play big" href="/login?next=/">▶ Open the drum machine</a>
       <a class="btn big" href="#features">See the features</a>
@@ -242,8 +243,8 @@ footer{display:flex; flex-direction:column; align-items:center; gap:10px; margin
   <div class="stats">
     <div class="stat"><div class="num">14</div><span>classic machines</span></div>
     <div class="stat"><div class="num">67</div><span>pattern styles</span></div>
-    <div class="stat"><div class="num">32</div><span>steps per pattern</span></div>
-    <div class="stat"><div class="num">3</div><span>ways to use it</span></div>
+    <div class="stat"><div class="num">36</div><span>max steps per pattern</span></div>
+    <div class="stat"><div class="num">5</div><span>creative views</span></div>
   </div>
 </section>
 
@@ -258,6 +259,7 @@ footer{display:flex; flex-direction:column; align-items:center; gap:10px; margin
       <ul>
         <li>Installable as a web app, ready offline</li>
         <li>MIDI keyboards in Chrome, Edge and Firefox</li>
+        <li>Drum Grid, Sequencer, Synthesizer, Sampler and Mixer</li>
         <li>Projects saved to your account, the same on every device</li>
         <li>Shareable links to your patterns</li>
       </ul>
@@ -271,7 +273,7 @@ footer{display:flex; flex-direction:column; align-items:center; gap:10px; margin
         <li>Virtual MIDI port <b>PatternMachine</b></li>
         <li>Follows the DAW's MIDI Clock</li>
         <li>Drag MIDI and WAV onto the timeline</li>
-        <li>Your own sample kits, fully offline</li>
+        <li>Your own sample kits and local sounds, fully offline</li>
         <li>Projects as files, synced with your account</li>
       </ul>
       <a class="btn" href="/login?next=/app.html">Download the app</a>
@@ -296,25 +298,29 @@ footer{display:flex; flex-direction:column; align-items:center; gap:10px; margin
   <p class="label">Features</p>
   <div class="features">
     <div class="feat"><div class="ico">✦</div><h3>Pattern generator</h3>
-      <p>67 styles in 10 families, from punk and post-punk to hip hop, dub, DnB, disco and club. One-click variations, automatic fills and 8 suggestions every time you change style.</p></div>
+      <p>67 styles in 10 families, from punk and post-punk to hip hop, dub, DnB, disco and club. Generate 8 suggestions, filter them by tempo, save favorites and use a code to regenerate the same pattern later.</p></div>
     <div class="feat"><div class="ico">▦</div><h3>Step grid</h3>
-      <p>8, 16 or 32 steps, 40–240 BPM, swing and humanize. Accents and ghost notes (right-click a step to pick one), per-step probability, ratchets, flam, pitch, decay and filter.</p></div>
+      <p>8–36 steps, 4/4 or 6/8, straight or triplet grids and 40–240 BPM. Add normal hits, accents and ghost notes, then edit probability, ratchets, flam, tuning, decay or filter on one hit at a time.</p></div>
+    <div class="feat"><div class="ico">≈</div><h3>Groove &amp; feel</h3>
+      <p>Choose straight, MPC swing, shuffle, laid back, pushed or Dilla pocket. Add humanize globally, shorten a row for polyrhythms and nudge its hits ahead or behind with per-row Feel.</p></div>
     <div class="feat"><div class="ico">⇆</div><h3>Variations</h3>
-      <p>Half-time, sparse, new fill, ghost notes, syncopated kick and more: click one and hear it right away on your pattern, click again to go back to the original.</p></div>
+      <p>Try sparse, half-time, new fill, open hat, percussion layer, stop and syncopated kick variations. Similar makes close alternatives; Vary transforms the pattern, and undo brings the original back.</p></div>
     <div class="feat"><div class="ico">♫</div><h3>Song mode</h3>
-      <p>Chain patterns into verse, chorus and fill blocks with their own repeats. Drag to reorder, play from any point, solo a block or loop one pattern; the grid follows the song as it plays.</p></div>
+      <p>Chain patterns into intro, verse, chorus, break and outro blocks with their own repeats. Drag to reorder, play from any point, loop a block and mute selected rows inside one block for real breaks.</p></div>
     <div class="feat"><div class="ico">●</div><h3>Live view</h3>
       <p>Just the grid, Play, Rec, tempo and metronome. Play from the keyboard or the pads and record hits while the pattern runs.</p></div>
     <div class="feat"><div class="ico">∿</div><h3>Synthesizer <span class="beta">beta</span></h3>
-      <p>A synth part next to the drums, with its own engines, patterns and notes, in time with the beat and in its own lane of the song.</p></div>
+      <p>A synth part next to the drums, with its own engines, presets, patterns and notes. Generate a bass line, choose a key and scale, edit notes, accents and slides, and arrange it in its own song lane.</p></div>
+    <div class="feat"><div class="ico">◌</div><h3>Sampler &amp; sound shaping</h3>
+      <p>Import or record local sounds, add rows to the grid and shape each voice with decay, filter, resonance, sample start, reverse and tuning. Changes are saved with the project.</p></div>
     <div class="feat"><div class="ico">≡</div><h3>Mixer</h3>
-      <p>A strip for every row with fader, pan, meter, mute and solo, then drums, synth and master. Volumes, mute and solo for drums and synth stay at hand in the transport, and a limiter keeps the master under 0 dB.</p></div>
+      <p>A strip for every row with fader, pan, meter, mute and solo, then drums, synth and master. Peak hold, resettable meters and a limiter keep the master under 0 dB in playback and the mix export.</p></div>
     <div class="feat"><div class="ico">⌨</div><h3>MIDI keyboards</h3>
       <p>Keys play the synth with velocity, pads trigger drums and transport, knobs move any parameter. Ready-made maps for AKAI MPK mini Play and Arturia MiniLab 3, plus Learn. <a href="#midi">How it works →</a></p></div>
     <div class="feat"><div class="ico">⇪</div><h3>Export anywhere</h3>
-      <p>General MIDI or Logic kit mapping, WAV mix and stems, MP3, and ready-made project folders for Logic, Ableton Live and REAPER.</p></div>
+      <p>Export a pattern or song as Logic-mapped MIDI, General MIDI or multitrack MIDI, plus WAV and MP3. Build ready-made packages for Logic, Ableton Live, REAPER and other DAWs.</p></div>
     <div class="feat"><div class="ico">⇄</div><h3>Import</h3>
-      <p>Drop in MIDI files, drum loops (kick, snare and hats detected from the audio), drum tabs, PatternTXT, Hydrogen, REAPER, Ableton Live and MusicXML files, project files or shared links.</p></div>
+      <p>Drop in MIDI, audio drum loops, drum tabs, PatternTXT, Hydrogen, REAPER, Ableton Live, MusicXML or a PATTERN-MACHINE JSON project. Kick, snare and hats can be detected from a loop.</p></div>
     <div class="feat"><div class="ico">☁</div><h3>Projects everywhere</h3>
       <p>Saved projects live in your account: the same in every browser, on your phone and in the desktop app. Saving works offline and syncs later; if a project changed elsewhere, your version is kept as a copy.</p></div>
     <div class="feat"><div class="ico">◐</div><h3>Made to play</h3>
@@ -322,6 +328,9 @@ footer{display:flex; flex-direction:column; align-items:center; gap:10px; margin
     <div class="feat" id="learn"><div class="ico">?</div><h3>Learn</h3>
       <p>Short, hands-on lessons with a mini drum machine in the page. Hear the idea, place it on the grid, play it with your keyboard and build it in PATTERN-MACHINE.</p>
       <a class="btn primary" href="/login?next=/learn/index.html">Open the Learn course →</a></div>
+    <div class="feat"><div class="ico">☰</div><h3>Guide &amp; troubleshooting</h3>
+      <p>A searchable, chapter-based guide explains the grid, generator, groove controls, song mode, synth, sampler, MIDI, imports, exports, projects and common fixes.</p>
+      <a class="btn" href="/login?next=/funzioni.html">Read the guide →</a></div>
   </div>
 </section>
 
@@ -335,7 +344,7 @@ footer{display:flex; flex-direction:column; align-items:center; gap:10px; margin
       <ul class="midi-list">
         <li><b>Keys</b> play the synth with velocity; with Rec on, what you play is written into the pattern.</li>
         <li><b>Pads</b> play the drum rows or run the transport: Play, solo drums or synth, Rec, tap tempo, metronome, previous and next pattern.</li>
-        <li><b>Knobs and faders</b> move volumes, BPM, swing, humanize or any synth parameter: cutoff, resonance, envelopes, effects.</li>
+        <li><b>Knobs and faders</b> move volumes, BPM, swing, humanize or any synth parameter: cutoff, resonance, envelopes and effects.</li>
         <li><b>Learn</b>: press it on a pad or knob, then hit the pad or turn the knob to assign it. Each keyboard keeps its own map, recognized by name, and two can be used at once.</li>
       </ul>
     </div>
@@ -363,7 +372,7 @@ footer{display:flex; flex-direction:column; align-items:center; gap:10px; margin
 <section class="panel" id="machines">
   <p class="label">The machines</p>
   <h2>Fourteen legends, one grid.</h2>
-  <p class="muted" style="margin-bottom:14px">Switching machine maps every row to the closest sound. Each kit shows maker, year and specs, and the machines page tells the history of each one.</p>
+  <p class="muted" style="margin-bottom:14px">Switching machine maps every row to the closest sound, while preserving the pattern. Each kit shows maker, year and specs, and the machines page tells the history of each one with side-by-side listening.</p>
   <div class="chips">
     <span class="chip">SP-1200<small>E-mu · 1987 · 16 &amp; 12-bit</small></span>
     <span class="chip">RX-5<small>Yamaha · 1986</small></span>
@@ -386,16 +395,16 @@ footer{display:flex; flex-direction:column; align-items:center; gap:10px; margin
 <section class="panel" id="screens">
   <p class="label">Screenshots</p>
   <div class="gallery">
-    <figure class="wide"><img src="assets/landing/griglia.jpg" alt="Step grid with a Roland TR-808" loading="lazy" width="1440" height="1000"><figcaption>Step grid · Roland TR-808</figcaption></figure>
-    <figure><img src="assets/landing/solo-suono.jpg" alt="Live view" loading="lazy" width="1440" height="1000"><figcaption>Live view</figcaption></figure>
-    <figure><img src="assets/landing/sequencer.jpg" alt="Song arranger with the synth lane" loading="lazy" width="1440" height="1000"><figcaption>Song arranger</figcaption></figure>
-    <figure><img src="assets/landing/mixer.jpg" alt="Mixer with meters and limiter" loading="lazy" width="1440" height="1000"><figcaption>Mixer</figcaption></figure>
-    <figure><img src="assets/landing/tema-scuro.jpg" alt="Synthesizer piano roll in the dark theme" loading="lazy" width="1440" height="1000"><figcaption>Synthesizer · dark theme</figcaption></figure>
-    <figure><img src="assets/landing/midi.jpg" alt="MIDI keyboard pads and knobs assignments" loading="lazy" width="1440" height="1000"><figcaption>MIDI keyboard map</figcaption></figure>
-    <figure><img src="assets/landing/macchine.jpg" alt="The machines page" loading="lazy" width="1440" height="1000"><figcaption>The machines</figcaption></figure>
-    <figure><img src="assets/landing/plugin-logic.jpg" alt="Logic Pro plug-in" loading="lazy" width="1440" height="1000"><figcaption>Inside Logic Pro</figcaption></figure>
-    <figure class="phone"><img src="assets/landing/mobile.jpg" alt="PATTERN-MACHINE on a phone" loading="lazy" width="832" height="1800">
-      <div><figcaption style="padding-top:0">On the phone</figcaption><p class="muted">The same drum machine on a phone: install it from the browser and it works offline too.</p></div></figure>
+    <figure class="wide"><img src="assets/landing/griglia.jpg?v=2026-09-30.1" alt="Drum Grid with per-step Probability, Ratchets, Flam, Tuning, Decay and Filter controls" loading="lazy" width="1440" height="1000"><figcaption>Drum Grid · deep per-step editing</figcaption></figure>
+    <figure><img src="assets/landing/sequencer.jpg?v=2026-09-30.1" alt="Song Sequencer with arrangement blocks and a synth lane" loading="lazy" width="1440" height="1000"><figcaption>Sequencer · song blocks and synth lane</figcaption></figure>
+    <figure><img src="assets/landing/solo-suono.jpg?v=2026-09-30.1" alt="Live View with transport, groove controls and drum rows" loading="lazy" width="1440" height="1000"><figcaption>Live View · play and record</figcaption></figure>
+    <figure><img src="assets/landing/tema-scuro.jpg?v=2026-09-30.1" alt="Synthesizer piano roll in the dark theme" loading="lazy" width="1440" height="1000"><figcaption>Synthesizer · notes, scales and presets</figcaption></figure>
+    <figure><img src="assets/landing/mixer.jpg?v=2026-09-30.1" alt="Mixer with per-row strips, meters and master limiter" loading="lazy" width="1440" height="1000"><figcaption>Mixer · rows, meters and limiter</figcaption></figure>
+    <figure><img src="assets/landing/midi.jpg?v=2026-09-30.1" alt="MIDI keyboard pads and knobs assignments" loading="lazy" width="1440" height="1000"><figcaption>MIDI · factory maps and Learn</figcaption></figure>
+    <figure><img src="assets/landing/macchine.jpg?v=2026-09-30.1" alt="The machines page with 14 drum machines" loading="lazy" width="1440" height="1000"><figcaption>Machines · fourteen classic kits</figcaption></figure>
+    <figure><img src="assets/landing/plugin-logic.jpg?v=2026-09-30.1" alt="PATTERN-MACHINE inside Logic Pro" loading="lazy" width="1440" height="1000"><figcaption>Inside Logic Pro · synced plug-in</figcaption></figure>
+    <figure class="phone"><img src="assets/landing/mobile.jpg?v=2026-09-30.1" alt="PATTERN-MACHINE on a phone" loading="lazy" width="832" height="1800">
+      <div><figcaption style="padding-top:0">On the phone · offline PWA</figcaption><p class="muted">The same drum machine on a phone: install it from the browser and keep working offline.</p></div></figure>
   </div>
 </section>
 
@@ -406,10 +415,11 @@ footer{display:flex; flex-direction:column; align-items:center; gap:10px; margin
     <table>
       <thead><tr><th>Format</th><th>What you get</th></tr></thead>
       <tbody>
-        <tr><td>MIDI</td><td>Pattern or whole song, General MIDI or Logic SP-1200 kit mapping, with tempo, swing and ratchets</td></tr>
-        <tr><td>WAV + stems</td><td>Full mix and separate tracks, aligned to bar 1</td></tr>
-        <tr><td>MP3</td><td>For listening and sharing, in every browser</td></tr>
-        <tr><td>DAW package</td><td>A folder ready for Logic Pro, Ableton Live, REAPER and other DAWs</td></tr>
+        <tr><td>MIDI</td><td>Pattern or whole song as Logic-mapped, General MIDI or multitrack MIDI, with tempo, swing and ratchets</td></tr>
+        <tr><td>WAV</td><td>Pattern or song mix with row levels, effects, synth and master limiter</td></tr>
+        <tr><td>MP3</td><td>Pattern or song for listening and sharing, in every browser</td></tr>
+        <tr><td>DAW package</td><td>MIDI, one WAV stem per instrument and kit samples, packaged for Logic Pro, Ableton Live, REAPER and other DAWs</td></tr>
+        <tr><td>Project</td><td>Full PATTERN-MACHINE JSON project or a public embed player link</td></tr>
         <tr><td>Live MIDI</td><td>Desktop app: virtual port and MIDI Clock sync with your DAW</td></tr>
       </tbody>
     </table>

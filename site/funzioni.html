@@ -118,7 +118,7 @@ th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-sp
     <p class="toc-group">Connect and share</p>
     <a href="#daw-midi">DAW, MIDI and clock</a><a href="#export">Export</a><a href="#import">Import</a><a href="#progetti">Projects and links</a>
     <p class="toc-group">Reference</p>
-    <a href="#limiti">Limitations</a>
+    <a href="#troubleshooting">Troubleshooting</a><a href="#limiti">Limitations</a>
   </nav>
 </aside>
 <main class="docs-main">
@@ -133,6 +133,21 @@ th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-sp
     <li><b>All the options of a row</b>: click the track name. Below the steps a lane opens for each parameter (Level, Probability, Ratchets, Flam, Tuning, Decay, Filter); click a cell = next value, alt+click = back to default. One row opens at a time.</li>
     <li><b>Song</b>: in the Sequencer tab, chain the patterns, each with its own repeats, and press <b>Song</b> next to Play.</li>
     <li><b>Save</b> the project; from the <b>Export</b> menu download MIDI, WAV or a package for <b>Logic</b>, <b>Ableton Live</b>, <b>REAPER</b> or other DAWs.</li>
+  </ol>
+  <h3 data-it="Come leggere un beat">How to read a beat</h3>
+  <p data-it="Ogni riga rappresenta un suono e ogni cella un istante. In una battuta 4/4 da 16 step, gli step 1–4 sono il movimento 1, 5–8 il movimento 2, 9–12 il movimento 3 e 13–16 il movimento 4.">Every row is one sound and every cell is one moment. In a 16-step 4/4 bar, steps 1–4 are beat 1, 5–8 beat 2, 9–12 beat 3 and 13–16 beat 4.</p>
+  <div class="table-wrap"><table>
+    <tr><th data-it="Elemento">Element</th><th data-it="Dove guardare">Where to look</th><th data-it="Funzione">Role</th></tr>
+    <tr><td data-it="Cassa">Kick</td><td>1, 5, 9, 13</td><td data-it="Peso e punto di riferimento del groove.">Weight and the groove's reference point.</td></tr>
+    <tr><td data-it="Rullante">Snare</td><td>5, 13</td><td data-it="Risposta alla cassa e backbeat.">Answer to the kick and backbeat.</td></tr>
+    <tr><td data-it="Hi-hat chiuso">Closed hi-hat</td><td>step pari o tutti i 16 step</td><td data-it="Suddivisione e movimento.">Subdivision and movement.</td></tr>
+  </table></div>
+  <h3 data-it="Un flusso di lavoro consigliato">A recommended workflow</h3>
+  <ol>
+    <li data-it="Parti da cassa e rullante: ascolta il pattern senza riempirlo.">Start with kick and snare: listen to the pattern before filling it.</li>
+    <li data-it="Aggiungi l’hi-hat e regola il livello prima di aggiungere altre percussioni.">Add the hi-hat and balance its level before adding more percussion.</li>
+    <li data-it="Usa accenti e ghost note per creare dinamica; usa Probability e Ratchets solo dove servono.">Use accents and ghost notes for dynamics; use Probability and Ratchets only where they help.</li>
+    <li data-it="Salva una versione stabile prima di provare Vary, Lock o Arrange.">Save a stable version before trying Vary, Lock or Arrange.</li>
   </ol>
 </section>
 
@@ -185,6 +200,12 @@ th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-sp
     <tr><td><code>cmd+Z</code> / <code>cmd+shift+Z</code></td><td>undo / redo (up to 80 steps)</td></tr>
   </table></div>
   <p class="muted">Step colors: orange = normal hit, red = accent, pale orange = ghost note, highlighted border = the step that is playing. Generated patterns often put accents on the strong beats.</p>
+  <h3 data-it="Registrare senza perdere il groove">Recording without losing the groove</h3>
+  <ol>
+    <li data-it="Avvia Play e attiva Rec prima di suonare con tasti o pad.">Start Play and turn on Rec before playing with keys or pads.</li>
+    <li data-it="Suona leggermente prima dello step desiderato: la registrazione sceglie lo step più vicino.">Play slightly before the desired step: recording chooses the nearest step.</li>
+    <li data-it="Disattiva Rec quando hai finito, poi correggi gli accenti direttamente nella griglia.">Turn Rec off when you are done, then correct accents directly in the grid.</li>
+  </ol>
   <h3 id="tastiera-midi">MIDI keyboard in the browser</h3>
   <p>A USB MIDI keyboard (ready-made assignments for the AKAI MPK mini Play mk3 and the Arturia MiniLab 3, any other works too) works right on the site in Chrome, Edge and Firefox; Safari can't read MIDI devices. Open the <b>MIDI</b> tab and press <b>Connect</b>:</p>
   <ul>
@@ -272,6 +293,13 @@ th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-sp
   <h3>Per row</h3>
   <p>Mute, solo, choke group (hi-hats cut each other off), tuning ±12 semitones, volume; in the ⚙ panel: decay, 4-pole low-pass filter with resonance, sample start, reverse, feel.</p>
   <p>Rows are <b>shared by all the patterns</b> in the project: a row that's empty in the pattern you see can have hits in another, and choosing or generating a pattern adds rows for the sounds it needs. <b>Remove empty rows</b> (next to + Row) only removes rows with no hits in any pattern; cmd+Z undoes it.</p>
+  <h3 data-it="Ricetta pratica: da quattro colpi a un groove">Practical recipe: from four hits to a groove</h3>
+  <ol>
+    <li data-it="Metti la cassa sui quattro movimenti: 1, 5, 9 e 13.">Put the kick on the four beats: 1, 5, 9 and 13.</li>
+    <li data-it="Metti il rullante sui movimenti 2 e 4: 5 e 13.">Put the snare on beats 2 and 4: 5 and 13.</li>
+    <li data-it="Aggiungi hi-hat regolari, poi togli uno o due colpi per creare spazio.">Add regular hi-hats, then remove one or two hits to create space.</li>
+    <li data-it="Trasforma un hi-hat in ghost note oppure aggiungi un accento: cambia la sensazione senza cambiare la forma.">Turn one hi-hat into a ghost note or add an accent: change the feel without changing the shape.</li>
+  </ol>
 </section>
 
 <section id="canzone">
@@ -287,6 +315,13 @@ th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-sp
   <p>At the top, the <b>Light / Dark</b> switch (Light by default). Your choice is remembered in the browser.</p>
   <h3>Report a problem</h3>
   <p>At the bottom of the page: name, email (optional, if you'd like a reply) and message. If you have an account they are already filled in. The message reaches the people who make PATTERN-MACHINE along with the page, the selected machine, the site version and your browser.</p>
+  <h3 data-it="Costruire una song per strati">Building a song in layers</h3>
+  <ul>
+    <li data-it="Intro: usa meno righe o un pattern più corto per lasciare spazio.">Intro: use fewer rows or a shorter pattern to leave space.</li>
+    <li data-it="Strofa: mantieni il groove principale e cambia un dettaglio, per esempio l’hi-hat.">Verse: keep the main groove and change one detail, such as the hi-hat.</li>
+    <li data-it="Ritornello: aggiungi densità, crash, accenti o una variazione più aperta.">Chorus: add density, crash, accents or a more open variation.</li>
+    <li data-it="Break e outro: togli elementi prima del rientro o della chiusura.">Break and outro: remove elements before the return or the ending.</li>
+  </ul>
 </section>
 
 <section id="motore">
@@ -301,12 +336,16 @@ th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-sp
     <li><b>Arrange</b>: derives intro, chorus, break and outro from a pattern.</li>
     <li><b>Vary</b>: in the library on a generated pattern, and in the Pattern panel on the one you are editing (even one written by hand).</li>
   </ul>
+  <h3 data-it="Perché la generazione è ripetibile">Why generation is repeatable</h3>
+  <p data-it="Il motore usa uno seed nel codice del pattern. Se riapri lo stesso codice con lo stesso stile, lunghezza e variazioni, ottieni lo stesso pattern; cambiando una sola trasformazione ottieni una variante tracciabile.">The engine uses a seed inside the pattern code. Reopening the same code with the same style, length and variations gives the same pattern; changing one transformation gives you a traceable variant.</p>
 </section>
 
 <section id="variazioni">
   <h2>Variations</h2>
   <p class="muted">Each one has a letter that goes into the pattern code (<code>~V&lt;letter&gt;&lt;seed&gt;</code>). Hybrids graft in voices taken from another style.</p>
   <div class="table-wrap"><table id="varTable"><tr><th>Code</th><th>Name</th><th>What it does</th></tr></table></div>
+  <h3 data-it="Come leggere un codice di variazione">How to read a variation code</h3>
+  <p data-it="La parte iniziale identifica stile, lunghezza, sezione e seed. I segmenti dopo il carattere ~ descrivono le trasformazioni applicate in ordine: puoi copiare il codice, condividerlo e ricostruire il risultato senza esportare audio.">The beginning identifies style, length, section and seed. Segments after the ~ character describe transformations in order: you can copy the code, share it and rebuild the result without exporting audio.</p>
 </section>
 
 <section id="stili">
@@ -344,6 +383,14 @@ th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-sp
     <li>"MP3 pattern" = 4 loops of the pattern; "MP3 song" = the whole song; plus a 2-second tail.</li>
     <li>Works in every browser, offline too, and in the app: the encoding is done by <a href="https://github.com/zhuker/lamejs">lamejs</a>, a JavaScript port of <a href="https://lame.sourceforge.io/">LAME</a> (LGPL license).</li>
   </ul>
+  <h3 data-it="Quale esportazione scegliere">Which export should I use?</h3>
+  <div class="table-wrap"><table>
+    <tr><th data-it="Obiettivo">Goal</th><th data-it="Scelta consigliata">Best choice</th><th data-it="Perché">Why</th></tr>
+    <tr><td data-it="Modificare le note nel DAW">Edit notes in a DAW</td><td>MIDI (General MIDI)</td><td data-it="È leggero e mantiene tempo, posizione e informazioni ritmiche.">It is light and keeps tempo, position and rhythmic information.</td></tr>
+    <tr><td data-it="Trascinare audio già pronto">Drag in finished audio</td><td>WAV</td><td data-it="Suoni, livelli ed effetti sono già renderizzati e allineati.">Sounds, levels and effects are already rendered and aligned.</td></tr>
+    <tr><td data-it="Ricostruire il kit">Rebuild the kit</td><td>DAW package</td><td data-it="Contiene MIDI, stem e campioni con istruzioni per il DAW.">It contains MIDI, stems and samples with DAW instructions.</td></tr>
+    <tr><td data-it="Inviare un’anteprima leggera">Send a small preview</td><td>MP3</td><td data-it="È compatibile e pesa meno del WAV.">It is widely compatible and smaller than WAV.</td></tr>
+  </table></div>
 </section>
 
 <section id="import">
@@ -367,6 +414,13 @@ th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-sp
     <li>8, 16 or 32-step patterns stay whole; longer pieces are split into 16-step bars.</li>
     <li>Closed or binary formats (Logic, FL Studio, Cubase, Guitar Pro) can't be read: export them to MIDI first.</li>
   </ul>
+  <h3 data-it="Dopo l’importazione">After an import</h3>
+  <ol>
+    <li data-it="Controlla il tempo: un file audio può avere un BPM rilevato solo in modo approssimativo.">Check the tempo: an audio file may have only an approximate detected BPM.</li>
+    <li data-it="Controlla la mappa: se cassa o rullante sono finiti sulla riga sbagliata, correggi la riga prima di salvare.">Check the map: if kick or snare landed on the wrong row, fix the row before saving.</li>
+    <li data-it="Ascolta il pattern dall’inizio e verifica gli accenti; l’importazione converte la velocity in livelli normale, accent e ghost.">Listen from the beginning and check accents; import converts velocity into normal, accent and ghost levels.</li>
+    <li data-it="Salva una copia del progetto importato prima di aggiungerlo a un progetto esistente.">Save a copy of the imported project before adding it to an existing project.</li>
+  </ol>
 </section>
 
 <section id="progetti">
@@ -380,6 +434,28 @@ th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-sp
     <li>The <b>Link</b> button copies an address that reopens that pattern.</li>
     <li>The site is a PWA: it installs as an app and also works offline.</li>
   </ul>
+  <h3 data-it="Cosa viene salvato">What is saved</h3>
+  <ul>
+    <li data-it="Un progetto contiene pattern, blocchi della Song, righe, livelli, parametri, macchina selezionata e impostazioni del groove.">A project contains patterns, Song blocks, rows, levels, parameters, selected machine and groove settings.</li>
+    <li data-it="Un preferito salva il codice del pattern, non i file audio: riaprirlo rigenera il pattern e usa la macchina disponibile in quel momento.">A favorite saves the pattern code, not audio files: reopening it regenerates the pattern and uses the machine available at that time.</li>
+    <li data-it="Le assegnazioni MIDI e il tema restano impostazioni del browser o del controller, non fanno parte del codice del pattern.">MIDI assignments and the theme are browser or controller settings, not part of the pattern code.</li>
+  </ul>
+</section>
+
+<section id="troubleshooting">
+  <h2 data-it="Risoluzione dei problemi">Troubleshooting</h2>
+  <p data-it="Quando qualcosa non funziona, controlla prima il percorso del segnale: sorgente, connessione, destinazione e trasporto. La maggior parte dei problemi MIDI e audio si trova in uno di questi quattro punti.">When something does not work, check the signal path first: source, connection, destination and transport. Most MIDI and audio problems are in one of these four places.</p>
+  <div class="table-wrap"><table>
+    <tr><th data-it="Problema">Problem</th><th data-it="Controlla prima">Check first</th><th data-it="Soluzione">Fix</th></tr>
+    <tr><td data-it="Non senti l’audio">No sound</td><td data-it="Volume master, browser non silenziato, macchina disponibile.">Master volume, browser not muted, machine available.</td><td data-it="Premi Play, prova un pattern noto e verifica che il browser abbia un’uscita audio attiva.">Press Play, try a known pattern and check that the browser has an active audio output.</td></tr>
+    <tr><td data-it="La tastiera MIDI non compare">MIDI keyboard not visible</td><td data-it="Browser compatibile e permesso MIDI.">Compatible browser and MIDI permission.</td><td data-it="Usa Chrome, Edge o Firefox, collega il controller prima di premere Connect e chiudi altre applicazioni che lo stanno usando.">Use Chrome, Edge or Firefox, connect the controller before pressing Connect and close other apps using it.</td></tr>
+    <tr><td data-it="Il DAW non riceve note">DAW receives no notes</td><td data-it="Porta PatternMachine, monitoraggio della traccia e canale MIDI.">PatternMachine port, track monitoring and MIDI channel.</td><td data-it="Attiva MIDI output, scegli General MIDI oppure la mappa corretta e controlla che la traccia sia armata o monitorata.">Turn on MIDI output, choose General MIDI or the correct map and check that the track is armed or monitored.</td></tr>
+    <tr><td data-it="L’app non segue il tempo">App does not follow tempo</td><td data-it="MIDI Clock e Start/Stop inviati allo stesso output.">MIDI Clock and Start/Stop sent to the same output.</td><td data-it="Invia clock da un solo DAW, seleziona Follow DAW clock e riavvia il trasporto dal DAW.">Send clock from one DAW, select Follow DAW clock and restart transport from the DAW.</td></tr>
+    <tr><td data-it="L’audio importato è fuori tempo">Imported audio is out of time</td><td data-it="BPM rilevato, inizio del file e presenza di silenzio iniziale.">Detected BPM, file start and leading silence.</td><td data-it="Imposta il BPM corretto, controlla il primo colpo e verifica il risultato sulla griglia prima di salvare.">Set the correct BPM, check the first hit and verify the grid before saving.</td></tr>
+    <tr><td data-it="Un export suona diverso">An export sounds different</td><td data-it="Modalità Pattern o Song, macchina, livelli, swing e humanize.">Pattern or Song mode, machine, levels, swing and humanize.</td><td data-it="Esporta di nuovo dopo aver controllato la modalità di riproduzione e disattiva Humanize se ti serve un render identico.">Export again after checking playback mode and turn Humanize off if you need an identical render.</td></tr>
+  </table></div>
+  <h3 data-it="Quando chiedere aiuto">When to report a problem</h3>
+  <p data-it="Se il problema resta, invia il nome del browser o del DAW, il formato usato, il percorso MIDI e i passaggi per riprodurlo. Evita di inviare file audio o dati personali se non sono necessari.">If the problem remains, include the browser or DAW name, format used, MIDI path and steps to reproduce it. Avoid sending audio files or personal data unless they are necessary.</p>
 </section>
 
 <section id="limiti">
@@ -471,17 +547,21 @@ th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-sp
     "button (next to Export) opens a dialog: drop a file or choose one, or paste some text. You can also drop a file straight onto the page. By default import opens a new project (if the open one has unsaved changes it asks first); with":"pulsante (accanto a Esporta) apre una finestra: trascina o scegli un file, oppure incolla del testo. Puoi anche trascinare un file direttamente sulla pagina. Per impostazione predefinita l’importazione apre un nuovo progetto (se quello aperto ha modifiche non salvate chiede prima conferma); con", "the patterns and blocks are appended at the end.":"i pattern e i blocchi vengono aggiunti alla fine.", "notes (channel 10 only, if present), tempo and title.":"note (solo canale 10, se presente), tempo e titolo.", ": kick, snare and hi-hat from transients in three bands, detected or current tempo. Works well on clean loops; always check the grid":": cassa, rullante e hi-hat dai transienti in tre bande, al tempo rilevato o corrente. Funziona bene con loop puliti; controlla sempre la griglia", "patterns, instruments by name, tempo and song order":"pattern, strumenti per nome, tempo e ordine della song", "the MIDI notes of every item, in place, and the tempo":"le note MIDI di ogni elemento, nella posizione originale, e il tempo", "MIDI clips: those in the arrangement as a song, otherwise one pattern per clip; tempo":"clip MIDI: quelli nell’arrangiamento come song, altrimenti un pattern per clip; tempo", "the drum part: instruments from the score or from staff position, accents, tempo":"la parte di batteria: strumenti ricavati dalla partitura o dalla posizione sul pentagramma, accenti, tempo", "the whole project, as produced by Export › PATTERN-MACHINE project (.json)":"l’intero progetto, come prodotto da Esporta › Progetto PATTERN-MACHINE (.json)", "opens the shared pattern in the library":"apre il pattern condiviso nella libreria", "Notes become rows (one per sound), hits become sixteenth-note steps, velocity becomes level (loud = accent, soft = ghost). Identical bars become a single pattern repeated in the Song.":"Le note diventano righe (una per suono), i colpi diventano step da un sedicesimo, la velocity diventa livello (forte = accento, piano = ghost). Le battute identiche diventano un solo pattern ripetuto nella Song.", "8, 16 or 32-step patterns stay whole; longer pieces are split into 16-step bars.":"I pattern da 8, 16 o 32 step restano interi; i brani più lunghi vengono divisi in battute da 16 step.", "Closed or binary formats (Logic, FL Studio, Cubase, Guitar Pro) can't be read: export them to MIDI first.":"I formati chiusi o binari (Logic, FL Studio, Cubase, Guitar Pro) non possono essere letti: esportali prima in MIDI.",
     "without an account) by clicking the row or":"senza account) cliccando la riga oppure", "with the ▶ button, which loops the song (or the first pattern) without opening it.":"con il pulsante ▶, che manda in loop la song (o il primo pattern) senza aprirla.", "With an account, saved projects are kept":"Con un account, i progetti salvati restano", "and are the same in every browser and device you sign in from. They are saved in the browser first, so Save works offline too, and sync when the connection is back; the line under":"e sono uguali in ogni browser e dispositivo in cui accedi. Prima vengono salvati nel browser, quindi Salva funziona anche offline, e si sincronizzano quando torna la connessione; la riga sotto", "shows the state. If the same project was changed on another device in the meantime, your version is kept as a":"mostra lo stato. Se nel frattempo lo stesso progetto è stato cambiato su un altro dispositivo, la tua versione viene conservata come", "next to the other one, so nothing is lost. Projects saved in a browser before this arrive in the account the first time you sign in there.":"accanto all’altra, così non perdi nulla. I progetti salvati in un browser prima dell’accesso arrivano nell’account al primo login.", "Undo and redo: cmd+Z / cmd+shift+Z, up to 80 steps.":"Annulla e ripeti: cmd+Z / cmd+shift+Z, fino a 80 step.", ": a few bytes that always regenerate the same pattern.":": pochi byte che rigenerano sempre lo stesso pattern.", "button copies an address that reopens that pattern.":"copia un indirizzo che riapre quel pattern.", "The site is a PWA: it installs as an app and also works offline.":"Il sito è una PWA: si può installare come app e funziona anche offline.", "Sixteenth-note grid: no true triplets, so no jazz shuffle or 6/8. Swing only shifts the odd sixteenths.":"Griglia a sedicesimi: non ci sono terzine vere, quindi niente jazz shuffle o 6/8. Lo swing sposta solo i sedicesimi dispari.", "BPM from 40 to 240: even the fastest blast beat stays below this ceiling.":"BPM da 40 a 240: anche il blast beat più veloce resta sotto questo limite.", "Variations only act on rows with a recognized drum sound (the generator slots).":"Le variazioni agiscono solo sulle righe con un suono di batteria riconosciuto (gli slot del generatore).", "The \"MIDI pattern/song\" export uses the SP-1200 kit map: with other kits use":"L’esportazione \"MIDI pattern/song\" usa la mappa del kit SP-1200: con gli altri kit usa", "All kits except the SP-1200 (16 and 12 bit) and RX-5 come from the Logic Pro library (Apple recreations and samples), not from the original machines.":"Tutti i kit tranne SP-1200 (16 e 12 bit) e RX-5 provengono dalla libreria di Logic Pro (ricreazioni e campioni Apple), non dalle macchine originali."
   };
-  const originals=new WeakMap();
+  const originals=new WeakMap(), localized=new WeakMap();
   const noSubstring=new Set(["normal","Play","Machine","Machines","Export","Import","Save","Song","Pattern","Learn","Connect","DAW","MIDI","WAV","MP3","Styles","Groups","Command"]);
   const replace=(raw)=>{ if(IT[raw]!==undefined) return IT[raw]; let out=raw; Object.entries(IT).sort((a,b)=>b[0].length-a[0].length).forEach(([from,to])=>{ if(from!==to&&!noSubstring.has(from)) out=out.split(from).join(to); }); return out; };
   function apply(){
     const it=localStorage.getItem("pm.lang")==="it";
     document.documentElement.lang=it?"it":"en";
     document.title=it?"Guida e funzioni · PATTERN-MACHINE":"Guide and features · PATTERN-MACHINE";
+    document.querySelectorAll("[data-it]").forEach(el=>{
+      if(!localized.has(el)) localized.set(el,el.innerHTML);
+      el.innerHTML=it?el.dataset.it:localized.get(el);
+    });
     const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT), nodes=[];
     while(walker.nextNode()) nodes.push(walker.currentNode);
     nodes.forEach(n=>{
-      if(n.parentElement?.closest("script,style,code")) return;
+      if(n.parentElement?.closest("script,style,code,[data-it]")) return;
       if(!originals.has(n)) originals.set(n,n.nodeValue);
       const raw=originals.get(n), lead=raw.match(/^\s*/)[0], tail=raw.match(/\s*$/)[0], body=raw.trim();
       n.nodeValue=lead+(it?replace(body):body)+tail;
@@ -498,11 +578,11 @@ th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-sp
 </script>
 <script>
 (function(){
-  const order=["inizio","tasti","numeri","macchine","griglia","canzone","motore","variazioni","stili","daw-midi","export","import","progetti","limiti"];
+  const order=["inizio","tasti","numeri","macchine","griglia","canzone","motore","variazioni","stili","daw-midi","export","import","progetti","troubleshooting","limiti"];
   const main=document.querySelector(".docs-main");
   order.map(id=>document.getElementById(id)).filter(Boolean).forEach(section=>main.append(section));
   const sections=order.map(id=>document.getElementById(id)).filter(Boolean);
-  const labels=["Getting started","Keyboard and mouse","At a glance","Machines","Grid and steps","Song and Sequencer","Pattern engine","Variations","Styles","Connecting to DAWs, MIDI and clock","Export for Logic","Import","Projects, codes and links","Known limitations"];
+  const labels=["Getting started","Keyboard and mouse","At a glance","Machines","Grid and steps","Song and Sequencer","Pattern engine","Variations","Styles","Connecting to DAWs, MIDI and clock","Export for Logic","Import","Projects, codes and links","Troubleshooting","Known limitations"];
   sections.forEach((section,i)=>{
     const nav=document.createElement("div"); nav.className="chapter-nav";
     const prev=i?`<a href="#${sections[i-1].id}" data-en="← ${labels[i-1]}" data-it="← ${window.PMGuide.IT[labels[i-1]]||labels[i-1]}">← ${labels[i-1]}</a>`:`<span class="disabled">—</span>`;

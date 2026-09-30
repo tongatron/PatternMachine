@@ -758,6 +758,10 @@ button.danger-fill{background:var(--danger); border-color:var(--danger); color:#
 .seqblock-head .dot{width:8px; height:8px; border-radius:50%; flex:0 0 auto;}
 .seqblock-head .grip{margin-left:auto; color:var(--text-faint); letter-spacing:-1px;}
 .seqblock select{width:100%; font-size:10px; padding:3px 4px;}
+.seqblock-pat{display:flex; align-items:stretch; min-width:0;}
+.seqblock-pat select{flex:1 1 auto; width:auto; min-width:0;}
+.seqblock-pat select:not(:last-child){border-top-right-radius:0; border-bottom-right-radius:0;}
+.seqblock-pat .pattern-more{padding:0 8px; font-size:11px;}
 .seqblock .seq-section{font-weight:700; color:var(--text); border-color:var(--section-color,var(--edge));}
 .seq-lane-head{display:flex; flex-wrap:wrap; align-items:center; gap:6px 8px; margin:4px 0 0; padding-top:8px; border-top:1px solid var(--edge-soft);}
 .seq-lane-label{font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--text-dim); font-weight:700;}
@@ -1503,22 +1507,22 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-09-30.30"></script>
-<script src="engine/core.js?v=2026-09-30.30"></script>
-<script src="engine/styles-punk.js?v=2026-09-30.30"></script>
-<script src="engine/styles-post.js?v=2026-09-30.30"></script>
-<script src="engine/styles-machines.js?v=2026-09-30.30"></script>
-<script src="engine/styles-alt.js?v=2026-09-30.30"></script>
-<script src="engine/styles-groove.js?v=2026-09-30.30"></script>
-<script src="engine/styles-dub.js?v=2026-09-30.30"></script>
-<script src="engine/styles-break.js?v=2026-09-30.30"></script>
-<script src="engine/styles-soul.js?v=2026-09-30.30"></script>
-<script src="engine/styles-metal.js?v=2026-09-30.30"></script>
-<script src="engine/styles-electro.js?v=2026-09-30.30"></script>
-<script src="engine/variations.js?v=2026-09-30.30"></script>
-<script src="engine/import.js?v=2026-09-30.30"></script>
-<script src="engine/rhythm.js?v=2026-09-30.30"></script>
-<script src="engine/share.js?v=2026-09-30.30"></script>
+<script src="engine/machine-art.js?v=2026-09-30.31"></script>
+<script src="engine/core.js?v=2026-09-30.31"></script>
+<script src="engine/styles-punk.js?v=2026-09-30.31"></script>
+<script src="engine/styles-post.js?v=2026-09-30.31"></script>
+<script src="engine/styles-machines.js?v=2026-09-30.31"></script>
+<script src="engine/styles-alt.js?v=2026-09-30.31"></script>
+<script src="engine/styles-groove.js?v=2026-09-30.31"></script>
+<script src="engine/styles-dub.js?v=2026-09-30.31"></script>
+<script src="engine/styles-break.js?v=2026-09-30.31"></script>
+<script src="engine/styles-soul.js?v=2026-09-30.31"></script>
+<script src="engine/styles-metal.js?v=2026-09-30.31"></script>
+<script src="engine/styles-electro.js?v=2026-09-30.31"></script>
+<script src="engine/variations.js?v=2026-09-30.31"></script>
+<script src="engine/import.js?v=2026-09-30.31"></script>
+<script src="engine/rhythm.js?v=2026-09-30.31"></script>
+<script src="engine/share.js?v=2026-09-30.31"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -3135,6 +3139,29 @@ function clearDropMarks(){
   document.querySelectorAll(".seqblock").forEach(e=>e.classList.remove("dropbefore","dropafter"));
 }
 
+// Rinomina un pattern del synth dal Sequencer. Con engine/synth.js caricato passa da li' (aggiorna anche
+// i pulsanti del Synth); senza, il nome si cambia qui e il Synth lo leggera' dal progetto.
+async function renameSynthPattern(sp){
+  if(window.PMSynth?.renamePattern) await PMSynth.renamePattern(sp);
+  else {
+    const name=await ask({title:"Rename synth pattern", ok:"Rename", input:sp.name});
+    if(name===null || !name.trim() || name.trim()===sp.name) return;
+    pushUndo(); sp.name=name.trim().slice(0,40);
+  }
+  renderSong();
+}
+// Menu del pattern di un blocco + "…" per rinominarlo. Senza pattern (pausa) il "…" non c'e'.
+function blockPatternRow(select, name, rename){
+  const row=document.createElement("div"); row.className="seqblock-pat";
+  row.appendChild(select);
+  if(name){
+    const more=document.createElement("button"); more.type="button"; more.className="pattern-more"; more.textContent="…";
+    more.title=`Rename “${name}”`; more.setAttribute("aria-label",`Rename ${name}`);
+    more.onclick=e=>{ e.stopPropagation(); rename(); };
+    row.appendChild(more);
+  }
+  return row;
+}
 function renderSong(){
   const host=el("seqTrack"), ruler=el("seqRuler");
   host.innerHTML=""; ruler.innerHTML="";
@@ -3197,7 +3224,7 @@ function renderSong(){
     psel.value=b.patternId;
     psel.onclick=e=>e.stopPropagation();
     psel.onchange=()=>{ pushUndo(); b.patternId=psel.value; renderSong(); };
-    card.appendChild(psel);
+    card.appendChild(blockPatternRow(psel, p&&p.name, ()=>renameBlockPattern(b)));
     const meta=document.createElement("div"); meta.className="seqblock-meta";
     meta.textContent=`${bars} ${bars===1?"bar":"bars"} · ×${b.repeats}`;
     card.appendChild(meta);
@@ -3394,7 +3421,7 @@ function renderSynthLane(){
     sel.value=b.synthId||"";
     sel.onclick=e=>e.stopPropagation();
     sel.onchange=()=>{ pushUndo(); if(sel.value){ b.synthId=sel.value; } else { b.len=x.len; b.synthId=null; } renderSong(); };
-    card.appendChild(sel);
+    card.appendChild(blockPatternRow(sel, sp&&sp.name, ()=>renameSynthPattern(sp)));
     if(!sp){
       const lsel=document.createElement("select"); lsel.setAttribute("aria-label","Length of the rest");
       [[8,"½ bar"],[16,"1 bar"],[32,"2 bars"]].forEach(([v,l])=>{ const o=document.createElement("option"); o.value=v; o.textContent=l; lsel.appendChild(o); });
@@ -3870,7 +3897,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || document.getElementById("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-30.30";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-30.31";
   document.body.appendChild(s);
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth")) loadSynth();
@@ -4330,10 +4357,14 @@ el("sPlay").onclick=()=>{
 };
 // I blocchi della canzone puntano ai pattern: due blocchi con lo stesso pattern ne condividono anche il nome.
 // Se il pattern e' in piu' blocchi si sceglie: solo questo blocco (diventa una copia col nome nuovo) o tutti.
-el("seqRename").onclick=async()=>{
+el("seqRename").onclick=()=>{
   const i=blockIndex();
   if(i<0) return setStatus("select a block","err");
-  const b=project.song[i], p=patternById(b.patternId);
+  renameBlockPattern(project.song[i]);
+};
+// Dal tasto "Rename pattern" (blocco selezionato) o dal "…" nella scheda di ogni blocco.
+async function renameBlockPattern(b){
+  const p=patternById(b.patternId);
   if(!p) return;
   const shared=project.song.filter(x=>x.patternId===p.id).length;
   if(shared<2) return renamePattern(p);
@@ -4350,7 +4381,7 @@ el("seqRename").onclick=async()=>{
   else b.patternId=copyPattern(p, clean).id;
   renderPatterns(); renderSong(); el("gridTitle").textContent="Grid — "+curPattern().name;
   setStatus(how==="alt" ? `renamed in ${shared} blocks` : `this block now uses “${clean}”`);
-};
+}
 el("sDup").onclick=()=>{
   const i=blockIndex(); if(i<0) return setStatus("select a block","err");
   pushUndo();
@@ -6560,7 +6591,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-30.30";
+const SW_VERSION="2026-09-30.31";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -6584,10 +6615,10 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sample-editor.js?v=2026-09-30.30"></script>
-<script src="engine/sampler.js?v=2026-09-30.30"></script>
+<script src="engine/sample-editor.js?v=2026-09-30.31"></script>
+<script src="engine/sampler.js?v=2026-09-30.31"></script>
 <script>PMSampler.init();</script>
-<script src="engine/midi.js?v=2026-09-30.30"></script>
+<script src="engine/midi.js?v=2026-09-30.31"></script>
 
 </body>
 </html>

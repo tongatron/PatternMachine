@@ -298,7 +298,8 @@ label.fld input[type=number]{width:54px;}
 #panelTransport{position:sticky; top:8px; z-index:20;}
 #synthPlayBtn, #drumsPlayBtn{display:none !important;}
 @media (max-width:700px){
-  #panelTransport{top:auto; bottom:8px; margin-top:10px;}
+  /* su mobile il blocco del Play scorre con gli altri: fisso in primo piano copriva la pagina */
+  #panelTransport{position:static; margin-top:10px;}
   #panelTransport .transport-extra{display:flex; flex-wrap:wrap; gap:7px;}
   #panelTransport label[title*="humanize"], #panelTransport #liveKeysBtn{display:none;}
   #panelTransport .counter{margin-left:auto;}

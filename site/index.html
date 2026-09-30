@@ -1311,7 +1311,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       <button id="ssAdd" class="mini primary" title="Insert the synth pattern after the selected synth block">+ Insert</button>
       <button id="ssRest" class="mini" title="A silent block: the synth pauses (one bar, the length can be changed on the block)">+ Rest</button>
       <button id="ssDup" class="mini" title="Duplicate the selected synth block">Duplicate</button>
-      <button id="ssRename" class="mini" title="Rename the selected block's synth pattern">Rename</button>
+      <button id="ssRename" class="mini" title="Rename the selected block's synth pattern only">Rename</button>
       <button id="ssClear" class="mini danger">Clear</button>
       <span class="tiny" id="synthLaneInfo" style="margin-left:auto;"></span>
     </div>
@@ -3252,8 +3252,8 @@ function clearDropMarks(){
   document.querySelectorAll(".seqblock").forEach(e=>e.classList.remove("dropbefore","dropafter"));
 }
 
-// Rinomina un pattern del synth dal Sequencer. Con engine/synth.js caricato passa da li' (aggiorna anche
-// i pulsanti del Synth); senza, il nome si cambia qui e il Synth lo leggera' dal progetto.
+// Rinomina il pattern del synth dal Sequencer. Il pulsante del Sequencer e' locale al blocco:
+// se il pattern e' condiviso, prima crea una copia indipendente per evitare di rinominare gli altri blocchi.
 async function renameSynthPattern(sp){
   if(window.PMSynth?.renamePattern) await PMSynth.renamePattern(sp);
   else {
@@ -3263,13 +3263,33 @@ async function renameSynthPattern(sp){
   }
   renderSong();
 }
+async function renameSynthBlock(block){
+  if(!block?.synthId) return setStatus("select a synth block", "err");
+  const src=synthById(block.synthId);
+  if(!src) return;
+  const name=await ask({title:"Rename synth pattern for this block", ok:"Rename", input:src.name});
+  if(name===null || !name.trim() || name.trim()===src.name) return;
+  const clean=name.trim().slice(0,40);
+  const shared=project.synthSong.some(b=>b.id!==block.id && b.synthId===src.id);
+  pushUndo();
+  if(shared){
+    const copy=makeSynthPattern(clean,src.len);
+    copy.synth=(src.synth||[]).map(n=>({...n}));
+    project.synthPatterns.splice(project.synthPatterns.indexOf(src)+1,0,copy);
+    block.synthId=copy.id; block.len=copy.len; ui.synthId=copy.id;
+  } else {
+    src.name=clean; ui.synthId=src.id;
+  }
+  renderSong();
+  setStatus("synth block renamed: "+clean);
+}
 // Menu del pattern di un blocco + "…" per rinominarlo. Senza pattern (pausa) il "…" non c'e'.
 function blockPatternRow(select, name, rename){
   const row=document.createElement("div"); row.className="seqblock-pat";
   row.appendChild(select);
   if(name){
     const more=document.createElement("button"); more.type="button"; more.className="pattern-more"; more.textContent="…";
-    more.title=`Rename “${name}”`; more.setAttribute("aria-label",`Rename ${name}`);
+    more.title=`Rename “${name}” for this block`; more.setAttribute("aria-label",`Rename ${name} for this block`);
     more.onclick=e=>{ e.stopPropagation(); rename(); };
     row.appendChild(more);
   }
@@ -3534,7 +3554,7 @@ function renderSynthLane(){
     sel.value=b.synthId||"";
     sel.onclick=e=>e.stopPropagation();
     sel.onchange=()=>{ pushUndo(); if(sel.value){ b.synthId=sel.value; } else { b.len=x.len; b.synthId=null; } renderSong(); };
-    card.appendChild(blockPatternRow(sel, sp&&sp.name, ()=>renameSynthPattern(sp)));
+    card.appendChild(blockPatternRow(sel, sp&&sp.name, ()=>renameSynthBlock(b)));
     if(!sp){
       const lsel=document.createElement("select"); lsel.setAttribute("aria-label","Length of the rest");
       [[8,"½ bar"],[16,"1 bar"],[32,"2 bars"]].forEach(([v,l])=>{ const o=document.createElement("option"); o.value=v; o.textContent=l; lsel.appendChild(o); });
@@ -3609,8 +3629,11 @@ el("ssDup").onclick=()=>{
 };
 el("ssRename").onclick=()=>{
   const block=project.synthSong.find(b=>b.id===ui.synthBlockId && b.synthId);
-  const sp=synthById(block?.synthId)||synthById(el("seqSynthPick").value)||curSynth();
-  if(sp) renameSynthPattern(sp);
+  if(block) renameSynthBlock(block);
+  else {
+    const sp=synthById(el("seqSynthPick").value)||curSynth();
+    if(sp) renameSynthPattern(sp);
+  }
 };
 el("ssClear").onclick=async()=>{
   if(!project.synthSong.length) return;

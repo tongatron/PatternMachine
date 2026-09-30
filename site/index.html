@@ -955,25 +955,42 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 @media (max-width:560px){
   #viewGrid, #viewSeq, #viewSynth, #viewSampler, #viewMix, #viewRecent{padding:10px 14px;}
 }
-/* Mixer: una striscia per traccia, poi i gruppi e il master. */
-.mix-strips{display:flex; gap:6px; overflow-x:auto; padding:2px 2px 10px; align-items:stretch;}
-.mx{flex:0 0 auto; width:74px; display:flex; flex-direction:column; align-items:center; gap:6px;
-  background:var(--plate,var(--panel-2)); border:1px solid var(--edge); border-radius:var(--r-panel,9px); padding:8px 5px; min-height:294px; justify-content:space-between;}
+/* Mixer: console tecnica. Una striscia per riga della griglia, poi i gruppi e il master. I pozzetti dei meter
+   restano scuri anche nel tema chiaro, come i LED di una console. */
+.mix-info{display:flex; flex-wrap:wrap; gap:3px 18px; margin:-4px 0 10px; font:10px var(--mono,monospace); color:var(--text-faint); font-variant-numeric:tabular-nums;}
+.mix-info b{color:var(--text-dim); font-weight:600;}
+.mix-strips{display:flex; gap:4px; overflow-x:auto; padding:2px 2px 10px; align-items:stretch;}
+.mx{--mx-well:#16171a; flex:0 0 auto; width:80px; display:flex; flex-direction:column; align-items:stretch; gap:6px;
+  background:var(--plate,var(--panel-2)); border:1px solid var(--edge); border-radius:6px; padding:6px 6px 8px; font-variant-numeric:tabular-nums;}
 .mx.group{background:var(--panel-3);}
-.mx.master{width:96px; border-color:var(--accent-dim);}
-.mx.off{opacity:.5;}
+.mx.master{width:124px; border-color:var(--accent-dim);}
+.mx.off .mx-body, .mx.off .mx-name, .mx.off .mx-panrow{opacity:.42;}
 .mx-sep{flex:0 0 1px; background:var(--edge); margin:0 4px;}
-.mx-name{font-size:10px; font-weight:700; letter-spacing:.04em; width:100%; text-align:center;
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-.mx-body{display:flex; gap:6px; align-items:stretch; height:160px;}
-.mx-meter{position:relative; width:8px; border-radius:3px; background:var(--led-off); overflow:hidden;}
-.mx-meter i{position:absolute; left:0; right:0; bottom:0; height:0;
-  background:linear-gradient(0deg,#3fae5a 0%,#3fae5a 70%,#e3b33a 85%,#d4402f 100%); background-size:100% 160px; background-position:bottom;}
-.mx-meter.clip{box-shadow:0 0 0 1px var(--danger);}
-.mx input.mx-fader{writing-mode:vertical-lr; direction:rtl; width:22px; height:160px; margin:0;}
-.mx input.mx-pan{width:100%; margin:0;}
-.mx-val{font-size:9.5px; color:var(--text-dim); font-variant-numeric:tabular-nums; min-height:12px;}
-.mx-btns{display:flex; gap:4px;}
+.mx-head{display:flex; justify-content:space-between; gap:4px; font:9px var(--mono,monospace); color:var(--text-faint); letter-spacing:.04em;}
+.mx-head b{color:var(--text); font-weight:700;}
+.mx-name{font-size:10px; font-weight:700; letter-spacing:.03em; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  padding:3px 0; border-top:1px solid var(--edge-soft); border-bottom:1px solid var(--edge-soft);}
+.mx-panrow{display:flex; flex-direction:column; gap:2px;}
+.mx-pan{position:relative; height:14px; border-radius:3px; background:var(--mx-well); border:1px solid var(--edge); cursor:ew-resize; touch-action:none; outline:none;}
+.mx-pan::before{content:""; position:absolute; left:50%; top:2px; bottom:2px; width:1px; background:rgba(255,255,255,.3);}
+.mx-pan i{position:absolute; top:4px; bottom:4px; background:var(--accent); border-radius:1px;}
+.mx-pan b{position:absolute; top:1px; bottom:1px; width:3px; margin-left:-1.5px; background:#efece4; border-radius:1px;}
+.mx-pan:focus-visible{outline:2px solid var(--accent); outline-offset:1px;}
+.mx-panval{font:9px var(--mono,monospace); color:var(--text-dim); text-align:center;}
+.mx-body{display:flex; gap:3px; justify-content:center; height:190px;}
+.mx-meter{display:block; height:190px;}
+.mx-fader{position:relative; flex:0 0 32px; height:190px; cursor:ns-resize; touch-action:none; outline:none;}
+.mx-fader::before{content:""; position:absolute; left:8px; top:11px; bottom:11px; width:4px; margin-left:-2px; border-radius:2px; background:var(--mx-well); box-shadow:inset 0 0 0 1px var(--edge);}
+.mx-fader .tick{position:absolute; left:15px; font:8px var(--mono,monospace); line-height:1; color:var(--text-faint); transform:translateY(-50%); white-space:nowrap; pointer-events:none;}
+.mx-cap{position:absolute; left:8px; width:18px; height:22px; margin:-11px 0 0 -9px; border-radius:3px;
+  background:linear-gradient(#f5f3ed,#c8c4b9); border:1px solid #57544c; box-shadow:0 2px 4px rgba(0,0,0,.35); pointer-events:none;}
+.mx-cap::after{content:""; position:absolute; left:2px; right:2px; top:50%; height:2px; margin-top:-1px; background:#1d1d1d;}
+.mx-fader:focus-visible .mx-cap{outline:2px solid var(--accent); outline-offset:1px;}
+.mx-read{display:grid; grid-template-columns:1fr 1fr; gap:3px; font:9px var(--mono,monospace); text-align:center;}
+.mx-read span{padding:3px 0; border-radius:3px; background:var(--mx-well); color:#cfd4cf; white-space:nowrap; overflow:hidden;}
+.mx-read .pk{cursor:pointer;}
+.mx-read .pk.over{color:#ff6b57;}
+.mx-btns{display:flex; gap:4px; justify-content:center;}
 .mx-lim{padding:4px 7px; font-size:9.5px;}
 .mx-lim.on{background:var(--key-primary,var(--accent)); color:var(--on-accent); border-color:var(--accent-dim); font-weight:700;}
 .seqblock-mutes{display:flex; flex-wrap:wrap; gap:3px;}
@@ -1271,13 +1288,14 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 
   <div class="panel" id="panelMix" role="tabpanel" aria-label="Mixer" hidden>
     <h2>Mixer</h2>
+    <div class="mix-info" id="mixInfo"></div>
     <div class="mix-strips" id="mixStrips"></div>
     <details class="wave-panel" id="waveMixer" open>
       <summary>Audio waveform <span class="wave-caption" id="waveMixerCaption">complete mix</span></summary>
       <canvas id="waveMixerCanvas" height="124" aria-label="Waveform of the complete mix"></canvas>
     </details>
     <p class="hint" style="margin-top:0;">
-      One strip per row of the drum grid, then the drums and synth groups and the master · the faders are the same volumes as the grid and the top bar · double-click a pan to center it · the limiter keeps the master under 0 dB, live and in the WAV export (not in the stems) · pan, synth pan and limiter are saved in the project.
+      One strip per row of the drum grid, then the drums and synth groups and the master · the faders are the same volumes as the grid and the top bar, shown in dB (100% = 0 dB) · meters: RMS solid, peak lighter, the line holds the last peak, the red LED lights over 0 dBFS · click a peak readout to reset them all · drag, arrow keys or double-click (default) on faders and pans · the limiter keeps the master under 0 dB, live and in the WAV export (not in the stems) · pan, synth pan and limiter are saved in the project.
     </p>
   </div>
 
@@ -1549,22 +1567,22 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-09-30.38"></script>
-<script src="engine/core.js?v=2026-09-30.38"></script>
-<script src="engine/styles-punk.js?v=2026-09-30.38"></script>
-<script src="engine/styles-post.js?v=2026-09-30.38"></script>
-<script src="engine/styles-machines.js?v=2026-09-30.38"></script>
-<script src="engine/styles-alt.js?v=2026-09-30.38"></script>
-<script src="engine/styles-groove.js?v=2026-09-30.38"></script>
-<script src="engine/styles-dub.js?v=2026-09-30.38"></script>
-<script src="engine/styles-break.js?v=2026-09-30.38"></script>
-<script src="engine/styles-soul.js?v=2026-09-30.38"></script>
-<script src="engine/styles-metal.js?v=2026-09-30.38"></script>
-<script src="engine/styles-electro.js?v=2026-09-30.38"></script>
-<script src="engine/variations.js?v=2026-09-30.38"></script>
-<script src="engine/import.js?v=2026-09-30.38"></script>
-<script src="engine/rhythm.js?v=2026-09-30.38"></script>
-<script src="engine/share.js?v=2026-09-30.38"></script>
+<script src="engine/machine-art.js?v=2026-09-30.39"></script>
+<script src="engine/core.js?v=2026-09-30.39"></script>
+<script src="engine/styles-punk.js?v=2026-09-30.39"></script>
+<script src="engine/styles-post.js?v=2026-09-30.39"></script>
+<script src="engine/styles-machines.js?v=2026-09-30.39"></script>
+<script src="engine/styles-alt.js?v=2026-09-30.39"></script>
+<script src="engine/styles-groove.js?v=2026-09-30.39"></script>
+<script src="engine/styles-dub.js?v=2026-09-30.39"></script>
+<script src="engine/styles-break.js?v=2026-09-30.39"></script>
+<script src="engine/styles-soul.js?v=2026-09-30.39"></script>
+<script src="engine/styles-metal.js?v=2026-09-30.39"></script>
+<script src="engine/styles-electro.js?v=2026-09-30.39"></script>
+<script src="engine/variations.js?v=2026-09-30.39"></script>
+<script src="engine/import.js?v=2026-09-30.39"></script>
+<script src="engine/rhythm.js?v=2026-09-30.39"></script>
+<script src="engine/share.js?v=2026-09-30.39"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -2315,23 +2333,33 @@ function mixBus(ctx){
   if(!m){
     const live=ctx===audioCtx, meter=n=>{ const a=ctx.createAnalyser(); a.fftSize=n; return a; };
     m={input:ctx.createGain(), drums:ctx.createGain(), lim:ctx.createDynamicsCompressor(), ch:new Map(), limOn:null, live,
-      an:live?meter(1024):null, drumsAn:live?meter(1024):null};
+      tap:live?ctx.createGain():null, an:null, drumsAn:null, anLR:null, drumsLR:null};
     const L=m.lim;
     L.threshold.value=-1; L.knee.value=0; L.ratio.value=20; L.attack.value=0.001; L.release.value=0.08;
     L.connect(ctx.destination);
-    if(m.an) L.connect(m.an);
+    // meter dal vivo: il master legge `tap`, che non va all'uscita e quindi non cambia il suono. an e drumsAn
+    // (mono) servono anche alla forma d'onda; anLR e drumsLR sono i meter stereo del mixer.
+    if(live){
+      m.an=meter(1024); m.drumsAn=meter(1024); m.tap.connect(m.an); m.drums.connect(m.drumsAn);
+      m.anLR=stereoMeter(ctx,m.tap); m.drumsLR=stereoMeter(ctx,m.drums); L.connect(m.tap);
+    }
     m.drums.connect(m.input);
-    if(m.drumsAn) m.drums.connect(m.drumsAn);
     mixBuses.set(ctx,m);
   }
   const on=limiterOn() && !stemCtxs.has(ctx);
   if(m.limOn!==on){
     m.input.disconnect();
     if(on) m.input.connect(m.lim);
-    else { m.input.connect(ctx.destination); if(m.an) m.input.connect(m.an); }
+    else { m.input.connect(ctx.destination); if(m.tap) m.input.connect(m.tap); }
     m.limOn=on;
   }
   return m;
+}
+// Due analyser, uno per canale: [sinistro, destro].
+function stereoMeter(ctx,src){
+  const sp=ctx.createChannelSplitter(2), an=[0,1].map(()=>{ const a=ctx.createAnalyser(); a.fftSize=1024; return a; });
+  src.connect(sp); sp.connect(an[0],0); sp.connect(an[1],1);
+  return an;
 }
 // L'ingresso del canale: "synth" o l'id di una traccia; senza chiave si entra dritti nel master.
 function mixOut(ctx,key){
@@ -2342,7 +2370,10 @@ function mixOut(ctx,key){
     const pan=ctx.createStereoPanner ? ctx.createStereoPanner() : null;
     c={pan, in:pan||ctx.createGain(), an:null};
     c.in.connect(key==="synth" ? m.input : m.drums);
-    if(m.live){ c.an=ctx.createAnalyser(); c.an.fftSize=512; c.in.connect(c.an); }
+    if(m.live){
+      c.an=ctx.createAnalyser(); c.an.fftSize=512; c.in.connect(c.an);
+      if(key==="synth") c.lr=stereoMeter(ctx,c.in);
+    }
     m.ch.set(key,c);
   }
   if(c.pan) c.pan.pan.value=panOf(key)/100;
@@ -3750,45 +3781,102 @@ addEventListener("resize",()=>{ clearTimeout(window.__pmWaveResize); window.__pm
 function renderAll(){ paintGroupMS(); renderRhythmControls(); renderPatterns(); renderRuler(); renderTracks(); renderSong(); if(!el("panelMix").hidden) renderMixer(); paintWaveforms(); }
 
 // ---------- mixer: interfaccia ----------
-// Le strisce leggono e scrivono gli stessi valori della griglia (t.vol, mute, solo) e dei cursori in alto
-// (Vol. drums, synth, general): non c'e' un secondo volume da tenere allineato.
-let mixMeters=[], mixRaf=0;
+// Console tecnica. Le strisce leggono e scrivono gli stessi valori della griglia (t.vol, pan, mute, solo) e dei
+// cursori in alto (Vol. drums, synth, general): non c'e' un secondo volume da tenere allineato. I fader restano
+// guadagni lineari 0-100 % (100 % = 0 dB): la scala e le letture in dB sono solo il modo di mostrarli.
+// Meter: RMS pieno, picco piu' chiaro con caduta di 24 dB/s, linea del picco trattenuto 1,5 s, LED rosso sopra 0 dBFS.
+let mixMeters=[], mixRaf=0, mixLast=0;
 const panLabel = v => !v ? "C" : (v<0?"L":"R")+Math.abs(v);
+const MX_MAX=6, MX_MIN=-48, MX_H=190;
+const gainDb = v => v>0 ? 20*Math.log10(v/100) : -Infinity;
+const fmtDb = (db,plus=true) => !isFinite(db) ? "−∞" : (db>0.05&&plus?"+":db<-0.05?"−":"")+Math.abs(db).toFixed(1);
+// Un controllo a trascinamento (fader verticale o pan orizzontale) con tastiera e doppio clic per il valore di default.
+function mxControl(node,{vertical,min,max,step,def,get,set,fmt,label,onEnd}){
+  node.tabIndex=0; node.setAttribute("role","slider"); node.setAttribute("aria-label",label);
+  node.setAttribute("aria-orientation",vertical?"vertical":"horizontal"); node.setAttribute("aria-valuemin",min); node.setAttribute("aria-valuemax",max);
+  const clampV=v=>Math.max(min,Math.min(max,Math.round(v/step)*step));
+  const ctl={node, paint:()=>{}, get};
+  const put=v=>{ v=clampV(v); if(v!==get()){ set(v); ctl.paint(); } };
+  const at=e=>{
+    const r=node.getBoundingClientRect(), pad=vertical?11:2;
+    const t=vertical ? 1-(e.clientY-r.top-pad)/(r.height-2*pad) : (e.clientX-r.left-pad)/(r.width-2*pad);
+    return min+Math.max(0,Math.min(1,t))*(max-min);
+  };
+  let drag=false;
+  node.addEventListener("pointerdown",e=>{ if(e.button) return; drag=true; node.setPointerCapture(e.pointerId); node.focus({preventScroll:true}); put(at(e)); e.preventDefault(); });
+  node.addEventListener("pointermove",e=>{ if(drag) put(at(e)); });
+  const end=()=>{ if(!drag) return; drag=false; if(onEnd) onEnd(); };
+  node.addEventListener("pointerup",end); node.addEventListener("pointercancel",end);
+  node.addEventListener("dblclick",()=>{ put(def); if(onEnd) onEnd(); });
+  node.addEventListener("keydown",e=>{
+    const k=e.key, v=get(), big=(max-min)/10;
+    const next={ArrowUp:v+step,ArrowRight:v+step,ArrowDown:v-step,ArrowLeft:v-step,PageUp:v+big,PageDown:v-big,Home:min,End:max}[k];
+    if(next==null) return;
+    e.preventDefault(); put(next); if(onEnd) onEnd();
+  });
+  ctl.dragging=()=>drag;
+  ctl.aria=v=>{ node.setAttribute("aria-valuenow",v); node.setAttribute("aria-valuetext",fmt(v)); };
+  return ctl;
+}
+function mixInfo(){
+  const ctx=actx(), lat=ctx.outputLatency||ctx.baseLatency||0, L=mixBus(ctx).lim;
+  el("mixInfo").innerHTML=`<span><b>${(ctx.sampleRate/1000).toFixed(1)} kHz</b> · 32-bit float</span>`
+    +`<span>output latency <b>${lat?Math.round(lat*1000)+" ms":"—"}</b></span>`
+    +`<span>limiter <b>${fmtDb(L.threshold.value)} dBFS</b> · ${Math.round(L.ratio.value)}:1 · attack ${+(L.attack.value*1000).toFixed(1)} ms · release ${Math.round(L.release.value*1000)} ms</span>`
+    +`<span>meters <b>+${MX_MAX} … −${-MX_MIN} dBFS</b> · RMS / peak / hold 1.5 s</span>`;
+}
 function renderMixer(){
   const host=el("mixStrips");
   host.innerHTML=""; mixMeters=[];
+  mixInfo();
   const bus=mixBus(actx());
-  const strip=({name, title, cls="", fader, pan, meter, extra})=>{
+  const strip=({num, name, title, route, cls="", fader, pan, meter, gr, extra})=>{
     const d=document.createElement("div"); d.className="mx "+cls;
+    const head=document.createElement("div"); head.className="mx-head";
+    head.innerHTML=`<b>${num}</b><span>${route}</span>`;
     const nm=document.createElement("div"); nm.className="mx-name"; nm.textContent=name; nm.title=title||name;
-    d.appendChild(nm);
-    const body=document.createElement("div"); body.className="mx-body";
-    const m=document.createElement("div"); m.className="mx-meter"; const bar=document.createElement("i"); m.appendChild(bar);
-    body.appendChild(m);
-    const f=document.createElement("input"); f.type="range"; f.className="mx-fader"; f.min=0; f.max=100;
-    f.value=fader.get(); f.setAttribute("aria-label","Volume "+name);
-    const val=document.createElement("div"); val.className="mx-val"; val.textContent=f.value;
-    f.oninput=()=>{ fader.set(+f.value); val.textContent=f.value; };
-    body.appendChild(f);
-    d.appendChild(body); d.appendChild(val);
+    d.append(head,nm);
     if(pan){
-      const p=document.createElement("input"); p.type="range"; p.className="mx-pan"; p.min=-100; p.max=100; p.step=5;
-      p.value=pan.get(); p.title="Pan: "+panLabel(pan.get())+" (double-click: center)"; p.setAttribute("aria-label","Pan "+name);
-      const pv=document.createElement("div"); pv.className="mx-val"; pv.textContent=panLabel(+p.value);
-      const setP=v=>{ pan.set(v); pv.textContent=panLabel(v); p.title="Pan: "+panLabel(v)+" (double-click: center)"; };
-      p.oninput=()=>setP(+p.value);
-      p.ondblclick=()=>{ p.value=0; setP(0); };
-      d.appendChild(p); d.appendChild(pv);
+      const row=document.createElement("div"); row.className="mx-panrow";
+      const p=document.createElement("div"); p.className="mx-pan"; p.title="Pan · double-click: center";
+      const fill=document.createElement("i"), knob=document.createElement("b"); p.append(fill,knob);
+      const pv=document.createElement("div"); pv.className="mx-panval";
+      const c=mxControl(p,{min:-100,max:100,step:5,def:0,get:pan.get,set:pan.set,fmt:v=>"pan "+panLabel(v),label:"Pan "+name,onEnd:scheduleDraft});
+      c.paint=()=>{ const v=pan.get(), x=50+v/2; knob.style.left=x+"%"; fill.style.left=Math.min(50,x)+"%"; fill.style.width=Math.abs(x-50)+"%"; pv.textContent=panLabel(v); c.aria(v); };
+      c.paint(); row.append(p,pv); d.appendChild(row);
     }
+    const body=document.createElement("div"); body.className="mx-body";
+    const chans=Array.isArray(meter)?meter.length:1, w=18+chans*9+(chans-1)*2+(gr?12:0)+2;
+    const cv=document.createElement("canvas"); cv.className="mx-meter"; cv.style.width=w+"px";
+    const f=document.createElement("div"); f.className="mx-fader";
+    for(const db of [0,-3,-6,-12,-24]){          // sotto -24 dB le tacche si toccherebbero: resta -∞ in fondo
+      const v=100*Math.pow(10,db/20);
+      const t=document.createElement("span"); t.className="tick"; t.textContent=db?"−"+(-db):"0";
+      t.style.top=`calc(11px + ${(1-v/100)} * (100% - 22px))`; f.appendChild(t);
+    }
+    const inf=document.createElement("span"); inf.className="tick"; inf.textContent="−∞"; inf.style.top="calc(100% - 11px)"; f.appendChild(inf);
+    const cap=document.createElement("div"); cap.className="mx-cap"; f.appendChild(cap);
+    body.append(cv,f);
+    const read=document.createElement("div"); read.className="mx-read";
+    const vol=document.createElement("span"), pk=document.createElement("span");
+    vol.title="Fader level"; pk.className="pk"; pk.title="Highest peak since the last reset · click: reset all";
+    pk.onclick=()=>mixMeters.forEach(m=>{ m.max=-Infinity; });
+    read.append(vol,pk);
+    d.append(body,read);
+    const fc=mxControl(f,{vertical:true,min:0,max:100,step:1,def:fader.def??100,get:fader.get,set:fader.set,fmt:v=>fmtDb(gainDb(v))+" dB",label:"Volume "+name,onEnd:fader.src?null:scheduleDraft});
+    fc.paint=()=>{ const v=fader.get(); cap.style.top=`calc(11px + ${(1-v/100)} * (100% - 22px))`; vol.textContent=fmtDb(gainDb(v)); fc.aria(v); };
+    fc.paint();
     if(extra) d.appendChild(extra);
     host.appendChild(d);
-    mixMeters.push({an:meter, bar, box:m, fader:f, val, src:fader.src, lvl:0, clip:0});
+    const ans=Array.isArray(meter)?meter:[meter];
+    mixMeters.push({cv, w, ans, gr, fader:fc, src:fader.src, pk, max:-Infinity,
+      ch:ans.map(()=>({pk:-Infinity, rms:-Infinity, hold:-Infinity, holdT:0, clip:0}))});
     return d;
   };
   const sep=()=>{ const x=document.createElement("div"); x.className="mx-sep"; host.appendChild(x); };
 
   const solo=project.tracks.some(t=>t.solo);
-  project.tracks.forEach(t=>{
+  project.tracks.forEach((t,i)=>{
     const btns=document.createElement("div"); btns.className="mx-btns";
     const mk=(cls,label,key,tip)=>{
       const b=document.createElement("button"); b.type="button";
@@ -3797,14 +3885,14 @@ function renderMixer(){
       return b;
     };
     btns.append(mk("m","M","mute","Mute"), mk("s","S","solo","Solo"));
-    const d=strip({name:sampleLabel(t.sampleIndex),
-      fader:{get:()=>Math.round((t.vol??0.8)*100), set:v=>{ t.vol=v/100; }},
+    const d=strip({num:String(i+1).padStart(2,"0"), name:sampleLabel(t.sampleIndex), route:"→ DRM",
+      fader:{def:80, get:()=>Math.round((t.vol??0.8)*100), set:v=>{ t.vol=v/100; }},
       pan:{get:()=>t.pan||0, set:v=>{ t.pan=v; applyPan(t.id); }},
       meter:mixOut(actx(),t.id) && bus.ch.get(t.id).an, extra:btns});
     if(t.mute || (solo && !t.solo)) d.classList.add("off");
   });
   sep();
-  const slider=id=>({src:el(id), get:()=>+el(id).value, set:v=>{ el(id).value=v; el(id).dispatchEvent(new Event("input")); }});
+  const slider=(id,def)=>({src:el(id), def, get:()=>+el(id).value, set:v=>{ el(id).value=v; el(id).dispatchEvent(new Event("input")); }});
   const groupBtns=g=>{
     const d=document.createElement("div"); d.className="mx-btns";
     ["mute","solo"].forEach(key=>{
@@ -3815,45 +3903,82 @@ function renderMixer(){
     });
     return d;
   };
-  strip({name:"Drums", title:"All the drums (Vol. drums)", cls:"group", fader:slider("drumsVol"), meter:bus.drumsAn, extra:groupBtns("drums")});
-  if(window.PMSynth) strip({name:"Synth", title:"The synth line (Vol. synth)", cls:"group", fader:slider("synthVol"),
+  strip({num:"GRP", name:"Drums", title:"All the drums (Vol. drums)", route:"→ MST", cls:"group", fader:slider("drumsVol",100), meter:bus.drumsLR, extra:groupBtns("drums")});
+  if(window.PMSynth) strip({num:"GRP", name:"Synth", title:"The synth line (Vol. synth)", route:"→ MST", cls:"group", fader:slider("synthVol",100),
     pan:{get:()=>project.synthPan||0, set:v=>{ project.synthPan=v; applyPan("synth"); }},
-    meter:mixOut(actx(),"synth") && bus.ch.get("synth").an, extra:groupBtns("synth")});
+    meter:mixOut(actx(),"synth") && bus.ch.get("synth").lr, extra:groupBtns("synth")});
   sep();
   const lim=document.createElement("button"); lim.type="button";
   const paintLim=()=>{ lim.className="mx-lim"+(limiterOn()?" on":""); lim.textContent=limiterOn()?"Limiter on":"Limiter off"; };
   lim.title="Keeps the master under 0 dB, so many hits together don't distort";
   lim.onclick=()=>{ project.limiter=!limiterOn(); applyLimiter(); paintLim(); };
   paintLim();
-  const gr=document.createElement("div"); gr.className="mx-val"; gr.id="mixGR"; gr.title="Gain reduction of the limiter";
-  const box=document.createElement("div"); box.style.cssText="display:flex; flex-direction:column; align-items:center; gap:4px;";
-  box.append(lim,gr);
-  strip({name:"Master", title:"General volume: drums, synth and metronome (Vol. general)", cls:"group master",
-    fader:slider("masterVol"), meter:bus.an, extra:box});
+  const box=document.createElement("div"); box.className="mx-btns"; box.appendChild(lim);
+  strip({num:"MST", name:"Master", title:"General volume: drums, synth and metronome (Vol. general)", route:"→ OUT", cls:"group master",
+    fader:slider("masterVol",85), meter:bus.anLR, gr:true, extra:box});
+  mixLast=performance.now();
   if(!mixRaf) mixRaf=requestAnimationFrame(paintMeters);
 }
-// Picco di ogni canale, con caduta lenta; il bordo rosso resta un secondo se si supera 0 dB.
+const mxY = db => 4+(MX_MAX-Math.max(MX_MIN,Math.min(MX_MAX,db)))/(MX_MAX-MX_MIN)*(MX_H-8);
+// Un meter: scala in dB a sinistra, poi una colonna di LED per canale; sul master anche la riduzione del limiter.
+function drawMeter(m,now,grDb){
+  const dpr=window.devicePixelRatio||1, W=m.w, H=MX_H, c=m.cv.getContext("2d");
+  if(m.cv.width!==Math.round(W*dpr)){ m.cv.width=Math.round(W*dpr); m.cv.height=Math.round(H*dpr); }
+  c.setTransform(dpr,0,0,dpr,0,0); c.clearRect(0,0,W,H);
+  const cs=getComputedStyle(m.cv), ink=cs.color||"#888";
+  c.font="8px "+(getComputedStyle(document.documentElement).getPropertyValue("--mono").trim()||"monospace");
+  c.textAlign="right"; c.textBaseline="middle"; c.fillStyle=ink; c.globalAlpha=.8;
+  for(const db of [6,0,-6,-12,-18,-24,-36,-48]){ const y=mxY(db); c.fillText(db>0?"+"+db:String(db).replace("-","−"),14,y); c.fillRect(15,Math.round(y),2,1); }
+  c.globalAlpha=1;
+  const bw=9, seg=3;
+  m.ch.forEach((ch,k)=>{
+    const x=18+k*(bw+2);
+    c.fillStyle="#16171a"; c.fillRect(x,0,bw,H);
+    for(let y=H-4-seg; y>=4; y-=seg){
+      const db=MX_MAX-(y+seg/2-4)/(H-8)*(MX_MAX-MX_MIN);
+      const col=db>0?"#e2432f":db>-6?"#e3b33a":"#3fae5a";
+      c.fillStyle=db<=ch.rms?col:db<=ch.pk?col:"#26282b"; c.globalAlpha=db<=ch.rms?1:db<=ch.pk?.42:1;
+      c.fillRect(x+1,y,bw-2,seg-1);
+    }
+    c.globalAlpha=1;
+    if(isFinite(ch.hold) && ch.hold>MX_MIN){ c.fillStyle=ch.hold>0?"#ff6b57":"#f2efe6"; c.fillRect(x+1,Math.round(mxY(ch.hold))-1,bw-2,2); }
+    c.fillStyle=ch.clip>now?"#ff3b25":"#3a1d1a"; c.fillRect(x+1,0,bw-2,3);
+  });
+  if(m.gr){
+    const x=18+m.ch.length*(bw+2)+1, gw=9, h=Math.min(1,Math.max(0,-grDb/12))*(H-8);
+    c.fillStyle="#16171a"; c.fillRect(x,0,gw,H);
+    c.fillStyle="#e3b33a"; c.fillRect(x+1,4,gw-2,h);
+    c.fillStyle=ink; c.globalAlpha=.8; c.textAlign="center"; c.fillText("GR",x+gw/2,H-2); c.globalAlpha=1;
+  }
+}
 function paintMeters(){
   mixRaf=0;
   if(el("panelMix").hidden) return;
-  const now=performance.now();
+  const now=performance.now(), dt=Math.min(0.1,(now-mixLast)/1000); mixLast=now;
+  const bus=audioCtx && mixBuses.get(audioCtx);
+  const gr=bus && bus.limOn ? (x=>typeof x==="object"?x.value:x)(bus.lim.reduction) : 0;
   mixMeters.forEach(m=>{
-    let pk=0;
-    if(m.an){
-      const b=m.an._buf||(m.an._buf=new Float32Array(m.an.fftSize));
-      m.an.getFloatTimeDomainData(b);
-      for(let i=0;i<b.length;i++){ const a=Math.abs(b[i]); if(a>pk) pk=a; }
-    }
-    m.lvl=Math.max(pk, m.lvl*0.92);
-    const db=m.lvl>0 ? 20*Math.log10(m.lvl) : -99;
-    m.bar.style.height=Math.max(0,Math.min(100,(db+48)/48*100))+"%";
-    if(pk>=1) m.clip=now+1000;
-    m.box.classList.toggle("clip", m.clip>now);
+    let top=-Infinity;
+    m.ans.forEach((an,k)=>{
+      const ch=m.ch[k]; let pk=0, sq=0;
+      if(an){
+        const b=an._buf||(an._buf=new Float32Array(an.fftSize));
+        an.getFloatTimeDomainData(b);
+        for(let i=0;i<b.length;i++){ const a=Math.abs(b[i]); if(a>pk) pk=a; sq+=b[i]*b[i]; }
+        sq/=b.length;
+      }
+      const pdb=pk>0?20*Math.log10(pk):-Infinity, rdb=sq>0?10*Math.log10(sq):-Infinity;
+      ch.pk=Math.max(pdb, ch.pk-24*dt); ch.rms=Math.max(rdb, ch.rms-18*dt);
+      if(pdb>=ch.hold || now>ch.holdT){ if(pdb>=ch.hold){ ch.hold=pdb; ch.holdT=now+1500; } else ch.hold-=24*dt; }
+      if(pk>=1) ch.clip=now+1500;
+      top=Math.max(top,pdb);
+    });
+    if(top>m.max) m.max=top;
+    drawMeter(m,now,gr);
+    m.pk.textContent=isFinite(m.max)?fmtDb(m.max):"—"; m.pk.classList.toggle("over",m.max>0);
     // i cursori in alto (o il MIDI) possono muovere gli stessi volumi: la striscia li segue
-    if(m.src && document.activeElement!==m.fader && +m.fader.value!==+m.src.value){ m.fader.value=m.src.value; m.val.textContent=m.src.value; }
+    if(m.src && !m.fader.dragging() && document.activeElement!==m.fader.node) m.fader.paint();
   });
-  const g=el("mixGR"), bus=audioCtx && mixBuses.get(audioCtx);
-  if(g && bus){ const x=bus.lim.reduction, r=bus.limOn ? (typeof x==="object" ? x.value : x) : 0; g.textContent=r<-0.1 ? "GR "+r.toFixed(1)+" dB" : ""; }
   mixRaf=requestAnimationFrame(paintMeters);
 }
 
@@ -3940,7 +4065,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || document.getElementById("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-30.38";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-30.39";
   document.body.appendChild(s);
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth")) loadSynth();
@@ -6637,7 +6762,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-30.38";
+const SW_VERSION="2026-09-30.39";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -6661,10 +6786,10 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sample-editor.js?v=2026-09-30.38"></script>
-<script src="engine/sampler.js?v=2026-09-30.38"></script>
+<script src="engine/sample-editor.js?v=2026-09-30.39"></script>
+<script src="engine/sampler.js?v=2026-09-30.39"></script>
 <script>PMSampler.init();</script>
-<script src="engine/midi.js?v=2026-09-30.38"></script>
+<script src="engine/midi.js?v=2026-09-30.39"></script>
 
 </body>
 </html>

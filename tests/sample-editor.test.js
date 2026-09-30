@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Prove delle funzioni sul suono dell'editor del Sampler (site/engine/sample-editor.js, PMSampleEditor.dsp) fuori dal
 // browser: trim, cancellazione, dissolvenze, normalizzazione, inversione, silenzi ai bordi, zero-crossing, crunch,
-// drive, filtri, EQ, mix con i bordi, attacchi e fette (chop) e WAV.
+// drive, filtri, EQ, mix con i bordi, attacchi e fette (chop), loop del resampling e WAV.
 // Lo lancia scripts/deploy.sh.
 const fs = require("fs"), vm = require("vm"), path = require("path");
 const src = fs.readFileSync(path.join(__dirname, "..", "site", "engine", "sample-editor.js"), "utf8");
@@ -166,6 +166,11 @@ const level = (hz, fn, amp = 0.5) => {
   check(dsp.stepsOf([0, 900, 950, 980], 0, 1000, 4).join() === "0,-1,-1,3", "stepsOf: le fette senza step libero devono dare -1");
   const moved = dsp.stepsOf([0, 6.5, 7, 8].map(x => x * 1000), 0, 16000, 16);     // un taglio spostato a meta' fra due step
   check(moved.join() === "0,6,7,8", `stepsOf: un taglio fuori posto sposta le altre fette (${moved})`);
+}
+// loop del resampling: la coda dopo L torna sull'inizio, anche piu' volte se e' piu' lunga del loop
+{
+  const w = dsp.wrap([Float32Array.of(1, 2, 3, 4, 10, 20, 30, 40, 50)], 4)[0];
+  check(w.length === 4 && w.join() === "61,22,33,44", `wrap: ${[...w]}`);
 }
 // WAV 16 bit: intestazione e campioni
 {

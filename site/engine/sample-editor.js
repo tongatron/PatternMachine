@@ -221,6 +221,11 @@
       }
       return out;
     },
+    // Un loop senza buchi: i primi L campioni, con quello che viene dopo (le code) ripiegato sull'inizio, come
+    // quando il pattern suona di seguito. Se le code durano piu' del loop, girano piu' volte.
+    wrap(chs, L) {
+      return chs.map(d => { const o = d.slice(0, L); for (let i = L; i < d.length; i++) o[(i - L) % L] += d[i]; return o; });
+    },
     // WAV PCM 16 bit, canali interlacciati.
     encodeWav(chs, sr) {
       const n = chs[0].length, ch = chs.length, bytes = n * ch * 2, buf = new ArrayBuffer(44 + bytes), v = new DataView(buf);

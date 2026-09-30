@@ -387,6 +387,17 @@ body.sound-view #liveKeysBtn{display:inline-flex; align-items:center;}
 .sampler-record.on .rec-dot{color:#fff; animation:pm-record-pulse 1s infinite;}
 @keyframes pm-record-pulse{50%{opacity:.35;}}
 .sampler-note{font-size:10px; color:var(--text-faint);}
+.sampler-resample{margin:0 0 12px; padding:10px 12px; border:1px solid var(--accent); border-radius:var(--r-panel,8px); background:linear-gradient(135deg,rgba(200,71,31,.10),transparent 70%);}
+.sampler-resample[hidden]{display:none;}
+.sampler-resample p{margin:0 0 9px; font-size:10.5px; color:var(--text-dim); line-height:1.5;}
+.sampler-resample p b{color:var(--text); letter-spacing:.08em; text-transform:uppercase; font-size:10px; margin-right:6px;}
+.resample-fields{display:flex; flex-wrap:wrap; align-items:flex-end; gap:8px 14px;}
+.resample-fields label{display:flex; flex-direction:column; gap:3px; font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--text-faint);}
+.resample-fields label.resample-check{flex-direction:row; align-items:center; gap:5px; font-size:10px; letter-spacing:0; text-transform:none; color:var(--text-dim);}
+.resample-fields input[type=text]{width:200px; max-width:100%;}
+.resample-foot{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px 14px; margin-top:10px;}
+.resample-info{font-size:10px; color:var(--text-dim); font-variant-numeric:tabular-nums;}
+.resample-info.err{color:var(--danger);}
 .sampler-list{display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:8px;}
 .sampler-empty{grid-column:1/-1; padding:20px 16px; border:1px solid var(--edge-soft); border-radius:var(--r-panel,8px); color:var(--text-faint); text-align:center; font-size:11px;}
 .sample-card{position:relative; min-width:0; padding:10px; background:linear-gradient(145deg,var(--panel-2),var(--panel)); border:1px solid var(--edge); border-radius:var(--r-panel,8px); box-shadow:var(--shadow);}
@@ -1163,7 +1174,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       <div>
         <div class="sampler-kicker">Audio lab · local first</div>
         <h2 class="sampler-title" id="samplerTitle">Sampler</h2>
-        <p class="sampler-lead">Drop in a sound or record one from the microphone. Keep it local, or sync the shelf with your PatternMachine account.</p>
+        <p class="sampler-lead">Drop in a sound, record one from the microphone or resample the beat. Keep it local, or sync the shelf with your PatternMachine account.</p>
       </div>
       <div class="sampler-meter"><strong id="samplerCount">0 sounds</strong><span id="samplerStorage">0 MB local</span></div>
     </div>
@@ -1172,9 +1183,23 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
         <input id="samplerFile" type="file" accept="audio/*,.wav,.mp3,.m4a,.ogg,.opus,.flac" multiple>
       </label>
       <button type="button" id="samplerRecord" class="sampler-record"><span class="rec-dot" aria-hidden="true">●</span> Record voice</button>
+      <button type="button" id="samplerResampleBtn" aria-expanded="false" aria-controls="samplerResample" title="Record the beat as it sounds into a new sample">⟲ Resample</button>
       <label class="sampler-sync"><input id="samplerSync" type="checkbox"> Sync samples</label>
       <button type="button" id="samplerSyncNow" class="mini">Sync now</button>
       <span class="sampler-note" id="samplerStatus" role="status" aria-live="polite">WAV, MP3 and microphone recordings · local audio, project names preserved</span>
+    </div>
+    <div class="sampler-resample" id="samplerResample" role="group" aria-label="Resample" hidden>
+      <p><b>Resample</b>The beat as you hear it (drums and synth, with mute, solo, pan and limiter) becomes a new sample, to chop or color in the editor.</p>
+      <div class="resample-fields">
+        <label>What <select id="resampleWhat"><option value="1">Pattern · once</option><option value="2">Pattern · 2 times</option><option value="4">Pattern · 4 times</option><option value="song">Whole song</option></select></label>
+        <label title="Loop: the tails at the end come back at the start, so the sample loops without a gap">Ending <select id="resampleEnd"><option value="loop">Loop · tails wrap to the start</option><option value="tail">Let the tails ring</option><option value="cut">Cut at the end</option></select></label>
+        <label>Name <input type="text" id="resampleName" maxlength="60" autocomplete="off"></label>
+        <label class="resample-check"><input type="checkbox" id="resampleEdit" checked> Open it in the editor</label>
+      </div>
+      <div class="resample-foot">
+        <span class="resample-info" id="resampleInfo" role="status" aria-live="polite"></span>
+        <span class="flexline"><button type="button" id="resampleCancel">Cancel</button> <button type="button" id="resampleGo" class="primary">⟲ Resample</button></span>
+      </div>
     </div>
     <div class="sampler-list" id="samplerList">
       <div class="sampler-empty">Your private sample shelf is empty. Import a sound or record a voice to make the first pad.</div>
@@ -1507,22 +1532,22 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-09-30.35"></script>
-<script src="engine/core.js?v=2026-09-30.35"></script>
-<script src="engine/styles-punk.js?v=2026-09-30.35"></script>
-<script src="engine/styles-post.js?v=2026-09-30.35"></script>
-<script src="engine/styles-machines.js?v=2026-09-30.35"></script>
-<script src="engine/styles-alt.js?v=2026-09-30.35"></script>
-<script src="engine/styles-groove.js?v=2026-09-30.35"></script>
-<script src="engine/styles-dub.js?v=2026-09-30.35"></script>
-<script src="engine/styles-break.js?v=2026-09-30.35"></script>
-<script src="engine/styles-soul.js?v=2026-09-30.35"></script>
-<script src="engine/styles-metal.js?v=2026-09-30.35"></script>
-<script src="engine/styles-electro.js?v=2026-09-30.35"></script>
-<script src="engine/variations.js?v=2026-09-30.35"></script>
-<script src="engine/import.js?v=2026-09-30.35"></script>
-<script src="engine/rhythm.js?v=2026-09-30.35"></script>
-<script src="engine/share.js?v=2026-09-30.35"></script>
+<script src="engine/machine-art.js?v=2026-09-30.36"></script>
+<script src="engine/core.js?v=2026-09-30.36"></script>
+<script src="engine/styles-punk.js?v=2026-09-30.36"></script>
+<script src="engine/styles-post.js?v=2026-09-30.36"></script>
+<script src="engine/styles-machines.js?v=2026-09-30.36"></script>
+<script src="engine/styles-alt.js?v=2026-09-30.36"></script>
+<script src="engine/styles-groove.js?v=2026-09-30.36"></script>
+<script src="engine/styles-dub.js?v=2026-09-30.36"></script>
+<script src="engine/styles-break.js?v=2026-09-30.36"></script>
+<script src="engine/styles-soul.js?v=2026-09-30.36"></script>
+<script src="engine/styles-metal.js?v=2026-09-30.36"></script>
+<script src="engine/styles-electro.js?v=2026-09-30.36"></script>
+<script src="engine/variations.js?v=2026-09-30.36"></script>
+<script src="engine/import.js?v=2026-09-30.36"></script>
+<script src="engine/rhythm.js?v=2026-09-30.36"></script>
+<script src="engine/share.js?v=2026-09-30.36"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -2151,8 +2176,8 @@ function synthAt(pos, L=synthPlayLayout()){
 }
 // Per gli export: la linea del synth come sequenza di pezzi {len, synth} lunga quanto la batteria.
 // "pattern": il pattern del synth scelto ripetuto sotto WAV_PATTERN_LOOPS giri del pattern di batteria.
-function synthTimeline(which){
-  const total = which==="song" ? songLayout().total : curPattern().len*(which==="midi"?1:WAV_PATTERN_LOOPS);
+function synthTimeline(which, loops=WAV_PATTERN_LOOPS){
+  const total = which==="song" ? songLayout().total : curPattern().len*(which==="midi"?1:loops);
   const out=[];
   if(which==="song"){
     for(const x of synthPlayLayout().blocks){
@@ -3897,7 +3922,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || document.getElementById("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-30.35";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-30.36";
   document.body.appendChild(s);
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth")) loadSynth();
@@ -5011,7 +5036,8 @@ function exportMidi(which){
 // in coda restano 2 secondi per le code dei piatti.
 const WAV_RATE=44100, WAV_TAIL=2, WAV_PATTERN_LOOPS=4;
 
-function wavEvents(which){
+// loops: quante volte esce il pattern (il Resampling del Sampler ne chiede 1, 2 o 4)
+function wavEvents(which, loops=WAV_PATTERN_LOOPS){
   const live=audibleTracks(), events=[];
   let t=0;
   const emit=(pat,cycle,mutes=[])=>{
@@ -5030,12 +5056,12 @@ function wavEvents(which){
     }
   };
   if(which==="song") project.song.forEach(b=>{ const p=patternById(b.patternId); if(p) for(let r=0;r<Math.max(1,b.repeats||1);r++) emit(p,r,b.mutes); });
-  else for(let r=0;r<WAV_PATTERN_LOOPS;r++) emit(curPattern(),r);
+  else for(let r=0;r<loops;r++) emit(curPattern(),r);
   return {events, length:t, live};
 }
 
-async function renderWav(which){
-  const {events, length, live}=wavEvents(which);
+async function renderWav(which, loops=WAV_PATTERN_LOOPS){
+  const {events, length, live}=wavEvents(which, loops);
   const synth=window.PMSynth && PMSynth.hasNotes(which);
   if(!events.length && !synth) throw new Error("vuoto");
   await Promise.all(live.map(t=>loadBuffer(t.sampleIndex)));
@@ -5043,7 +5069,7 @@ async function renderWav(which){
   const ctx=new OAC(2, Math.ceil((length+WAV_TAIL)*WAV_RATE), WAV_RATE);
   const chokes=new Map();
   events.forEach(([time,,vel,lt])=>trigger(lt,time,vel,ctx,chokes));
-  if(synth) await PMSynth.renderOffline(ctx, which);   // synth nello stesso mix
+  if(synth) await PMSynth.renderOffline(ctx, which, loops);   // synth nello stesso mix
   const buf=await ctx.startRendering();
   return {buf, seconds:length};
 }
@@ -6591,7 +6617,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-30.35";
+const SW_VERSION="2026-09-30.36";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -6615,10 +6641,10 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sample-editor.js?v=2026-09-30.35"></script>
-<script src="engine/sampler.js?v=2026-09-30.35"></script>
+<script src="engine/sample-editor.js?v=2026-09-30.36"></script>
+<script src="engine/sampler.js?v=2026-09-30.36"></script>
 <script>PMSampler.init();</script>
-<script src="engine/midi.js?v=2026-09-30.35"></script>
+<script src="engine/midi.js?v=2026-09-30.36"></script>
 
 </body>
 </html>

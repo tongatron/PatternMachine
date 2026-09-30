@@ -2,6 +2,7 @@
 // Audio blobs stay outside project JSON; they live locally and can optionally sync to the account.
 // Edit opens the full-screen editor (engine/sample-editor.js); Play on synth hands the sound to the synth (engine/synth.js).
 // Chop in the editor cuts a sound into slices: new samples, and with "Slices → grid" one row each plus a pattern.
+// Resample renders the beat as it sounds (the WAV export's offline render) into a new sample.
 (function(){
   "use strict";
 
@@ -475,6 +476,59 @@
     if(syncEnabled) syncServer();
     return true;
   }
+  // ---------- resampling: il beat come si sente diventa un campione ----------
+  // Stesso render offline dell'export WAV (renderWav): batteria e synth con mute, solo, pan e limiter. Il pattern
+  // aperto esce 1, 2 o 4 volte, oppure la canzone. Finale "loop": le code oltre la fine tornano all'inizio, cosi' il
+  // campione gira senza buchi come il pattern suonato di seguito (e dura giusto N battute: il Chop ne ricava il
+  // tempo esatto); "tail": le code restano fino al silenzio; "cut": taglio alla fine con 3 ms di dissolvenza.
+  let resampleBusy=false, resampleNamed=false;
+  function resampleWhich(){ const v=$("resampleWhat").value; return v==="song"?["song",1]:["pattern",+v]; }
+  function resampleName(){
+    const [which]=resampleWhich();
+    return fallbackName(which==="song" ? `${$("projectName").value.trim()||"Song"} resample` : `${curPattern().name} resample`);
+  }
+  function resampleInfo(){
+    const info=$("resampleInfo"), go=$("resampleGo"), [which,loops]=resampleWhich(), tail=$("resampleEnd").value==="tail";
+    if(which==="song" && !project.song.length){ info.textContent="The song is empty"; info.classList.add("err"); go.disabled=true; return; }
+    const sec=wavEvents(which,loops).length+(tail?WAV_TAIL:0), bytes=sec*WAV_RATE*4, over=recordSize()+bytes>MAX_BYTES;
+    const what=which==="song" ? `The song (${project.song.length} ${project.song.length===1?"block":"blocks"})` : `“${curPattern().name}” ${loops===1?"once":loops+" times"}`;
+    info.textContent=`${what} at ${bpm()} BPM · ${tail?"up to ":""}${formatDuration(sec)} · about ${formatBytes(bytes)}`+(over?" · no room in the local sampler (20 MB)":"");
+    info.classList.toggle("err",over); go.disabled=over||resampleBusy;
+  }
+  function openResample(){
+    const box=$("samplerResample");
+    if(!box.hidden) return closeResample();
+    box.hidden=false; $("samplerResampleBtn").setAttribute("aria-expanded","true");
+    resampleNamed=false; $("resampleName").value=resampleName(); resampleInfo();
+    $("resampleWhat").focus();
+  }
+  function closeResample(){ $("samplerResample").hidden=true; $("samplerResampleBtn").setAttribute("aria-expanded","false"); }
+  async function resample(){
+    if(resampleBusy) return;
+    const [which,loops]=resampleWhich(), ending=$("resampleEnd").value, dsp=PMSampleEditor.dsp;
+    const name=fallbackName(resampleNamed && $("resampleName").value.trim() ? $("resampleName").value : resampleName());
+    resampleBusy=true; resampleInfo(); setNote("Resampling…");
+    try{
+      let rendered;
+      try{ rendered=await renderWav(which,loops); }
+      catch(e){ throw new Error(e?.message==="vuoto" ? "Nothing to resample: the beat is silent (check mute and solo)" : "The beat could not be rendered"); }
+      const {buf,seconds}=rendered, sr=buf.sampleRate, L=Math.min(buf.length,Math.max(1,Math.round(seconds*sr)));
+      const chs=[0,1].map(c=>buf.getChannelData(Math.min(c,buf.numberOfChannels-1)));
+      let out;
+      if(ending==="loop") out=dsp.wrap(chs,L);
+      else if(ending==="tail"){ const a=dsp.audible(chs,sr,-60,0,20); out=chs.map(d=>d.slice(0,Math.max(L,a?a[1]:L))); }
+      else out=dsp.fade(chs.map(d=>d.slice(0,L)),Math.max(0,L-Math.round(sr*0.003)),L,"out");
+      const peak=dsp.peak(out);          // come l'export WAV: sopra 0 dBFS si abbassa tutto quanto basta
+      if(peak>0.989) out=out.map(d=>d.map(v=>v*0.989/peak));
+      const audio=actx().createBuffer(2,out[0].length,sr);
+      out.forEach((d,c)=>audio.copyToChannel(d,c));
+      const r=await addRecord(new Blob([dsp.encodeWav(out,sr)],{type:"audio/wav"}),audio,name);
+      closeResample();
+      setNote(`${r.name}: ${formatDuration(audio.duration)} resampled`);
+      if($("resampleEdit").checked) openEditor(r.id);
+    }catch(e){ setNote(e.message||"Resampling failed",true); }
+    finally{ resampleBusy=false; if(!$("samplerResample").hidden) resampleInfo(); }
+  }
   function playOnSynth(id){
     if(localIndex(id)<0) return setNote("Sample is not available",true);
     if(!window.PMSynth?.useSample) return setNote("The synth is not available",true);
@@ -520,6 +574,16 @@
     drop.addEventListener("drop",e=>importFiles(e.dataTransfer.files));
     const sync=$("samplerSync"); if(sync){ syncEnabled=desktop||syncChoice(); sync.checked=syncEnabled; sync.onchange=()=>{ setSyncChoice(sync.checked); if(sync.checked)syncServer(); }; }
     const syncNow=$("samplerSyncNow"); if(syncNow)syncNow.onclick=syncServer;
+    $("samplerResampleBtn").onclick=openResample;
+    $("resampleWhat").onchange=()=>{
+      $("resampleEnd").value=$("resampleWhat").value==="song"?"tail":"loop";     // la canzone di solito non gira in loop
+      if(!resampleNamed) $("resampleName").value=resampleName();
+      resampleInfo();
+    };
+    $("resampleEnd").onchange=resampleInfo;
+    $("resampleName").oninput=()=>{ resampleNamed=true; };
+    $("resampleCancel").onclick=closeResample;
+    $("resampleGo").onclick=resample;
     addEventListener("resize",()=>records.forEach(r=>repaintCard(r.id)));
     // l'onda ha il colore dell'inchiostro del tema: al cambio chiaro/scuro si ridisegna
     new MutationObserver(()=>records.forEach(r=>repaintCard(r.id))).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
@@ -527,7 +591,7 @@
   }
   async function init(){
     try{ if(!desktop) await openDb(); bind(); await hydrate(); if(syncEnabled&&!desktop) syncServer(); }
-    catch(e){ setNote("Local sample storage is unavailable in this browser",true); $("samplerFile").disabled=true; $("samplerRecord").disabled=true; }
+    catch(e){ setNote("Local sample storage is unavailable in this browser",true); $("samplerFile").disabled=true; $("samplerRecord").disabled=true; $("samplerResampleBtn").disabled=true; }
   }
   window.PMSampler={init,openEditor};
 })();

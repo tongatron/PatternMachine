@@ -993,7 +993,7 @@
   }
 
   // ---------- export WAV/MP3: il synth suona nello stesso OfflineAudioContext della batteria ----------
-  function offlineEvents(which) {
+  function offlineEvents(which, loops) {
     const p = params(), base = 60 / bpm() / 4, sw = swing(), out = [];
     const saved = slideAt;
     let t = 0;
@@ -1001,15 +1001,15 @@
     const emit = pat => {
       for (let s = 0; s < pat.len; s++) { eventsForStep(pat, s, t, p, out); t += base * (s % 2 === 0 ? 1 + sw : 1 - sw); }
     };
-    // stessa durata di wavEvents(): la batteria ripetuta WAV_PATTERN_LOOPS volte, o la canzone con la corsia del synth
-    synthTimeline(which === "song" ? "song" : "pattern").forEach(emit);
+    // stessa durata di wavEvents(): la batteria ripetuta `loops` volte (WAV_PATTERN_LOOPS se manca), o la canzone
+    synthTimeline(which === "song" ? "song" : "pattern", loops).forEach(emit);
     slideAt = saved;
     return out;
   }
   const hasNotes = which => allowed && !project.synth?.mute && hasNotesIn(which);
-  async function renderOffline(ctx, which) {
+  async function renderOffline(ctx, which, loops) {
     if (!hasNotes(which) || !ctx.audioWorklet) return false;
-    const events = offlineEvents(which);
+    const events = offlineEvents(which, loops);
     if (!events.length) return false;
     await ctx.audioWorklet.addModule(WORKLET_URL);
     const p = params(), units = {};

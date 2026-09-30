@@ -3443,14 +3443,17 @@ function waveShape(c,data,W,H,last=data.length-1){
     i?c.lineTo(x,y):c.moveTo(x,y);
   }
 }
-function drawWaveBase(w){
+function drawWaveBase(w,reveal=1){
   const {c,data,W,H,edge,accent,text}=w;
   c.clearRect(0,0,W,H); c.fillStyle="rgba(0,0,0,.08)"; c.fillRect(0,0,W,H);
   c.strokeStyle=edge; c.globalAlpha=.55; c.lineWidth=1; c.beginPath(); c.moveTo(0,H/2+.5); c.lineTo(W,H/2+.5);
   for(let i=0;i<=16;i++){ const x=i/16*W; c.moveTo(x,8); c.lineTo(x,H-8); } c.stroke(); c.globalAlpha=1;
+  c.save();
+  c.beginPath(); c.rect(0,0,W*waveClamp(reveal),H); c.clip();
   const grad=c.createLinearGradient(0,0,0,H); grad.addColorStop(0,accent); grad.addColorStop(1,"rgba(0,0,0,.15)");
   c.fillStyle=grad; waveShape(c,data,W,H); for(let i=data.length-1;i>=0;i--){ const x=i/Math.max(1,data.length-1)*W, y=H/2+data[i]*(H*.39); c.lineTo(x,y); } c.closePath(); c.fill();
   c.strokeStyle=accent; c.lineWidth=1.2; waveShape(c,data,W,H); c.stroke();
+  c.restore();
   c.fillStyle=text; c.font="9px ui-monospace,monospace"; c.fillText("0",5,12); c.fillText("1",W/4-2,12); c.fillText("2",W/2-2,12); c.fillText("3",W*3/4-2,12); c.fillText("4",W-10,12);
 }
 function waveProgress(kind,now){
@@ -3487,7 +3490,7 @@ function paintWaveAnimation(){
     const p=waveProgress(kind,now); if(p==null) return;
     const recordPos=waveCapture?.mode==="song" ? (master??p) : p;
     if(!completed) recordWave(kind,recordPos);
-    drawWaveBase(w);
+    drawWaveBase(w,p);
     const x=waveClamp(p)*w.W;
     w.c.save();
     const trail=w.c.createLinearGradient(0,0,Math.max(1,x),0);

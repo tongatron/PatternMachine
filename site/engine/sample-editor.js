@@ -1,9 +1,11 @@
 // Editor del Sampler a tutto schermo: forma d'onda grande con zoom, selezione, trim, dissolvenze, normalizzazione,
-// guadagno, inversione, pulizia dei silenzi ed effetti di colore (Crunch alla SP-1200, Drive, Filter, EQ) con
-// ascolto prima di applicarli. Lavora su una copia: il campione cambia solo con
+// guadagno, inversione, pulizia dei silenzi, effetti di colore (Crunch alla SP-1200, Drive, Filter, EQ) con
+// ascolto prima di applicarli e Chop: il suono tagliato in fette, sui colpi o in parti uguali, che diventano
+// campioni, righe della griglia e un pattern. Lavora su una copia: il campione cambia solo con
 // Save (stesso suono, anche nei progetti e nel synth che lo usano) o Save as new (un nuovo campione nel Sampler).
 //
-// Lo apre engine/sampler.js: PMSampleEditor.open({name, buffer, save(blob, audio), saveAsNew(blob, audio, name)}).
+// Lo apre engine/sampler.js: PMSampleEditor.open({name, buffer, save(blob, audio), saveAsNew(blob, audio, name), chop}).
+// chop = {bpm, lens: [{steps, quarters, label}], make({name, slices: [{name, blob, audio, step}], grid: {steps, bpm}|null})}.
 // save/saveAsNew ricevono il WAV (Blob, 16 bit) e l'AudioBuffer gia' pronto; saveAsNew restituisce {name, save} del
 // nuovo campione, che da li' in poi e' quello che si sta modificando.
 // Le funzioni sul suono (dsp) sono pure: le prova tests/sample-editor.test.js.
@@ -161,6 +163,64 @@
         return o;
       });
     },
+    // Gli attacchi (i colpi) nell'intervallo, per tagliare un break. Si lavora su una versione con gli acuti in
+    // evidenza (la coda di una cassa non copre il colpo di hi-hat che arriva dopo), in blocchi da ~6 ms: un attacco
+    // e' un blocco che sale di `rise` dB sopra quelli di 2 e 3 blocchi prima (un colpo a cavallo di due blocchi alza
+    // gia' il precedente; sensitivity 0-100: da 12 a 2 dB), sopra -50 dB, ad
+    // almeno gapMs dal precedente (dei due si tiene il piu' forte). Il punto esatto e' il primo campione che arriva
+    // al 25% del picco che segue, meno 1 ms. Al massimo `max` attacchi (i piu' forti); mai nei primi e negli ultimi 20 ms.
+    onsets(chs, sr, a, b, sensitivity = 50, gapMs = 45, max = 31) {
+      const H = Math.max(32, Math.round(sr * 0.006)), n = Math.floor((b - a) / H), nc = chs.length;
+      if (n < 4) return [];
+      const e = new Float32Array(b - a);
+      let prev = 0;
+      for (let i = a; i < b; i++) {
+        let m = 0; for (let k = 0; k < nc; k++) m += chs[k][i];
+        m /= nc; e[i - a] = m - 0.95 * prev; prev = m;
+      }
+      e[0] = 0;
+      const L = new Float64Array(n);
+      for (let k = 0; k < n; k++) { let s = 0; for (let i = k * H; i < (k + 1) * H; i++) s += e[i] * e[i]; L[k] = 10 * Math.log10(s / H + 1e-12); }
+      const rise = 12 - clamp(sensitivity, 0, 100) / 10, R = k => L[k] - Math.max(L[k - 2], L[k - 3]);
+      const gap = Math.round(sr * gapMs / 1000), edge = Math.round(sr * 0.02);
+      let hits = [];
+      for (let k = 3; k < n; k++) {
+        const r = R(k);
+        if (r < rise || L[k] < -50 || (k > 3 && R(k - 1) > r) || (k + 1 < n && R(k + 1) >= r)) continue;
+        // il punto esatto: primo campione al 25% del picco dei blocchi che seguono
+        let peak = 0;
+        for (let i = (k - 1) * H, end = Math.min(e.length, (k + 3) * H); i < end; i++) peak = Math.max(peak, Math.abs(e[i]));
+        let at = (k + 1) * H;
+        for (let i = (k - 2) * H; i < (k + 1) * H; i++) if (Math.abs(e[i]) >= peak * 0.25) { at = i; break; }
+        const pos = a + Math.max(0, at - Math.round(sr * 0.001));
+        if (pos - a < edge || b - pos < edge) continue;
+        const last = hits[hits.length - 1];
+        if (last && pos - last.pos < gap) { if (r > last.r) hits[hits.length - 1] = { pos, r }; }
+        else hits.push({ pos, r });
+      }
+      if (hits.length > max) hits = hits.slice().sort((x, y) => y.r - x.r).slice(0, max);
+      return hits.map(h => h.pos).sort((x, y) => x - y);
+    },
+    // Le fette: da ogni inizio al successivo (l'ultima fino a b), con 2 ms di dissolvenza in uscita contro i click.
+    slice(chs, starts, b, sr) {
+      const f = Math.round(sr * 0.002);
+      return starts.map((s, k) => {
+        const e = k + 1 < starts.length ? starts[k + 1] : b, part = dsp.crop(chs, s, e), n = e - s;
+        return n > 4 * f ? dsp.fade(part, n - f, n, "out") : part;
+      });
+    },
+    // Lo step di ogni fetta nel pattern: la sua posizione nel pezzo, in proporzione agli step. Si parte dalle fette
+    // piu' vicine a uno step; una fetta che trova il suo step occupato prova quello accanto dall'altra parte, senza
+    // spostare le altre e senza cambiare l'ordine delle fette. Se non c'e' posto: -1 (ha la riga, il pattern non la suona).
+    stepsOf(starts, a, b, steps) {
+      const x = starts.map(s => (s - a) / (b - a) * steps), out = starts.map(() => -1), off = k => Math.abs(x[k] - Math.round(x[k]));
+      const fits = (k, c) => c >= 0 && c < steps && out.every((v, j) => v < 0 || j === k || (j < k ? v < c : v > c));
+      for (const k of x.map((_, k) => k).sort((i, j) => off(i) - off(j) || i - j)) {
+        const r = Math.round(x[k]);
+        for (const c of [Math.min(r, steps - 1), x[k] >= r ? r + 1 : r - 1]) if (fits(k, c)) { out[k] = c; break; }
+      }
+      return out;
+    },
     // WAV PCM 16 bit, canali interlacciati.
     encodeWav(chs, sr) {
       const n = chs[0].length, ch = chs.length, bytes = n * ch * 2, buf = new ArrayBuffer(44 + bytes), v = new DataView(buf);
@@ -219,6 +279,9 @@ dialog.sed::backdrop{background:rgba(0,0,0,.55);}
 .sed-fx-foot{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px 14px;}
 .sed-fx-info{font-size:10px; color:var(--text-dim); font-variant-numeric:tabular-nums;}
 .sed-fx-info.err{color:var(--danger);}
+.sed-fx-params .sed-check{grid-column:1 / -1;}
+.sed-fx-p[hidden]{display:none;}
+.sed-stage.chop canvas{cursor:pointer;}
 .sed-foot{display:flex; flex-wrap:wrap; justify-content:space-between; gap:4px 16px; align-items:baseline;}
 .sed-help{margin:0; font-size:9.5px; color:var(--text-faint); line-height:1.45;}
 .sed-status{font-size:10px; color:var(--text-dim);}
@@ -270,6 +333,7 @@ dialog.sed::backdrop{background:rgba(0,0,0,.55);}
       <button type="button" class="mini" data-tool="delete" data-need-sel title="Remove the selection (Backspace)">Delete</button>
       <button type="button" class="mini" data-tool="silence" data-need-sel title="Replace the selection with silence">Silence</button>
       <button type="button" class="mini" data-tool="autotrim" title="Cut the silence at the start and at the end">Trim silence</button>
+      <button type="button" class="mini" id="sedChopOpen" title="Cut the selection, or the whole sound, into slices: one pad each, and a pattern that plays them">Chop…</button>
       <label class="sed-check" title="Selection edges move to the nearest point where the wave crosses zero: cuts without clicks"><input type="checkbox" id="sedSnap" checked> Snap to zero crossings</label>
     </div>
     <div class="sed-tool-group"><span class="sed-tool-head">Shape</span>
@@ -299,10 +363,31 @@ dialog.sed::backdrop{background:rgba(0,0,0,.55);}
       </div>
     </div>
   </div>
+  <div class="sed-fx" id="sedChop" role="group" aria-labelledby="sedChopTitle" hidden>
+    <div class="sed-fx-head"><h3 id="sedChopTitle">Chop</h3>
+      <p class="sed-fx-lead">Cut into slices: each one becomes a sound of its own, with a grid row and a pattern that plays them in order.</p>
+      <p class="sed-fx-scope" id="sedChopScope"></p></div>
+    <div class="sed-fx-params">
+      <label class="sed-fx-p"><span>Cut</span><select id="sedChopMode"><option value="hits">On the hits</option><option value="equal">In equal parts</option></select></label>
+      <label class="sed-fx-p" id="sedChopSensRow" title="Higher finds softer hits too"><span>Sensitivity</span><input type="range" id="sedChopSens" min="0" max="100" step="1"><output id="sedChopSensOut"></output></label>
+      <label class="sed-fx-p" id="sedChopNRow"><span>Slices</span><select id="sedChopN"><option>2</option><option>4</option><option>8</option><option>16</option><option>32</option></select></label>
+      <label class="sed-fx-p" title="How long the part is: it sets the length of the pattern and the tempo of the slices"><span>Length</span><select id="sedChopLen"></select></label>
+      <label class="sed-check"><input type="checkbox" id="sedChopTempo" checked> <span id="sedChopTempoText"></span></label>
+    </div>
+    <div class="sed-fx-foot">
+      <span class="sed-fx-info" id="sedChopInfo" role="status" aria-live="polite"></span>
+      <div class="sed-group">
+        <button type="button" class="mini" id="sedChopCancel" title="Close without cutting (Esc)">Cancel</button>
+        <button type="button" class="mini" id="sedChopSave" title="Add the slices to the Sampler, without touching the grid">Save slices</button>
+        <button type="button" class="mini primary" id="sedChopGrid" title="Add the slices to the Sampler, a grid row for each one and a new pattern that plays them in order">Slices → grid</button>
+      </div>
+    </div>
+  </div>
   <div class="sed-foot">
     <p class="sed-help">Drag on the waveform to select, drag the edges to adjust, double-click to select all; click to place the cursor.
       The tools work on the selection, or on the whole sound when nothing is selected. Wheel scrolls, ⌘/Ctrl + wheel or pinch zooms.
-      Color effects play and show the result before Apply. Space plays · B bypasses an effect · ⌘Z undoes · Esc closes.</p>
+      Color effects play and show the result before Apply; Chop cuts the sound into slices for the grid.
+      Space plays · B bypasses an effect · 1–9 play the slices · ⌘Z undoes · Esc closes.</p>
     <span class="sed-status" id="sedStatus" role="status" aria-live="polite"></span>
   </div>
 </div>`;
@@ -411,7 +496,7 @@ dialog.sed::backdrop{background:rgba(0,0,0,.55);}
   function colors() {
     const cs = getComputedStyle(document.documentElement), v = (k, d) => cs.getPropertyValue(k).trim() || d;
     return { accent: v("--accent", "#c8471f"), edge: v("--edge-soft", "#555"), faint: v("--text-faint", "#888"),
-      text: v("--text", "#eee"), mono: v("--mono", "monospace") };
+      text: v("--text", "#eee"), mono: v("--mono", "monospace"), bg: v("--panel-3", "#222"), onAccent: v("--on-accent", "#fff") };
   }
   function canvasSize() {
     const c = ui.canvas, dpr = window.devicePixelRatio || 1;
@@ -482,7 +567,8 @@ dialog.sed::backdrop{background:rgba(0,0,0,.55);}
     c.drawImage(waveLayer(w, h, dpr), 0, 0);
     c.setTransform(dpr, 0, 0, dpr, 0, 0);
     const { a, b } = st.sel;
-    if (b > a) {
+    if (st.chop) drawChop(c, w, h, col);
+    else if (b > a) {
       const x1 = xOf(a, w), x2 = xOf(b, w);
       c.fillStyle = col.accent; c.globalAlpha = 0.16; c.fillRect(x1, RULER, x2 - x1, h - RULER);
       c.globalAlpha = 1; c.fillRect(x1 - 1, RULER, 2, h - RULER); c.fillRect(x2 - 1, RULER, 2, h - RULER);
@@ -497,6 +583,26 @@ dialog.sed::backdrop{background:rgba(0,0,0,.55);}
       c.globalAlpha = 1; c.fillStyle = col.accent; c.fillRect(x - 0.75, 0, 1.5, h);   // testina: si stacca dall'onda scura
     }
     c.globalAlpha = 1;
+  }
+
+  // Chop: fuori dal pezzo velato, i tagli con una linguetta numerata (il numero della fetta che parte li')
+  function drawChop(c, w, h, col) {
+    const ch = st.chop, [a, b] = ch.region, x1 = xOf(a, w), x2 = xOf(b, w);
+    c.fillStyle = col.bg; c.globalAlpha = 0.72;
+    if (x1 > 0) c.fillRect(0, RULER, x1, h - RULER);
+    if (x2 < w) c.fillRect(x2, RULER, w - x2, h - RULER);
+    c.font = "bold 9px " + col.mono; c.textBaseline = "middle"; c.textAlign = "center";
+    [a, ...ch.cuts].forEach((s, k) => {
+      const x = Math.round(xOf(s, w));
+      if (x < -30 || x > w) return;
+      c.fillStyle = col.accent; c.globalAlpha = k ? 0.95 : 0.6;
+      c.fillRect(x - (k ? 1 : 0.5), RULER, k ? 2 : 1, h - RULER);
+      const label = String(k + 1), tw = Math.max(14, c.measureText(label).width + 6);
+      c.globalAlpha = 1; c.fillRect(x, RULER, tw, 13);
+      c.fillStyle = col.onAccent; c.fillText(label, x + tw / 2, RULER + 7);
+    });
+    c.fillStyle = col.accent; c.globalAlpha = 0.6; c.fillRect(Math.round(x2) - 0.5, RULER, 1, h - RULER);
+    c.textAlign = "start"; c.globalAlpha = 1;
   }
 
   // ---------- vista (zoom e scorrimento) ----------
@@ -526,11 +632,14 @@ dialog.sed::backdrop{background:rgba(0,0,0,.55);}
     $("sedTitle").textContent = st.name;
     $("sedInfo").innerHTML = `${fmt(n / st.sr)} · ${(st.sr / 1000).toFixed(1)} kHz · ${st.chs.length === 1 ? "mono" : st.chs.length === 2 ? "stereo" : st.chs.length + " channels"} · peak ${dbfs(dsp.peak(st.chs))}`
       + (dirty ? " · <b>not saved</b>" : "");
-    $("sedUndo").disabled = !st.undo.length; $("sedRedo").disabled = !st.redo.length;
-    $("sedSave").disabled = !dirty || !!st.fx;          // con un effetto aperto si salva dopo Apply o Cancel
-    $("sedSaveNew").disabled = $("sedExport").disabled = !!st.fx;
+    // con un effetto o il Chop aperti si salva dopo averli chiusi; durante il Chop il pezzo (la selezione) resta fermo
+    const busy = !!(st.fx || st.chop), chop = !!st.chop;
+    $("sedUndo").disabled = !st.undo.length || chop; $("sedRedo").disabled = !st.redo.length || chop;
+    $("sedSave").disabled = !dirty || busy;
+    $("sedSaveNew").disabled = $("sedExport").disabled = busy;
     for (const b of ui.dlg.querySelectorAll("[data-need-sel]")) b.disabled = !hasSel();
-    $("sedZoomSel").disabled = !hasSel(); $("sedNone").disabled = !hasSel();
+    $("sedZoomSel").disabled = !hasSel(); $("sedNone").disabled = !hasSel() || chop;
+    $("sedAll").disabled = $("sedStart").disabled = $("sedEnd").disabled = chop;
     $("sedLoop").setAttribute("aria-pressed", String(st.loop));
     $("sedPlay").textContent = st.play ? "■ Stop" : "▶ Play";
     readout();
@@ -710,6 +819,136 @@ dialog.sed::backdrop{background:rgba(0,0,0,.55);}
     commit(chs, { ...st.sel }, msg);
   }
 
+  // ---------- chop: fette sui colpi o in parti uguali ----------
+  // Il pezzo e' la selezione (o tutto il suono) al momento dell'apertura. I tagli si spostano trascinandoli, il
+  // doppio clic ne aggiunge o ne toglie uno, un clic su una fetta (o i tasti 1-9) la fa sentire.
+  const chopMem = { mode: "hits", sens: 50, n: 16 }, MIN_SLICE = 0.01;
+  function openChop() {
+    if (!st.opts.chop) return;
+    const [a, b] = range(), dur = (b - a) / st.sr;
+    if (dur < 0.1) return note("Select at least 0.1 s to chop", true);
+    stop();
+    const cur = st.opts.chop.bpm || 120, lens = (st.opts.chop.lens || []).map(o => ({ ...o, bpm: o.quarters * 60 / dur }));
+    // la lunghezza di partenza: quella che da' il tempo piu' vicino a quello del progetto
+    const near = o => Math.abs(Math.log(o.bpm / cur));
+    st.chop = { ...chopMem, region: [a, b], cuts: [], lens, len: lens.reduce((best, o, i) => near(o) < near(lens[best]) ? i : best, 0), busy: false };
+    const sel = $("sedChopLen"); sel.textContent = "";
+    lens.forEach((o, i) => sel.add(new Option(`${o.label} · ${o.steps} steps · ${o.bpm.toFixed(1)} BPM`, i)));
+    $("sedChopMode").value = st.chop.mode; $("sedChopSens").value = st.chop.sens; $("sedChopN").value = String(st.chop.n);
+    sel.value = String(st.chop.len); sel.disabled = !lens.length;
+    ui.dlg.querySelector(".sed-tools").hidden = true; $("sedChop").hidden = false; ui.stage.classList.add("chop");
+    ui.canvas.style.cursor = "";
+    chopCompute(); refresh();
+    $("sedChopMode").focus({ preventScroll: true });
+  }
+  function chopCompute() {
+    const c = st.chop, [a, b] = c.region;
+    let cuts = [];
+    if (c.mode === "hits") cuts = dsp.onsets(st.chs, st.sr, a, b, c.sens);
+    else for (let k = 1; k < c.n; k++) cuts.push(a + Math.round(k * (b - a) / c.n));
+    if ($("sedSnap").checked) { const r = Math.round(st.sr * (c.mode === "hits" ? 0.001 : 0.002)); cuts = cuts.map(s => dsp.zeroCross(st.chs, s, r)); }
+    c.cuts = cleanCuts(cuts);
+    chopUI();
+  }
+  // tagli in ordine, dentro il pezzo, ad almeno MIN_SLICE l'uno dall'altro
+  function cleanCuts(cuts) {
+    const [a, b] = st.chop.region, g = Math.round(st.sr * MIN_SLICE), out = [];
+    for (const s of cuts.slice().sort((x, y) => x - y)) if (s - (out.length ? out[out.length - 1] : a) >= g && b - s >= g) out.push(s);
+    return out;
+  }
+  function chopUI() {
+    const c = st.chop, [a, b] = c.region, starts = [a, ...c.cuts], n = starts.length, o = c.lens[c.len];
+    $("sedChopSensRow").hidden = c.mode !== "hits"; $("sedChopNRow").hidden = c.mode !== "equal";
+    $("sedChopSensOut").textContent = c.sens;
+    $("sedChopScope").textContent = (hasSel() ? "The selection" : "The whole sound") + " · " + fmt((b - a) / st.sr)
+      + " · drag a marker to move it, double-click to add or remove one, click a slice or press 1–9 to hear it";
+    const box = $("sedChopTempo"), txt = $("sedChopTempoText"), cur = st.opts.chop.bpm, t = o ? Math.round(o.bpm) : 0;
+    box.disabled = !o || t < 40 || t > 240 || t === cur;
+    txt.textContent = !o ? "The grid has no pattern length for this part"
+      : t < 40 || t > 240 ? `${t} BPM is out of the tempo range (40–240): choose another length`
+      : t === cur ? `The project is already at ${t} BPM`
+      : `Set the project tempo to ${t} BPM (now ${cur})`;
+    let info = n + (n === 1 ? " slice" : " slices");
+    if (n > 1) info += " · shortest " + fmt(Math.min(...starts.map((s, k) => (k + 1 < n ? starts[k + 1] : b) - s)) / st.sr);
+    if (c.mode === "hits" && n === 1) info = "No hits found: raise the sensitivity, or cut in equal parts";
+    const lost = o && n > 1 ? dsp.stepsOf(starts, a, b, o.steps).filter(k => k < 0).length : 0;
+    if (lost) info += ` · ${lost} without a free step: ${lost === 1 ? "it gets a row, the pattern skips it" : "they get a row, the pattern skips them"}`;
+    $("sedChopInfo").textContent = info;
+    $("sedChopGrid").disabled = !o || n < 2 || c.busy; $("sedChopSave").disabled = n < 2 || c.busy;
+    draw();
+  }
+  function markerAt(clientX) {
+    const r = ui.canvas.getBoundingClientRect(), x = clientX - r.left;
+    let best = -1, bd = 7;
+    st.chop.cuts.forEach((s, i) => { const d = Math.abs(x - xOf(s, r.width)); if (d < bd) { bd = d; best = i; } });
+    return best;
+  }
+  function sliceSpan(k) {
+    const c = st.chop, starts = [c.region[0], ...c.cuts];
+    return k >= 0 && k < starts.length ? [starts[k], k + 1 < starts.length ? starts[k + 1] : c.region[1]] : null;
+  }
+  function audition(k) { const span = sliceSpan(k); if (span) play(null, span); }
+  function chopDown(e) {
+    const m = markerAt(e.clientX);
+    if (m >= 0) { drag = { mode: "marker", i: m }; ui.canvas.setPointerCapture(e.pointerId); return; }
+    const s = sampleAt(e.clientX), c = st.chop;
+    if (s >= c.region[0] && s < c.region[1]) audition(c.cuts.filter(x => x <= s).length);
+  }
+  function chopMove(clientX) {
+    const c = st.chop, i = drag.i, g = Math.round(st.sr * MIN_SLICE);
+    const lo = (i ? c.cuts[i - 1] : c.region[0]) + g, hi = (i + 1 < c.cuts.length ? c.cuts[i + 1] : c.region[1]) - g;
+    c.cuts[i] = clamp(sampleAt(clientX), lo, hi);
+    draw();
+  }
+  function chopDrop() {
+    const c = st.chop, i = drag.i;
+    drag = null;
+    if ($("sedSnap").checked) c.cuts[i] = dsp.zeroCross(st.chs, c.cuts[i], Math.round(st.sr * 0.002));
+    c.cuts = cleanCuts(c.cuts);
+    chopUI();
+  }
+  function chopDouble(e) {
+    const c = st.chop, m = markerAt(e.clientX);
+    if (m >= 0) c.cuts.splice(m, 1);
+    else {
+      let s = sampleAt(e.clientX);
+      if (s <= c.region[0] || s >= c.region[1]) return;
+      if ($("sedSnap").checked) s = dsp.zeroCross(st.chs, s, Math.round(st.sr * 0.002));
+      c.cuts = cleanCuts([...c.cuts, s]);
+    }
+    stop(); chopUI();
+  }
+  function closeChop() {
+    if (!st || !st.chop) return;
+    const c = st.chop;
+    Object.assign(chopMem, { mode: c.mode, sens: c.sens, n: c.n });
+    stop(); drag = null; st.chop = null;
+    $("sedChop").hidden = true; ui.dlg.querySelector(".sed-tools").hidden = false; ui.stage.classList.remove("chop");
+    draw(); refresh();
+    ui.canvas.focus({ preventScroll: true });
+  }
+  // Le fette diventano campioni (WAV 16 bit) nel Sampler; con toGrid anche righe e un pattern (lo fa opts.chop.make).
+  async function chopMake(toGrid) {
+    const c = st && st.chop; if (!c || c.busy) return;
+    const [a, b] = c.region, starts = [a, ...c.cuts], o = toGrid ? c.lens[c.len] : null;
+    if (toGrid && !o) return;
+    const parts = dsp.slice(st.chs, starts, b, st.sr), steps = o ? dsp.stepsOf(starts, a, b, o.steps) : null;
+    const digits = Math.max(2, String(parts.length).length), ctx = actx(), base = st.name.slice(0, 50);
+    const slices = parts.map((chs, k) => ({ name: base + " " + String(k + 1).padStart(digits, "0"),
+      blob: new Blob([dsp.encodeWav(chs, st.sr)], { type: "audio/wav" }), audio: audioBuffer(ctx, chs), step: steps ? steps[k] : -1 }));
+    const tempo = $("sedChopTempo"), grid = o ? { steps: o.steps, bpm: tempo.checked && !tempo.disabled ? Math.round(o.bpm) : null } : null;
+    stop(); c.busy = true; chopUI();
+    try { await st.opts.chop.make({ name: st.name, slices, grid }); }
+    catch (e) {
+      if (st && st.chop === c) { c.busy = false; chopUI(); }
+      return note(e && e.message ? e.message : "The slices could not be saved", true);
+    }
+    if (!st) return;
+    closeChop();
+    note(`${slices.length} slices added to the Sampler` + (grid ? ", the grid and a new pattern" : ""));
+    if (grid) close();       // si torna alla griglia; se il suono ha modifiche non salvate, close() lo chiede
+  }
+
   // ---------- ascolto ----------
   function audioBuffer(ctx = actx(), chs = st.chs) {
     const buf = ctx.createBuffer(chs.length, chs[0].length, st.sr);
@@ -721,15 +960,17 @@ dialog.sed::backdrop{background:rgba(0,0,0,.55);}
     const el = (p.ctx.currentTime - p.t0) * st.sr;
     return p.loop ? p.from + el % (p.to - p.from) : Math.min(p.to, p.from + el);
   }
-  // `at`: il punto da cui ripartire (quando cambia l'anteprima di un effetto mentre suona)
-  async function play(at) {
+  // `at`: il punto da cui ripartire (quando cambia l'anteprima di un effetto mentre suona);
+  // `span`: [da, a] al posto della selezione (una fetta del Chop), senza loop
+  async function play(at, span) {
     stop();
     const ctx = actx(); if (ctx.state === "suspended") await ctx.resume();
     if (!st) return;
-    const n = len(), sel = hasSel(), from = sel ? st.sel.a : (st.sel.a < n - 1 ? st.sel.a : 0), to = sel ? st.sel.b : n;
+    const n = len(), sel = hasSel();
+    const [from, to] = span || (sel ? [st.sel.a, st.sel.b] : [st.sel.a < n - 1 ? st.sel.a : 0, n]);
     const pos = at == null ? from : clamp(Math.round(at), from, Math.max(from, to - 1));
     const src = ctx.createBufferSource(); src.buffer = audioBuffer(ctx, shownChs()); src.connect(ctx.destination);
-    const loop = st.loop && sel;
+    const loop = st.loop && sel && !span;
     if (loop) { src.loop = true; src.loopStart = from / st.sr; src.loopEnd = to / st.sr; src.start(0, pos / st.sr); }
     else src.start(0, pos / st.sr, (to - pos) / st.sr);
     st.play = { src, ctx, t0: ctx.currentTime - (pos - from) / st.sr, from, to, loop };
@@ -769,6 +1010,7 @@ dialog.sed::backdrop{background:rgba(0,0,0,.55);}
     cv.addEventListener("pointerdown", e => {
       if (!st || e.button !== 0) return;
       cv.focus({ preventScroll: true });
+      if (st.chop) return chopDown(e);
       const s = sampleAt(e.clientX), edge = edgeAt(e.clientX);
       drag = { mode: edge || "new", anchor: edge === "a" ? st.sel.b : edge === "b" ? st.sel.a : s };
       if (!edge) st.sel = { a: s, b: s };
@@ -777,6 +1019,7 @@ dialog.sed::backdrop{background:rgba(0,0,0,.55);}
     });
     cv.addEventListener("pointermove", e => {
       if (!st) return;
+      if (st.chop) { if (drag) chopMove(e.clientX); else cv.style.cursor = markerAt(e.clientX) >= 0 ? "ew-resize" : ""; return; }
       if (!drag) { cv.style.cursor = edgeAt(e.clientX) ? "ew-resize" : "crosshair"; return; }
       const s = sampleAt(e.clientX);
       st.sel = s < drag.anchor ? { a: s, b: drag.anchor } : { a: drag.anchor, b: s };
@@ -784,11 +1027,12 @@ dialog.sed::backdrop{background:rgba(0,0,0,.55);}
     });
     const end = () => {
       if (!drag) return;
+      if (drag.mode === "marker") return st && st.chop ? chopDrop() : (drag = null);
       drag = null; snapSel(); draw(); refresh();
     };
     cv.addEventListener("pointerup", end);
     cv.addEventListener("pointercancel", end);
-    cv.addEventListener("dblclick", () => { if (st) selectAll(); });
+    cv.addEventListener("dblclick", e => { if (st) st.chop ? chopDouble(e) : selectAll(); });
     cv.addEventListener("wheel", e => {
       if (!st) return;
       e.preventDefault();
@@ -816,6 +1060,14 @@ dialog.sed::backdrop{background:rgba(0,0,0,.55);}
     for (const b of dlg.querySelectorAll("[data-tool]")) b.onclick = () => apply(b.dataset.tool);
     for (const b of dlg.querySelectorAll("[data-fx]")) b.onclick = () => openFx(b.dataset.fx);
     $("sedFxBypass").onclick = fxBypass; $("sedFxCancel").onclick = closeFx; $("sedFxApply").onclick = applyFx;
+    $("sedChopOpen").onclick = openChop;
+    $("sedChopMode").onchange = e => { st.chop.mode = e.target.value; chopCompute(); };
+    $("sedChopSens").oninput = e => { st.chop.sens = +e.target.value; chopCompute(); };
+    $("sedChopN").onchange = e => { st.chop.n = +e.target.value; chopCompute(); };
+    $("sedChopLen").onchange = e => { st.chop.len = +e.target.value; chopUI(); };
+    $("sedChopCancel").onclick = closeChop;
+    $("sedChopSave").onclick = () => chopMake(false);
+    $("sedChopGrid").onclick = () => chopMake(true);
     $("sedUndo").onclick = undo; $("sedRedo").onclick = redo;
     $("sedSave").onclick = () => save(false);
     $("sedSaveNew").onclick = () => save(true);
@@ -824,16 +1076,18 @@ dialog.sed::backdrop{background:rgba(0,0,0,.55);}
       saveBlob(blob, st.name.replace(/[\\/:*?"<>|]+/g, "-") + ".wav", "Sample");
     };
     $("sedClose").onclick = close;
-    dlg.addEventListener("cancel", e => { e.preventDefault(); st && st.fx ? closeFx() : close(); });   // Esc chiude prima l'effetto
+    // Esc chiude prima il Chop o l'effetto, poi l'editor
+    dlg.addEventListener("cancel", e => { e.preventDefault(); st && st.chop ? closeChop() : st && st.fx ? closeFx() : close(); });
     dlg.addEventListener("keydown", e => {
       if (!st) return;
       const t = e.target, typing = t.tagName === "INPUT" && (t.type === "number" || t.type === "text"), mod = e.metaKey || e.ctrlKey, k = e.key.toLowerCase();
-      if (mod && k === "z") { e.preventDefault(); e.stopPropagation(); e.shiftKey ? redo() : undo(); return; }
+      if (mod && k === "z") { e.preventDefault(); e.stopPropagation(); if (!st.chop) e.shiftKey ? redo() : undo(); return; }
       if (typing || e.altKey) return;
       if (e.key === " ") { e.preventDefault(); if (t.tagName === "BUTTON") t.blur(); st.play ? stop() : play(); }
       else if (st.fx && !mod && k === "b") { e.preventDefault(); fxBypass(); }
-      else if (mod && k === "a") { e.preventDefault(); selectAll(); }
-      else if ((e.key === "Backspace" || e.key === "Delete") && hasSel() && !st.fx) { e.preventDefault(); apply("delete"); }
+      else if (st.chop && !mod && /^[1-9]$/.test(e.key)) { e.preventDefault(); audition(+e.key - 1); }
+      else if (mod && k === "a") { e.preventDefault(); if (!st.chop) selectAll(); }
+      else if ((e.key === "Backspace" || e.key === "Delete") && hasSel() && !st.fx && !st.chop) { e.preventDefault(); apply("delete"); }
       else if (!mod && (e.key === "+" || e.key === "=")) zoom(0.5);
       else if (!mod && e.key === "-") zoom(2);
     });
@@ -880,8 +1134,9 @@ dialog.sed::backdrop{background:rgba(0,0,0,.55);}
     const buf = opts.buffer, chs = [];
     for (let c = 0; c < buf.numberOfChannels; c++) chs.push(buf.getChannelData(c).slice());
     st = { opts, name: opts.name || "Sample", sr: buf.sampleRate, chs, sel: { a: 0, b: 0 }, view: { from: 0, span: chs[0].length },
-      undo: [], redo: [], id: 0, saved: 0, nextId: 1, loop: false, play: null, layer: null, layerKey: "", fx: null };
-    $("sedFx").hidden = true; ui.dlg.querySelector(".sed-tools").hidden = false;
+      undo: [], redo: [], id: 0, saved: 0, nextId: 1, loop: false, play: null, layer: null, layerKey: "", fx: null, chop: null };
+    $("sedFx").hidden = $("sedChop").hidden = true; ui.dlg.querySelector(".sed-tools").hidden = false; ui.stage.classList.remove("chop");
+    $("sedChopOpen").hidden = !opts.chop;
     note("");
     if (!ui.dlg.open) ui.dlg.showModal();
     ui.canvas.focus({ preventScroll: true });

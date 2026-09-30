@@ -64,9 +64,14 @@ l'app desktop sostituisce.
 - [ ] Più avanti: **Vinyl** (fruscio, crackle, wow & flutter) e filtro con sweep lungo la selezione.
 
 ### 2. Chop: da un break a tanti pad
-- [ ] Dividere in 4/8/16 parti uguali o a battute del BPM del progetto.
-- [ ] Dividere sui transienti (sensibilità regolabile), marker spostabili sulla forma d'onda.
-- [ ] **Fette → righe della griglia**: un campione e una riga per fetta, più un pattern che le risuona in ordine.
+Pulsante **Chop…** nel gruppo Cut dell'editor: lavora sulla selezione o su tutto il suono.
+- [x] Dividere in 2/4/8/16/32 parti uguali; lunghezza del pezzo in battute (½, 1, 2, 3 secondo gli step del
+  progetto) con il tempo che ne risulta e la scelta di portarci il progetto.
+- [x] Dividere sui colpi (sensibilità regolabile), marker spostabili sulla forma d'onda: trascinare per spostare,
+  doppio clic per aggiungere o togliere, clic su una fetta o tasti 1–9 per ascoltarla.
+- [x] **Fette → righe della griglia**: un campione e una riga per fetta (stesso gruppo choke, il primo libero),
+  un pattern che le risuona dove stavano e un blocco "Break" di 4 battute nella canzone dopo quello selezionato
+  (il Play principale suona la canzone). "Save slices" le mette solo nel Sampler.
 
 ### 3. Resampling
 - [ ] Registrare il pattern (batteria + synth) nel Sampler come nuovo campione, da lavorare nell'editor.

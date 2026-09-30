@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Prove delle funzioni sul suono dell'editor del Sampler (site/engine/sample-editor.js, PMSampleEditor.dsp) fuori dal
 // browser: trim, cancellazione, dissolvenze, normalizzazione, inversione, silenzi ai bordi, zero-crossing, crunch,
-// drive, filtri, EQ, mix con i bordi e WAV.
+// drive, filtri, EQ, mix con i bordi, attacchi e fette (chop) e WAV.
 // Lo lancia scripts/deploy.sh.
 const fs = require("fs"), vm = require("vm"), path = require("path");
 const src = fs.readFileSync(path.join(__dirname, "..", "site", "engine", "sample-editor.js"), "utf8");
@@ -135,6 +135,37 @@ const level = (hz, fn, amp = 0.5) => {
   const m = dsp.mix(dry, wet, 100, 900, 1, 50)[0];
   check(m[99] === 0 && m[100] === 0 && near(m[125], 0.5) && m[500] === 1 && m[899] === 0 && m[900] === 0, `mix: bordi ${m[100]}, ${m[125]}, ${m[899]}`);
   check(near(dsp.mix(dry, wet, 0, 1000, 0.25)[0][500], 0.25), "mix 25%");
+}
+// attacchi: un break finto (cassa, rullante, hi-hat anche sopra la coda della cassa) trovato entro 3 ms
+{
+  let seed = 7; const rnd = () => (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648 * 2 - 1;
+  const n = sr, d = new Float32Array(n);
+  const kick = t0 => { for (let i = 0; i < sr * 0.4; i++) { const t = i / sr; if (t0 + i < n) d[t0 + i] += Math.sin(2 * Math.PI * 55 * t * (1 + 2 * Math.exp(-t * 40))) * Math.exp(-t * 6) * 0.8; } };
+  const noise = (t0, amp, decay, len) => { for (let i = 0; i < sr * len; i++) if (t0 + i < n) d[t0 + i] += rnd() * amp * Math.exp(-i / sr * decay); };
+  const at = [0.1, 0.225, 0.35, 0.6, 0.725].map(t => Math.round(t * sr));
+  kick(at[0]); noise(at[1], 0.15, 60, 0.05); noise(at[2], 0.5, 18, 0.2); kick(at[3]); noise(at[4], 0.12, 60, 0.05);
+  const found = dsp.onsets([d], sr, 0, n, 50);
+  const ok = found.length === at.length && found.every((f, k) => Math.abs(f - at[k]) <= sr * 0.003);
+  check(ok, `onsets: attesi ${at.map(x => (x / sr).toFixed(3))}, trovati ${found.map(x => (x / sr).toFixed(3))}`);
+  check(dsp.onsets([d], sr, 0, n, 0).length <= found.length, "onsets: con sensibilita' 0 non devono essere di piu'");
+  const tail = [Float32Array.from({ length: sr }, (_, i) => Math.sin(2 * Math.PI * 60 * i / sr) * Math.exp(-i / sr * 3))];
+  check(dsp.onsets(tail, sr, 0, sr, 100).length === 0, "onsets: una coda che scende non ha attacchi");
+  const part = dsp.onsets([d], sr, at[2] - 2000, n, 50);
+  check(part.every(f => f >= at[2] - 2000 + sr * 0.02), "onsets: niente attacchi nei primi 20 ms dell'intervallo");
+  check(dsp.onsets([d], sr, 0, n, 100, 45, 2).length === 2, "onsets: il massimo non e' rispettato");
+}
+// fette: da un inizio al successivo, coda sfumata; step nel pattern con le collisioni
+{
+  const one = [new Float32Array(3000).fill(0.5)], parts = dsp.slice(one, [0, 1000, 2400], 3000, sr);
+  check(parts.length === 3 && parts[0][0].length === 1000 && parts[2][0].length === 600 && parts[1][0][0] === 0.5, "slice: lunghezze sbagliate");
+  check(parts[0][0][999] < 0.01 && parts[0][0][500] === 0.5 && parts[2][0][599] < 0.01, "slice: manca la dissolvenza in uscita");
+  const st16 = dsp.stepsOf([0, 250, 500, 750], 0, 1000, 16);
+  check(st16.join() === "0,4,8,12", `stepsOf: ${st16}`);
+  const clash = dsp.stepsOf([0, 10, 20, 990], 0, 1000, 4);
+  check(clash.join() === "0,1,-1,3", `stepsOf con collisioni: ${clash}`);
+  check(dsp.stepsOf([0, 900, 950, 980], 0, 1000, 4).join() === "0,-1,-1,3", "stepsOf: le fette senza step libero devono dare -1");
+  const moved = dsp.stepsOf([0, 6.5, 7, 8].map(x => x * 1000), 0, 16000, 16);     // un taglio spostato a meta' fra due step
+  check(moved.join() === "0,6,7,8", `stepsOf: un taglio fuori posto sposta le altre fette (${moved})`);
 }
 // WAV 16 bit: intestazione e campioni
 {

@@ -1,6 +1,7 @@
 // Local browser sampler.
 // Audio blobs stay outside project JSON; they live locally and can optionally sync to the account.
 // Edit opens the full-screen editor (engine/sample-editor.js); Play on synth hands the sound to the synth (engine/synth.js).
+// Chop in the editor cuts a sound into slices: new samples, and with "Slices → grid" one row each plus a pattern.
 (function(){
   "use strict";
 
@@ -390,15 +391,69 @@
   function editorTarget(r,buffer){
     return {name:r.name, buffer,
       save:(blob,audio)=>replaceAudio(r.id,blob,audio),
-      saveAsNew:async(blob,audio,name)=>{ const n=await addRecord(blob,audio,name); return {name:n.name, save:(b,a)=>replaceAudio(n.id,b,a)}; }};
+      saveAsNew:async(blob,audio,name)=>{ const n=await addRecord(blob,audio,name); return {name:n.name, save:(b,a)=>replaceAudio(n.id,b,a)}; },
+      chop:chopTarget()};
+  }
+  // Per il Chop: il tempo del progetto e le lunghezze di pattern che fanno 1/2 battuta, 1, 2 o 3 battute
+  // (le stesse del menu Steps), con i quarti che durano: da li' l'editor ricava il tempo del pezzo.
+  function chopTarget(){
+    if(typeof project==="undefined" || !window.PMRhythm) return null;
+    const r=project.rhythm, spb=PMRhythm.stepsPerBar(r), bq=PMRhythm.barQuarters(r);
+    const steps=[...document.querySelectorAll("#pLen option")].map(o=>+o.value);
+    const lens=[];
+    for(const bars of [.5,1,2,3]){
+      const n=bars*spb;
+      if(steps.includes(n)) lens.push({steps:n, quarters:bars*bq, label:bars===.5?"½ bar":bars===1?"1 bar":bars+" bars"});
+    }
+    return {bpm:bpm(), lens, make:addSlices};
   }
   function newId(){ return `s-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,8)}`; }
-  async function addRecord(blob,audio,name){
-    if(recordSize()+blob.size>MAX_BYTES) throw new Error("Local sampler limit reached: 20 MB");
+  async function storeRecord(blob,audio,name){
     const id=newId(), r={id,name:fallbackName(name),blob,size:blob.size,duration:audio.duration,mime:blob.type,createdAt:Date.now(),updatedAt:Date.now(),settings:defaultSettings()};
     await persistRecord(r); records.push(r); urls.set(id,URL.createObjectURL(blob)); r.localUrl=urls.get(id); addEntry(r,audio);
+    return r;
+  }
+  async function addRecord(blob,audio,name){
+    if(recordSize()+blob.size>MAX_BYTES) throw new Error("Local sampler limit reached: 20 MB");
+    const r=await storeRecord(blob,audio,name);
     render(); refreshEngine(); setNote(`${r.name} added locally`); if(syncEnabled) syncServer();
     return r;
+  }
+  // Le fette del Chop: un campione ciascuna. Con grid anche una riga ciascuna, tutte nello stesso gruppo choke
+  // (una fetta ferma la precedente, come sulle MPC; il primo gruppo libero fra 1 e 4), un pattern nuovo che le
+  // suona dove stavano nel pezzo e un blocco "Break" di 4 battute nella canzone, dopo quello selezionato: il Play
+  // principale suona la canzone. grid.bpm: il tempo del pezzo, se va portato al progetto.
+  async function addSlices({name,slices,grid}){
+    const bytes=slices.reduce((sum,x)=>sum+x.blob.size,0);
+    if(recordSize()+bytes>MAX_BYTES) throw new Error(`The slices need ${formatBytes(bytes)}: there is no room in the local sampler (20 MB)`);
+    // nomi "Nome 01", "Nome 02"...; se il suono e' gia' stato tagliato: "Nome B 01", "Nome C 01"...
+    const taken=new Set(records.map(r=>r.name.toLowerCase())), base0=slices[0].name.replace(/ \d+$/,"");
+    let base=base0;
+    for(let k=2; slices.some(x=>taken.has((base+x.name.slice(base0.length)).toLowerCase())); k++) base=`${base0} ${k<=26?String.fromCharCode(64+k):k}`;
+    const made=[];
+    for(const x of slices) made.push(await storeRecord(x.blob,x.audio,base+x.name.slice(base0.length)));
+    render(); refreshEngine(); if(syncEnabled) syncServer();
+    if(!grid){ setNote(`${made.length} slices of ${name} added locally`); return true; }
+    pushUndo();
+    const group=[1,2,3,4].find(g=>!project.tracks.some(t=>t.choke===g))||0;
+    const tracks=made.map(r=>({...sampleTrack(r.id),choke:group}));
+    project.tracks.push(...tracks);
+    let title=`${name} chop`, k=2;
+    while(project.patterns.some(p=>p.name===title)) title=`${name} chop ${k++}`;
+    const p=makePattern(title,grid.steps);
+    tracks.forEach((t,i)=>{ const g=new Array(grid.steps).fill(0); if(slices[i].step>=0) g[slices[i].step]=1; p.grid[t.id]=g; });
+    project.patterns.push(p);
+    const bars=grid.steps/PMRhythm.stepsPerBar(project.rhythm), block={id:uid(), patternId:p.id, repeats:Math.max(1,Math.round(4/bars)), section:"break"};
+    const at=project.song.findIndex(b=>b.id===ui.blockId);
+    if(at>=0) project.song.splice(at+1,0,block); else project.song.push(block);
+    ui.blockId=block.id;
+    if(grid.bpm){ const n=$("bpmNum"); n.value=grid.bpm; n.dispatchEvent(new Event("input")); }
+    normalize(); tracks.forEach(t=>loadBuffer(t.sampleIndex));
+    selectPattern(p.id); setView("grid");
+    const pos=project.song.indexOf(block)+1;
+    setStatus(`${made.length} slices of “${name}”: ${made.length} rows, the pattern “${title}” and block ${pos} of the song`+(grid.bpm?`, tempo ${grid.bpm} BPM`:""));
+    setNote(`${made.length} slices of ${name} added to the grid`);
+    return true;
   }
   // Save dall'editor: stesso id, quindi le righe della griglia e il synth che usano il campione suonano la versione nuova.
   async function replaceAudio(id,blob,audio){

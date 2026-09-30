@@ -169,7 +169,7 @@ html[data-embed="1"] .site-footer, html[data-embed="1"] #libOverlay, html[data-e
 html[data-embed="1"] #panelTransport{position:sticky; top:0; z-index:10; margin:0; border-radius:0;}
 html[data-embed="1"] #panelTransport .transport-extra > :not(#counter){display:none;}
 html[data-embed="1"] #panelGrid{display:block!important; border:0; border-radius:0; margin:0; min-height:calc(100vh - 76px);}
-html[data-embed="1"] #panelGrid > .flexline:last-child{display:none;}
+html[data-embed="1"] #addRowLine{display:none;}
 html[data-embed="1"] #playBtn{min-height:42px; padding-inline:18px;}
 
 .topbar{display:flex; flex-wrap:wrap; align-items:baseline; gap:10px 16px; margin-bottom:12px;}
@@ -1119,6 +1119,12 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <div class="grid-headline"><span id="playheadLed" class="playhead-led" aria-hidden="true"></span><span id="playheadLabel">Ready</span></div>
     <div class="ruler" id="ruler"></div>
     <div class="rows" id="rows"></div>
+    <div class="flexline" id="addRowLine" style="margin:9px 0 2px;">
+      <span class="tiny">Add instrument</span>
+      <select id="sampleSelect"></select>
+      <button id="addRowBtn" class="mini">+ Row</button>
+      <button id="pruneRowsBtn" class="mini" title="Removes rows with no hits in any pattern of the project (rows are shared by all patterns)">Remove empty rows</button>
+    </div>
     <details class="drum-sound-panel" id="drumSoundPanel" open>
       <summary>Drum Sound <span class="drum-sound-name" id="drumSoundName"></span></summary>
       <div class="drum-sound-body" id="drumSoundBody"></div>
@@ -1127,12 +1133,6 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       <summary>Audio waveform <span class="wave-caption" id="waveDrumsCaption">selected drum pattern</span></summary>
       <canvas id="waveDrumsCanvas" height="124" aria-label="Waveform of the selected drum pattern"></canvas>
     </details>
-    <div class="flexline" style="margin-top:9px;">
-      <span class="tiny">Add instrument</span>
-      <select id="sampleSelect"></select>
-      <button id="addRowBtn" class="mini">+ Row</button>
-      <button id="pruneRowsBtn" class="mini" title="Removes rows with no hits in any pattern of the project (rows are shared by all patterns)">Remove empty rows</button>
-    </div>
   </div>
 
   <!-- Synth (in prova): lo riempie engine/synth.js -->
@@ -1487,22 +1487,22 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-09-30.27"></script>
-<script src="engine/core.js?v=2026-09-30.27"></script>
-<script src="engine/styles-punk.js?v=2026-09-30.27"></script>
-<script src="engine/styles-post.js?v=2026-09-30.27"></script>
-<script src="engine/styles-machines.js?v=2026-09-30.27"></script>
-<script src="engine/styles-alt.js?v=2026-09-30.27"></script>
-<script src="engine/styles-groove.js?v=2026-09-30.27"></script>
-<script src="engine/styles-dub.js?v=2026-09-30.27"></script>
-<script src="engine/styles-break.js?v=2026-09-30.27"></script>
-<script src="engine/styles-soul.js?v=2026-09-30.27"></script>
-<script src="engine/styles-metal.js?v=2026-09-30.27"></script>
-<script src="engine/styles-electro.js?v=2026-09-30.27"></script>
-<script src="engine/variations.js?v=2026-09-30.27"></script>
-<script src="engine/import.js?v=2026-09-30.27"></script>
-<script src="engine/rhythm.js?v=2026-09-30.27"></script>
-<script src="engine/share.js?v=2026-09-30.27"></script>
+<script src="engine/machine-art.js?v=2026-09-30.28"></script>
+<script src="engine/core.js?v=2026-09-30.28"></script>
+<script src="engine/styles-punk.js?v=2026-09-30.28"></script>
+<script src="engine/styles-post.js?v=2026-09-30.28"></script>
+<script src="engine/styles-machines.js?v=2026-09-30.28"></script>
+<script src="engine/styles-alt.js?v=2026-09-30.28"></script>
+<script src="engine/styles-groove.js?v=2026-09-30.28"></script>
+<script src="engine/styles-dub.js?v=2026-09-30.28"></script>
+<script src="engine/styles-break.js?v=2026-09-30.28"></script>
+<script src="engine/styles-soul.js?v=2026-09-30.28"></script>
+<script src="engine/styles-metal.js?v=2026-09-30.28"></script>
+<script src="engine/styles-electro.js?v=2026-09-30.28"></script>
+<script src="engine/variations.js?v=2026-09-30.28"></script>
+<script src="engine/import.js?v=2026-09-30.28"></script>
+<script src="engine/rhythm.js?v=2026-09-30.28"></script>
+<script src="engine/share.js?v=2026-09-30.28"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -3843,7 +3843,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || document.getElementById("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-30.27";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-30.28";
   document.body.appendChild(s);
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth")) loadSynth();
@@ -6524,7 +6524,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-30.27";
+const SW_VERSION="2026-09-30.28";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -6548,9 +6548,9 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sampler.js?v=2026-09-30.27"></script>
+<script src="engine/sampler.js?v=2026-09-30.28"></script>
 <script>PMSampler.init();</script>
-<script src="engine/midi.js?v=2026-09-30.27"></script>
+<script src="engine/midi.js?v=2026-09-30.28"></script>
 
 </body>
 </html>

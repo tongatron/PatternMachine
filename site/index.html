@@ -1310,7 +1310,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       <select id="seqSynthPick" aria-label="Synth pattern to insert"></select>
       <button id="ssAdd" class="mini primary" title="Insert the synth pattern after the selected synth block">+ Insert</button>
       <button id="ssRest" class="mini" title="A silent block: the synth pauses (one bar, the length can be changed on the block)">+ Rest</button>
-      <button id="ssDup" class="mini" title="Duplicate the selected block's synth pattern and use the copy in that block">Duplicate</button>
+      <button id="ssDup" class="mini" title="Duplicate the selected synth block">Duplicate</button>
       <button id="ssRename" class="mini" title="Rename the selected block's synth pattern">Rename</button>
       <button id="ssClear" class="mini danger">Clear</button>
       <span class="tiny" id="synthLaneInfo" style="margin-left:auto;"></span>
@@ -3596,21 +3596,16 @@ function insertSynthBlock(block){
 el("ssAdd").onclick=()=>{ const sp=synthById(el("seqSynthPick").value)||curSynth(); insertSynthBlock({id:uid(), synthId:sp.id, repeats:1, len:sp.len}); };
 el("ssRest").onclick=()=>insertSynthBlock({id:uid(), synthId:null, repeats:1, len:16});
 el("ssDup").onclick=()=>{
-  const block=project.synthSong.find(b=>b.id===ui.synthBlockId && b.synthId);
-  const src=synthById(block?.synthId)||synthById(el("seqSynthPick").value)||curSynth();
-  if(!src) return;
+  const i=project.synthSong.findIndex(b=>b.id===ui.synthBlockId);
+  if(i<0) return setStatus("select a synth block","err");
   pushUndo();
-  const sp=makeSynthPattern(copyName(src.name, project.synthPatterns.map(x=>x.name)), src.len);
-  sp.synth=(src.synth||[]).map(n=>({...n}));
-  project.synthPatterns.splice(project.synthPatterns.indexOf(src)+1,0,sp);
-  if(block){
-    block.synthId=sp.id; block.len=sp.len;
-    ui.synthId=sp.id; el("seqSynthPick").value=sp.id; renderSong();
-    setStatus("synth block now uses the copy: "+sp.name);
-  } else {
-    ui.synthId=sp.id; el("seqSynthPick").value=sp.id; renderSong();
-    setStatus("synth pattern duplicated: "+sp.name);
-  }
+  const src=project.synthSong[i];
+  const copy={id:uid(), synthId:src.synthId, repeats:src.repeats, len:src.len};
+  project.synthSong.splice(i+1,0,copy);
+  ui.synthBlockId=copy.id;
+  if(copy.synthId) ui.synthId=copy.synthId;
+  renderSong();
+  setStatus("synth block duplicated");
 };
 el("ssRename").onclick=()=>{
   const block=project.synthSong.find(b=>b.id===ui.synthBlockId && b.synthId);

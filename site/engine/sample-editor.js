@@ -316,7 +316,7 @@ dialog.sed::backdrop{background:rgba(0,0,0,.55);}
   <div class="sed-bar">
     <div class="sed-group">
       <button type="button" class="mini primary" id="sedPlay" title="Play the selection, or from the cursor (Space)">▶ Play</button>
-      <button type="button" class="mini" id="sedLoop" aria-pressed="false" title="Repeat the selection while playing">⟲ Loop</button>
+      <button type="button" class="mini" id="sedLoop" aria-pressed="false" title="Repeat while playing: the selection, or the whole sound when nothing is selected">⟲ Loop</button>
     </div>
     <div class="sed-group sed-sel">
       <label>Start <input type="number" id="sedStart" step="0.001" min="0" inputmode="decimal"></label>
@@ -966,16 +966,16 @@ dialog.sed::backdrop{background:rgba(0,0,0,.55);}
     return p.loop ? p.from + el % (p.to - p.from) : Math.min(p.to, p.from + el);
   }
   // `at`: il punto da cui ripartire (quando cambia l'anteprima di un effetto mentre suona);
-  // `span`: [da, a] al posto della selezione (una fetta del Chop), senza loop
+  // `span`: [da, a] al posto della selezione (una fetta del Chop), senza loop.
+  // Loop: ripete la selezione; senza selezione tutto il suono, partendo dal cursore.
   async function play(at, span) {
     stop();
     const ctx = actx(); if (ctx.state === "suspended") await ctx.resume();
     if (!st) return;
-    const n = len(), sel = hasSel();
-    const [from, to] = span || (sel ? [st.sel.a, st.sel.b] : [st.sel.a < n - 1 ? st.sel.a : 0, n]);
-    const pos = at == null ? from : clamp(Math.round(at), from, Math.max(from, to - 1));
+    const n = len(), sel = hasSel(), loop = st.loop && !span, cursor = st.sel.a < n - 1 ? st.sel.a : 0;
+    const [from, to] = span || (sel ? [st.sel.a, st.sel.b] : [loop ? 0 : cursor, n]);
+    const pos = at == null ? (loop && !sel ? cursor : from) : clamp(Math.round(at), from, Math.max(from, to - 1));
     const src = ctx.createBufferSource(); src.buffer = audioBuffer(ctx, shownChs()); src.connect(ctx.destination);
-    const loop = st.loop && sel && !span;
     if (loop) { src.loop = true; src.loopStart = from / st.sr; src.loopEnd = to / st.sr; src.start(0, pos / st.sr); }
     else src.start(0, pos / st.sr, (to - pos) / st.sr);
     st.play = { src, ctx, t0: ctx.currentTime - (pos - from) / st.sr, from, to, loop };
@@ -1052,7 +1052,7 @@ dialog.sed::backdrop{background:rgba(0,0,0,.55);}
       setView(+e.target.value / 1000 * (n - span), span);
     });
     $("sedPlay").onclick = () => st.play ? stop() : play();
-    $("sedLoop").onclick = () => { st.loop = !st.loop; if (st.play) play(); refresh(); };
+    $("sedLoop").onclick = () => { st.loop = !st.loop; if (st.play) play(playPos()); refresh(); };   // continua da dov'e'
     $("sedAll").onclick = selectAll;
     $("sedNone").onclick = () => { st.sel = { a: st.sel.a, b: st.sel.a }; draw(); refresh(); };
     $("sedZoomIn").onclick = () => zoom(0.5);

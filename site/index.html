@@ -443,7 +443,11 @@ body.sound-view #liveKeysBtn{display:inline-flex; align-items:center;}
 .drum-sound-name{color:var(--text); letter-spacing:.04em;}
 .drum-sound-body{padding:10px 11px 12px; border-top:1px solid var(--edge-soft);}
 .drum-sound-head{display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-bottom:12px;}
-.drum-sound-head select{min-width:180px; font-size:11px; font-weight:700;}
+.drum-sound-pick{display:inline-flex; align-items:center; gap:7px;}
+.drum-sound-menu summary{min-height:0; min-width:190px; padding:6px 10px; font-size:11px; letter-spacing:.02em; text-transform:none;}
+.drum-sound-list{min-width:250px; max-height:320px; overflow-y:auto;}
+.drum-sound-list button{display:block; width:100%; text-align:left; min-height:30px; padding:6px 10px; font-size:10.5px; letter-spacing:.02em; text-transform:none;}
+.drum-sound-list button.on{background:var(--key-primary,var(--accent)); border-color:var(--accent-dim); color:var(--on-accent); font-weight:700;}
 .drum-sound-head .tiny{margin-left:auto;}
 .drum-sound-knobs{display:grid; grid-template-columns:repeat(8,minmax(54px,1fr)); gap:8px; align-items:start;}
 .sound-knob{position:relative; display:flex; flex-direction:column; align-items:center; gap:5px; min-width:0;}
@@ -2476,11 +2480,25 @@ function renderDrumSound(){
   if(!t){ t=project.tracks[0]; ui.soundTrackId=t.id; }
   const label=sampleLabel(t.sampleIndex);
   name.textContent=" · "+label;
-  body.innerHTML=`<div class="drum-sound-head"><label class="fld">Instrument <select id="drumSoundSelect" aria-label="Drum instrument for sound controls"></select></label><span class="tiny">Sound shaping for this row · changes are saved in the project</span><button id="drumSoundReset" class="mini drum-sound-reset" type="button">Reset sound</button></div><div class="drum-sound-knobs"></div>`;
-  const pick=el("drumSoundSelect");
-  project.tracks.forEach((row,i)=>{ const o=document.createElement("option"); o.value=row.id; o.textContent=`${i+1}. ${sampleLabel(row.sampleIndex)}`; pick.appendChild(o); });
-  pick.value=t.id;
-  pick.onchange=()=>{ ui.soundTrackId=pick.value; renderDrumSound(); };
+  body.innerHTML=`<div class="drum-sound-head"><div class="drum-sound-pick"><span class="tiny">Instrument</span><details class="export-menu drum-sound-menu" id="drumSoundMenu"><summary id="drumSoundMenuSummary"></summary><div class="export-list drum-sound-list" id="drumSoundList"></div></details></div><span class="tiny">Sound shaping for this row · changes are saved in the project</span><button id="drumSoundReset" class="mini drum-sound-reset" type="button">Reset sound</button></div><div class="drum-sound-knobs"></div>`;
+  const menu=el("drumSoundMenu"), summary=el("drumSoundMenuSummary"), list=el("drumSoundList");
+  summary.textContent=label+" ▾"; summary.title="Choose the instrument for this row";
+  ["A","B","C","D"].forEach(bank=>{
+    const available=SAMPLES.map((sample,i)=>({sample,i})).filter(x=>x.sample.bank===bank&&sampleAvailable(x.i));
+    if(!available.length) return;
+    const head=document.createElement("div"); head.className="export-head"; head.textContent=BANK_LABEL[bank]; list.appendChild(head);
+    available.forEach(({sample,i})=>{
+      const b=document.createElement("button"); b.type="button"; b.textContent=sampleLabel(i); b.dataset.sample=i;
+      b.setAttribute("role","option"); b.setAttribute("aria-selected",String(i===t.sampleIndex)); if(i===t.sampleIndex) b.classList.add("on");
+      b.onclick=()=>{ menu.open=false; pushUndo(); t.sampleIndex=+b.dataset.sample; loadBuffer(t.sampleIndex); renderTracks(); };
+      list.appendChild(b);
+    });
+  });
+  if(!window.__pmDrumSoundMenuEvents){
+    window.__pmDrumSoundMenuEvents=true;
+    document.addEventListener("click",e=>{ const m=el("drumSoundMenu"); if(m?.open&&!m.contains(e.target)) m.open=false; });
+    document.addEventListener("keydown",e=>{ const m=el("drumSoundMenu"); if(e.key==="Escape"&&m?.open){ m.open=false; m.querySelector("summary")?.focus(); } });
+  }
   const knobs=body.querySelector(".drum-sound-knobs");
   DRUM_SOUND_PARAMS.forEach(p=>{
     const wrap=document.createElement("div"); wrap.className="sound-knob";

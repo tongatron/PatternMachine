@@ -971,6 +971,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 .mx-name{font-size:10px; font-weight:700; letter-spacing:.03em; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   padding:3px 0; border-top:1px solid var(--edge-soft); border-bottom:1px solid var(--edge-soft);}
 .mx-panrow{display:flex; flex-direction:column; gap:2px;}
+.mx-panrow.empty{visibility:hidden;}
 .mx-pan{position:relative; height:14px; border-radius:3px; background:var(--mx-well); border:1px solid var(--edge); cursor:ew-resize; touch-action:none; outline:none;}
 .mx-pan::before{content:""; position:absolute; left:50%; top:2px; bottom:2px; width:1px; background:rgba(255,255,255,.3);}
 .mx-pan i{position:absolute; top:4px; bottom:4px; background:var(--accent); border-radius:1px;}
@@ -1567,22 +1568,22 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-09-30.39"></script>
-<script src="engine/core.js?v=2026-09-30.39"></script>
-<script src="engine/styles-punk.js?v=2026-09-30.39"></script>
-<script src="engine/styles-post.js?v=2026-09-30.39"></script>
-<script src="engine/styles-machines.js?v=2026-09-30.39"></script>
-<script src="engine/styles-alt.js?v=2026-09-30.39"></script>
-<script src="engine/styles-groove.js?v=2026-09-30.39"></script>
-<script src="engine/styles-dub.js?v=2026-09-30.39"></script>
-<script src="engine/styles-break.js?v=2026-09-30.39"></script>
-<script src="engine/styles-soul.js?v=2026-09-30.39"></script>
-<script src="engine/styles-metal.js?v=2026-09-30.39"></script>
-<script src="engine/styles-electro.js?v=2026-09-30.39"></script>
-<script src="engine/variations.js?v=2026-09-30.39"></script>
-<script src="engine/import.js?v=2026-09-30.39"></script>
-<script src="engine/rhythm.js?v=2026-09-30.39"></script>
-<script src="engine/share.js?v=2026-09-30.39"></script>
+<script src="engine/machine-art.js?v=2026-09-30.40"></script>
+<script src="engine/core.js?v=2026-09-30.40"></script>
+<script src="engine/styles-punk.js?v=2026-09-30.40"></script>
+<script src="engine/styles-post.js?v=2026-09-30.40"></script>
+<script src="engine/styles-machines.js?v=2026-09-30.40"></script>
+<script src="engine/styles-alt.js?v=2026-09-30.40"></script>
+<script src="engine/styles-groove.js?v=2026-09-30.40"></script>
+<script src="engine/styles-dub.js?v=2026-09-30.40"></script>
+<script src="engine/styles-break.js?v=2026-09-30.40"></script>
+<script src="engine/styles-soul.js?v=2026-09-30.40"></script>
+<script src="engine/styles-metal.js?v=2026-09-30.40"></script>
+<script src="engine/styles-electro.js?v=2026-09-30.40"></script>
+<script src="engine/variations.js?v=2026-09-30.40"></script>
+<script src="engine/import.js?v=2026-09-30.40"></script>
+<script src="engine/rhythm.js?v=2026-09-30.40"></script>
+<script src="engine/share.js?v=2026-09-30.40"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -3844,6 +3845,10 @@ function renderMixer(){
       const c=mxControl(p,{min:-100,max:100,step:5,def:0,get:pan.get,set:pan.set,fmt:v=>"pan "+panLabel(v),label:"Pan "+name,onEnd:scheduleDraft});
       c.paint=()=>{ const v=pan.get(), x=50+v/2; knob.style.left=x+"%"; fill.style.left=Math.min(50,x)+"%"; fill.style.width=Math.abs(x-50)+"%"; pv.textContent=panLabel(v); c.aria(v); };
       c.paint(); row.append(p,pv); d.appendChild(row);
+    } else {
+      // senza pan (Drums, Master) lo spazio resta: meter, fader e letture stanno alla stessa altezza in tutte le strisce
+      const row=document.createElement("div"); row.className="mx-panrow empty"; row.setAttribute("aria-hidden","true");
+      row.innerHTML='<div class="mx-pan"></div><div class="mx-panval">C</div>'; d.appendChild(row);
     }
     const body=document.createElement("div"); body.className="mx-body";
     const chans=Array.isArray(meter)?meter.length:1, w=18+chans*9+(chans-1)*2+(gr?12:0)+2;
@@ -4065,7 +4070,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || document.getElementById("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-30.39";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-30.40";
   document.body.appendChild(s);
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth")) loadSynth();
@@ -6762,7 +6767,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-30.39";
+const SW_VERSION="2026-09-30.40";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -6786,10 +6791,10 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sample-editor.js?v=2026-09-30.39"></script>
-<script src="engine/sampler.js?v=2026-09-30.39"></script>
+<script src="engine/sample-editor.js?v=2026-09-30.40"></script>
+<script src="engine/sampler.js?v=2026-09-30.40"></script>
 <script>PMSampler.init();</script>
-<script src="engine/midi.js?v=2026-09-30.39"></script>
+<script src="engine/midi.js?v=2026-09-30.40"></script>
 
 </body>
 </html>

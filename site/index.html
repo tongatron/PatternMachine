@@ -409,8 +409,10 @@ body.sound-view #liveKeysBtn{display:inline-flex; align-items:center;}
 .row-more>summary::-webkit-details-marker{display:none;}
 .row-more>summary:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
 .row-more[open]>summary{border-color:var(--accent); color:var(--text);}
-.row-more[open]{display:flex; flex-wrap:wrap; gap:6px; align-items:center;}
-.row-more[open]>summary{flex:0 0 auto;}
+.row-more[open]{display:block;}
+.row-more[open]>summary{position:relative; z-index:2; background:var(--key-primary,var(--accent)); border-color:var(--accent-dim); color:var(--on-accent); box-shadow:inset 0 2px 0 rgba(255,255,255,.2), 0 2px 0 rgba(0,0,0,.2);}
+.row-more-body{display:none;}
+.row-more[open]>.row-more-body{position:absolute; z-index:30; top:calc(100% + 6px); right:0; display:flex; flex-wrap:wrap; gap:6px; align-items:center; min-width:min(430px,calc(100vw - 32px)); padding:8px; background:var(--panel); border:1px solid var(--accent); border-radius:8px; box-shadow:0 12px 28px rgba(0,0,0,.35);}
 .row-more select{max-width:105px;}
 .trk select.smp{max-width:150px; font-size:10.5px; padding:4px 6px;}
 .chip-btn{width:24px; height:23px; padding:0; font-size:9.5px; font-weight:700;
@@ -2531,13 +2533,14 @@ function renderTracks(){
 
     const more=document.createElement("details"); more.className="row-more";
     const moreSummary=document.createElement("summary"); moreSummary.textContent="⋯"; moreSummary.title="More instrument controls"; moreSummary.setAttribute("aria-label",`More controls for ${sampleLabel(t.sampleIndex)}`);
-    more.appendChild(moreSummary); top.appendChild(more);
+    const moreBody=document.createElement("div"); moreBody.className="row-more-body";
+    more.append(moreSummary,moreBody); top.appendChild(more);
 
     const smp=document.createElement("select");
     smp.className="smp"; fillSampleSelect(smp); smp.value=t.sampleIndex;
     smp.setAttribute("aria-label",`Sound for ${sampleLabel(t.sampleIndex)}`);
     smp.onchange=()=>{ pushUndo(); t.sampleIndex=+smp.value; loadBuffer(t.sampleIndex); renderTracks(); };
-    more.appendChild(smp);
+    moreBody.appendChild(smp);
 
     const mk=(cls,label,on,fn)=>{
       const b=document.createElement("button");
@@ -2564,37 +2567,37 @@ function renderTracks(){
     const grp=document.createElement("select"); grp.className="grp";
     [0,1,2,3,4].forEach(g=>{ const o=document.createElement("option"); o.value=g; o.textContent=g?("Grp "+g):"Grp –"; grp.appendChild(o); });
     grp.value=t.choke; grp.title="Choke group"; grp.setAttribute("aria-label",`Choke group for ${sampleLabel(t.sampleIndex)}`); grp.onchange=()=>{ pushUndo(); t.choke=+grp.value; };
-    more.appendChild(grp);
+    moreBody.appendChild(grp);
 
     const lenSel=document.createElement("select"); lenSel.className="tune"; lenSel.title="Track length: with fewer steps it loops on its own (polyrhythm)";
     { const o=document.createElement("option"); o.value=0; o.textContent="Len. –"; lenSel.appendChild(o); }
     for(let n=2;n<pat.len;n++){ const o=document.createElement("option"); o.value=n; o.textContent=n+" step"; lenSel.appendChild(o); }
     lenSel.value=(pat.lens&&pat.lens[t.id])||0;
     lenSel.onchange=()=>{ pushUndo(); pat.lens=pat.lens||{}; if(+lenSel.value) pat.lens[t.id]=+lenSel.value; else delete pat.lens[t.id]; renderTracks(); };
-    more.appendChild(lenSel);
+    moreBody.appendChild(lenSel);
 
     const tune=document.createElement("select"); tune.className="tune"; tune.title="Tuning (semitones)";
     for(let s=-12;s<=12;s++){ const o=document.createElement("option"); o.value=s; o.textContent=(s>0?"+":"")+s+"st"; tune.appendChild(o); }
     tune.value=t.tune||0; tune.onchange=()=>{ pushUndo(); t.tune=+tune.value; };
-    more.appendChild(tune);
+    moreBody.appendChild(tune);
 
     const exp=mk("x",ui.expanded===t.id?"▴":"▾",ui.expanded===t.id,()=>toggleExpand(t.id));
     exp.title="All row options: sound and, below the steps, one lane per parameter";
     exp.setAttribute("aria-label",`${ui.expanded===t.id?"Close":"Open"} all controls for ${sampleLabel(t.sampleIndex)}`);
     exp.setAttribute("aria-expanded",String(ui.expanded===t.id));
-    more.appendChild(exp);
+    moreBody.appendChild(exp);
 
     const voiceBtn=mk("v","⚙",openVoices.has(t.id),()=>{
       if(openVoices.has(t.id)) openVoices.delete(t.id); else openVoices.add(t.id);
       renderTracks();
     });
     voiceBtn.title="Open sound parameters"; voiceBtn.setAttribute("aria-label",`Sound parameters for ${sampleLabel(t.sampleIndex)}`); voiceBtn.setAttribute("aria-expanded",String(openVoices.has(t.id)));
-    more.appendChild(voiceBtn);
+    moreBody.appendChild(voiceBtn);
 
     const kill=document.createElement("button");
     kill.className="kill"; kill.textContent="×"; kill.title="Remove row"; kill.setAttribute("aria-label",`Remove ${sampleLabel(t.sampleIndex)} row`);
     kill.onclick=()=>{ pushUndo(); project.tracks=project.tracks.filter(x=>x.id!==t.id); normalize(); renderTracks(); };
-    more.appendChild(kill);
+    moreBody.appendChild(kill);
     wrap.appendChild(top);
 
     if(openVoices.has(t.id) || ui.expanded===t.id) wrap.appendChild(voicePanel(t));

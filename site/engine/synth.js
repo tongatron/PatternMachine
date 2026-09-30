@@ -1087,6 +1087,15 @@
 .syn-p .cap{text-transform:capitalize;}
 .syn-note{font-size:9.5px; color:var(--text-faint); margin:2px 0 6px; line-height:1.4;}
 .syn-preset-select{min-width:180px;}
+.synth-sec.menu-open{overflow:visible; z-index:40;}
+.synth-sec.menu-open .syn-sample-pick{z-index:5;}   /* sopra le righe Root, Start, Loop */
+.synth-sec .syn-sample-menu{min-width:0;}
+.synth-sec .syn-sample-menu summary{position:relative; display:block; min-height:0; padding:5px 22px 5px 6px; border-radius:3px; overflow:hidden; text-overflow:ellipsis;
+  background:linear-gradient(180deg,var(--panel-2),var(--panel-3)); box-shadow:inset 0 1px 0 rgba(255,255,255,.1); font:700 10px var(--mono); letter-spacing:0; text-transform:none;}
+.synth-sec .syn-sample-menu summary::after{content:"▾"; position:absolute; right:7px; color:var(--accent);}
+.synth-sec .syn-p.syn-sample-pick::after{content:none;}
+.synth-sec .syn-sample-menu .syn-sample-list{left:auto; right:0; min-width:max(100%, 200px); max-width:min(280px, calc(100vw - 32px));}
+.synth-sec .syn-sample-list .syn-note{margin:4px 2px;}
 .export-list.syn-gen{min-width:min(470px, calc(100vw - 32px));}
 .syn-gen-opts{display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:6px 8px; font-size:9.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-dim);}
 .syn-gen-opts label{display:flex; flex-direction:column; gap:3px;}
@@ -1405,25 +1414,20 @@
     }
   }
   function control(spec, value) {
+    if (spec.k === "mSample") return sampleControl(spec);
     const row = document.createElement("label");
     row.className = "syn-p" + (spec.opts ? " sel" : "");
     if (spec.hint) row.title = spec.hint;
     const lab = document.createElement("span"); lab.textContent = spec.label; row.appendChild(lab);
     if (spec.opts) {
       const s = document.createElement("select");
-      const fill = () => {
-        s.innerHTML = spec.k === "mSample" ? sampleOptions(params().mSample)
-          : (spec.k === "mUnit" ? unitOpts : spec.opts).map(([v, l]) => `<option value="${esc(v)}">${esc(l)}</option>`).join("");
-        s.value = String(spec.k === "mSample" ? params().mSample : value);
-      };
-      fill();
-      if (spec.k === "mSample") s.addEventListener("focus", fill);   // la macchina o i campioni del sampler possono essere cambiati
+      s.innerHTML = (spec.k === "mUnit" ? unitOpts : spec.opts).map(([v, l]) => `<option value="${esc(v)}">${esc(l)}</option>`).join("");
+      s.value = String(value);
       s.onchange = () => {
         const v = typeof spec.def === "number" ? +s.value : s.value;
         setParam(spec.k, v, true);
         if (spec.k === "mType" && v === "sample") startSample();
-        if (spec.k === "mSample") pickSample(v);
-        if (spec.k === "mType" || spec.k === "mUnit" || spec.k === "mSample") { renderParams(); primeUnit(); if (spec.k === "mType") paintTop(); }   // KORG/Custom nel menu Engine
+        if (spec.k === "mType" || spec.k === "mUnit") { renderParams(); primeUnit(); if (spec.k === "mType") paintTop(); }   // KORG/Custom nel menu Engine
       };
       row.appendChild(s);
     } else {
@@ -1439,24 +1443,53 @@
     }
     return row;
   }
-  // Menu Sound: i suoni della macchina caricata e quelli del sampler; il suono scelto resta anche se e' di un'altra macchina.
-  function sampleOptions(cur) {
-    const list = window.synthSampleList ? window.synthSampleList() : { label: "Drum machine", kit: [], local: [] };
-    const opt = x => `<option value="${esc(x.ref)}">${esc(x.name)}</option>`;
-    const known = [...list.kit, ...list.local].some(x => x.ref === cur);
-    let extra = "";
-    if (cur && !known) {
-      const info = window.synthSampleInfo?.(cur);
-      extra = opt({ ref: cur, name: info ? info.name + " (" + info.kitLabel + ")" : sampleName(cur) + " (missing)" });
+  // Menu Sound, come il menu Instrument della batteria: solo i suoni delle righe attive. Il suono scelto resta anche se
+  // poi la riga cambia suono o si carica un'altra macchina (compare sotto "Current sound").
+  function sampleControl(spec) {
+    const row = document.createElement("div");            // non un <label>: il clic sull'etichetta premerebbe il primo suono
+    row.className = "syn-p sel syn-sample-pick";
+    const lab = document.createElement("span"); lab.textContent = spec.label; row.appendChild(lab);
+    const menu = document.createElement("details"); menu.className = "export-menu syn-sample-menu"; menu.id = "synSampleMenu";
+    const sum = document.createElement("summary"); sum.title = "Choose the drum sound the synth plays";
+    const list = document.createElement("div"); list.className = "export-list drum-sound-list syn-sample-list"; list.setAttribute("role", "listbox");
+    const cur = params().mSample, info = window.synthSampleInfo?.(cur);
+    sum.textContent = cur ? (info ? info.name : sampleName(cur) + " (missing)") : "Choose a sound";
+    menu.append(sum, list); row.appendChild(menu);
+    const button = (ref, text, on) => {
+      const b = document.createElement("button"); b.type = "button"; b.textContent = text;
+      b.setAttribute("role", "option"); b.setAttribute("aria-selected", String(on)); if (on) b.classList.add("on");
+      b.onclick = () => { menu.open = false; if (ref === params().mSample) return; pushUndo(); pickSample(ref); renderParams(); };
+      return b;
+    };
+    const head = text => { const h = document.createElement("div"); h.className = "export-head"; h.textContent = text; return h; };
+    const fill = () => {
+      const now = params().mSample, rows = window.synthSampleList?.() || [];
+      list.innerHTML = "";
+      list.appendChild(head("Drum rows"));
+      rows.forEach(x => list.appendChild(button(x.ref, x.row + ". " + x.name, x.ref === now)));
+      if (!rows.length) { const e = document.createElement("div"); e.className = "syn-note"; e.textContent = "No drum rows yet: add one in the grid."; list.appendChild(e); }
+      if (now && !rows.some(x => x.ref === now)) {
+        const i = window.synthSampleInfo?.(now);
+        list.appendChild(head("Current sound"));
+        list.appendChild(button(now, i ? i.name + (i.kitLabel ? " · " + i.kitLabel : "") : sampleName(now) + " (missing)", true));
+      }
+    };
+    menu.addEventListener("toggle", () => {
+      menu.closest(".synth-sec")?.classList.toggle("menu-open", menu.open);   // la sezione taglia cio' che esce: si apre solo col menu aperto
+      if (menu.open) { fill(); list.querySelector("button.on")?.scrollIntoView({ block: "nearest" }); }
+    });
+    if (!window.__pmSynSampleMenuEvents) {
+      window.__pmSynSampleMenuEvents = true;
+      document.addEventListener("click", e => { const m = el("synSampleMenu"); if (m?.open && !m.contains(e.target)) m.open = false; });
+      document.addEventListener("keydown", e => { const m = el("synSampleMenu"); if (e.key === "Escape" && m?.open) { m.open = false; m.querySelector("summary")?.focus(); } });
     }
-    return extra + `<optgroup label="${esc(list.label)}">${list.kit.map(opt).join("")}</optgroup>`
-      + (list.local.length ? `<optgroup label="My samples">${list.local.map(opt).join("")}</optgroup>` : "");
+    return row;
   }
   // Type -> Sample: un suono di partenza (la cassa della macchina caricata) e il Multi alzato, per sentirlo subito.
   function startSample() {
     const s = ensure(), p = s.params;
     if (!p.mSample || !window.synthSampleInfo?.(p.mSample)) {
-      const list = window.synthSampleList?.() || { kit: [] }, kick = list.kit.find(x => /\/Kick 1$/.test(x.ref)) || list.kit[0];
+      const rows = window.synthSampleList?.() || [], kick = rows.find(x => /^Kick/.test(x.slot)) || rows[0];
       if (kick) pickSample(kick.ref, true);
     }
     if (!p.mLvl) p.mLvl = 90;

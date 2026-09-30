@@ -3385,7 +3385,7 @@ function waveBuffer(kind){
 function resetWaveRecording(){
   waveRecord.forEach(b=>b.fill(0));
   waveShadow={};
-  waveCapture={mode:ui.mode, last:null, lastIndex:null, done:false};
+  waveCapture={mode:ui.mode, lastMaster:null, done:false, channels:new Map()};
 }
 function waveAnalyser(kind){
   const m=audioCtx&&mixBuses.get(audioCtx); if(!m) return null;
@@ -3404,19 +3404,27 @@ function waveLevel(kind){
 }
 function recordWave(kind,p){
   if(!waveCapture || waveCapture.done || !playing || waveCapture.mode!==ui.mode) return;
-  const previous=waveCapture.last;
-  if(previous!==null && p+0.05<previous){ waveCapture.done=true; return; }
   const level=waveLevel(kind); if(level===null) return;
+  const state=waveCapture.channels.get(kind)||{lastIndex:null,lastLevel:0};
   const b=waveBuffer(kind), ix=Math.max(0,Math.min(WAVE_POINTS-1,Math.round(p*(WAVE_POINTS-1))));
-  if(waveCapture.lastIndex!==null){
-    const from=waveCapture.lastIndex, span=Math.max(1,Math.abs(ix-from));
+  if(state.lastIndex!==null){
+    const from=state.lastIndex, span=Math.max(1,Math.abs(ix-from));
     for(let i=0;i<=span;i++){
-      const at=from+(ix>=from?i:-i), mix=i/span, v=waveCapture.lastLevel+(level-waveCapture.lastLevel)*mix;
+      const at=from+(ix>=from?i:-i), mix=i/span, v=state.lastLevel+(level-state.lastLevel)*mix;
       if(at>=0&&at<WAVE_POINTS) b[at]=Math.max(b[at],v);
     }
   }else b[ix]=Math.max(b[ix],level);
-  waveCapture.last=p; waveCapture.lastIndex=ix; waveCapture.lastLevel=level;
-  if(waveCapture.mode==="song" && p>=.999) waveCapture.done=true;
+  state.lastIndex=ix; state.lastLevel=level; waveCapture.channels.set(kind,state);
+}
+function waveMasterProgress(now){
+  if(!playing || visible.time==null) return null;
+  const frac=waveClamp((now-visible.time)/(visible.dur||PMRhythm.secondsPerStep(bpm(),rhythm())));
+  if(ui.mode==="song"){
+    const blk=seqLayout.blocks[visible.blockIndex], total=seqLayout.total;
+    return blk&&total ? waveClamp((blk.start+(visible.rep||0)*blk.len+(visible.step||0)+frac)/total) : 0;
+  }
+  const pat=playingPattern()||curPattern();
+  return ((visible.step||0)+frac)/Math.max(1,pat?.len||16);
 }
 function waveShape(c,data,W,H,last=data.length-1){
   c.beginPath();
@@ -3438,6 +3446,11 @@ function drawWaveBase(w){
 function waveProgress(kind,now){
   const previous=waveShadow[kind]??0;
   if(!playing || visible.time==null) return previous;
+  if(ui.mode==="song"){
+    const p=waveMasterProgress(now);
+    waveShadow[kind]=p==null?previous:p;
+    return waveShadow[kind];
+  }
   const frac=waveClamp((now-visible.time)/(visible.dur||PMRhythm.secondsPerStep(bpm(),rhythm())));
   let p=previous;
   if(kind==="sequencer" || (kind==="mix" && ui.mode==="song")){
@@ -3457,9 +3470,13 @@ function waveProgress(kind,now){
 }
 function paintWaveAnimation(){
   const now=audioCtx?.currentTime||0;
+  const master=waveMasterProgress(now);
+  const completed=waveCapture && !waveCapture.done && waveCapture.lastMaster!==null &&
+    (waveCapture.mode==="song" ? master>=.999 : master+0.05<waveCapture.lastMaster);
   waveCache.forEach((w,kind)=>{
     const p=waveProgress(kind,now); if(p==null) return;
-    recordWave(kind,p);
+    const recordPos=waveCapture?.mode==="song" ? (master??p) : p;
+    if(!completed) recordWave(kind,recordPos);
     drawWaveBase(w);
     const x=waveClamp(p)*w.W;
     w.c.save();
@@ -3476,6 +3493,7 @@ function paintWaveAnimation(){
     w.c.fillStyle="#fff"; w.c.beginPath(); w.c.arc(x,10,2.2,0,Math.PI*2); w.c.fill();
     w.c.restore();
   });
+  if(waveCapture && master!==null){ waveCapture.lastMaster=master; if(completed) waveCapture.done=true; }
 }
 function paintWave(id,caption,kind){
   const cv=el(id); if(!cv) return;

@@ -9,7 +9,7 @@
 //
 // Usa dal sito (variabili globali dello script principale): actx, project, curPattern, curSynth, synthById, makeSynthPattern, uid,
 // bpm, swing, stepDur, playing, recording, visible, queue, pushUndo, setStatus, ask, el, saveBlob, exportBase,
-// varLen, MIDI_PPQ, SAMPLES, stepIdx, setView, synthTimeline, renderSong. index.html chiama PMSynth.step() da scheduler(),
+// varLen, MIDI_PPQ, SAMPLES, stepIdx, setView, synthTimeline, renderSong, synthSampleList/Info/Buffer (MULTI "Sample"). index.html chiama PMSynth.step() da scheduler(),
 // PMSynth.allOff() da stop(), PMSynth.show() da setView() e PMSynth.renderOffline() dall'export WAV/MP3.
 (function () {
   "use strict";
@@ -47,9 +47,14 @@
       { k: "o2Fine", label: "Fine", min: -50, max: 50, def: 7, fmt: signed(" ct") },
       { k: "o2Ring", label: "Ring mod", opts: [[0, "Off"], [1, "On"]], def: 0 }] },
     { title: "Multi engine", id: "multi", params: [
-      { k: "mType", label: "Type", opts: [["sub", "Sub osc"], ["noise", "Noise"], ["logue", "KORG logue unit"]], def: "sub" },
+      { k: "mType", label: "Type", opts: [["sub", "Sub osc"], ["noise", "Noise"], ["sample", "Sample"], ["logue", "KORG logue unit"]], def: "sub" },
       { k: "mShape", label: "Shape", def: 0, hint: "sub: square → sine · noise: white → dark" },
-      { k: "mUnit", label: "Unit", opts: [], def: "waves" }] },
+      { k: "mUnit", label: "Unit", opts: [], def: "waves" },
+      // Sample: un suono della drum machine o del sampler, suonato all'altezza della nota (Root = velocita' originale)
+      { k: "mSample", label: "Sound", opts: [], def: "" },
+      { k: "sRoot", label: "Root", min: 24, max: 96, def: 60, fmt: v => noteName(v), hint: "the note that plays the sound at its original pitch" },
+      { k: "sStart", label: "Start", max: 99, def: 0, fmt: pct },
+      { k: "sLoop", label: "Loop", opts: [[0, "Off"], [1, "On"]], def: 0 }] },
     { title: "Mixer", params: [
       { k: "o1Lvl", label: "VCO 1", def: 80 },
       { k: "o2Lvl", label: "VCO 2", def: 0 },
@@ -96,6 +101,8 @@
   const SPEC = Object.fromEntries(SECTIONS.flatMap(s => s.params).map(p => [p.k, p]));
   const DEFAULTS = Object.fromEntries(Object.values(SPEC).map(p => [p.k, p.def]));
   const FX_KEYS = new Set(["chorus", "delay", "dTime", "dFb", "reverb"]);
+  const SAMPLE_KEYS = new Set(["mSample", "sRoot", "sStart", "sLoop"]);
+  const SAMPLE_MAX_SEC = 10;       // oltre, il campione si tronca: 8 voci leggono la stessa copia, ma resta in memoria
 
   const PRESETS = {
     "Acid 303": { vol: 42, mode: "mono", o1Wave: "saw", o1Lvl: 90, o2Lvl: 0, fType: "lp24", cutoff: 32, reso: 78, fEnv: 55, eD: 38, eS: 0, aD: 70, aS: 100, aR: 6, accent: 85, drive: 35, gate: 70, delay: 18, dTime: "3/16", dFb: 30 },
@@ -111,6 +118,8 @@
     "KORG pluck": { vol: 79, mode: "poly", o1Lvl: 0, o2Lvl: 0, mType: "logue", mUnit: "pluck", mLvl: 100, fType: "lp12", cutoff: 90, reso: 0, fEnv: 0, aA: 0, aS: 100, aR: 55, gate: 100, delay: 22, dTime: "1/8", reverb: 28,
       uParams: { pluck: { 0: 380, 1: 820 } } },
   };
+  PRESETS["Kick bass"] = { vol: 80, mode: "mono", o1Wave: "sine", o1Lvl: 0, o2Lvl: 0, mType: "sample", mSample: "kit:std/Kick 1", sRoot: 36, mLvl: 100,
+    fType: "lp24", cutoff: 62, reso: 10, fEnv: 15, eD: 35, aS: 100, aR: 14, glide: 12, gate: 85 };
   const DEFAULT_PRESET = "Acid 303";
   const DEFAULT_KORG_PRESET = "KORG waves";
   // Logo KORG (marchio di KORG Inc.) dal file di Wikimedia Commons "Korg_logo.svg" (logo di solo testo, pubblico dominio
@@ -173,8 +182,8 @@
   // Al worklet vanno solo le manopole del suono (gli effetti stanno nel grafo qui sotto).
   const workletParams = p => {
     const o = {};
-    for (const [k, v] of Object.entries(p)) if (!FX_KEYS.has(k)) o[k] = v;
-    o.o2Ring = +p.o2Ring;
+    for (const [k, v] of Object.entries(p)) if (!FX_KEYS.has(k) && k !== "mSmpName") o[k] = v;
+    o.o2Ring = +p.o2Ring; o.sLoop = +p.sLoop || 0;
     return o;
   };
 
@@ -184,6 +193,7 @@
   const unitCache = new Map();     // nome -> Promise<{module, bytes, info}>
   const unitsSent = new Set(), unitsReady = new Set(), unitErrors = [];
   let unitOpts = [["waves", "waves"], ["pluck", "pluck"]];
+  const samplesSent = new Map(), samplesReady = new Set();   // riferimento -> Promise dell'invio al worklet
 
   function listUnits() {
     return fetch(new URL("units.json" + QS, LOGUE_DIR)).then(r => r.ok ? r.json() : { units: [] })
@@ -222,6 +232,32 @@
     } catch (e) { unitsSent.delete(name); setStatus("synth: KORG unit " + name + " not available", "err"); }
   }
 
+  // MULTI "Sample": il suono (AudioBuffer da index.html) diventa mono e va al worklet, che lo legge per ogni voce.
+  function sampleData(ref) {
+    if (typeof window.synthSampleBuffer !== "function") return Promise.reject(new Error("no sampler"));
+    return window.synthSampleBuffer(ref).then(buf => {
+      const len = Math.min(buf.length, Math.round(buf.sampleRate * SAMPLE_MAX_SEC)), data = new Float32Array(len);
+      for (let c = 0; c < buf.numberOfChannels; c++) {
+        const ch = buf.getChannelData(c);
+        for (let i = 0; i < len; i++) data[i] += ch[i] / buf.numberOfChannels;
+      }
+      return { data, sr: buf.sampleRate, cut: len < buf.length };
+    });
+  }
+  const sampleName = (ref, p = params()) => window.synthSampleInfo?.(ref)?.name || (ref === p.mSample && p.mSmpName) || ref.replace(/^\w+:(\w+\/)?/, "");
+  function sendSample(ref) {
+    if (!node || !ref) return Promise.resolve();
+    if (samplesSent.has(ref)) return samplesSent.get(ref);
+    const target = node;
+    const sent = sampleData(ref).then(({ data, sr, cut }) => {
+      if (target !== node) return;
+      node.port.postMessage({ t: "sample", key: ref, data, sr }, [data.buffer]);
+      if (cut) setStatus("synth: only the first " + SAMPLE_MAX_SEC + " s of " + sampleName(ref) + " are played");
+    }).catch(() => { samplesSent.delete(ref); setStatus("synth: sample " + sampleName(ref) + " not available", "err"); });
+    samplesSent.set(ref, sent);
+    return sent;
+  }
+
   function ensureAudio() {
     if (node) return Promise.resolve(node);
     if (loading) return loading;
@@ -234,6 +270,7 @@
         processorOptions: { params: workletParams(p), bpm: bpm() } });
       n.port.onmessage = e => {
         if (e.data.t === "unit-ready") unitsReady.add(e.data.name);
+        if (e.data.t === "sample-ready") samplesReady.add(e.data.key);
         if (e.data.t === "unit-error") { unitsSent.delete(e.data.name); unitErrors.push(e.data); setStatus("synth: KORG unit " + e.data.name + " failed to load", "err"); }
       };
       chain = buildChain(ctx, n, synthOut(ctx));
@@ -242,6 +279,7 @@
       node = n;
       chain.apply(p, bpm(), masterVol());
       if (p.mType === "logue") sendUnit(p.mUnit);
+      if (p.mType === "sample") sendSample(p.mSample);
       return n;
     })();
     loading.catch(err => { loading = null; console.error(err); setStatus("synth: the audio engine didn't load", "err"); });
@@ -282,6 +320,8 @@
     if (node) { node.disconnect(); node = null; }
     if (chain?.out) chain.out.disconnect();
     chain = null; loading = null; analyser = null;
+    // il prossimo nodo parte vuoto: unita' e campioni vanno rimandati
+    unitsSent.clear(); unitsReady.clear(); samplesSent.clear(); samplesReady.clear();
   }
   function stopTone() {
     const oldAnalyser = toneAnalyser;
@@ -375,6 +415,7 @@
       node.port.postMessage({ t: "params", p: workletParams(p) });
       chain.apply(p, bpm(), masterVol());
       if (p.mType === "logue") sendUnit(p.mUnit);
+      if (p.mType === "sample") sendSample(p.mSample);
     });
   }
 
@@ -973,8 +1014,13 @@
     await ctx.audioWorklet.addModule(WORKLET_URL);
     const p = params(), units = {};
     if (p.mType === "logue" && p.mUnit) { try { units[p.mUnit] = (await unitModule(p.mUnit)).bytes.slice(0); } catch (e) {} }
+    const samples = {};
+    if (p.mType === "sample" && p.mSample) {
+      try { const { data, sr } = await sampleData(p.mSample); samples[p.mSample] = { data, sr }; }
+      catch (e) { setStatus("synth: the sample " + sampleName(p.mSample, p) + " is left out of this export", "err"); }
+    }
     const opts = u => ({ numberOfInputs: 0, numberOfOutputs: 1, outputChannelCount: [1],
-      processorOptions: { params: workletParams(p), bpm: bpm(), events, units: u } });
+      processorOptions: { params: workletParams(p), bpm: bpm(), events, units: u, samples } });
     let n;
     try { n = new AudioWorkletNode(ctx, "pm-synth", opts(units)); }
     catch (e) { n = new AudioWorkletNode(ctx, "pm-synth", opts({})); setStatus("synth: the KORG unit is left out of this export", "err"); }
@@ -1343,12 +1389,16 @@
       d.innerHTML = `<h3>${sec.title}</h3>`;
       for (const spec of specs) {
         if (spec.k === "mUnit" && p.mType !== "logue") continue;
-        if (spec.k === "mShape" && p.mType === "logue") continue;
+        if (spec.k === "mShape" && (p.mType === "logue" || p.mType === "sample")) continue;
+        if (SAMPLE_KEYS.has(spec.k) && p.mType !== "sample") continue;
         d.appendChild(control(spec, p[spec.k]));
       }
       if (sec.id === "multi") {
         const units = document.createElement("div"); units.id = "synUnitParams"; d.appendChild(units);
         if (p.mType === "logue") renderUnitParams(units, p);
+        else if (p.mType === "sample") units.innerHTML = window.synthSampleInfo?.(p.mSample)
+          ? `<p class="syn-note">Plays the sound at the pitch of each note, then through the filter, envelopes and effects.${p.mLvl ? "" : " Raise Multi in the mixer to hear it."}</p>`
+          : `<p class="syn-note">The sound “${esc(sampleName(p.mSample, p))}” is not available here: choose another one.</p>`;
         else units.innerHTML = `<p class="syn-note">${SPEC.mShape.hint}. Raise Multi in the mixer to hear it.</p>`;
       }
       cols[(SECTIONS.indexOf(sec)) % cols.length].appendChild(d);
@@ -1361,12 +1411,19 @@
     const lab = document.createElement("span"); lab.textContent = spec.label; row.appendChild(lab);
     if (spec.opts) {
       const s = document.createElement("select");
-      s.innerHTML = (spec.k === "mUnit" ? unitOpts : spec.opts).map(([v, l]) => `<option value="${esc(v)}">${esc(l)}</option>`).join("");
-      s.value = String(value);
+      const fill = () => {
+        s.innerHTML = spec.k === "mSample" ? sampleOptions(params().mSample)
+          : (spec.k === "mUnit" ? unitOpts : spec.opts).map(([v, l]) => `<option value="${esc(v)}">${esc(l)}</option>`).join("");
+        s.value = String(spec.k === "mSample" ? params().mSample : value);
+      };
+      fill();
+      if (spec.k === "mSample") s.addEventListener("focus", fill);   // la macchina o i campioni del sampler possono essere cambiati
       s.onchange = () => {
         const v = typeof spec.def === "number" ? +s.value : s.value;
         setParam(spec.k, v, true);
-        if (spec.k === "mType" || spec.k === "mUnit") { renderParams(); primeUnit(); if (spec.k === "mType") paintTop(); }   // KORG/Custom nel menu Engine
+        if (spec.k === "mType" && v === "sample") startSample();
+        if (spec.k === "mSample") pickSample(v);
+        if (spec.k === "mType" || spec.k === "mUnit" || spec.k === "mSample") { renderParams(); primeUnit(); if (spec.k === "mType") paintTop(); }   // KORG/Custom nel menu Engine
       };
       row.appendChild(s);
     } else {
@@ -1382,6 +1439,36 @@
     }
     return row;
   }
+  // Menu Sound: i suoni della macchina caricata e quelli del sampler; il suono scelto resta anche se e' di un'altra macchina.
+  function sampleOptions(cur) {
+    const list = window.synthSampleList ? window.synthSampleList() : { label: "Drum machine", kit: [], local: [] };
+    const opt = x => `<option value="${esc(x.ref)}">${esc(x.name)}</option>`;
+    const known = [...list.kit, ...list.local].some(x => x.ref === cur);
+    let extra = "";
+    if (cur && !known) {
+      const info = window.synthSampleInfo?.(cur);
+      extra = opt({ ref: cur, name: info ? info.name + " (" + info.kitLabel + ")" : sampleName(cur) + " (missing)" });
+    }
+    return extra + `<optgroup label="${esc(list.label)}">${list.kit.map(opt).join("")}</optgroup>`
+      + (list.local.length ? `<optgroup label="My samples">${list.local.map(opt).join("")}</optgroup>` : "");
+  }
+  // Type -> Sample: un suono di partenza (la cassa della macchina caricata) e il Multi alzato, per sentirlo subito.
+  function startSample() {
+    const s = ensure(), p = s.params;
+    if (!p.mSample || !window.synthSampleInfo?.(p.mSample)) {
+      const list = window.synthSampleList?.() || { kit: [] }, kick = list.kit.find(x => /\/Kick 1$/.test(x.ref)) || list.kit[0];
+      if (kick) pickSample(kick.ref, true);
+    }
+    if (!p.mLvl) p.mLvl = 90;
+    pushParams();
+  }
+  function pickSample(ref, quiet) {
+    const s = ensure();
+    s.params.mSample = ref;
+    s.params.mSmpName = window.synthSampleInfo?.(ref)?.name || "";   // per l'avviso se il suono manca su un altro dispositivo
+    pushParams();
+    if (!quiet && node) queueMicrotask(() => sendSample(ref).then(() => { if (!playing) preview(params().sRoot ?? 60); }));
+  }
   function setParam(k, v, undo) {
     if (undo) pushUndo();
     ensure().params[k] = v;
@@ -1389,6 +1476,7 @@
   }
   async function primeUnit() {
     const p = params();
+    if (engineOf() === "custom" && p.mType === "sample" && p.mSample) { if (node) sendSample(p.mSample); return; }
     if (engineOf() !== "custom" || p.mType !== "logue") return;
     try { await unitModule(p.mUnit); } catch (e) { setStatus("synth: KORG unit " + p.mUnit + " not available", "err"); return; }
     if (node) sendUnit(p.mUnit);
@@ -1668,7 +1756,8 @@
 
   // Stato per le prove dalla console.
   const debug = () => ({ audio: !!node, sampleRate: node ? node.context.sampleRate : null,
-    unitsSent: [...unitsSent], unitsReady: [...unitsReady], unitErrors: unitErrors.slice(-3) });
+    unitsSent: [...unitsSent], unitsReady: [...unitsReady], unitErrors: unitErrors.slice(-3),
+    samplesSent: [...samplesSent.keys()], samplesReady: [...samplesReady] });
 
   window.PMSynth = { step, allOff, show, paint: paintTop, setAllowed, renderOffline, hasNotes, exportMidi, level, debug, midiNote, knob, knobTargets, currentPattern: () => curSynth() };
   setAllowed(true);

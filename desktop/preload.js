@@ -15,6 +15,12 @@ contextBridge.exposeInMainWorld("pmDesktop", {
     delete: id => ipcRenderer.invoke("projects:delete", id),
     onChanged: cb => { ipcRenderer.on("projects:changed", (_e, changes) => cb(changes)); },
   },
+  samples: {
+    list: () => ipcRenderer.invoke("samples:list"),
+    get: id => ipcRenderer.invoke("samples:get", id),
+    set: (id, meta, data) => ipcRenderer.invoke("samples:set", id, meta, bytes(data)),
+    delete: id => ipcRenderer.invoke("samples:delete", id),
+  },
   account: {
     status: () => ipcRenderer.invoke("account:status"),
     login: (name, password) => ipcRenderer.invoke("account:login", name, password),

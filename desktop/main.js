@@ -26,6 +26,9 @@ function migrateProjectsDir() {
 const EXPORT_DIR = path.join(HOME_DIR, "Export");
 const DRAG_DIR = path.join(app.getPath("temp"), "PatternMachine-drag");
 const KITS_DIR = path.join(app.getPath("userData"), "drum-machines");
+const SAMPLES_DIR = path.join(app.getPath("userData"), "samples");
+const SAMPLES_META = path.join(SAMPLES_DIR, "samples.json");
+const SAMPLE_MAX_BYTES = 20 * 1024 * 1024;
 const PORT_NAME = "PatternMachine";
 const APP_MESSAGE_URL = "https://patternmachine.tongatron.org/api/app-message";
 const APP_MESSAGE_STATE = path.join(app.getPath("userData"), "app-message-state.json");
@@ -138,6 +141,49 @@ ipcMain.handle("projects:delete", async (_e, id) => {
   return true;
 });
 
+// ---------- campioni locali ----------
+// Il renderer usa la stessa scheda del sito; qui il blob finisce in un file vero, cosi' puo'
+// essere trasferito al server senza passare da IndexedDB o dal JSON dei progetti.
+const safeSampleId = id => /^s-[A-Za-z0-9_-]{1,64}$/.test(String(id));
+const sampleFile = id => { if (!safeSampleId(id)) throw new Error("invalid sample id"); return path.join(SAMPLES_DIR, id + ".blob"); };
+function readLocalSamples() { return readJson(SAMPLES_META, {}); }
+function saveLocalSamples(data) { writeJson(SAMPLES_META, data); }
+function sampleMetaList() {
+  return Object.values(readLocalSamples()).filter(x => x && !x.deleted).map(({ id, ...meta }) => ({ id, ...meta }));
+}
+function writeLocalSample(id, meta, data) {
+  if (!safeSampleId(id)) throw new Error("invalid sample id");
+  const bytes = Buffer.from(data);
+  if (!bytes.length || bytes.length > SAMPLE_MAX_BYTES) throw new Error("sample exceeds 20 MB");
+  fs.mkdirSync(SAMPLES_DIR, { recursive: true });
+  const f = sampleFile(id), tmp = f + ".tmp";
+  fs.writeFileSync(tmp, bytes, { mode: 0o600 });
+  fs.renameSync(tmp, f);
+  const all = readLocalSamples();
+  all[id] = { id, ...meta, size: bytes.length, sha256: createHash("sha256").update(bytes).digest("hex"), deleted: false };
+  saveLocalSamples(all);
+  return all[id];
+}
+ipcMain.handle("samples:list", () => sampleMetaList());
+ipcMain.handle("samples:get", (_e, id) => {
+  const meta = readLocalSamples()[id];
+  if (!meta || meta.deleted || !fs.existsSync(sampleFile(id))) throw new Error("sample not found");
+  return { meta: { ...meta }, data: fs.readFileSync(sampleFile(id)) };
+});
+ipcMain.handle("samples:set", (_e, id, meta, data) => {
+  const out = writeLocalSample(id, { ...meta, updatedAt: Date.now() }, data);
+  syncSoon();
+  return out;
+});
+ipcMain.handle("samples:delete", (_e, id) => {
+  if (!safeSampleId(id)) throw new Error("invalid sample id");
+  const all = readLocalSamples(), current = all[id];
+  if (!current) return true;
+  try { fs.rmSync(sampleFile(id), { force: true }); } catch (e) {}
+  all[id] = { id, name: current.name || "Sample", updatedAt: Date.now(), deleted: true };
+  saveLocalSamples(all); syncSoon(); return true;
+});
+
 // ---------- account e sincronizzazione dei progetti ----------
 // Si entra con nome e password del sito: la password va solo al server, si tiene il cookie di sessione
 // cifrato col portachiavi di macOS (safeStorage). La cartella Projects resta la copia di lavoro: si
@@ -179,11 +225,11 @@ function setSyncState(next) {
 }
 
 class SessionExpired extends Error {}
-async function api(pathname, { method = "GET", body } = {}) {
+async function api(pathname, { method = "GET", body, raw, headers = {} } = {}) {
   const res = await fetch(SERVER + pathname, {
     method, redirect: "manual",
-    headers: { Cookie: account.cookie, Accept: "application/json", ...(body ? { "Content-Type": "application/json" } : {}) },
-    body: body ? JSON.stringify(body) : undefined,
+    headers: { Cookie: account.cookie, Accept: "application/json", ...(body !== undefined ? { "Content-Type": "application/json" } : {}), ...headers },
+    body: raw !== undefined ? raw : (body !== undefined ? JSON.stringify(body) : undefined),
     signal: AbortSignal.timeout(20000),
   });
   if (res.status === 401 || res.status === 303) throw new SessionExpired();
@@ -238,6 +284,74 @@ function replaceIfUnchanged(id, expectedHash, data) {
   return sha(writeProject(id, data));
 }
 
+function sampleTime(meta) {
+  const local = Number(meta?.updatedAt);
+  if (Number.isFinite(local) && local > 0) return local;
+  const remote = Date.parse(meta?.updated_at || "");
+  return Number.isFinite(remote) ? remote : 0;
+}
+async function uploadLocalSample(id, local) {
+  const data = fs.readFileSync(sampleFile(id));
+  const params = new URLSearchParams({
+    name: local.name || "Sample",
+    duration: String(local.duration || 0),
+    mime: local.mime || "application/octet-stream",
+    settings: JSON.stringify(local.settings || {}),
+  });
+  const res = await api(`/api/samples/${encodeURIComponent(id)}?${params}`, {
+    method: "PUT", raw: data, headers: { "Content-Type": local.mime || "application/octet-stream" },
+  });
+  if (!res.ok) throw new Error(`samples upload: HTTP ${res.status}`);
+  const remote = await res.json();
+  const all = readLocalSamples();
+  if (all[id] && !all[id].deleted) {
+    all[id] = { ...all[id], sha256: remote.sha256, serverRev: remote.rev, serverUpdatedAt: remote.updated_at };
+    saveLocalSamples(all);
+  }
+}
+async function downloadRemoteSample(remote) {
+  const res = await api(`/api/samples/${encodeURIComponent(remote.id)}`);
+  if (!res.ok) throw new Error(`samples download: HTTP ${res.status}`);
+  const data = Buffer.from(await res.arrayBuffer());
+  writeLocalSample(remote.id, {
+    name: remote.name || "Sample", duration: Number(remote.duration) || 0, mime: remote.mime || "application/octet-stream",
+    settings: remote.settings || {}, updatedAt: Date.parse(remote.updated_at || "") || Date.now(),
+    serverRev: remote.rev, serverUpdatedAt: remote.updated_at,
+  }, data);
+}
+async function syncSamples() {
+  const listed = await apiJson("/api/samples");
+  const remote = Object.fromEntries((listed.samples || []).map(x => [x.id, x]));
+  const all = readLocalSamples();
+  const ids = new Set([...Object.keys(all), ...Object.keys(remote)]);
+  for (const id of ids) {
+    if (!safeSampleId(id)) continue;
+    const local = all[id], server = remote[id];
+    if (local?.deleted) {
+      if (server && !server.deleted && sampleTime(local) >= sampleTime(server)) {
+        const res = await api(`/api/samples/${encodeURIComponent(id)}`, { method: "DELETE" });
+        if (!res.ok && res.status !== 404) throw new Error(`samples delete: HTTP ${res.status}`);
+      } else if (server && server.deleted) {
+        delete all[id]; saveLocalSamples(all);
+      } else if (!server) {
+        delete all[id]; saveLocalSamples(all);
+      } else {
+        await downloadRemoteSample(server);
+      }
+    } else if (!local && server && !server.deleted) {
+      await downloadRemoteSample(server);
+    } else if (!server || server.deleted) {
+      await uploadLocalSample(id, local);
+    } else if (local.sha256 === server.sha256) {
+      if (sampleTime(local) < sampleTime(server)) await downloadRemoteSample(server);
+    } else if (sampleTime(local) >= sampleTime(server)) {
+      await uploadLocalSample(id, local);
+    } else {
+      await downloadRemoteSample(server);
+    }
+  }
+}
+
 async function syncOnce() {
   const uid = account.uid, metaFile = syncFile(uid);
   const link = readJson(LINK_FILE(), null);
@@ -289,6 +403,7 @@ async function syncOnce() {
   }
   save();
   if (changes.updated.length || changes.deleted.length || changes.renamed.length) win?.webContents.send("projects:changed", changes);
+  await syncSamples();
   setSyncState({ state: "ok", at: Date.now() });
 }
 
@@ -303,7 +418,11 @@ function syncNow() {
       do { syncAgain = false; await syncOnce(); } while (syncAgain && account);
     } catch (e) {
       if (e instanceof SessionExpired) { account = null; saveAccount(); setSyncState({ state: "expired" }); }
-      else { setSyncState({ state: "error", message: "Can't reach the server: projects stay in the folder and sync when it's back." }); syncTimer = setTimeout(syncNow, 30000); }
+      else {
+        const detail = e?.message ? ` (${e.message})` : "";
+        setSyncState({ state: "error", message: `Can't reach the server: projects and samples stay local and sync when it's back.${detail}` });
+        syncTimer = setTimeout(syncNow, 30000);
+      }
     } finally { syncing = null; }
   })();
   return syncing;

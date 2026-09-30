@@ -1,14 +1,16 @@
 // Synth di PatternMachine: il suono, dentro un AudioWorklet (thread audio del browser).
 // Lo carica engine/synth.js, che manda qui parametri e note gia' messe a tempo dal sequencer.
 //
-// Voce: VCO 1 + VCO 2 + MULTI (rumore, sub, oppure un'unita' oscillatore della logue-sdk di KORG
-// compilata in WebAssembly), filtro a variabili di stato (LP 24/12, HP, BP) con drive, due inviluppi ADSR,
+// Voce: VCO 1 + VCO 2 + MULTI (rumore, sub, un campione suonato all'altezza della nota, oppure un'unita'
+// oscillatore della logue-sdk di KORG compilata in WebAssembly), filtro a variabili di stato (LP 24/12, HP, BP) con drive, due inviluppi ADSR,
 // un LFO globale. Modi: poli (8 voci), mono (legato, slide stile 303), unison (4 voci stonate).
 // L'architettura ricalca il minilogue xd: nel MULTI ENGINE lo slot USER e' quello delle unita' logue.
 //
 // Messaggi (port): {t:"params", p}, {t:"ev", list:[{t:"on",time,n,v,id,sl}|{t:"off",time,id}]},
-// {t:"alloff"}, {t:"panic"}, {t:"bpm", bpm}, {t:"unit", name, bytes}, {t:"uparam", unit, id, value}.
-// Offline (export WAV): tutto arriva in processorOptions {params, bpm, events, units:{nome: byte del .wasm}}.
+// {t:"alloff"}, {t:"panic"}, {t:"bpm", bpm}, {t:"unit", name, bytes}, {t:"uparam", unit, id, value},
+// {t:"sample", key, data, sr} (campione mono per il MULTI "sample", key = riferimento di params.mSample).
+// Offline (export WAV): tutto arriva in processorOptions {params, bpm, events, units:{nome: byte del .wasm},
+// samples:{key: {data, sr}}}.
 
 const TAU = Math.PI * 2;
 const CR = 32;                 // campioni per blocco di controllo (tono, filtro, LFO)
@@ -117,6 +119,7 @@ class Voice {
     this.aSt = 0; this.aV = 0; this.fSt = 0; this.fV = 0;
     this.s1 = 0; this.s2 = 0; this.s3 = 0; this.s4 = 0;
     this.lu = null;
+    this.sp = 0;                // posizione di lettura del campione (MULTI "sample"), in campioni del file
   }
 }
 
@@ -130,6 +133,7 @@ class PMSynthProcessor extends AudioWorkletProcessor {
     this.ev = [];
     this.units = {};            // nome -> [LogueVoice x NUM_VOICES]
     this.uParams = {};
+    this.samples = {};          // riferimento -> {data: Float32Array mono, sr}
     this.bpm = o.bpm || 120;
     this.lfoPhase = 0; this.lfoSH = 0; this.lfoVal = 0;
     this.dc1 = 0; this.dc2 = 0;
@@ -137,6 +141,7 @@ class PMSynthProcessor extends AudioWorkletProcessor {
     this.tmp = new Float32Array(CR);
     this.setParams(o.params || {});
     if (o.units) for (const [name, module] of Object.entries(o.units)) this.loadUnit(name, module);
+    if (o.samples) for (const [key, x] of Object.entries(o.samples)) this.loadSample(key, x.data, x.sr);
     if (o.events) this.addEvents(o.events);
     this.port.onmessage = e => this.onMessage(e.data);
     this.port.onmessageerror = () => this.port.postMessage({ t: "unit-error", name: "?", error: "message could not be read" });
@@ -150,6 +155,7 @@ class PMSynthProcessor extends AudioWorkletProcessor {
       case "panic": this.ev = []; this.stack = []; for (const v of this.voices) { if (v.lu) v.lu.noteOff(); v.reset(); } break;
       case "bpm": this.bpm = m.bpm || this.bpm; break;
       case "unit": this.loadUnit(m.name, m.bytes); break;
+      case "sample": this.loadSample(m.key, m.data, m.sr); break;
       case "uparam": {
         (this.uParams[m.unit] ||= {})[m.id] = m.value;
         for (const lv of this.units[m.unit] || []) lv.e.lu_set_param(m.id, m.value);
@@ -173,6 +179,12 @@ class PMSynthProcessor extends AudioWorkletProcessor {
     }
   }
 
+  loadSample(key, data, sr) {
+    if (!key || !(data instanceof Float32Array) || data.length < 4) return;
+    this.samples[key] = { data, sr: sr > 0 ? sr : sampleRate };
+    this.port.postMessage({ t: "sample-ready", key });
+  }
+
   setParams(p) {
     const prevMode = this.P && this.P.mode;
     const n = (k, d) => (typeof p[k] === "number" && isFinite(p[k]) ? p[k] : d);
@@ -182,6 +194,7 @@ class PMSynthProcessor extends AudioWorkletProcessor {
       o2Wave: WAVES[p.o2Wave] ?? 0, o2Shape: n("o2Shape", 0) / 100, o2Oct: n("o2Oct", 0),
       o2Semi: n("o2Semi", 0), o2Fine: n("o2Fine", 0), o2Ring: !!p.o2Ring,
       mType: p.mType || "sub", mShape: n("mShape", 0) / 100, mUnit: p.mUnit || "",
+      mSample: typeof p.mSample === "string" ? p.mSample : "", sRoot: n("sRoot", 60), sStart: clamp(n("sStart", 0), 0, 99) / 100, sLoop: !!p.sLoop,
       o1Lvl: n("o1Lvl", 80) / 100, o2Lvl: n("o2Lvl", 0) / 100, mLvl: n("mLvl", 0) / 100,
       fType: FTYPES[p.fType] ?? 0, cutoff: n("cutoff", 60), reso: n("reso", 20) / 100, fEnv: n("fEnv", 40) / 100,
       fKey: n("fKey", 50) / 100, drive: n("drive", 0) / 100, fVelo: n("fVelo", 30) / 100,
@@ -214,6 +227,10 @@ class PMSynthProcessor extends AudioWorkletProcessor {
   }
 
   // ---------- gestione delle voci ----------
+  sampleOf() {
+    const P = this.P;
+    return P.mType === "sample" ? this.samples[P.mSample] || null : null;
+  }
   unitFor(v) {
     const P = this.P;
     if (P.mType !== "logue" || !P.mUnit) return null;
@@ -234,6 +251,8 @@ class PMSynthProcessor extends AudioWorkletProcessor {
       if (v.lu && v.lu !== lu) v.lu.noteOff();
       if (lu) { lu.noteOff(); lu.noteOn(clamp(Math.round(n), 0, 127), clamp(Math.round(vel * 127), 1, 127)); }
       v.lu = lu;
+      const smp = this.sampleOf();
+      v.sp = smp ? Math.floor(this.P.sStart * smp.data.length) : 0;
     }
     v.gate = true; v.active = true; v.age = ++this.ageCounter;
   }
@@ -308,6 +327,26 @@ class PMSynthProcessor extends AudioWorkletProcessor {
   }
 
   // ---------- suono ----------
+  // MULTI "sample": n campioni in dst, letti alla velocita' che porta la nota di riferimento (sRoot) alla nota "note".
+  // Senza loop, finito il file resta silenzio; con il loop riparte da Start.
+  renderSample(v, smp, dst, n, note) {
+    const d = smp.data, len = d.length, P = this.P;
+    const start = Math.min(len - 2, Math.floor(P.sStart * len)), loop = P.sLoop && len - start > 4;
+    const rate = Math.pow(2, (note - P.sRoot) / 12) * smp.sr / sampleRate;
+    let pos = v.sp;
+    for (let i = 0; i < n; i++) {
+      if (pos >= len - 1) {
+        if (!loop) { for (; i < n; i++) dst[i] = 0; break; }
+        pos = start + (pos - start) % (len - 1 - start);
+      }
+      const i0 = Math.floor(pos), fr = pos - i0;
+      const x1 = i0 + 1 < len ? d[i0 + 1] : d[start];
+      const x2 = i0 + 2 < len ? d[i0 + 2] : (loop ? d[start + i0 + 2 - len] : 0);
+      dst[i] = hermite(i0 > 0 ? d[i0 - 1] : d[i0], d[i0], x1, x2, fr);
+      pos += rate;
+    }
+    v.sp = pos;
+  }
   renderVoice(v, out, o, n) {
     const P = this.P, sr = sampleRate;
     const lfo = this.lfoVal * P.lAmt;
@@ -326,11 +365,14 @@ class PMSynthProcessor extends AudioWorkletProcessor {
     const sh1 = clamp(P.o1Shape + shapeMod, 0, 1), sh2 = clamp(P.o2Shape + shapeMod, 0, 1);
     const trem = P.lTgt === "amp" ? 1 - P.lAmt * (1 - this.lfoVal) * 0.5 : 1;
 
-    // MULTI: l'unita' logue scrive il suo blocco in tmp; rumore e sub si fanno campione per campione
+    // MULTI: l'unita' logue e il campione scrivono il loro blocco in tmp; rumore e sub si fanno campione per campione
     const lu = P.mType === "logue" ? v.lu : null;
     const tmp = this.tmp;
     if (lu && P.mLvl > 0) lu.render(tmp, 0, n, mtof(base), shapeMod, LU_RATE / sr);
-    const mType = lu ? 2 : (P.mType === "noise" ? 1 : (P.mType === "logue" ? 3 : 0));
+    const smp = this.sampleOf();
+    if (smp && P.mLvl > 0) this.renderSample(v, smp, tmp, n, base);
+    // 0 sub, 1 rumore, 2 blocco gia' pronto in tmp (unita' o campione), 3 silenzio (unita' o campione non ancora arrivati)
+    const mType = lu || smp ? 2 : (P.mType === "noise" ? 1 : (P.mType === "logue" || P.mType === "sample" ? 3 : 0));
 
     // filtro: taglio in ottave, modulato da inviluppo, accento, tastiera, velocity e LFO
     let oct = 4.3219 + P.cutoff / 100 * 9.9658;         // 20 Hz .. 20 kHz

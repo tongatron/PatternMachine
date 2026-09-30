@@ -101,6 +101,30 @@ for (const u of units) for (const sr of [48000, 44100]) {
   // sempre la fondamentale, quindi qui non si controlla l'intonazione esatta (lo fa gia' il test sopra
   // con la sinusoide, che passa dalla stessa strada nel worklet: mtof, ricampionamento a 44,1/48 kHz).
 }
+// 6) MULTI "sample": il campione suona all'altezza della nota rispetto alla root, finisce da solo senza loop,
+// continua con il loop, parte da Start; senza campione (non ancora arrivato) resta muto, senza NaN
+{
+  const tone = (sr, hz, sec, from = 0) => Float32Array.from({ length: Math.round(sr * sec) }, (_, i) => i < from * sr ? 0 : Math.sin(2 * Math.PI * hz * i / sr) * 0.8);
+  const base = { o1Lvl: 0, mType: "sample", mSample: "t", mLvl: 100, cutoff: 100, fEnv: 0, fKey: 0, fVelo: 0, aS: 100, aR: 5, sRoot: 57 };
+  for (const sr of [44100, 48000]) {
+    const b = make(sr, { params: base, samples: { t: { data: tone(44100, 220, 1), sr: 44100 } }, events: [on(0, 69), off(0.8, "69")] }).render(0.6);
+    const f = f0(b, sr, Math.round(sr * 0.1), 4096), st = stats(b);
+    check(cents(f, 440) < 10, `campione a ${sr} Hz, un'ottava sopra la root: ${f.toFixed(1)} Hz invece di 440`);
+    check(st.nan === 0 && st.peak <= 1, `campione a ${sr} Hz: nan ${st.nan}, picco ${st.peak.toFixed(2)}`);
+  }
+  const short = { t: { data: tone(48000, 220, 0.2), sr: 48000 } }, held = [on(0, 57), off(0.9, "57")];
+  const one = make(48000, { params: base, samples: short, events: held }).render(0.8);
+  check(stats(one, 48000 * 0.3, 48000 * 0.8).peak < 1e-3, "campione senza loop: suona ancora dopo la fine del file");
+  const looped = make(48000, { params: { ...base, sLoop: 1 }, samples: short, events: held }).render(0.8);
+  check(stats(looped, 48000 * 0.6, 48000 * 0.8).rms > 0.1, "campione con loop: si ferma invece di ripartire");
+  const late = { t: { data: tone(48000, 220, 1, 0.5), sr: 48000 } };   // mezzo secondo di silenzio, poi la sinusoide
+  const st = stats(make(48000, { params: { ...base, sStart: 50 }, samples: late, events: held }).render(0.3));
+  check(st.rms > 0.1, `campione con Start 50%: rms ${st.rms.toFixed(3)} (non parte da meta' file)`);
+  const none = stats(make(48000, { params: base, events: held }).render(0.5));
+  check(none.nan === 0 && none.peak < 1e-6, `campione mancante: picco ${none.peak}, nan ${none.nan}`);
+  const ready = make(48000, { params: base, samples: short, events: [] });
+  check(ready.msgs.some(m => m.t === "sample-ready" && m.key === "t"), "campione: manca il messaggio sample-ready");
+}
 
 console.log(failures ? `${failures} problemi su ${checks} verifiche` : `ok: synth, ${checks} verifiche, unita' KORG: ${units.join(", ")}`);
 process.exit(failures ? 1 : 0);

@@ -165,6 +165,15 @@ MAX_PROJECT_BODY = 2 * 1024 * 1024
 MAX_PROJECTS = 500           # progetti vivi per utente
 MAX_TOMBSTONES = 1000        # lapidi per utente: oltre, cadono le piu' vecchie
 
+# Campioni sincronizzati: i file restano separati dai progetti e non vengono mai serviti come
+# contenuto statico. Il limite e' per account, cosi' il browser e l'app hanno lo stesso tetto.
+SAMPLES_DIR = os.environ.get("PATTERNMACHINE_SAMPLES") or os.path.join(DATA_DIR, "samples-users")
+SAMPLES_LOCK = threading.Lock()
+SAMPLE_ID_RE = re.compile(r"^s-[A-Za-z0-9_-]{1,64}$")
+SAMPLE_PATH_RE = re.compile(r"^/api/samples/([A-Za-z0-9_-]{1,64})$")
+MAX_SAMPLE_BYTES = 20 * 1024 * 1024
+MAX_SAMPLE_COUNT = 256
+
 
 def projects_file(uid):
     if not SAFE_ID_RE.match(uid or ""):
@@ -199,6 +208,43 @@ def delete_user_projects(uid):
         os.remove(projects_file(uid))
     except (FileNotFoundError, ValueError):
         pass
+
+
+def samples_manifest_file(uid):
+    if not SAFE_ID_RE.match(uid or ""):
+        raise ValueError("id utente non valido")
+    return os.path.join(SAMPLES_DIR, uid + ".json")
+
+
+def samples_blob_dir(uid):
+    if not SAFE_ID_RE.match(uid or ""):
+        raise ValueError("id utente non valido")
+    return os.path.join(SAMPLES_DIR, uid)
+
+
+def load_samples(uid):
+    try:
+        with open(samples_manifest_file(uid), "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def save_samples(uid, samples):
+    os.makedirs(SAMPLES_DIR, mode=0o700, exist_ok=True)
+    path = samples_manifest_file(uid)
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(samples, f, ensure_ascii=False, separators=(",", ":"))
+    os.chmod(tmp, 0o600)
+    os.replace(tmp, path)
+
+
+def sample_blob_path(uid, sid):
+    if not SAMPLE_ID_RE.match(sid or ""):
+        raise ValueError("id campione non valido")
+    return os.path.join(samples_blob_dir(uid), sid + ".blob")
 
 
 def put_project(uid, pid, data, base):
@@ -1395,6 +1441,13 @@ class Handler(BaseHTTPRequestHandler):
                 patterns = load_patterns()
             self._send_json(200, patterns)
             return
+        if path == "/api/samples":
+            self._sample_list()
+            return
+        sm = SAMPLE_PATH_RE.match(path)
+        if sm:
+            self._get_sample(sm.group(1))
+            return
         if path == "/api/projects" or PROJECT_ID_RE.match(path):
             self._get_projects(path)
             return
@@ -1426,6 +1479,159 @@ class Handler(BaseHTTPRequestHandler):
         # l'elenco porta solo id e rev: i contenuti si chiedono uno per uno, solo quelli cambiati
         self._send_json(200, {"projects": [{"id": k, "rev": v.get("rev"), **({"deleted": True} if v.get("deleted") else {})}
                                            for k, v in projects.items()]})
+
+    # ---------- campioni sincronizzati ----------
+    def _sample_owner(self):
+        u = self._user() or {}
+        if u.get("role") == "guest" or not SAFE_ID_RE.match(u.get("id") or ""):
+            self._send_json(403, {"error": "gli ospiti non hanno campioni sincronizzati: registrati"})
+            return None
+        return u["id"]
+
+    def _sample_list(self):
+        uid = self._sample_owner()
+        if not uid:
+            return
+        with SAMPLES_LOCK:
+            samples = load_samples(uid)
+        rows = []
+        used = 0
+        for sid, item in samples.items():
+            if not SAMPLE_ID_RE.match(sid) or not isinstance(item, dict):
+                continue
+            row = {"id": sid, **{k: item.get(k) for k in ("name", "size", "duration", "mime", "settings", "sha256", "updated_at", "rev", "deleted") if k in item}}
+            rows.append(row)
+            if not item.get("deleted"):
+                used += max(0, int(item.get("size") or 0))
+        rows.sort(key=lambda x: (x.get("updated_at") or "", x["id"]))
+        self._send_json(200, {"samples": rows, "usedBytes": used, "quotaBytes": MAX_SAMPLE_BYTES})
+
+    def _sample_metadata(self, query, raw_size):
+        name = (query.get("name") or ["Sample"])[0].strip()[:60] or "Sample"
+        try:
+            duration = max(0.0, min(3600.0, float((query.get("duration") or [0])[0])))
+        except (TypeError, ValueError):
+            duration = 0.0
+        mime = (query.get("mime") or [self.headers.get("Content-Type") or "application/octet-stream"])[0].split(";", 1)[0].strip().lower()
+        if not mime.startswith("audio/"):
+            mime = "application/octet-stream"
+        try:
+            settings = json.loads((query.get("settings") or ["{}"]) [0])
+        except (TypeError, ValueError):
+            settings = {}
+        if not isinstance(settings, dict):
+            settings = {}
+        def number(key, fallback):
+            try:
+                return float(settings.get(key, fallback))
+            except (TypeError, ValueError):
+                return fallback
+        clean_settings = {
+            "start": max(0, min(95, number("start", 0))),
+            "tune": max(-12, min(12, number("tune", 0))),
+            "decay": max(5, min(100, number("decay", 100))),
+            "reverse": bool(settings.get("reverse", False)),
+            "vol": max(0, min(1.2, number("vol", .8))),
+        }
+        return {"name": name, "size": raw_size, "duration": duration, "mime": mime, "settings": clean_settings}
+
+    def _get_sample(self, sid):
+        uid = self._sample_owner()
+        if not uid:
+            return
+        with SAMPLES_LOCK:
+            entry = load_samples(uid).get(sid)
+        if not entry or entry.get("deleted"):
+            self._send_json(404, {"error": "campione non trovato"})
+            return
+        try:
+            path = sample_blob_path(uid, sid)
+        except ValueError:
+            self._send_json(404, {"error": "campione non trovato"})
+            return
+        if not os.path.isfile(path):
+            self._send_json(404, {"error": "campione non trovato"})
+            return
+        size = os.path.getsize(path)
+        self.send_response(200)
+        self.send_header("Content-Type", entry.get("mime") or "application/octet-stream")
+        self.send_header("Content-Length", str(size))
+        self.send_header("Cache-Control", "private, no-store")
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.end_headers()
+        try:
+            with open(path, "rb") as f:
+                shutil.copyfileobj(f, self.wfile, 1024 * 1024)
+        except (BrokenPipeError, ConnectionResetError):
+            pass
+
+    def _put_sample(self, sid, query):
+        if not self._guard_write():
+            return
+        if not SAMPLE_ID_RE.match(sid):
+            self._send_json(400, {"error": "id campione non valido"})
+            return
+        uid = self._sample_owner()
+        if not uid:
+            return
+        try:
+            raw = self._read_body(MAX_SAMPLE_BYTES)
+        except BodyTooLarge:
+            self._send_json(413, {"error": "il campione supera il limite di 20 MB"})
+            return
+        if raw is None or not raw:
+            self._send_json(400, {"error": "il campione e' vuoto"})
+            return
+        digest = hashlib.sha256(raw).hexdigest()
+        entry = self._sample_metadata(query, len(raw))
+        entry.update({"sha256": digest, "updated_at": now_iso(), "rev": secrets.token_hex(8), "deleted": False})
+        try:
+            path = sample_blob_path(uid, sid)
+        except ValueError:
+            self._send_json(400, {"error": "id campione non valido"})
+            return
+        with SAMPLES_LOCK:
+            samples = load_samples(uid)
+            current = samples.get(sid) or {}
+            used = sum(max(0, int(v.get("size") or 0)) for v in samples.values()
+                       if isinstance(v, dict) and not v.get("deleted") and v is not current)
+            if used + len(raw) > MAX_SAMPLE_BYTES:
+                self._send_json(507, {"error": "spazio campioni esaurito: massimo 20 MB per account"})
+                return
+            os.makedirs(samples_blob_dir(uid), mode=0o700, exist_ok=True)
+            tmp = path + ".tmp-" + secrets.token_hex(5)
+            try:
+                with open(tmp, "wb") as f:
+                    f.write(raw)
+                os.chmod(tmp, 0o600)
+                os.replace(tmp, path)
+                samples[sid] = entry
+                save_samples(uid, samples)
+            finally:
+                try:
+                    os.remove(tmp)
+                except FileNotFoundError:
+                    pass
+        self._send_json(200, {"id": sid, **entry})
+
+    def _delete_sample(self, sid):
+        if not self._guard_write():
+            return
+        uid = self._sample_owner()
+        if not uid:
+            return
+        with SAMPLES_LOCK:
+            samples = load_samples(uid)
+            if sid not in samples:
+                self._send_json(404, {"error": "campione non trovato"})
+                return
+            samples[sid] = {"rev": secrets.token_hex(8), "updated_at": now_iso(), "deleted": True}
+            save_samples(uid, samples)
+            try:
+                os.remove(sample_blob_path(uid, sid))
+            except (FileNotFoundError, ValueError):
+                pass
+        self._send_json(200, {"id": sid, "deleted": True})
 
     def _put_project(self, pid):
         if not self._guard_write():
@@ -1553,6 +1759,10 @@ class Handler(BaseHTTPRequestHandler):
         if pm:
             self._put_project(pm.group(1))
             return
+        sm = SAMPLE_PATH_RE.match(path)
+        if sm:
+            self._put_sample(sm.group(1), parse_qs(urlparse(self.path).query))
+            return
         m = PATTERN_ID_RE.match(path)
         if not m:
             self.send_error(404, "Not found")
@@ -1592,6 +1802,10 @@ class Handler(BaseHTTPRequestHandler):
         pm = PROJECT_ID_RE.match(path)
         if pm:
             self._delete_project(pm.group(1))
+            return
+        sm = SAMPLE_PATH_RE.match(path)
+        if sm:
+            self._delete_sample(sm.group(1))
             return
         m = PATTERN_ID_RE.match(path)
         if not m:

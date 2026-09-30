@@ -164,7 +164,7 @@ html[data-embed="1"] .topbar, html[data-embed="1"] .project-panel, html[data-emb
 html[data-embed="1"] #machinePanel, html[data-embed="1"] #panelPatterns, html[data-embed="1"] #synthEnginePanel,
 html[data-embed="1"] #synthPatternPanel, html[data-embed="1"] #panelSeq, html[data-embed="1"] #panelSynth,
 html[data-embed="1"] #panelMix, html[data-embed="1"] #panelRecent, html[data-embed="1"] #panelMidi,
-html[data-embed="1"] #drumSoundPanel,
+html[data-embed="1"] #drumSoundPanel, html[data-embed="1"] #panelSampler,
 html[data-embed="1"] .site-footer, html[data-embed="1"] #libOverlay, html[data-embed="1"] dialog{display:none!important;}
 html[data-embed="1"] #panelTransport{position:sticky; top:0; z-index:10; margin:0; border-radius:0;}
 html[data-embed="1"] #panelTransport .transport-extra > :not(#counter){display:none;}
@@ -356,6 +356,50 @@ body.sound-view #liveKeysBtn{display:inline-flex; align-items:center;}
 .machine-select{font-size:14px; font-weight:700; padding:8px 12px; min-width:220px; max-width:100%;}
 .library-machine-select{min-width:220px; max-width:100%;}
 .lib-style-select{font-weight:700;}
+.sampler-panel{position:relative; overflow:hidden;}
+.sampler-panel::after{content:""; position:absolute; width:260px; height:260px; right:-100px; top:-130px; border:1px solid var(--accent); border-radius:50%; opacity:.18; pointer-events:none;}
+.sampler-head{display:flex; align-items:flex-start; justify-content:space-between; gap:16px;}
+.sampler-kicker{font-size:9px; letter-spacing:.2em; text-transform:uppercase; color:var(--accent); font-weight:800;}
+.sampler-title{font-size:23px; letter-spacing:.08em; margin:3px 0 4px; text-transform:uppercase;}
+.sampler-lead{font-size:11px; color:var(--text-dim); margin:0; max-width:650px; line-height:1.55;}
+.sampler-meter{min-width:120px; text-align:right; color:var(--text-dim); font-size:10px; line-height:1.5;}
+.sampler-meter strong{display:block; color:var(--text); font-size:18px; letter-spacing:.06em;}
+.sampler-actions{display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:14px 0 10px;}
+.sampler-drop{display:flex; align-items:center; gap:8px; min-height:43px; padding:9px 15px; border:1px dashed var(--accent); border-radius:var(--r-key,6px); background:linear-gradient(135deg,rgba(200,71,31,.16),transparent 70%); color:var(--text); cursor:pointer; font-size:12px; font-weight:700; letter-spacing:.05em;}
+.sampler-drop:hover,.sampler-drop:focus-within{background:rgba(200,71,31,.24); box-shadow:0 0 0 2px rgba(200,71,31,.18);}
+.sampler-drop input{position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;}
+.sampler-record.on{background:var(--danger); color:#fff; border-color:var(--danger);}
+.sampler-record .rec-dot{color:var(--danger); font-size:13px;}
+.sampler-record.on .rec-dot{color:#fff; animation:pm-record-pulse 1s infinite;}
+@keyframes pm-record-pulse{50%{opacity:.35;}}
+.sampler-note{font-size:10px; color:var(--text-faint);}
+.sampler-list{display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:8px;}
+.sampler-empty{grid-column:1/-1; padding:20px 16px; border:1px solid var(--edge-soft); border-radius:var(--r-panel,8px); color:var(--text-faint); text-align:center; font-size:11px;}
+.sample-card{position:relative; min-width:0; padding:10px; background:linear-gradient(145deg,var(--panel-2),var(--panel)); border:1px solid var(--edge); border-radius:var(--r-panel,8px); box-shadow:var(--shadow);}
+.sample-card:hover{border-color:var(--accent);}
+.sample-card.previewing{border-color:var(--accent); box-shadow:0 0 0 1px var(--accent),var(--shadow);}
+.sample-card-top{display:flex; align-items:flex-start; gap:8px;}
+.sample-card-name{min-width:0; flex:1; font-size:12px; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.sample-card-meta{font-size:9px; color:var(--text-faint); margin-top:3px;}
+.sample-card-wave{display:block; width:100%; height:68px; margin:9px 0; border:1px solid var(--edge-soft); border-radius:4px; background:rgba(0,0,0,.14);}
+.sample-progress-row{display:flex; align-items:center; gap:7px; margin:-3px 0 8px;}
+.sample-progress{display:block; width:100%; height:6px; min-width:0; accent-color:var(--accent);}
+.sample-time{flex:0 0 auto; min-width:70px; color:var(--text-faint); font-size:9px; text-align:right; font-variant-numeric:tabular-nums;}
+.sample-shape{margin:0 0 9px; border-top:1px solid var(--edge-soft);}
+.sample-shape summary{cursor:pointer; padding:7px 0 4px; color:var(--text-dim); font-size:10px; letter-spacing:.12em; text-transform:uppercase; list-style:none;}
+.sample-shape summary::-webkit-details-marker{display:none;}
+.sample-shape summary::before{content:"▸"; display:inline-block; margin-right:6px; transition:transform .15s;}
+.sample-shape[open] summary::before{transform:rotate(90deg);}
+.sample-shape-controls{display:grid; grid-template-columns:1fr 1fr; gap:6px 10px; padding:3px 0 2px;}
+.sample-param{display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:5px; min-width:0; color:var(--text-faint); font-size:9px;}
+.sample-param input{min-width:0; width:100%;}
+.sample-param output{min-width:34px; text-align:right; color:var(--text-dim); font-variant-numeric:tabular-nums;}
+.sample-shape-controls .chip-btn{grid-column:1/-1; justify-self:start; min-height:27px; padding:4px 8px; font-size:9px;}
+.sample-card-actions{display:flex; gap:6px; align-items:center;}
+.sample-card-actions button{flex:1; min-height:32px; padding:6px 8px; font-size:10px;}
+.sample-card-actions .sample-stop{flex:0 0 auto;}
+.sample-card-actions .icon-btn{flex:0 0 32px; padding:0;}
+@media (max-width:560px){.sampler-head{display:block;}.sampler-meter{text-align:left; margin-top:10px;}.sampler-title{font-size:20px;}.sampler-list{grid-template-columns:1fr;}}
 #machinePanel{padding-top:9px; padding-bottom:9px;}
 .chip{
   display:flex; align-items:center; gap:6px; padding:5px 10px; border-radius:6px;
@@ -847,16 +891,16 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 #synthEnginePanel .machine-bar{align-items:center;}
 .syn-links{display:inline-flex; flex-direction:column; align-items:flex-end; gap:5px; margin-left:auto;}
 .syn-brand{display:block; height:22px; width:auto; color:var(--text);}
-#viewGrid, #viewSeq, #viewSynth, #viewMix, #viewRecent{font-size:14px; padding:11px 22px; min-height:44px;}
-#viewGrid, #viewSeq, #viewSynth, #viewMix{
+#viewGrid, #viewSeq, #viewSynth, #viewSampler, #viewMix, #viewRecent{font-size:14px; padding:11px 22px; min-height:44px;}
+#viewGrid, #viewSeq, #viewSynth, #viewSampler, #viewMix{
   min-height:52px; padding:12px 24px; border:2px solid var(--edge);
   border-radius:9px; font-weight:800; letter-spacing:.08em;
   box-shadow:inset 0 2px 0 rgba(255,255,255,.16), inset 0 -3px 0 rgba(0,0,0,.22), 0 3px 0 rgba(0,0,0,.28);
   transition:transform .06s, box-shadow .06s, background .12s;
 }
-#viewGrid:hover, #viewSeq:hover, #viewSynth:hover, #viewMix:hover{border-color:var(--text-faint);}
-#viewGrid:active, #viewSeq:active, #viewSynth:active, #viewMix:active{transform:translateY(2px); box-shadow:inset 0 1px 0 rgba(255,255,255,.08), inset 0 -1px 0 rgba(0,0,0,.2);}
-#viewGrid.on, #viewSeq.on, #viewSynth.on, #viewMix.on{background:var(--key-primary,var(--accent)); border-color:var(--accent-dim); color:var(--on-accent); box-shadow:inset 0 2px 0 rgba(255,255,255,.35), inset 0 -3px 0 rgba(0,0,0,.2), 0 3px 0 rgba(0,0,0,.28);}
+#viewGrid:hover, #viewSeq:hover, #viewSynth:hover, #viewSampler:hover, #viewMix:hover{border-color:var(--text-faint);}
+#viewGrid:active, #viewSeq:active, #viewSynth:active, #viewSampler:active, #viewMix:active{transform:translateY(2px); box-shadow:inset 0 1px 0 rgba(255,255,255,.08), inset 0 -1px 0 rgba(0,0,0,.2);}
+#viewGrid.on, #viewSeq.on, #viewSynth.on, #viewSampler.on, #viewMix.on{background:var(--key-primary,var(--accent)); border-color:var(--accent-dim); color:var(--on-accent); box-shadow:inset 0 2px 0 rgba(255,255,255,.35), inset 0 -3px 0 rgba(0,0,0,.2), 0 3px 0 rgba(0,0,0,.28);}
 #pChoose, #pVary, #pNew, #synPatBrowse, #synPatNew{font-size:13px; padding:9px 16px; min-height:40px;}
 #recBtn{font-size:13.5px; padding:11px 18px; min-height:44px;}
 #bpmNum{height:44px; width:72px; font-size:14px;}
@@ -864,7 +908,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 #tapBtn{width:44px; height:44px; padding:0; border-radius:50%; display:inline-flex; align-items:center; justify-content:center;}
 .topbar #accountLinks{display:inline-flex; align-items:baseline; gap:10px; margin-left:auto;}
 @media (max-width:560px){
-  #viewGrid, #viewSeq, #viewSynth, #viewMix, #viewRecent{padding:10px 14px;}
+  #viewGrid, #viewSeq, #viewSynth, #viewSampler, #viewMix, #viewRecent{padding:10px 14px;}
 }
 /* Mixer: una striscia per traccia, poi i gruppi e il master. */
 .mix-strips{display:flex; gap:6px; overflow-x:auto; padding:2px 2px 10px; align-items:stretch;}
@@ -959,6 +1003,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <button id="viewGrid" class="on" role="tab" aria-selected="true" aria-controls="machinePanel">Drum Grid</button>
     <button id="viewSeq" role="tab" aria-selected="false" aria-controls="panelSeq">Sequencer</button>
     <button id="viewSynth" role="tab" aria-selected="false" aria-controls="panelSynth" title="Synth line of the pattern, in time with the drums">Synthesizer</button>
+    <button id="viewSampler" role="tab" aria-selected="false" aria-controls="panelSampler" title="Import or record local sounds for your patterns">Sampler</button>
     <button id="viewMix" role="tab" aria-selected="false" aria-controls="panelMix" title="Levels, pan, meters and the master limiter">Mixer</button>
   </div>
 
@@ -1092,6 +1137,29 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 
   <!-- Synth (in prova): lo riempie engine/synth.js -->
   <div class="panel" id="panelSynth" role="tabpanel" aria-label="Synthesizer" hidden></div>
+
+  <section class="panel sampler-panel" id="panelSampler" role="tabpanel" aria-label="Sampler" aria-labelledby="samplerTitle" hidden>
+    <div class="sampler-head">
+      <div>
+        <div class="sampler-kicker">Audio lab · local first</div>
+        <h2 class="sampler-title" id="samplerTitle">Sampler</h2>
+        <p class="sampler-lead">Drop in a sound or record one from the microphone. Keep it local, or sync the shelf with your PatternMachine account.</p>
+      </div>
+      <div class="sampler-meter"><strong id="samplerCount">0 sounds</strong><span id="samplerStorage">0 MB local</span></div>
+    </div>
+    <div class="sampler-actions">
+      <label class="sampler-drop" id="samplerDrop" for="samplerFile"><span aria-hidden="true">＋</span> Import audio
+        <input id="samplerFile" type="file" accept="audio/*,.wav,.mp3,.m4a,.ogg,.opus,.flac" multiple>
+      </label>
+      <button type="button" id="samplerRecord" class="sampler-record"><span class="rec-dot" aria-hidden="true">●</span> Record voice</button>
+      <label class="sampler-sync"><input id="samplerSync" type="checkbox"> Sync samples</label>
+      <button type="button" id="samplerSyncNow" class="mini">Sync now</button>
+      <span class="sampler-note" id="samplerStatus" role="status" aria-live="polite">WAV, MP3 and microphone recordings · local audio, project names preserved</span>
+    </div>
+    <div class="sampler-list" id="samplerList">
+      <div class="sampler-empty">Your private sample shelf is empty. Import a sound or record a voice to make the first pad.</div>
+    </div>
+  </section>
 
   <div class="panel" id="panelSeq" role="tabpanel" aria-label="Sequencer" hidden>
     <h2>Sequencer — song arrangement</h2>
@@ -1419,22 +1487,22 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-09-30.16"></script>
-<script src="engine/core.js?v=2026-09-30.16"></script>
-<script src="engine/styles-punk.js?v=2026-09-30.16"></script>
-<script src="engine/styles-post.js?v=2026-09-30.16"></script>
-<script src="engine/styles-machines.js?v=2026-09-30.16"></script>
-<script src="engine/styles-alt.js?v=2026-09-30.16"></script>
-<script src="engine/styles-groove.js?v=2026-09-30.16"></script>
-<script src="engine/styles-dub.js?v=2026-09-30.16"></script>
-<script src="engine/styles-break.js?v=2026-09-30.16"></script>
-<script src="engine/styles-soul.js?v=2026-09-30.16"></script>
-<script src="engine/styles-metal.js?v=2026-09-30.16"></script>
-<script src="engine/styles-electro.js?v=2026-09-30.16"></script>
-<script src="engine/variations.js?v=2026-09-30.16"></script>
-<script src="engine/import.js?v=2026-09-30.16"></script>
-<script src="engine/rhythm.js?v=2026-09-30.16"></script>
-<script src="engine/share.js?v=2026-09-30.16"></script>
+<script src="engine/machine-art.js?v=2026-09-30.25"></script>
+<script src="engine/core.js?v=2026-09-30.25"></script>
+<script src="engine/styles-punk.js?v=2026-09-30.25"></script>
+<script src="engine/styles-post.js?v=2026-09-30.25"></script>
+<script src="engine/styles-machines.js?v=2026-09-30.25"></script>
+<script src="engine/styles-alt.js?v=2026-09-30.25"></script>
+<script src="engine/styles-groove.js?v=2026-09-30.25"></script>
+<script src="engine/styles-dub.js?v=2026-09-30.25"></script>
+<script src="engine/styles-break.js?v=2026-09-30.25"></script>
+<script src="engine/styles-soul.js?v=2026-09-30.25"></script>
+<script src="engine/styles-metal.js?v=2026-09-30.25"></script>
+<script src="engine/styles-electro.js?v=2026-09-30.25"></script>
+<script src="engine/variations.js?v=2026-09-30.25"></script>
+<script src="engine/import.js?v=2026-09-30.25"></script>
+<script src="engine/rhythm.js?v=2026-09-30.25"></script>
+<script src="engine/share.js?v=2026-09-30.25"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -1760,12 +1828,19 @@ const sampleIdx = name => SAMPLES.findIndex(s=>s.name===name);
 
 let audioCtx=null;
 let sampleSet="std";
-const sampleLabel = i => KITS[sampleSet].name(SAMPLES[i]);
-const sampleAvailable = i => KITS[sampleSet].has(SAMPLES[i]);
+const sampleLabel = i => {
+  const s=SAMPLES[i];
+  if(!s) return "Missing sample";
+  return s.local ? s.name : KITS[sampleSet].name(s);
+};
+const sampleAvailable = i => {
+  const s=SAMPLES[i];
+  return !!s && (s.local ? !s.deleted && !!s.localUrl : KITS[sampleSet].has(s));
+};
 const bufferCache=new Map();
 function actx(){ if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)(); return audioCtx; }
-const sampleFile = i => KITS[sampleSet].url(SAMPLES[i]);
-const cacheKey = i => sampleSet+":"+i;
+const sampleFile = i => SAMPLES[i]?.local ? SAMPLES[i].localUrl : KITS[sampleSet].url(SAMPLES[i]);
+const cacheKey = i => SAMPLES[i]?.local ? "local:"+SAMPLES[i].localId : sampleSet+":"+i;
 function sampleUrl(i){
   const f=sampleFile(i);
   return (window.SP1200_EMBEDDED && window.SP1200_EMBEDDED[f]) || encodeURI(f);
@@ -1776,6 +1851,36 @@ function loadBuffer(i){
   const p=fetch(sampleUrl(i)).then(r=>r.arrayBuffer()).then(a=>actx().decodeAudioData(a));
   bufferCache.set(k,p);
   p.then(b=>bufferCache.set(k,b)).catch(()=>bufferCache.delete(k));
+  return p;
+}
+// Suoni per l'oscillatore Sample del synth (engine/synth.js). Riferimento: "kit:<macchina>/<slot>" (slot come in
+// SAMPLES, vale anche se ora e' caricata un'altra macchina) oppure "local:<id>" (campione del sampler locale).
+function synthSampleList(){
+  const kit=KITS[sampleSet], out={label:kit.label, kit:[], local:[]};
+  SAMPLES.forEach((s,i)=>{
+    if(s.local){ if(sampleAvailable(i)) out.local.push({ref:"local:"+s.localId, name:s.name}); }
+    else if(kit.has(s)) out.kit.push({ref:"kit:"+sampleSet+"/"+s.name, name:kit.name(s)});
+  });
+  return out;
+}
+function synthSampleInfo(ref){
+  const k=/^kit:([^/]+)\/(.+)$/.exec(ref||""), l=/^local:(.+)$/.exec(ref||"");
+  if(l){ const i=SAMPLES.findIndex(s=>s.local && s.localId===l[1]); return i>=0 && sampleAvailable(i) ? {name:SAMPLES[i].name, index:i} : null; }
+  const kit=k && KITS[k[1]], i=k ? SAMPLES.findIndex(s=>!s.local && s.name===k[2]) : -1;
+  if(!kit || i<0 || kit.ok===false || !kit.has(SAMPLES[i])) return null;
+  return {name:kit.name(SAMPLES[i]), kit:k[1], kitLabel:kit.label, index:i};
+}
+function synthSampleBuffer(ref){
+  const info=synthSampleInfo(ref);
+  if(!info) return Promise.reject(new Error("sample not available"));
+  if(!info.kit || info.kit===sampleSet) return loadBuffer(info.index);
+  const key=info.kit+":"+info.index;   // stessa chiave di cacheKey() quando quella macchina e' caricata
+  if(bufferCache.has(key)) return Promise.resolve(bufferCache.get(key));
+  const f=KITS[info.kit].url(SAMPLES[info.index]);
+  const p=fetch((window.SP1200_EMBEDDED && window.SP1200_EMBEDDED[f]) || encodeURI(f))
+    .then(r=>{ if(!r.ok) throw new Error(r.status); return r.arrayBuffer(); }).then(a=>actx().decodeAudioData(a));
+  bufferCache.set(key,p);
+  p.then(b=>bufferCache.set(key,b)).catch(()=>bufferCache.delete(key));
   return p;
 }
 // Cambia macchina. Le righe che usavano un suono che l'altra macchina non ha passano allo slot di riserva.
@@ -1790,7 +1895,7 @@ function setSampleSet(k,quiet=false){
   const firstAvailable=()=>SAMPLES.findIndex((_s,i)=>sampleAvailable(i));
   project.tracks.forEach(t=>{
     if(!sampleAvailable(t.sampleIndex)){
-      const fallback=sampleIdx(SAMPLES[t.sampleIndex].fallback||"Perc 1");
+      const fallback=sampleIdx(SAMPLES[t.sampleIndex]?.fallback||"Perc 1");
       t.sampleIndex=sampleAvailable(fallback)?fallback:(KITS[k].custom?firstAvailable():fallback);
       moved++;
     }
@@ -3327,24 +3432,26 @@ function setView(v){
   el("viewGrid").classList.toggle("on",v==="grid");
   el("viewSeq").classList.toggle("on",v==="seq");
   el("viewSynth").classList.toggle("on",v==="synth");
+  el("viewSampler").classList.toggle("on",v==="sampler");
   el("viewMix").classList.toggle("on",v==="mix");
   el("viewSound").classList.toggle("on",v==="sound");
   el("viewSound").setAttribute("aria-pressed",v==="sound");
   el("viewSound").hidden = v!=="grid" && v!=="sound";
   el("viewRecent").classList.toggle("on",v==="recent");
   el("viewMidi").classList.toggle("on",v==="midi");
-  ["viewGrid","viewSynth","viewSeq","viewMix","viewRecent","viewMidi"].forEach(id=>{
+  ["viewGrid","viewSynth","viewSampler","viewSeq","viewMix","viewRecent","viewMidi"].forEach(id=>{
     const b=el(id); if(b) b.setAttribute("aria-selected",String(b.classList.contains("on")));
   });
   document.body.classList.toggle("sound-view",v==="sound");
   document.body.classList.toggle("mix-view",v==="mix");
   // La Vista Live mostra la stessa griglia della Griglia, senza il resto dell'interfaccia.
   // Il Synth tiene il pannello Pattern: le note stanno nel pattern scelto lì.
-  el("machinePanel").hidden = v==="midi" || v==="mix";   // anche nel Synthesizer: la batteria suona sotto il synth
+  el("machinePanel").hidden = v==="midi" || v==="mix" || v==="sampler";   // anche nel Synthesizer: la batteria suona sotto il synth
   el("panelPatterns").hidden = v!=="grid";
   el("panelGrid").hidden = v!=="grid" && v!=="sound";
   el("panelSeq").hidden = v!=="seq";
   el("panelSynth").hidden = v!=="synth";
+  el("panelSampler").hidden = v!=="sampler";
   el("synthEnginePanel").hidden = v!=="synth" || !window.PMSynth;
   el("synthPatternPanel").hidden = v!=="synth" || !window.PMSynth;
   el("panelRecent").hidden = v!=="recent";
@@ -3730,7 +3837,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || document.getElementById("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-30.16";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-30.25";
   document.body.appendChild(s);
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth")) loadSynth();
@@ -3910,6 +4017,7 @@ el("metronomeBtn").onclick=()=>{
 el("viewRecent").onclick=()=>setView("recent");
 el("viewGrid").onclick=()=>setView("grid");
 el("viewSeq").onclick=()=>setView("seq");
+el("viewSampler").onclick=()=>setView("sampler");
 el("viewMix").onclick=()=>setView("mix");
 el("viewSynth").onclick=()=>{
   if(window.PMSynth){ setView("synth"); return; }
@@ -4401,7 +4509,9 @@ function serialize(){
     rhythm: PMRhythm.normalize(project.rhythm),
     ...(()=>{ const mix=mixState(); return Object.keys(mix).length ? {mix} : {}; })(),
     sampleSet,
-    tracks: project.tracks.map(t=>({id:t.id, sampleIndex:t.sampleIndex, vol:t.vol, tune:t.tune||0, choke:t.choke||0,
+    tracks: project.tracks.map(t=>({id:t.id, sampleIndex:t.sampleIndex,
+      ...(SAMPLES[t.sampleIndex]?.local ? {localSampleId:SAMPLES[t.sampleIndex].localId, localSampleName:SAMPLES[t.sampleIndex].name} : {}),
+      vol:t.vol, tune:t.tune||0, choke:t.choke||0,
       decay:t.decay, cutoff:t.cutoff, reso:t.reso, start:t.start, reverse:t.reverse, nudge:t.nudge||0, ...(t.pan?{pan:t.pan}:{})})),
     patterns: project.patterns.map(p=>({id:p.id, name:p.name, len:p.len,
       grid:Object.fromEntries(Object.entries(p.grid).map(([k,v])=>[k,v.slice()])),
@@ -4419,7 +4529,10 @@ function deserialize(d,keepSel){
   const prevPattern=ui.patternId, prevBlock=ui.blockId;
   project={
     name:d.name||"Untitled", bpm:d.bpm||93, swing:d.swing||0, human:d.human||0, rhythm:PMRhythm.normalize(d.rhythm),
-    tracks:(d.tracks||[]).map(t=>({id:t.id, sampleIndex:t.sampleIndex, vol:t.vol??0.8,
+    tracks:(d.tracks||[]).map(t=>({id:t.id,
+      sampleIndex:(()=>{ const i=t.localSampleId ? SAMPLES.findIndex(s=>s.local && s.localId===t.localSampleId && !s.deleted) : -1;
+        return t.localSampleId ? (i>=0 ? i : sampleIdx("Perc 1")) : (Number.isInteger(+t.sampleIndex) && +t.sampleIndex>=0 && +t.sampleIndex<SAMPLES.length ? +t.sampleIndex : sampleIdx("Perc 1")); })(),
+      ...(t.localSampleId ? {localSampleId:String(t.localSampleId), localSampleName:String(t.localSampleName||"")} : {}), vol:t.vol??0.8,
       tune:t.tune||0, choke:t.choke||0, mute:false, solo:false, ...voiceDefaults(t)})),
     patterns:(d.patterns||[]).map(p=>({id:p.id, name:p.name, len:p.len||16,
       grid:Object.fromEntries(Object.entries(p.grid||{}).map(([k,v])=>[k,v.slice()])), mods:cloneMods(p.mods), lens:{...(p.lens||{})},
@@ -4447,6 +4560,7 @@ function deserialize(d,keepSel){
   renderRhythmControls();
   project.tracks.forEach(t=>loadBuffer(t.sampleIndex));
   renderAll();
+  window.dispatchEvent(new CustomEvent("pm:project-loaded"));
 }
 
 async function projectShareUrl(embed=false){
@@ -6404,7 +6518,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-30.16";
+const SW_VERSION="2026-09-30.25";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -6428,7 +6542,9 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/midi.js?v=2026-09-30.16"></script>
+<script src="engine/sampler.js?v=2026-09-30.25"></script>
+<script>PMSampler.init();</script>
+<script src="engine/midi.js?v=2026-09-30.25"></script>
 
 </body>
 </html>

@@ -477,41 +477,96 @@
     return true;
   }
   // ---------- resampling: il beat come si sente diventa un campione ----------
-  // Stesso render offline dell'export WAV (renderWav): batteria e synth con mute, solo, pan e limiter. Il pattern
-  // aperto esce 1, 2 o 4 volte, oppure la canzone. Finale "loop": le code oltre la fine tornano all'inizio, cosi' il
-  // campione gira senza buchi come il pattern suonato di seguito (e dura giusto N battute: il Chop ne ricava il
-  // tempo esatto); "tail": le code restano fino al silenzio; "cut": taglio alla fine con 3 ms di dissolvenza.
+  // Stesso render offline dell'export WAV (renderWav): batteria e synth con mute, solo, pan e limiter. Si sceglie
+  // un pattern di batteria e/o una sezione del synth fra quelli del progetto (1, 2 o 4 volte), oppure la canzone.
+  // Finale "loop": le code oltre la fine tornano all'inizio, cosi' il campione gira senza buchi come il pattern
+  // suonato di seguito (e dura giusto N battute: il Chop ne ricava il tempo esatto); "tail": le code restano fino al
+  // silenzio; "cut": taglio alla fine con 3 ms di dissolvenza. I menu sono quelli del sito, non quelli del browser.
+  const ENDINGS=[{value:"loop",label:"Loop",note:"tails wrap to the start"},{value:"tail",label:"Let the tails ring",note:"until silence"},{value:"cut",label:"Cut at the end",note:"3 ms fade"}];
   let resampleBusy=false, resampleNamed=false;
-  function resampleWhich(){ const v=$("resampleWhat").value; return v==="song"?["song",1]:["pattern",+v]; }
-  function resampleName(){
-    const [which]=resampleWhich();
-    return fallbackName(which==="song" ? `${$("projectName").value.trim()||"Song"} resample` : `${curPattern().name} resample`);
+  const res={mode:"pattern", drums:"", synth:"", loops:1, ending:"loop"};
+  const synthOn=()=>!!window.PMSynth && Array.isArray(project.synthPatterns);
+  const drumsOf=()=>project.patterns.find(p=>p.id===res.drums)||null;
+  const synthOf=()=>synthOn() && (project.synthPatterns||[]).find(p=>p.id===res.synth)||null;
+  const resampleSource=()=>({drums:drumsOf(), synth:synthOf()});
+  // Menu nello stile del sito (come Export): items {head, note} oppure {value, label, note, disabled}.
+  function siteMenu(root, items, value, onPick){
+    root.textContent="";
+    const menu=document.createElement("details"), sum=document.createElement("summary"), label=document.createElement("span"), list=document.createElement("div");
+    menu.className="export-menu resample-menu"; list.className="export-list resample-list"; list.setAttribute("role","listbox");
+    const cur=items.find(x=>!x.head && x.value===value);
+    label.textContent=cur?cur.label:"—"; sum.append(label," ▾"); sum.setAttribute("aria-haspopup","listbox");
+    for(const x of items){
+      if(x.head){ const h=document.createElement("div"); h.className="export-head"; h.textContent=x.head; if(x.note){ const n=document.createElement("span"); n.textContent=x.note; h.appendChild(n); } list.appendChild(h); continue; }
+      const b=document.createElement("button"); b.type="button"; b.setAttribute("role","option");
+      const on=x.value===value; b.setAttribute("aria-selected",String(on)); b.classList.toggle("on",on); b.disabled=!!x.disabled;
+      const t=document.createElement("span"); t.textContent=x.label; b.appendChild(t);
+      if(x.note){ const n=document.createElement("small"); n.textContent=x.note; b.appendChild(n); }
+      b.onclick=()=>{ menu.open=false; onPick(x.value); sum.focus(); };
+      list.appendChild(b);
+    }
+    menu.append(sum,list); root.appendChild(menu);
   }
+  function resampleName(){
+    if(res.mode==="song") return fallbackName(`${$("projectName").value.trim()||"Song"} resample`);
+    const d=drumsOf(), sp=synthOf();
+    return fallbackName(`${(d||sp)?.name||"Beat"} resample`);
+  }
+  function paintResample(){
+    const song=res.mode==="song";
+    $("resampleMode").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.mode===res.mode)));
+    $("resampleTimes").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.loops===res.loops)));
+    $("resampleDrumsField").hidden=$("resampleTimesField").hidden=song;
+    $("resampleSynthField").hidden=song || !synthOn();
+    const steps=n=>`${n} steps`;
+    siteMenu($("resampleDrums"),[
+      {value:"",label:"No drums"},
+      {head:"Drum patterns"},
+      ...project.patterns.map((p,i)=>({value:p.id,label:`${i+1}. ${p.name}`,note:steps(p.len)+(p.id===ui.patternId?" · open":"")})),
+    ],res.drums,v=>{ res.drums=v; resampleChanged(); });
+    if(synthOn()){
+      const muted=!!project.synth?.mute;
+      siteMenu($("resampleSynth"),[
+        {value:"",label:"No synth"},
+        {head:"Synth patterns",note:muted?"The synth is muted: unmute it to include it":""},
+        ...project.synthPatterns.map(sp=>({value:sp.id,label:sp.name,note:sp.synth.length?`${steps(sp.len)} · ${sp.synth.length} notes`:`${steps(sp.len)} · empty`,disabled:muted||!sp.synth.length})),
+      ],res.synth,v=>{ res.synth=v; resampleChanged(); });
+    }
+    siteMenu($("resampleEnd"),ENDINGS,res.ending,v=>{ res.ending=v; resampleChanged(); });
+    resampleInfo();
+  }
+  function resampleChanged(){ if(!resampleNamed) $("resampleName").value=resampleName(); paintResample(); }
   function resampleInfo(){
-    const info=$("resampleInfo"), go=$("resampleGo"), [which,loops]=resampleWhich(), tail=$("resampleEnd").value==="tail";
-    if(which==="song" && !project.song.length){ info.textContent="The song is empty"; info.classList.add("err"); go.disabled=true; return; }
-    const sec=wavEvents(which,loops).length+(tail?WAV_TAIL:0), bytes=sec*WAV_RATE*4, over=recordSize()+bytes>MAX_BYTES;
-    const what=which==="song" ? `The song (${project.song.length} ${project.song.length===1?"block":"blocks"})` : `“${curPattern().name}” ${loops===1?"once":loops+" times"}`;
+    const info=$("resampleInfo"), go=$("resampleGo"), song=res.mode==="song", tail=res.ending==="tail", err=m=>{ info.textContent=m; info.classList.add("err"); go.disabled=true; };
+    if(song && !project.song.length) return err("The song is empty: add blocks in the Sequencer, or resample patterns");
+    const src=resampleSource();
+    if(!song && !src.drums && !src.synth) return err("Choose a drum pattern, a synth pattern or both");
+    const sec=wavEvents(song?"song":"pattern",res.loops,song?null:src).length+(tail?WAV_TAIL:0), bytes=sec*WAV_RATE*4, over=recordSize()+bytes>MAX_BYTES;
+    const what=song ? `The song (${project.song.length} ${project.song.length===1?"block":"blocks"})`
+      : [src.drums&&`“${src.drums.name}”`,src.synth&&`synth “${src.synth.name}”`].filter(Boolean).join(" + ")+(res.loops===1?" once":` ${res.loops} times`);
     info.textContent=`${what} at ${bpm()} BPM · ${tail?"up to ":""}${formatDuration(sec)} · about ${formatBytes(bytes)}`+(over?" · no room in the local sampler (20 MB)":"");
     info.classList.toggle("err",over); go.disabled=over||resampleBusy;
   }
   function openResample(){
     const box=$("samplerResample");
     if(!box.hidden) return closeResample();
+    // si parte da quello che e' aperto: il pattern della griglia e la sezione del synth, se ha note e non e' muto
+    const sp=synthOn() && !project.synth?.mute && PMSynth.currentPattern?.();
+    Object.assign(res,{mode:"pattern", drums:ui.patternId||project.patterns[0]?.id||"", synth:sp&&sp.synth.length?sp.id:"", loops:1, ending:"loop"});
     box.hidden=false; $("samplerResampleBtn").setAttribute("aria-expanded","true");
-    resampleNamed=false; $("resampleName").value=resampleName(); resampleInfo();
-    $("resampleWhat").focus();
+    resampleNamed=false; $("resampleName").value=resampleName(); paintResample();
+    $("resampleMode").querySelector("button[aria-pressed=true]").focus();
   }
   function closeResample(){ $("samplerResample").hidden=true; $("samplerResampleBtn").setAttribute("aria-expanded","false"); }
   async function resample(){
     if(resampleBusy) return;
-    const [which,loops]=resampleWhich(), ending=$("resampleEnd").value, dsp=PMSampleEditor.dsp;
+    const song=res.mode==="song", src=song?null:resampleSource(), ending=res.ending, dsp=PMSampleEditor.dsp;
     const name=fallbackName(resampleNamed && $("resampleName").value.trim() ? $("resampleName").value : resampleName());
     resampleBusy=true; resampleInfo(); setNote("Resampling…");
     try{
       let rendered;
-      try{ rendered=await renderWav(which,loops); }
-      catch(e){ throw new Error(e?.message==="vuoto" ? "Nothing to resample: the beat is silent (check mute and solo)" : "The beat could not be rendered"); }
+      try{ rendered=await renderWav(song?"song":"pattern",song?1:res.loops,src); }
+      catch(e){ throw new Error(e?.message==="vuoto" ? "Nothing to resample: it is silent (check mute and solo)" : "The beat could not be rendered"); }
       const {buf,seconds}=rendered, sr=buf.sampleRate, L=Math.min(buf.length,Math.max(1,Math.round(seconds*sr)));
       const chs=[0,1].map(c=>buf.getChannelData(Math.min(c,buf.numberOfChannels-1)));
       let out;
@@ -575,15 +630,16 @@
     const sync=$("samplerSync"); if(sync){ syncEnabled=desktop||syncChoice(); sync.checked=syncEnabled; sync.onchange=()=>{ setSyncChoice(sync.checked); if(sync.checked)syncServer(); }; }
     const syncNow=$("samplerSyncNow"); if(syncNow)syncNow.onclick=syncServer;
     $("samplerResampleBtn").onclick=openResample;
-    $("resampleWhat").onchange=()=>{
-      $("resampleEnd").value=$("resampleWhat").value==="song"?"tail":"loop";     // la canzone di solito non gira in loop
-      if(!resampleNamed) $("resampleName").value=resampleName();
-      resampleInfo();
-    };
-    $("resampleEnd").onchange=resampleInfo;
+    $("resampleMode").onclick=e=>{ const b=e.target.closest("button"); if(!b) return;
+      res.mode=b.dataset.mode; res.ending=res.mode==="song"?"tail":"loop";     // la canzone di solito non gira in loop
+      resampleChanged(); };
+    $("resampleTimes").onclick=e=>{ const b=e.target.closest("button"); if(b){ res.loops=+b.dataset.loops; resampleChanged(); } };
     $("resampleName").oninput=()=>{ resampleNamed=true; };
     $("resampleCancel").onclick=closeResample;
     $("resampleGo").onclick=resample;
+    // i menu del pannello si chiudono cliccando fuori o con Esc
+    document.addEventListener("click",e=>{ document.querySelectorAll(".resample-menu[open]").forEach(m=>{ if(!m.contains(e.target)) m.open=false; }); });
+    document.addEventListener("keydown",e=>{ if(e.key==="Escape") document.querySelectorAll(".resample-menu[open]").forEach(m=>{ m.open=false; m.querySelector("summary").focus(); }); });
     addEventListener("resize",()=>records.forEach(r=>repaintCard(r.id)));
     // l'onda ha il colore dell'inchiostro del tema: al cambio chiaro/scuro si ridisegna
     new MutationObserver(()=>records.forEach(r=>repaintCard(r.id))).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});

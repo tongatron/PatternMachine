@@ -75,9 +75,11 @@ Pulsante **Chop…** nel gruppo Cut dell'editor: lavora sulla selezione o su tut
 
 ### 3. Resampling
 - [x] **⟲ Resample** nella scheda Sampler: il beat come si sente (batteria e synth, con mute, solo, pan e
-  limiter) diventa un campione nuovo. Il pattern aperto 1, 2 o 4 volte, oppure la canzone; finale "loop" (le code
+  limiter) diventa un campione nuovo. Un pattern di batteria e/o una sezione del synth fra quelli del progetto
+  (menu del sito), 1, 2 o 4 volte, oppure la canzone; finale "loop" (le code
   tornano all'inizio: il campione gira senza buchi e dura giusto N battute, il Chop ne ricava il tempo esatto),
-  "code" o "taglio"; si apre nell'editor. Usa `renderWav(which, loops)` dell'export WAV (`makeZip` non si tocca).
+  "code" o "taglio"; si apre nell'editor. Usa `renderWav(which, loops, {drums, synth})` dell'export WAV (`makeZip`
+  non si tocca).
 
 ### 4. Suono per riga, in tempo reale
 Tocca `trigger()`, che l'app desktop sostituisce: l'app andrà allineata al suo prossimo aggiornamento.

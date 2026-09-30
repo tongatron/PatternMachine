@@ -983,8 +983,8 @@
     return new Uint8Array([0x4D, 0x54, 0x68, 0x64, 0, 0, 0, 6, 0, 0, 0, 1, 0, MIDI_PPQ,
       0x4D, 0x54, 0x72, 0x6B, (L >>> 24) & 0xff, (L >>> 16) & 0xff, (L >>> 8) & 0xff, L & 0xff, ...trk]);
   }
-  function hasNotesIn(which) {
-    return synthTimeline(which === "song" ? "song" : "midi").some(p => p.synth.length);
+  function hasNotesIn(which, src) {
+    return synthTimeline(which === "song" ? "song" : "midi", undefined, src).some(p => p.synth.length);
   }
   function exportMidi(which) {
     if (which === "song" && !project.song.length) { setStatus("the song is empty", "err"); return; }
@@ -993,7 +993,7 @@
   }
 
   // ---------- export WAV/MP3: il synth suona nello stesso OfflineAudioContext della batteria ----------
-  function offlineEvents(which, loops) {
+  function offlineEvents(which, loops, src) {
     const p = params(), base = 60 / bpm() / 4, sw = swing(), out = [];
     const saved = slideAt;
     let t = 0;
@@ -1002,14 +1002,15 @@
       for (let s = 0; s < pat.len; s++) { eventsForStep(pat, s, t, p, out); t += base * (s % 2 === 0 ? 1 + sw : 1 - sw); }
     };
     // stessa durata di wavEvents(): la batteria ripetuta `loops` volte (WAV_PATTERN_LOOPS se manca), o la canzone
-    synthTimeline(which === "song" ? "song" : "pattern", loops).forEach(emit);
+    synthTimeline(which === "song" ? "song" : "pattern", loops, src).forEach(emit);
     slideAt = saved;
     return out;
   }
-  const hasNotes = which => allowed && !project.synth?.mute && hasNotesIn(which);
-  async function renderOffline(ctx, which, loops) {
-    if (!hasNotes(which) || !ctx.audioWorklet) return false;
-    const events = offlineEvents(which, loops);
+  // src: {drums, synth} scelti dal Resampling del Sampler al posto dei pattern aperti
+  const hasNotes = (which, src) => allowed && !project.synth?.mute && hasNotesIn(which, src);
+  async function renderOffline(ctx, which, loops, src) {
+    if (!hasNotes(which, src) || !ctx.audioWorklet) return false;
+    const events = offlineEvents(which, loops, src);
     if (!events.length) return false;
     await ctx.audioWorklet.addModule(WORKLET_URL);
     const p = params(), units = {};

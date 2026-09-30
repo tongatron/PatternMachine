@@ -391,8 +391,22 @@ body.sound-view #liveKeysBtn{display:inline-flex; align-items:center;}
 .sampler-resample[hidden]{display:none;}
 .sampler-resample p{margin:0 0 9px; font-size:10.5px; color:var(--text-dim); line-height:1.5;}
 .sampler-resample p b{color:var(--text); letter-spacing:.08em; text-transform:uppercase; font-size:10px; margin-right:6px;}
-.resample-fields{display:flex; flex-wrap:wrap; align-items:flex-end; gap:8px 14px;}
-.resample-fields label{display:flex; flex-direction:column; gap:3px; font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--text-faint);}
+.resample-fields{display:flex; flex-wrap:wrap; align-items:flex-end; gap:10px 16px;}
+.resample-fields label, .resample-field{display:flex; flex-direction:column; gap:4px; font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--text-faint);}
+.resample-field[hidden]{display:none;}
+.resample-seg{display:flex;}
+.resample-seg button{min-height:36px; padding:7px 12px; font-size:10.5px; border-radius:0; margin-left:-1px;}
+.resample-seg button:first-child{border-radius:var(--r-key,6px) 0 0 var(--r-key,6px); margin-left:0;}
+.resample-seg button:last-child{border-radius:0 var(--r-key,6px) var(--r-key,6px) 0;}
+.resample-seg button[aria-pressed="true"]{background:var(--key-primary,var(--accent)); color:var(--on-accent); border-color:var(--accent-dim); font-weight:700; position:relative;}
+.resample-menu summary{min-height:36px; min-width:210px; max-width:300px; padding:7px 12px; justify-content:space-between; gap:10px; font-size:11px; letter-spacing:.02em; text-transform:none;}
+.resample-menu summary span{overflow:hidden; text-overflow:ellipsis;}
+.resample-list{min-width:280px; max-height:340px; overflow-y:auto; text-transform:none; letter-spacing:0;}
+.resample-list button{display:flex; justify-content:space-between; align-items:baseline; gap:14px; width:100%; min-height:32px; font-size:10.5px; letter-spacing:.02em; text-transform:none;}
+.resample-list button small{flex:0 0 auto; font-size:9.5px; color:var(--text-faint);}
+.resample-list button.on{background:var(--key-primary,var(--accent)); border-color:var(--accent-dim); color:var(--on-accent); font-weight:700;}
+.resample-list button.on small{color:inherit; opacity:.85;}
+.resample-list button:disabled{opacity:.45; cursor:default;}
 .resample-fields label.resample-check{flex-direction:row; align-items:center; gap:5px; font-size:10px; letter-spacing:0; text-transform:none; color:var(--text-dim);}
 .resample-fields input[type=text]{width:200px; max-width:100%;}
 .resample-foot{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px 14px; margin-top:10px;}
@@ -1191,8 +1205,11 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <div class="sampler-resample" id="samplerResample" role="group" aria-label="Resample" hidden>
       <p><b>Resample</b>The beat as you hear it (drums and synth, with mute, solo, pan and limiter) becomes a new sample, to chop or color in the editor.</p>
       <div class="resample-fields">
-        <label>What <select id="resampleWhat"><option value="1">Pattern · once</option><option value="2">Pattern · 2 times</option><option value="4">Pattern · 4 times</option><option value="song">Whole song</option></select></label>
-        <label title="Loop: the tails at the end come back at the start, so the sample loops without a gap">Ending <select id="resampleEnd"><option value="loop">Loop · tails wrap to the start</option><option value="tail">Let the tails ring</option><option value="cut">Cut at the end</option></select></label>
+        <div class="resample-field">What <div class="resample-seg" id="resampleMode" role="group" aria-label="What to resample"><button type="button" data-mode="pattern">Patterns</button><button type="button" data-mode="song">Song</button></div></div>
+        <div class="resample-field" id="resampleDrumsField">Drums <div id="resampleDrums"></div></div>
+        <div class="resample-field" id="resampleSynthField">Synth <div id="resampleSynth"></div></div>
+        <div class="resample-field" id="resampleTimesField">Times <div class="resample-seg" id="resampleTimes" role="group" aria-label="How many times"><button type="button" data-loops="1">1×</button><button type="button" data-loops="2">2×</button><button type="button" data-loops="4">4×</button></div></div>
+        <div class="resample-field" title="Loop: the tails at the end come back at the start, so the sample loops without a gap">Ending <div id="resampleEnd"></div></div>
         <label>Name <input type="text" id="resampleName" maxlength="60" autocomplete="off"></label>
         <label class="resample-check"><input type="checkbox" id="resampleEdit" checked> Open it in the editor</label>
       </div>
@@ -1532,22 +1549,22 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-09-30.37"></script>
-<script src="engine/core.js?v=2026-09-30.37"></script>
-<script src="engine/styles-punk.js?v=2026-09-30.37"></script>
-<script src="engine/styles-post.js?v=2026-09-30.37"></script>
-<script src="engine/styles-machines.js?v=2026-09-30.37"></script>
-<script src="engine/styles-alt.js?v=2026-09-30.37"></script>
-<script src="engine/styles-groove.js?v=2026-09-30.37"></script>
-<script src="engine/styles-dub.js?v=2026-09-30.37"></script>
-<script src="engine/styles-break.js?v=2026-09-30.37"></script>
-<script src="engine/styles-soul.js?v=2026-09-30.37"></script>
-<script src="engine/styles-metal.js?v=2026-09-30.37"></script>
-<script src="engine/styles-electro.js?v=2026-09-30.37"></script>
-<script src="engine/variations.js?v=2026-09-30.37"></script>
-<script src="engine/import.js?v=2026-09-30.37"></script>
-<script src="engine/rhythm.js?v=2026-09-30.37"></script>
-<script src="engine/share.js?v=2026-09-30.37"></script>
+<script src="engine/machine-art.js?v=2026-09-30.38"></script>
+<script src="engine/core.js?v=2026-09-30.38"></script>
+<script src="engine/styles-punk.js?v=2026-09-30.38"></script>
+<script src="engine/styles-post.js?v=2026-09-30.38"></script>
+<script src="engine/styles-machines.js?v=2026-09-30.38"></script>
+<script src="engine/styles-alt.js?v=2026-09-30.38"></script>
+<script src="engine/styles-groove.js?v=2026-09-30.38"></script>
+<script src="engine/styles-dub.js?v=2026-09-30.38"></script>
+<script src="engine/styles-break.js?v=2026-09-30.38"></script>
+<script src="engine/styles-soul.js?v=2026-09-30.38"></script>
+<script src="engine/styles-metal.js?v=2026-09-30.38"></script>
+<script src="engine/styles-electro.js?v=2026-09-30.38"></script>
+<script src="engine/variations.js?v=2026-09-30.38"></script>
+<script src="engine/import.js?v=2026-09-30.38"></script>
+<script src="engine/rhythm.js?v=2026-09-30.38"></script>
+<script src="engine/share.js?v=2026-09-30.38"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -2176,8 +2193,8 @@ function synthAt(pos, L=synthPlayLayout()){
 }
 // Per gli export: la linea del synth come sequenza di pezzi {len, synth} lunga quanto la batteria.
 // "pattern": il pattern del synth scelto ripetuto sotto WAV_PATTERN_LOOPS giri del pattern di batteria.
-function synthTimeline(which, loops=WAV_PATTERN_LOOPS){
-  const total = which==="song" ? songLayout().total : curPattern().len*(which==="midi"?1:loops);
+function synthTimeline(which, loops=WAV_PATTERN_LOOPS, src=null){
+  const total = which==="song" ? songLayout().total : renderDrums(src).len*(which==="midi"?1:loops);
   const out=[];
   if(which==="song"){
     for(const x of synthPlayLayout().blocks){
@@ -2190,7 +2207,8 @@ function synthTimeline(which, loops=WAV_PATTERN_LOOPS){
     const used=out.reduce((a,x)=>a+x.len,0);
     if(used<total) out.push({len:total-used, synth:[]});
   } else {
-    const sp=curSynth();
+    const sp=src ? src.synth : curSynth();
+    if(!sp) return [{len:total, synth:[]}];
     for(let at=0;at<total;at+=sp.len){
       const len=Math.min(sp.len,total-at);
       out.push({len, synth:sp.synth.filter(n=>n.s<len).map(n=>({...n, l:Math.min(n.l,len-n.s)}))});
@@ -3922,7 +3940,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || document.getElementById("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-30.37";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-09-30.38";
   document.body.appendChild(s);
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth")) loadSynth();
@@ -5036,8 +5054,10 @@ function exportMidi(which){
 // in coda restano 2 secondi per le code dei piatti.
 const WAV_RATE=44100, WAV_TAIL=2, WAV_PATTERN_LOOPS=4;
 
-// loops: quante volte esce il pattern (il Resampling del Sampler ne chiede 1, 2 o 4)
-function wavEvents(which, loops=WAV_PATTERN_LOOPS){
+// loops: quante volte esce il pattern (il Resampling del Sampler ne chiede 1, 2 o 4).
+// src: {drums, synth} al posto del pattern e del synth aperti (uno dei due puo' essere null); senza, quelli aperti.
+const renderDrums = src => !src ? curPattern() : src.drums || {len:src.synth?.len||16, grid:{}, mods:{}, lens:{}};
+function wavEvents(which, loops=WAV_PATTERN_LOOPS, src=null){
   const live=audibleTracks(), events=[];
   let t=0;
   const emit=(pat,cycle,mutes=[])=>{
@@ -5056,20 +5076,20 @@ function wavEvents(which, loops=WAV_PATTERN_LOOPS){
     }
   };
   if(which==="song") project.song.forEach(b=>{ const p=patternById(b.patternId); if(p) for(let r=0;r<Math.max(1,b.repeats||1);r++) emit(p,r,b.mutes); });
-  else for(let r=0;r<loops;r++) emit(curPattern(),r);
+  else for(let r=0;r<loops;r++) emit(renderDrums(src),r);
   return {events, length:t, live};
 }
 
-async function renderWav(which, loops=WAV_PATTERN_LOOPS){
-  const {events, length, live}=wavEvents(which, loops);
-  const synth=window.PMSynth && PMSynth.hasNotes(which);
+async function renderWav(which, loops=WAV_PATTERN_LOOPS, src=null){
+  const {events, length, live}=wavEvents(which, loops, src);
+  const synth=window.PMSynth && (!src || src.synth) && PMSynth.hasNotes(which, src);
   if(!events.length && !synth) throw new Error("vuoto");
   await Promise.all(live.map(t=>loadBuffer(t.sampleIndex)));
   const OAC=window.OfflineAudioContext||window.webkitOfflineAudioContext;
   const ctx=new OAC(2, Math.ceil((length+WAV_TAIL)*WAV_RATE), WAV_RATE);
   const chokes=new Map();
   events.forEach(([time,,vel,lt])=>trigger(lt,time,vel,ctx,chokes));
-  if(synth) await PMSynth.renderOffline(ctx, which, loops);   // synth nello stesso mix
+  if(synth) await PMSynth.renderOffline(ctx, which, loops, src);   // synth nello stesso mix
   const buf=await ctx.startRendering();
   return {buf, seconds:length};
 }
@@ -6617,7 +6637,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-09-30.37";
+const SW_VERSION="2026-09-30.38";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -6641,10 +6661,10 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sample-editor.js?v=2026-09-30.37"></script>
-<script src="engine/sampler.js?v=2026-09-30.37"></script>
+<script src="engine/sample-editor.js?v=2026-09-30.38"></script>
+<script src="engine/sampler.js?v=2026-09-30.38"></script>
 <script>PMSampler.init();</script>
-<script src="engine/midi.js?v=2026-09-30.37"></script>
+<script src="engine/midi.js?v=2026-09-30.38"></script>
 
 </body>
 </html>

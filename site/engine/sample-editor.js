@@ -246,20 +246,23 @@ dialog.sed::backdrop{background:rgba(0,0,0,.55);}
       const d = st.chs[k], mid = RULER + lane * (k + 0.5), amp = lane * 0.45;
       c.strokeStyle = col.edge; c.globalAlpha = 0.8; c.beginPath(); c.moveTo(0, Math.round(mid) + 0.5); c.lineTo(w, Math.round(mid) + 0.5); c.stroke();
       if (k) { c.globalAlpha = 1; c.beginPath(); c.moveTo(0, Math.round(RULER + lane * k) + 0.5); c.lineTo(w, Math.round(RULER + lane * k) + 0.5); c.stroke(); }
-      c.globalAlpha = 1; c.fillStyle = col.accent; c.strokeStyle = col.accent;
+      // l'onda e' nell'inchiostro del tema (come nelle schede del Sampler), non nell'arancione
+      c.globalAlpha = 1; c.fillStyle = col.text; c.strokeStyle = col.text;
       if (perPx > 1) {
-        // un minimo e un massimo per ogni colonna di pixel
+        // per ogni colonna di pixel: il picco (minimo-massimo, chiaro) e l'RMS (scuro)
         for (let x = 0; x < w; x++) {
           const a = Math.floor(from + x * perPx), b = Math.min(d.length, Math.floor(from + (x + 1) * perPx));
-          let lo = 1, hi = -1;
-          for (let i = a; i < b; i++) { const v = d[i]; if (v < lo) lo = v; if (v > hi) hi = v; }
+          let lo = 1, hi = -1, sq = 0;
+          for (let i = a; i < b; i++) { const v = d[i]; if (v < lo) lo = v; if (v > hi) hi = v; sq += v * v; }
           if (hi < lo) continue;
-          const y1 = mid - hi * amp, y2 = mid - lo * amp;
-          c.fillRect(x, y1, 1, Math.max(1, y2 - y1));
+          const rms = Math.sqrt(sq / (b - a));
+          c.globalAlpha = 0.35; c.fillRect(x, mid - hi * amp, 1, Math.max(1, (hi - lo) * amp));
+          c.globalAlpha = 0.85; c.fillRect(x, mid - rms * amp, 1, Math.max(1, 2 * rms * amp));
         }
+        c.globalAlpha = 1;
       } else {
         // da vicino: la linea che unisce i campioni, e i punti quando c'e' spazio
-        c.lineWidth = 1.5; c.beginPath();
+        c.globalAlpha = 0.85; c.lineWidth = 1.5; c.beginPath();
         const a = Math.max(0, Math.floor(from) - 1), b = Math.min(d.length - 1, Math.ceil(from + span) + 1);
         for (let i = a; i <= b; i++) { const x = (i - from) / perPx, y = mid - d[i] * amp; i === a ? c.moveTo(x, y) : c.lineTo(x, y); }
         c.stroke();
@@ -289,7 +292,7 @@ dialog.sed::backdrop{background:rgba(0,0,0,.55);}
     }
     if (st.play) {
       const x = xOf(playPos(), w);
-      c.globalAlpha = 1; c.fillStyle = col.text; c.fillRect(x - 0.75, 0, 1.5, h);
+      c.globalAlpha = 1; c.fillStyle = col.accent; c.fillRect(x - 0.75, 0, 1.5, h);   // testina: si stacca dall'onda scura
     }
     c.globalAlpha = 1;
   }

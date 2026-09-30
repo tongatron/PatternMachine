@@ -124,18 +124,31 @@
     const local={name:record.name,bank:"D",local:true,localId:record.id,localUrl:urls.get(record.id),duration:record.duration,size:record.size,settings:settingsOf(record)};
     SAMPLES.push(local); if(buffer) buffers.set(record.id,buffer); return local;
   }
+  // Forma d'onda da strumento di misura: inchiostro del tema invece dell'arancione, per ogni colonna di pixel
+  // il picco (chiaro) e l'RMS (scuro); linea dello zero e righe tratteggiate a meta' ampiezza.
   function drawWave(canvas,buffer){
     const rect=canvas.getBoundingClientRect(), dpr=window.devicePixelRatio||1, w=Math.max(220,Math.round(rect.width||420)), h=68;
     canvas.width=w*dpr; canvas.height=h*dpr;
     const c=canvas.getContext("2d"); c.scale(dpr,dpr); c.clearRect(0,0,w,h);
-    const cs=getComputedStyle(document.documentElement), accent=cs.getPropertyValue("--accent").trim()||"#e65c2f", edge=cs.getPropertyValue("--edge-soft").trim()||"#555";
-    c.strokeStyle=edge; c.globalAlpha=.7; c.beginPath(); c.moveTo(0,h/2+.5); c.lineTo(w,h/2+.5); c.stroke();
-    if(!buffer) return;
-    const data=buffer.getChannelData(0), bins=Math.min(w,180), step=Math.max(1,Math.floor(data.length/bins));
-    c.fillStyle=accent; c.globalAlpha=.9; c.beginPath(); c.moveTo(0,h/2);
-    for(let i=0;i<bins;i++){ let peak=0; const from=i*step, to=Math.min(data.length,from+step); for(let j=from;j<to;j++) peak=Math.max(peak,Math.abs(data[j])); c.lineTo(i/bins*w,h/2-peak*(h*.4)); }
-    for(let i=bins-1;i>=0;i--){ let peak=0; const from=i*step, to=Math.min(data.length,from+step); for(let j=from;j<to;j++) peak=Math.max(peak,Math.abs(data[j])); c.lineTo(i/bins*w,h/2+peak*(h*.4)); }
-    c.closePath(); c.fill();
+    const cs=getComputedStyle(document.documentElement), ink=cs.getPropertyValue("--text").trim()||"#222", edge=cs.getPropertyValue("--edge-soft").trim()||"#555";
+    const mid=h/2, amp=h*.42, line=y=>Math.round(y)+.5;
+    c.strokeStyle=edge; c.lineWidth=1;
+    c.globalAlpha=.55; c.setLineDash([2,3]); c.beginPath();
+    for(const y of [mid-amp/2,mid+amp/2]){ c.moveTo(0,line(y)); c.lineTo(w,line(y)); }
+    c.stroke(); c.setLineDash([]);
+    c.globalAlpha=.8; c.beginPath(); c.moveTo(0,line(mid)); c.lineTo(w,line(mid)); c.stroke();
+    if(!buffer){ c.globalAlpha=1; return; }
+    const data=buffer.getChannelData(0), per=data.length/w;
+    c.fillStyle=ink;
+    for(let x=0;x<w;x++){
+      const a=Math.floor(x*per), b=Math.min(data.length,Math.max(a+1,Math.floor((x+1)*per)));
+      let lo=0, hi=0, sq=0;
+      for(let i=a;i<b;i++){ const v=data[i]; if(v<lo) lo=v; if(v>hi) hi=v; sq+=v*v; }
+      const rms=Math.sqrt(sq/Math.max(1,b-a));
+      c.globalAlpha=.35; c.fillRect(x,mid-hi*amp,1,Math.max(1,(hi-lo)*amp));
+      c.globalAlpha=.85; c.fillRect(x,mid-rms*amp,1,Math.max(1,2*rms*amp));
+    }
+    c.globalAlpha=1;
   }
   function repaintCard(id){
     const card=document.querySelector(`.sample-card[data-sample-id="${CSS.escape(id)}"]`), canvas=card?.querySelector("canvas");
@@ -453,6 +466,8 @@
     const sync=$("samplerSync"); if(sync){ syncEnabled=desktop||syncChoice(); sync.checked=syncEnabled; sync.onchange=()=>{ setSyncChoice(sync.checked); if(sync.checked)syncServer(); }; }
     const syncNow=$("samplerSyncNow"); if(syncNow)syncNow.onclick=syncServer;
     addEventListener("resize",()=>records.forEach(r=>repaintCard(r.id)));
+    // l'onda ha il colore dell'inchiostro del tema: al cambio chiaro/scuro si ridisegna
+    new MutationObserver(()=>records.forEach(r=>repaintCard(r.id))).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
     addEventListener("pm:project-loaded",rebindProjectSamples);
   }
   async function init(){

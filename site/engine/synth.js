@@ -534,7 +534,7 @@
     }
     if (e.code in TYPING) {
       e.preventDefault(); e.stopImmediatePropagation();
-      if (!e.repeat) liveOn(typingBase() + TYPING[e.code], e.shiftKey ? 1 : 0.8);
+      if (!e.repeat) { const n = typingBase() + TYPING[e.code]; liveOn(n, e.shiftKey ? 1 : 0.8); follow(n); }
       return;
     }
     // nella vista Synth i tasti rimasti delle batterie non suonano i pad
@@ -550,7 +550,7 @@
   // Tastiera MIDI: la gestisce engine/midi.js (tasti, pad e manopole), che chiama liveOn/liveOff e knob() qui sotto.
   function midiNote(n, vel) {
     if (!allowed) return;
-    if (vel > 0) liveOn(n, vel); else liveOff(n);
+    if (vel > 0) { liveOn(n, vel); follow(n); } else liveOff(n);
   }
   // Manopola MIDI -> parametro del synth (frac 0..1 sull'intervallo del parametro). Un solo passo di annulla
   // per giro: si registra quando la manopola riparte dopo una pausa.
@@ -1595,6 +1595,19 @@
     if (lo >= view.base && hi <= top) return;
     view.base = clamp(Math.floor(lo / 12) * 12, 0, 96); saveView();
   }
+  // Nota suonata dal vivo fuori dalla finestra: la griglia si sposta di ottave intere finche' la nota si vede.
+  function follow(n) {
+    if (!built || !synthVisible() || drag) return;
+    const from = view.base;
+    for (let i = 0; i < 11; i++) {
+      const { rows } = rowsFor(), top = rows[0], bottom = rows[rows.length - 1];
+      if (!rows.length || (n >= bottom && n <= top)) break;
+      const b = clamp(view.base + (n > top ? 12 : -12), 0, 96);
+      if (b === view.base) break;
+      view.base = b;
+    }
+    if (view.base !== from) { saveView(); renderRoll(); }
+  }
   function renderRoll() {
     if (!built) return;
     const pat = curSynth(), roll = el("synRoll");
@@ -1732,12 +1745,12 @@
     box.addEventListener("pointerdown", e => {
       const k = e.target.closest("[data-n]"); if (!k) return;
       e.preventDefault(); try { box.setPointerCapture(e.pointerId); } catch (err) {}
-      down = +k.dataset.n; liveOn(down);
+      down = +k.dataset.n; liveOn(down); follow(down);
     });
     box.addEventListener("pointermove", e => {
       if (down === null) return;
       const t = document.elementFromPoint(e.clientX, e.clientY), k = t && t.closest && t.closest("#synKbd [data-n]");
-      if (k && +k.dataset.n !== down) { liveOff(down); down = +k.dataset.n; liveOn(down); }
+      if (k && +k.dataset.n !== down) { liveOff(down); down = +k.dataset.n; liveOn(down); follow(down); }
     });
     const up = () => { if (down !== null) { liveOff(down); down = null; } };
     box.addEventListener("pointerup", up); box.addEventListener("pointercancel", up);

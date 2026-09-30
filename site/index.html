@@ -400,6 +400,9 @@ body.sound-view #liveKeysBtn{display:inline-flex; align-items:center;}
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
 .row-more{position:relative; margin-left:auto;}
 .trk-top>.chip-btn.m,.trk-top>.chip-btn.s{order:2;}
+.trk-top>.trk-vol{order:2; display:inline-flex; align-items:center; gap:4px; color:var(--text-faint); font-size:9px; letter-spacing:.06em; text-transform:uppercase;}
+.trk-vol input[type=range]{width:58px;}
+.trk-vol .trk-vol-val{min-width:27px; color:var(--text-dim); font:9px var(--mono); text-align:right;}
 .trk-top>.row-more{order:3;}
 .row-more>summary{list-style:none; cursor:pointer; width:28px; height:23px; display:inline-flex; align-items:center; justify-content:center;
   border:1px solid var(--edge); border-radius:var(--r-key,6px); background:var(--key,var(--panel-2)); color:var(--text-dim); font-weight:700; font-size:13px;}
@@ -2548,6 +2551,16 @@ function renderTracks(){
     soloBtn.title="Solo this instrument"; soloBtn.setAttribute("aria-label",`Solo ${sampleLabel(t.sampleIndex)}`); soloBtn.setAttribute("aria-pressed",String(!!t.solo));
     top.appendChild(soloBtn);
 
+    const volBox=document.createElement("label"); volBox.className="trk-vol"; volBox.title="Volume for this drum row";
+    volBox.append("Vol");
+    const vol=document.createElement("input");
+    vol.type="range"; vol.min=0; vol.max=100; vol.value=Math.round((t.vol??0.8)*100);
+    vol.setAttribute("aria-label",`Volume for ${sampleLabel(t.sampleIndex)}`);
+    const volVal=document.createElement("span"); volVal.className="trk-vol-val"; volVal.textContent=vol.value+"%";
+    vol.oninput=()=>{ t.vol=vol.value/100; volVal.textContent=vol.value+"%"; scheduleDraft(); };
+    vol.onchange=()=>pushUndo();
+    volBox.append(vol,volVal); top.appendChild(volBox);
+
     const grp=document.createElement("select"); grp.className="grp";
     [0,1,2,3,4].forEach(g=>{ const o=document.createElement("option"); o.value=g; o.textContent=g?("Grp "+g):"Grp –"; grp.appendChild(o); });
     grp.value=t.choke; grp.title="Choke group"; grp.setAttribute("aria-label",`Choke group for ${sampleLabel(t.sampleIndex)}`); grp.onchange=()=>{ pushUndo(); t.choke=+grp.value; };
@@ -2564,12 +2577,6 @@ function renderTracks(){
     for(let s=-12;s<=12;s++){ const o=document.createElement("option"); o.value=s; o.textContent=(s>0?"+":"")+s+"st"; tune.appendChild(o); }
     tune.value=t.tune||0; tune.onchange=()=>{ pushUndo(); t.tune=+tune.value; };
     more.appendChild(tune);
-
-    const vol=document.createElement("input");
-    vol.type="range"; vol.min=0; vol.max=100; vol.value=Math.round(t.vol*100); vol.title="Volume"; vol.setAttribute("aria-label",`Volume for ${sampleLabel(t.sampleIndex)}`);
-    vol.oninput=()=>{ t.vol=vol.value/100; scheduleDraft(); };
-    vol.onchange=()=>pushUndo();
-    more.appendChild(vol);
 
     const exp=mk("x",ui.expanded===t.id?"▴":"▾",ui.expanded===t.id,()=>toggleExpand(t.id));
     exp.title="All row options: sound and, below the steps, one lane per parameter";

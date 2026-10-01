@@ -172,11 +172,17 @@ html[data-embed="1"] #panelGrid{display:block!important; border:0; border-radius
 html[data-embed="1"] #addRowLine{display:none;}
 html[data-embed="1"] #playBtn{min-height:42px; padding-inline:18px;}
 
-.topbar{display:flex; flex-wrap:wrap; align-items:baseline; gap:10px 16px; margin-bottom:12px;}
+.topbar{display:grid; grid-template-columns:minmax(0,1fr) auto; grid-template-areas:"title account" "controls controls"; align-items:baseline; gap:10px 16px; margin-bottom:12px;}
+.topbar h1{grid-area:title;}
+.topbar-controls{grid-area:controls; display:flex; flex-wrap:wrap; align-items:baseline; justify-content:flex-start; gap:10px 16px;}
 h1{font-size:26px; letter-spacing:0.18em; text-transform:uppercase; margin:0; line-height:1.15;}
 .topbar .linkbtn{font-size:12.5px; padding:8px 14px;}
-.topbar-guides{display:inline-flex; flex-wrap:wrap; gap:10px; align-items:baseline; margin-left:auto;}
-@media (max-width:560px){ h1{font-size:21px;} }
+.topbar-guides{display:inline-flex; flex-wrap:wrap; gap:10px; align-items:baseline;}
+@media (max-width:560px){
+  .topbar{grid-template-columns:1fr; grid-template-areas:"title" "controls" "account";}
+  .topbar #accountLinks{margin-left:0;}
+  h1{font-size:21px;}
+}
 
 .panel{
   background:var(--plate,var(--panel)); border:1px solid var(--edge); border-radius:var(--r-panel,10px);
@@ -228,6 +234,7 @@ h1{font-size:26px; letter-spacing:0.18em; text-transform:uppercase; margin:0; li
 .export-head:first-child{margin-top:0;}
 .export-head span{display:block; margin-top:2px; letter-spacing:0.04em; text-transform:none;}
 #accountLinks{display:flex; align-items:center; gap:10px;}
+.topbar #accountLinks{grid-area:account;}
 
 button{
   font-family:inherit; cursor:pointer; border:1px solid var(--edge);
@@ -965,6 +972,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 #tapBtn{width:44px; height:44px; padding:0; border-radius:50%; display:inline-flex; align-items:center; justify-content:center;}
 .topbar #accountLinks{display:inline-flex; align-items:baseline; gap:10px; margin-left:auto;}
 @media (max-width:560px){
+  .topbar #accountLinks{margin-left:0;}
   #viewGrid, #viewSeq, #viewSynth, #viewSampler, #viewMix, #viewRecent{padding:10px 14px;}
 }
 /* Mixer: console tecnica. Una striscia per riga della griglia, poi i gruppi e il master. I pozzetti dei meter
@@ -1014,16 +1022,18 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 <div class="wrap">
   <div class="topbar">
     <h1>PATTERN-MACHINE</h1>
-    <span class="topbar-guides">
-      <a class="linkbtn help-link" href="funzioni.html" title="how to use it and what every feature does">Guide and features</a>
-      <a class="linkbtn learn-link" href="learn/index.html" title="Short hands-on lessons: how to program beats and play the grid with your keyboard">Learn</a>
-    </span>
-    <a class="linkbtn" id="desktopAppLink" href="app.html" title="PATTERN-MACHINE as an app for macOS, Windows and Linux: MIDI, clock sync and drag and drop">App for Mac, Win, Linux</a>
-    <a class="linkbtn" id="pluginLink" href="plugin.html" title="PATTERN-MACHINE as an Audio Unit plug-in inside Logic, locked to the transport">Logic plug-in</a>
-    <button type="button" class="theme-toggle" id="themeToggle" role="switch" aria-checked="false" aria-label="Dark theme" title="Switch between light and dark theme">
-      <span class="tt-side tt-light">Light</span><span class="tt-track" aria-hidden="true"><span class="tt-knob"></span></span><span class="tt-side tt-dark">Dark</span>
-    </button>
-    <span class="net-badge" id="netBadge" hidden>offline</span>
+    <div class="topbar-controls">
+      <span class="topbar-guides">
+        <a class="linkbtn help-link" href="funzioni.html" title="how to use it and what every feature does">Guide and features</a>
+        <a class="linkbtn learn-link" href="learn/index.html" title="Short hands-on lessons: how to program beats and play the grid with your keyboard">Learn</a>
+      </span>
+      <a class="linkbtn" id="desktopAppLink" href="app.html" title="PATTERN-MACHINE as an app for macOS, Windows and Linux: MIDI, clock sync and drag and drop">App for Mac, Win, Linux</a>
+      <a class="linkbtn" id="pluginLink" href="plugin.html" title="PATTERN-MACHINE as an Audio Unit plug-in inside Logic, locked to the transport">Logic plug-in</a>
+      <button type="button" class="theme-toggle" id="themeToggle" role="switch" aria-checked="false" aria-label="Dark theme" title="Switch between light and dark theme">
+        <span class="tt-side tt-light">Light</span><span class="tt-track" aria-hidden="true"><span class="tt-knob"></span></span><span class="tt-side tt-dark">Dark</span>
+      </button>
+      <span class="net-badge" id="netBadge" hidden>offline</span>
+    </div>
     <span id="accountLinks">
       <span class="whoami" id="whoami" hidden></span>
       <a class="logout" id="adminLink" href="/admin" title="Registered users" hidden>Users</a>

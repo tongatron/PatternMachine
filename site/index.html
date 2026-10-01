@@ -728,9 +728,8 @@ button.danger-fill{background:var(--danger); border-color:var(--danger); color:#
 .variation-section[open]>summary::before{transform:rotate(90deg);}
 .variation-section[open]>summary{color:var(--text); border-bottom:1px dashed var(--edge-soft);}
 .variation-options{display:flex; flex-wrap:wrap; gap:5px; padding:7px 9px 9px;}
-.pattern-actions{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px;}
-.pattern-actions .pattern-action-group{display:flex; flex-wrap:wrap; gap:6px; align-items:center;}
-.pattern-actions .pattern-action-group button{min-width:92px;}
+.pattern-actions{display:grid; grid-template-columns:repeat(2,minmax(92px,1fr)); grid-template-rows:repeat(2,auto); gap:6px;}
+.pattern-actions .mini{width:100%; min-width:92px;}
 .wave-panel{margin-top:10px; border:1px solid var(--edge-soft); border-radius:8px; background:color-mix(in srgb,var(--panel-2) 72%,transparent); overflow:hidden;}
 .wave-panel>summary{display:flex; align-items:center; gap:8px; cursor:pointer; list-style:none; padding:8px 10px; color:var(--text-dim); font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase;}
 .wave-panel>summary::-webkit-details-marker{display:none;}
@@ -1106,8 +1105,10 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       <button id="pVary" class="mini" aria-expanded="false" title="apply or remove a variation on the pattern you are editing">✦ Vary</button>
       <button id="pNew" class="mini">+ New</button>
       <span class="pattern-actions">
-        <span class="pattern-action-group"><button id="pDup" class="mini">Duplicate</button><button id="pRename" class="mini">Rename</button></span>
-        <span class="pattern-action-group"><button id="pClear" class="mini">Clear</button><button id="pDel" class="mini danger">Delete</button></span>
+        <button id="pDup" class="mini">Duplicate</button>
+        <button id="pClear" class="mini">Clear</button>
+        <button id="pRename" class="mini">Rename</button>
+        <button id="pDel" class="mini danger">Delete</button>
       </span>
       <label class="fld" style="margin-left:auto;">Steps
         <select id="pLen">

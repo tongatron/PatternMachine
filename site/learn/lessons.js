@@ -48,6 +48,13 @@ const LEVELS=[
     {id:"afrobeat", title:"Afrobeat", titleIt:"Afrobeat", url:"afrobeat.html", minutes:10, summary:"Layer interlocking percussion over a patient groove."}, {id:"bossa", title:"Bossa nova and samba", titleIt:"Bossa nova e samba", url:"bossa.html", minutes:10, summary:"Use syncopation and cross-rhythms without losing the bar."}, {id:"synth-pop", title:"Synth pop", titleIt:"Synth pop", url:"synth-pop.html", minutes:10, summary:"Make a clean, memorable machine groove around the synth."},
     {id:"post-punk", title:"Post-punk drum machine", titleIt:"Drum machine post-punk", url:"post-punk.html", minutes:10, summary:"Turn a dry machine pulse into post-punk tension."}, {id:"coldwave", title:"Coldwave and minimal synth", titleIt:"Coldwave e minimal synth", url:"coldwave.html", minutes:10, summary:"Use sparse patterns, sequenced bass and dark space."}, {id:"industrial", title:"Industrial and EBM", titleIt:"Industrial ed EBM", url:"industrial.html", minutes:10, summary:"Make a rigid, physical groove from hard machine pulses."},
     {id:"trip-hop", title:"Trip-hop", titleIt:"Trip-hop", url:"trip-hop.html", minutes:10, summary:"Let a sparse, behind-the-grid beat breathe."}, {id:"indie-dance", title:"Indie dance", titleIt:"Indie dance", url:"indie-dance.html", minutes:10, summary:"Join a club pulse to guitars, bass and human-feeling parts."}, {id:"lo-fi-indie", title:"Lo-fi indie", titleIt:"Lo-fi indie", url:"lo-fi-indie.html", minutes:10, summary:"Use simple, dry patterns that leave the song exposed."}]},
+  {id:"production", title:"Sound and production", titleIt:"Suono e produzione", lessons:[
+    {id:"sampler", title:"The Sampler: import, record and assign", titleIt:"Il Sampler: importa, registra e assegna", url:"sampler.html", minutes:10, summary:"Bring in a sound, record one, and put it on a drum row."},
+    {id:"resample-chop", title:"Resample and chop", titleIt:"Resample e chop", url:"resample-chop.html", minutes:10, summary:"Turn a pattern into audio, then cut it into playable slices."},
+    {id:"synth-drums", title:"Synth and drums together", titleIt:"Synth e batteria insieme", url:"synth-drums.html", minutes:10, summary:"Write a synth line that locks to the drum pattern."},
+    {id:"mix", title:"Mixing the machine", titleIt:"Mixare la macchina", url:"mix.html", minutes:10, summary:"Balance levels, pan, meters and the master limiter."},
+    {id:"record-vocal", title:"Record a voice over the song", titleIt:"Registra una voce sulla canzone", url:"record-vocal.html", minutes:10, summary:"Capture a vocal take with count-in and keep it with the project."},
+    {id:"export", title:"Finish and export", titleIt:"Finisci ed esporta", url:"export.html", minutes:10, summary:"Arrange the song and send MIDI, stems or a DAW package out."}]},
 ];
 
 // Le parti di una lezione, nell'ordine in cui si fanno: la lezione e' finita quando ci sono tutte.
@@ -63,6 +70,7 @@ const PARTS={
   swing:["listen","copy","play"], "step-params":["listen","copy","play"], polyrhythm:["listen","copy","play"], "kit-shaping":["listen","copy","play"],
   sections:["listen","copy","play"], fills:["listen","copy","play"], sequencer:["listen","copy","play"], form:["listen","copy","play"]
   ,"boom-bap":["listen","copy","play"], electro:["listen","copy","play"], house:["listen","copy","play"], techno:["listen","copy","play"], trap:["listen","copy","play"], breakbeat:["listen","copy","play"], funk:["listen","copy","play"], reggae:["listen","copy","play"], dembow:["listen","copy","play"], afrobeat:["listen","copy","play"], bossa:["listen","copy","play"], "synth-pop":["listen","copy","play"], "post-punk":["listen","copy","play"], coldwave:["listen","copy","play"], industrial:["listen","copy","play"], "trip-hop":["listen","copy","play"], "indie-dance":["listen","copy","play"], "lo-fi-indie":["listen","copy","play"]
+  ,sampler:["listen","copy","play","app"], "resample-chop":["listen","copy","play","app"], "synth-drums":["listen","copy","play","app"], mix:["listen","copy","play","app"], "record-vocal":["listen","copy","play","app"], export:["listen","copy","play","app"]
 };
 
 // Missioni nell'app: il beat di partenza (righe nell'ordine dei tasti 1, 2, 3...) e l'obiettivo.

@@ -595,6 +595,10 @@ body.sound-view #liveKeysBtn{display:inline-flex; align-items:center;}
 .sync-state{margin:-4px 0 10px;}
 .sync-state.dirty{color:var(--text-dim);}
 .sync-state.err{color:var(--danger);}
+.project-sync-tools{display:flex; align-items:center; gap:10px; margin:-2px 0 12px;}
+.project-sync-tools .tiny{color:var(--text-faint);}
+.project-sync-tools button{min-height:34px; padding:7px 12px; font-size:10px; letter-spacing:.08em; text-transform:uppercase;}
+.project-sync-tools[hidden]{display:none;}
 .step-menu{position:fixed; z-index:200; display:flex; flex-direction:column; min-width:120px; padding:4px;
   background:var(--panel-2); border:1px solid var(--edge); border-radius:6px; box-shadow:0 6px 18px rgba(0,0,0,.35);}
 .step-menu button{display:flex; align-items:center; gap:8px; justify-content:flex-start; border:0; background:none;
@@ -1353,6 +1357,10 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
   <div class="panel" id="panelRecent" role="tabpanel" aria-label="Projects" hidden>
     <h2 id="recentTitle">Projects</h2>
     <p class="tiny sync-state" id="syncState" hidden></p>
+    <div class="project-sync-tools" id="projectSyncTools" hidden>
+      <span class="tiny">Projects sync automatically when online.</span>
+      <button type="button" class="mini" id="projectSyncNow">Sync now</button>
+    </div>
     <div class="recent-wrap">
       <table class="recent">
         <thead><tr><th>Preview</th><th>Name</th><th>Origin</th><th>Machine</th><th>Updated</th><th>BPM</th><th>Pattern</th><th></th></tr></thead>
@@ -1618,22 +1626,22 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-10-01.1"></script>
-<script src="engine/core.js?v=2026-10-01.1"></script>
-<script src="engine/styles-punk.js?v=2026-10-01.1"></script>
-<script src="engine/styles-post.js?v=2026-10-01.1"></script>
-<script src="engine/styles-machines.js?v=2026-10-01.1"></script>
-<script src="engine/styles-alt.js?v=2026-10-01.1"></script>
-<script src="engine/styles-groove.js?v=2026-10-01.1"></script>
-<script src="engine/styles-dub.js?v=2026-10-01.1"></script>
-<script src="engine/styles-break.js?v=2026-10-01.1"></script>
-<script src="engine/styles-soul.js?v=2026-10-01.1"></script>
-<script src="engine/styles-metal.js?v=2026-10-01.1"></script>
-<script src="engine/styles-electro.js?v=2026-10-01.1"></script>
-<script src="engine/variations.js?v=2026-10-01.1"></script>
-<script src="engine/import.js?v=2026-10-01.1"></script>
-<script src="engine/rhythm.js?v=2026-10-01.1"></script>
-<script src="engine/share.js?v=2026-10-01.1"></script>
+<script src="engine/machine-art.js?v=2026-10-01.2"></script>
+<script src="engine/core.js?v=2026-10-01.2"></script>
+<script src="engine/styles-punk.js?v=2026-10-01.2"></script>
+<script src="engine/styles-post.js?v=2026-10-01.2"></script>
+<script src="engine/styles-machines.js?v=2026-10-01.2"></script>
+<script src="engine/styles-alt.js?v=2026-10-01.2"></script>
+<script src="engine/styles-groove.js?v=2026-10-01.2"></script>
+<script src="engine/styles-dub.js?v=2026-10-01.2"></script>
+<script src="engine/styles-break.js?v=2026-10-01.2"></script>
+<script src="engine/styles-soul.js?v=2026-10-01.2"></script>
+<script src="engine/styles-metal.js?v=2026-10-01.2"></script>
+<script src="engine/styles-electro.js?v=2026-10-01.2"></script>
+<script src="engine/variations.js?v=2026-10-01.2"></script>
+<script src="engine/import.js?v=2026-10-01.2"></script>
+<script src="engine/rhythm.js?v=2026-10-01.2"></script>
+<script src="engine/share.js?v=2026-10-01.2"></script>
 <script>
 const KEYS =["1","2","3","4","q","w","e","r","a","s","d","f","z","x","c","v"];
 const PAD_LABEL = ["1","2","3","4","Q","W","E","R","A","S","D","F","Z","X","C","V"];
@@ -4169,7 +4177,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || document.getElementById("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-01.1";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-01.2";
   document.body.appendChild(s);
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth")) loadSynth();
@@ -4183,6 +4191,9 @@ fetch("/api/me",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(me=>{
     db=serverProjects(me.id);
     if(unsubRecent) unsubRecent();
     unsubRecent=db.collection("projects").onSnapshot(s=>renderRecent(s.docs.map(d=>({id:d.id,...d.data(),origin:"web"}))));
+    const syncTools=el("projectSyncTools"), syncNow=el("projectSyncNow");
+    if(syncTools) syncTools.hidden=false;
+    if(syncNow) syncNow.onclick=syncProjectsNow;
   }
   document.body.classList.toggle("guest",isGuest);
   el("whoami").textContent=me.name; el("whoami").hidden=false;
@@ -4679,7 +4690,7 @@ el("sDel").onclick=()=>{
 };
 
 // ---------- storage ----------
-let db=null, downloadsCap=null, currentProjectId=null, unsubRecent=null;
+let db=null, downloadsCap=null, currentProjectId=null, unsubRecent=null, projectSyncBusy=false;
 const LS_KEY="sp1200.projects";
 // Missione di una lezione del corso (?lesson=<id>, learn/coach.js): il beat della lezione ha una bozza sua,
 // cosi' non sovrascrive quella del lavoro vero; coach.js rimette DRAFT_MAIN se si apre un altro progetto.
@@ -4688,6 +4699,14 @@ const DRAFT_MAIN="sp1200.autodraft";
 let DRAFT_KEY=LESSON_ID?DRAFT_MAIN+".lesson":DRAFT_MAIN;
 const lsAll=()=>{ try{ return JSON.parse(localStorage.getItem(LS_KEY)||"{}"); }catch(e){ return {}; } };
 const lsWrite=o=>{ try{ localStorage.setItem(LS_KEY,JSON.stringify(o)); }catch(e){} };
+async function syncProjectsNow(){
+  const b=el("projectSyncNow");
+  if(!db?.server?.sync || projectSyncBusy) return;
+  projectSyncBusy=true;
+  if(b) b.disabled=true;
+  try{ await db.sync(); }
+  finally{ projectSyncBusy=false; if(b) b.disabled=false; }
+}
 
 // ---------- progetti sincronizzati con il server ----------
 // Per gli utenti registrati i progetti stanno sul server (uguali in ogni browser e dispositivo) e in una
@@ -6865,7 +6884,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-10-01.1";
+const SW_VERSION="2026-10-01.2";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -6889,11 +6908,11 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sample-editor.js?v=2026-10-01.1"></script>
-<script src="engine/sampler.js?v=2026-10-01.1"></script>
-<script src="engine/vocal.js?v=2026-10-01.1"></script>
+<script src="engine/sample-editor.js?v=2026-10-01.2"></script>
+<script src="engine/sampler.js?v=2026-10-01.2"></script>
+<script src="engine/vocal.js?v=2026-10-01.2"></script>
 <script>PMSampler.init(); PMVocal.init();</script>
-<script src="engine/midi.js?v=2026-10-01.1"></script>
+<script src="engine/midi.js?v=2026-10-01.2"></script>
 
 </body>
 </html>

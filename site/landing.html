@@ -562,7 +562,13 @@ const LANDING_TEXT = {
   }
 };
 
-const landingInitialLanguage = (() => { try { return localStorage.getItem("patternmachine.landing.lang") || (navigator.language.toLowerCase().startsWith("it") ? "it" : "en"); } catch (e) { return "en"; } })();
+const landingInitialLanguage = (() => {
+  try {
+    const requested = new URLSearchParams(window.location.search).get("lang");
+    if (requested && ["it", "en"].includes(requested.toLowerCase())) return requested.toLowerCase();
+    return localStorage.getItem("patternmachine.landing.lang") || (navigator.language.toLowerCase().startsWith("it") ? "it" : "en");
+  } catch (e) { return "en"; }
+})();
 window.__landingLang = landingInitialLanguage === "it" ? "it" : "en";
 function applyLandingLanguage(lang) {
   const x = LANDING_TEXT[lang];
@@ -621,8 +627,15 @@ function applyLandingLanguage(lang) {
   if (toggle) toggle.textContent = window.__landingPlaying === false ? (lang === "it" ? "Riproduci" : "Play") : (lang === "it" ? "Pausa" : "Pause");
   try { localStorage.setItem("patternmachine.landing.lang", lang); } catch (e) {}
 }
-document.getElementById("langIt").onclick = () => applyLandingLanguage("it");
-document.getElementById("langEn").onclick = () => applyLandingLanguage("en");
+function updateLandingLanguageUrl(lang) {
+  try {
+    const url = new URL(window.location.href);
+    url.searchParams.set("lang", lang);
+    window.history.replaceState(null, "", url);
+  } catch (e) {}
+}
+document.getElementById("langIt").onclick = () => { applyLandingLanguage("it"); updateLandingLanguageUrl("it"); };
+document.getElementById("langEn").onclick = () => { applyLandingLanguage("en"); updateLandingLanguageUrl("en"); };
 applyLandingLanguage(window.__landingLang);
 
 // Mappa di fabbrica delle manopole (come engine/midi.js): MPK mini Play mk3 8 manopole, MiniLab 3 8 manopole e 4 fader.

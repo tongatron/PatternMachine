@@ -288,11 +288,16 @@ l'accesso. Ogni lezione: ascolta → copia sulla mini drum machine con verifica 
 missione nella drum machine vera (`/?lesson=<id>`, scheda in `learn/coach.js`, bozza separata). Elenco dei livelli,
 lezioni pronte e missioni in `learn/lessons.js`; la mini drum machine è `learn/mini.js`.
 - [x] Prototipo: lezione **The backbeat** (livello 2), indice del corso, link "Learn" nella barra in alto.
-- [ ] Livelli 1–4 (primi passi, programmare a step, dinamica, tastiera). Nella tastiera: mappa dei tasti con
+- [x] Livelli 1–4 (primi passi, programmare a step, dinamica, tastiera). Nella tastiera: mappa dei tasti con
   quiz, "suona a tempo" con misura in ms, eco (la macchina suona, tu ripeti), registrazione a strati, Live View
   con ⌥+tasto, griglia senza mouse (sfida con il mouse disattivato), pad MIDI.
-- [ ] Livelli 5–6 (groove e suono, dal pattern al brano) e una **palestra** di esercizi ripetibili con record personali.
-- [ ] Livello 7 (stili, una lezione per genere con "genera altri in questo stile"), progetto finale, glossario.
+- [x] Livelli 5–6 (groove e suono, dal pattern al brano): swing, humanize, parametri per step, poliritmi,
+  kit, sezioni, fill, Sequencer e forma della canzone.
+- [x] Livello 7 (stili): lezioni per genere, con esercizi su boom bap, electro, house, techno, trap, breakbeat,
+  funk, reggae, dembow, afrobeat, bossa, synth-pop, post-punk, coldwave, industrial, trip-hop, indie dance e lo-fi indie.
+- [x] Livello 8 (suono e produzione): Sampler, resample e chop, synth insieme alla batteria, Mixer, registrazione
+  della voce ed export per MIDI, WAV, stems e DAW.
+- [ ] **Palestra** di esercizi ripetibili con record personali, progetto finale e glossario.
 - [ ] Avanzamento legato all'account (oggi solo nel browser, chiave `pm.learn`).
 - [ ] Tour dell'interfaccia con schermate numerate, rifatte da uno script quando cambia l'interfaccia.
 

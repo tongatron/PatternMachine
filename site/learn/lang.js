@@ -30,7 +30,7 @@
     let out=IT[s]||s;
     // Some lesson text is assembled from several fragments after the page loads.
     // Translate those fragments too, rather than only exact whole text nodes.
-    const extra=Object.values(window.PMLearnIT||{}).flatMap(x=>Object.entries(x).filter(([k])=>k!=="title"));
+    const extra=Object.values(window.PMLearnIT||{}).flatMap(x=>Object.entries(x).filter(([k,v])=>k!=="title"&&typeof v==="string"));
     [...Object.entries(IT),...extra].sort((a,b)=>b[0].length-a[0].length).forEach(([from,to])=>{ if(from && from!==to) out=out.split(from).join(to); });
     return out;
   }

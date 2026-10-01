@@ -1040,7 +1040,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
         <button id="newBtn">New</button>
         <button id="undoBtn" title="Undo the last change (⌘Z)" aria-label="Undo" disabled>↶ Undo</button>
         <button id="redoBtn" title="Redo what you undid (⌘⇧Z)" aria-label="Redo" disabled>↷ Redo</button>
-        <button id="viewRecent" title="Open saved projects" aria-label="Open saved projects"><span id="recentLabel">Saved projects</span> <span id="recentCount"></span></button>
+        <button id="viewRecent" title="Open projects" aria-label="Open projects"><span id="recentLabel">Projects</span> <span id="recentCount"></span></button>
       </div>
       <div class="project-io">
         <button id="viewMidi" hidden title="MIDI keyboard: connect it and choose what keys, pads and knobs do" aria-label="Open MIDI controller">MIDI</button>
@@ -1337,8 +1337,8 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     </p>
   </div>
 
-  <div class="panel" id="panelRecent" role="tabpanel" aria-label="Saved projects" hidden>
-    <h2 id="recentTitle">Saved projects</h2>
+  <div class="panel" id="panelRecent" role="tabpanel" aria-label="Projects" hidden>
+    <h2 id="recentTitle">Projects</h2>
     <p class="tiny sync-state" id="syncState" hidden></p>
     <div class="recent-wrap">
       <table class="recent">
@@ -4155,7 +4155,7 @@ fetch("/api/me",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(me=>{
   if(!me||!me.name) return;
   window.__me=me;
   isGuest=me.role==="guest"; isMember=!isGuest;
-  if(isMember){ el("recentLabel").textContent="Saved projects"; el("recentTitle").textContent="Saved projects"; }
+  if(isMember){ el("recentLabel").textContent="Projects"; el("recentTitle").textContent="Projects"; }
   // Progetti sul server per gli utenti registrati; l'app per Mac li tiene nei suoi file.
   if(isMember && me.id && !db && !window.pmDesktop && !window.claude){
     db=serverProjects(me.id);

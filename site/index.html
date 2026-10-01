@@ -2584,6 +2584,7 @@ function followSongPattern(){
 }
 
 async function play(){
+  stopSynthBlockPreview();
   stopAudition();
   const ctx=actx();
   if(ctx.state==="suspended") await ctx.resume();
@@ -3482,6 +3483,7 @@ function renderSong(){
     seqCards.push({el:card, prog:progFill, head:phead, rep:repNow});
 
     card.onclick=()=>{
+      stopSynthBlockPreview();
       ui.blockId=b.id;
       ui.songStartPos=seqLayout.blocks[idx]?.start||0;
       if(p) showBlockPattern(p);
@@ -3534,6 +3536,43 @@ function renderSong(){
 // ---------- corsia del synth nel Sequencer ----------
 const synthHue = id => (PATTERN_HUES[Math.max(0,(project.synthPatterns||[]).findIndex(p=>p.id===id))%PATTERN_HUES.length]+150)%360;
 let synthCards=[], synthDragFrom=null;
+const synthBlockPreview={blockId:null, pattern:null, timer:null, next:0, step:0};
+function paintSynthBlockPreview(){
+  document.querySelectorAll("#seqSynthTrack .synthblock").forEach(card=>{
+    const on=!!synthBlockPreview.blockId && card.dataset.blockId===synthBlockPreview.blockId;
+    card.classList.toggle("playing",on);
+    card.setAttribute("aria-label",on?"Stop synth pattern preview":"Select and listen to this synth pattern");
+  });
+}
+function stopSynthBlockPreview(){
+  clearInterval(synthBlockPreview.timer);
+  synthBlockPreview.timer=null;
+  const active=!!synthBlockPreview.blockId;
+  synthBlockPreview.blockId=null; synthBlockPreview.pattern=null; synthBlockPreview.next=0; synthBlockPreview.step=0;
+  if(active && window.PMSynth) PMSynth.allOff();
+  paintSynthBlockPreview();
+}
+async function startSynthBlockPreview(blockId,sp){
+  stopSynthBlockPreview();
+  if(!sp || !sp.synth?.length || !window.PMSynth) return;
+  if(playing) stop();
+  const ctx=actx();
+  if(ctx.state==="suspended") await ctx.resume();
+  const preview={blockId,pattern:sp,next:ctx.currentTime+0.08,step:0,timer:null};
+  synthBlockPreview.blockId=preview.blockId; synthBlockPreview.pattern=preview.pattern;
+  synthBlockPreview.next=preview.next; synthBlockPreview.step=preview.step;
+  paintSynthBlockPreview();
+  preview.timer=setInterval(()=>{
+    if(synthBlockPreview.blockId!==preview.blockId){ clearInterval(preview.timer); return; }
+    while(preview.next<ctx.currentTime+0.12){
+      PMSynth.step(preview.pattern,preview.step,preview.next);
+      preview.next+=stepDur(preview.step);
+      preview.step=(preview.step+1)%preview.pattern.len;
+      synthBlockPreview.next=preview.next; synthBlockPreview.step=preview.step;
+    }
+  },25);
+  synthBlockPreview.timer=preview.timer;
+}
 function synthPreview(sp){
   const box=document.createElement("div"); box.className="syn-prev";
   if(!sp){ box.innerHTML='<span class="rest-label">rest</span>'; return box; }
@@ -3566,7 +3605,9 @@ function renderSynthLane(){
   L.blocks.forEach((x,idx)=>{
     const b=x.b, sp=x.sp, bars=x.steps/rhythmBarSteps(), from=x.start/rhythmBarSteps()+1;
     const card=document.createElement("div");
-    card.className="seqblock synthblock"+(sp?"":" rest")+(b.id===ui.synthBlockId?" sel":"");
+    card.className="seqblock synthblock"+(sp?"":" rest")+(b.id===ui.synthBlockId?" sel":"")+(b.id===synthBlockPreview.blockId?" playing":"");
+    card.dataset.blockId=b.id;
+    card.tabIndex=0;
     card.draggable=true;
     if(sp) card.style.setProperty("--synth-color",`hsl(${synthHue(sp.id)} 65% 58%)`);
     const head=document.createElement("div"); head.className="seqblock-head";
@@ -3582,7 +3623,7 @@ function renderSynthLane(){
     project.synthPatterns.forEach(q=>{ const o=document.createElement("option"); o.value=q.id; o.textContent="♪ "+q.name; sel.appendChild(o); });
     sel.value=b.synthId||"";
     sel.onclick=e=>e.stopPropagation();
-    sel.onchange=()=>{ pushUndo(); if(sel.value){ b.synthId=sel.value; } else { b.len=x.len; b.synthId=null; } renderSong(); };
+    sel.onchange=()=>{ stopSynthBlockPreview(); pushUndo(); if(sel.value){ b.synthId=sel.value; } else { b.len=x.len; b.synthId=null; } renderSong(); };
     card.appendChild(blockPatternRow(sel, sp&&sp.name, ()=>renameSynthBlock(b)));
     if(!sp){
       const lsel=document.createElement("select"); lsel.setAttribute("aria-label","Length of the rest");
@@ -3613,13 +3654,21 @@ function renderSynthLane(){
     dup.onclick=e=>{ e.stopPropagation(); pushUndo(); const c={id:uid(), synthId:b.synthId, repeats:b.repeats, len:b.len||16};
       project.synthSong.splice(idx+1,0,c); ui.synthBlockId=c.id; renderSong(); };
     const del=document.createElement("button"); del.className="danger"; del.textContent="×"; del.title="remove";
-    del.onclick=e=>{ e.stopPropagation(); pushUndo(); project.synthSong.splice(idx,1);
+    del.onclick=e=>{ e.stopPropagation(); stopSynthBlockPreview(); pushUndo(); project.synthSong.splice(idx,1);
       ui.synthBlockId=project.synthSong[Math.min(idx,project.synthSong.length-1)]?.id||null; renderSong(); };
     foot.append(minus,rep,plus,repNow,dup,del); card.appendChild(foot);
     synthCards.push({el:card, prog:progFill, rep:repNow});
 
-    card.onclick=()=>{ ui.synthBlockId=b.id; if(sp){ ui.synthId=sp.id; el("seqSynthPick").value=sp.id; } ui.songStartPos=x.start; renderSong(); };
-    card.ondblclick=e=>{ if(e.target.closest("button,input,select,.seqblock-foot")) return; if(sp){ ui.synthId=sp.id; setView("synth"); } };
+    card.onclick=()=>{
+      const same=synthBlockPreview.blockId===b.id;
+      ui.synthBlockId=b.id;
+      if(sp){ ui.synthId=sp.id; el("seqSynthPick").value=sp.id; ui.songStartPos=x.start; }
+      else stopSynthBlockPreview();
+      renderSong();
+      if(sp){ if(same) stopSynthBlockPreview(); else startSynthBlockPreview(b.id,sp); }
+    };
+    card.onkeydown=e=>{ if((e.key==="Enter"||e.key===" ") && !e.target.closest("button,input,select,.seqblock-foot")){ e.preventDefault(); card.click(); } };
+    card.ondblclick=e=>{ if(e.target.closest("button,input,select,.seqblock-foot")) return; stopSynthBlockPreview(); if(sp){ ui.synthId=sp.id; setView("synth"); } };
     card.ondragstart=e=>{ synthDragFrom=idx; card.classList.add("dragging"); e.dataTransfer.effectAllowed="move"; };
     card.ondragend=()=>{ synthDragFrom=null; card.classList.remove("dragging"); clearDropMarks(); };
     card.ondragover=e=>{ if(synthDragFrom===null) return; e.preventDefault();
@@ -6154,6 +6203,7 @@ function auditionVoices(item){
   });
 }
 async function startAudition(item){
+  stopSynthBlockPreview();
   stopAudition();
   if(playing) stop();
   const ctx=actx();

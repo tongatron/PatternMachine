@@ -3669,7 +3669,7 @@ function setView(v){
   document.body.classList.toggle("mix-view",v==="mix");
   // La Vista Live mostra la stessa griglia della Griglia, senza il resto dell'interfaccia.
   // Il Synth tiene il pannello Pattern: le note stanno nel pattern scelto lì.
-  el("machinePanel").hidden = v==="midi" || v==="mix" || v==="sampler";   // anche nel Synthesizer: la batteria suona sotto il synth
+  el("machinePanel").hidden = v==="synth" || v==="midi" || v==="mix" || v==="sampler";
   el("panelPatterns").hidden = v!=="grid";
   el("panelGrid").hidden = v!=="grid" && v!=="sound";
   el("panelSeq").hidden = v!=="seq";

@@ -1110,9 +1110,8 @@
 .syn-gen-grid button{min-width:0; white-space:normal;}
 #synGenAgain{min-height:0; padding:6px 10px; font-size:10.5px;}
 #synPatChips{align-items:center; gap:7px;}
-.syn-pattern-actions{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px;}
-.syn-pattern-actions .syn-pattern-group{display:flex; flex-wrap:wrap; gap:6px;}
-.syn-pattern-actions button{min-width:92px;}
+.syn-pattern-actions{display:grid; grid-template-columns:repeat(2,minmax(92px,1fr)); grid-template-rows:repeat(2,auto); gap:6px;}
+.syn-pattern-actions button{width:100%; min-width:92px;}
 @media (max-width:560px){ .export-list.syn-gen{min-width:0; width:calc(100vw - 32px);} .syn-gen-grid{grid-template-columns:1fr;} .syn-gen-opts{grid-template-columns:1fr 1fr;} }
 .synth-credits{font-size:10px; color:var(--text-faint); margin:10px 0 0; line-height:1.5;}
 .synth-credits a{color:inherit;}
@@ -1146,8 +1145,10 @@
         <button id="synPatBrowse" class="mini primary" type="button" title="Suggestions from the generators: listen and apply">✦ Generate</button>
         <button id="synPatNew" class="mini" type="button" title="A new empty synth pattern">+ New</button>
         <span class="syn-pattern-actions">
-          <span class="syn-pattern-group"><button id="synPatDup" class="mini" type="button">Duplicate</button><button id="synPatRename" class="mini" type="button">Rename</button></span>
-          <span class="syn-pattern-group"><button id="synClear" class="mini" type="button" title="Remove every note of this synth pattern">Clear</button><button id="synPatDel" class="mini danger" type="button">Delete</button></span>
+          <button id="synPatDup" class="mini" type="button">Duplicate</button>
+          <button id="synClear" class="mini" type="button" title="Remove every note of this synth pattern">Clear</button>
+          <button id="synPatRename" class="mini" type="button">Rename</button>
+          <button id="synPatDel" class="mini danger" type="button">Delete</button>
         </span>
         <label class="fld" style="margin-left:auto;">Steps <select id="synPatLen"><option value="8">8</option><option value="16">16</option><option value="32">32</option></select></label>
       </div>`;

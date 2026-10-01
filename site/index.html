@@ -2754,7 +2754,14 @@ function renderDrumSound(){
       face.style.background=`conic-gradient(from 225deg,var(--accent) 0deg,var(--accent) ${sweep}deg,var(--panel-3) ${sweep}deg,var(--panel-3) 270deg,transparent 270deg)`;
       val.textContent=p.get(n);
     };
-    const write=()=>{ const n=+input.value; if(p.key==="vol") t.vol=n/100; else t[p.key]=n; if(p.key==="pan") applyPan(t.id); scheduleDraft(); paint(); };
+    const write=()=>{
+      const keepX=window.scrollX, keepY=window.scrollY;
+      const n=+input.value;
+      if(p.key==="vol") t.vol=n/100; else t[p.key]=n;
+      if(p.key==="pan") applyPan(t.id);
+      scheduleDraft(); paint();
+      requestAnimationFrame(()=>window.scrollTo(keepX,keepY));
+    };
     input.oninput=write;
     input.onchange=()=>pushUndo();
     paint();
@@ -2765,6 +2772,7 @@ function renderDrumSound(){
 }
 
 function renderTracks(){
+  const keepX=window.scrollX, keepY=window.scrollY;
   const pat=curPattern();
   const host=el("rows");
   host.innerHTML=""; stepEls=new Map(); lanePaint.clear();
@@ -2921,6 +2929,7 @@ function renderTracks(){
   });
   paintPlayhead();
   renderDrumSound();
+  requestAnimationFrame(()=>window.scrollTo(keepX,keepY));
 }
 
 // Menu del tasto destro su uno step: normale, accento, ghost o spento. Frecce e invio per sceglierlo da tastiera.

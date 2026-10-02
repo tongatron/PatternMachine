@@ -391,7 +391,7 @@ def main():
         doc = {"custom": {"Basso": {"p": {"cutoff": 20}, "t": 5}}, "tone": {}, "gone": {"custom": {}, "tone": {}}}
         check("preset salvati", presets(user, {"presets": doc})[0], 200)
         check("preset riletti", json.loads(user.call("/api/synth-presets")[2]), {"presets": doc})
-        check("preset troppo grandi", presets(user, {"presets": {"x": "y" * (600 * 1024)}})[0], 413)
+        check("preset troppo grandi", presets(user, {"presets": {"x": "y" * 530_000}})[0], 413)
 
         # --- segnalazioni ("Segnala un problema"): Telegram, altrimenti 503 se non c'e' niente di configurato ---
         del os.environ["PATTERNMACHINE_TELEGRAM_OUTBOX"]

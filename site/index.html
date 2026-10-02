@@ -1210,7 +1210,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 
   <div class="panel" id="panelTransport">
     <div class="flexline">
-      <button id="playBtn" title="Play / Stop (space bar)"><span class="ico">&#9654;</span> Play</button>
+      <button id="playBtn" title="Play (space bar)"><span class="ico">&#9654;</span> Play</button>
       <button id="stopBtn" type="button" title="Stop and return to the start" disabled>■ Stop</button>
       <div class="transport-mode" role="group" aria-label="Playback mode">
         <button type="button" id="modePatternBtn" class="on" aria-pressed="true">Pattern</button>
@@ -1220,6 +1220,9 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       <button id="drumsPlayBtn" type="button" hidden title="Play"><span class="ico">&#9654;</span> Play</button>
       <div class="transport-extra">
         <button id="loopBtn" class="mini live-keep" type="button" aria-pressed="true" title="Loop pattern on">Loop</button>
+        <label class="fld live-keep" title="Metronome count-in before playback">Count-in
+          <select id="countInSelect" aria-label="Count-in"><option value="0">Off</option><option value="1">1 bar</option><option value="2">2 bars</option></select>
+        </label>
         <button id="recBtn" class="live-keep"><span class="rec-dot" aria-hidden="true">&#9679;</span> Rec</button>
         <label class="fld live-keep">BPM
           <input type="range" id="bpmRange" min="40" max="240" value="95">
@@ -2622,12 +2625,14 @@ function applyPan(key){
 function applyLimiter(){ if(audioCtx) mixBus(audioCtx); }
 
 // ---------- transport ----------
-let playing=false, recording=false, synthOnly=false, drumsOnly=false;
+let playing=false, paused=false, recording=false, synthOnly=false, drumsOnly=false;
 let nextTime=0, timer=null;
 let cursor={step:0, blockIndex:0, rep:0, loops:0, patternId:null};
 let queue=[];
 let visible={step:-1, patternId:null, blockIndex:-1, bar:1};
 let barCount=1;
+let pauseState=null;
+let countingIn=false, countInLeft=0, countInTotal=0, countInStep=-1;
 
 // Livelli dello step: 1 normale, 2 accento, 3 nota fantasma (morbida).
 const stepVel = v => v===2 ? 1.0 : (v===3 ? 0.42 : 0.76);
@@ -2696,6 +2701,16 @@ function synthNow(pat){
 function scheduler(){
   const ctx=actx();
   while(nextTime < ctx.currentTime+0.12){
+    if(countInLeft>0){
+      const countStep=countInTotal-countInLeft;
+      const localStep=countStep%rhythmBarSteps();
+      const dur=stepDur(localStep), at=nextTime+stepOffset(localStep);
+      if(localStep%rhythmBeatSteps()===0) metronomeHit(at,localStep===0);
+      queue.push({time:at, dur, countIn:true, countInStep:countStep});
+      nextTime+=dur;
+      countInLeft--;
+      continue;
+    }
     const pat=playingPattern();
     if(!pat){ stop(); return; }
     const live=audibleTracks();
@@ -2746,6 +2761,12 @@ function frame(){
     let changed=false;
     while(queue.length && queue[0].time<=now){
       const e=queue.shift();
+      if(e.countIn){
+        countInStep=e.countInStep;
+        if(e.countInStep>=countInTotal-1) countingIn=false;
+        changed=true;
+        continue;
+      }
       visible={step:e.step, cycle:e.cycle, patternId:e.patternId, blockIndex:e.blockIndex, bar:e.bar, rep:e.rep, time:e.time, dur:e.dur,
         synthId:e.synthId, synthStep:e.synthStep, synthIndex:e.synthIndex};
       changed=true;
@@ -2779,15 +2800,26 @@ function openPattern(p){
   renderPatterns(); renderRuler(); renderTracks();
 }
 
-async function play(){
+async function play({resume=false}={}){
   stopSynthBlockPreview();
   stopAudition();
   const ctx=actx();
   if(ctx.state==="suspended") await ctx.resume();
   if(ui.mode==="song" && !project.song.length){ setStatus("the song is empty","err"); return; }
+  const continuing=resume && paused && pauseState;
   playing=true;
-  cursor={step:0, blockIndex:0, rep:0};
-  if(ui.mode==="song"){
+  paused=false;
+  if(continuing){
+    cursor={...pauseState.cursor};
+    barCount=pauseState.barCount;
+    visible={...pauseState.visible};
+    countInLeft=pauseState.countInLeft;
+    countInTotal=pauseState.countInTotal;
+    countInStep=pauseState.countInStep;
+    countingIn=pauseState.countingIn;
+  } else {
+    cursor={step:0, blockIndex:0, rep:0};
+    if(ui.mode==="song"){
     seqLayout=songLayout();
     const start=Math.max(0,Math.min(Math.max(0,seqLayout.total-1),ui.songStartPos||0));
     const startIdx=seqLayout.blocks.findIndex(x=>start<x.start+x.steps);
@@ -2798,39 +2830,60 @@ async function play(){
         rep:Math.floor(offset/blk.len), loops:0};
       ui.blockId=blk.b.id;
     }
+    }
+    if(ui.mode==="song" && ui.songSoloBlockId){
+      const i=project.song.findIndex(b=>b.id===ui.songSoloBlockId);
+      if(i>=0) cursor.blockIndex=i;
+    }
+    barCount=1; visible={step:-1, patternId:null, blockIndex:-1, bar:1};
+    countInTotal=Math.max(0,+el("countInSelect")?.value||0)*rhythmBarSteps();
+    countInLeft=countInTotal;
+    countInStep=-1;
+    countingIn=countInTotal>0;
   }
-  if(ui.mode==="song" && ui.songSoloBlockId){
-    const i=project.song.findIndex(b=>b.id===ui.songSoloBlockId);
-    if(i>=0) cursor.blockIndex=i;
-  }
-  barCount=1; queue=[]; resetWaveRecording();
+  pauseState=null; queue=[]; resetWaveRecording();
   project.tracks.forEach(t=>loadBuffer(t.sampleIndex));
   nextTime=ctx.currentTime+0.06;
   timer=setInterval(scheduler,25);
   paintTransport();
   paintWaveforms();
 }
+function pause(){
+  if(!playing) return;
+  pauseState={cursor:{...cursor}, barCount, visible:{...visible}, countInLeft, countInTotal, countInStep, countingIn};
+  playing=false;
+  paused=true;
+  clearInterval(timer); timer=null; queue=[];
+  if(window.PMSynth) PMSynth.allOff();
+  paintTransport();
+  paintPlayhead();
+  paintWaveAnimation();
+}
 function stop(){
   playing=false;
+  paused=false;
   synthOnly=false; drumsOnly=false;
   clearInterval(timer); timer=null; queue=[];
   if(window.PMSynth) PMSynth.allOff();
   ui.songStartPos=0;
+  pauseState=null;
+  countingIn=false; countInLeft=0; countInTotal=0; countInStep=-1;
   visible={step:-1, patternId:null, blockIndex:-1, bar:1};
   paintTransport();
   paintPlayhead();
   paintWaveAnimation();
 }
-const togglePlay = ()=> playing?stop():play();
+const togglePlay = ()=> playing?pause():(paused?play({resume:true}):startMainPlayback());
 
 function paintTransport(){
   const inSynth=!el("panelSynth").hidden, inDrums=el("viewGrid").classList.contains("on");
   const all=el("playBtn"), stopBtn=el("stopBtn"), loopBtn=el("loopBtn"), solo=el("synthPlayBtn"), drums=el("drumsPlayBtn");
   all.classList.toggle("on",playing);
-  all.innerHTML=playing ? '<span class="ico">&#9632;</span> Stop' : '<span class="ico">&#9654;</span> Play';
+  all.innerHTML=playing ? '<span class="ico">&#10074;&#10074;</span> Pause' : (paused ? '<span class="ico">&#9654;</span> Resume' : '<span class="ico">&#9654;</span> Play');
+  all.title=playing ? "Pause (space bar)" : (paused ? "Resume (space bar)" : "Play (space bar)");
   if(stopBtn){
-    stopBtn.disabled=!playing;
-    stopBtn.setAttribute("aria-disabled",String(!playing));
+    stopBtn.disabled=!playing && !paused;
+    stopBtn.setAttribute("aria-disabled",String(!playing && !paused));
   }
   if(loopBtn){
     loopBtn.classList.toggle("on",ui.loop);
@@ -2850,13 +2903,13 @@ function paintTransport(){
   paintDaw();
 }
 function toggleDrumsPlay(){
-  if(playing){ stop(); return; }
+  if(playing || paused){ stop(); return; }
   drumsOnly=true;
   play();
 }
 
 function toggleSynthPlay(){
-  if(playing){ stop(); return; }
+  if(playing || paused){ stop(); return; }
   synthOnly=true;
   play();
 }
@@ -3314,20 +3367,31 @@ function paintStep(b,v,i,m){
 
 function paintPlayhead(){
   const pat=curPattern();
-  const showHead = playing && (ui.mode==="pattern" ? true : visible.patternId===pat.id);
+  const active=playing||paused;
+  const showHead = active && !countingIn && (ui.mode==="pattern" ? true : visible.patternId===pat.id);
   const led=el("playheadLed"), label=el("playheadLabel");
   led.classList.toggle("on",playing && showHead);
   const beatSteps=rhythmBeatSteps();
-  label.textContent=playing && showHead ? `Step ${(visible.step??0)+1} · beat ${Math.floor((visible.step??0)/beatSteps)+1}` : "Ready";
+  if(countingIn){
+    const step=Math.max(0,countInStep), bar=Math.floor(step/rhythmBarSteps())+1, beat=Math.floor((step%rhythmBarSteps())/beatSteps)+1;
+    label.textContent=(paused?"Count-in paused":"Count-in")+` · ${bar}.${beat}`;
+  } else {
+    label.textContent=active && showHead ? `${paused?"Paused · ":""}Step ${(visible.step??0)+1} · beat ${Math.floor((visible.step??0)/beatSteps)+1}` : "Ready";
+  }
   stepEls.forEach((els,tid)=>{
     const at=stepIdx(pat,tid,visible.step,visible.cycle||0);
     els.forEach((b,i)=> b.classList.toggle("head", showHead && i===at));
   });
   // contatore: blocco (in Song) o battuta, poi battere e suddivisione
   const where=ui.mode==="song" ? `B${(visible.blockIndex??0)+1}` : visible.bar;
-  el("counter").textContent = playing
-    ? `${where} . ${Math.floor(visible.step/beatSteps)+1} . ${visible.step%beatSteps+1}`
-    : "1 . 1";
+  if(countingIn){
+    const step=Math.max(0,countInStep), bar=Math.floor(step/rhythmBarSteps())+1, beat=Math.floor((step%rhythmBarSteps())/beatSteps)+1;
+    el("counter").textContent=`Count-in ${bar} . ${beat}`;
+  } else {
+    el("counter").textContent = active && showHead
+      ? `${where} . ${Math.floor(visible.step/beatSteps)+1} . ${visible.step%beatSteps+1}`
+      : "1 . 1";
+  }
   const liveIdx=liveBlockIndex();
   document.querySelectorAll("#seqTrack .seqblock").forEach((b,i)=>b.classList.toggle("playing", i===liveIdx));
   document.querySelectorAll("#patternChips .pattern-btn").forEach(c=>
@@ -4718,7 +4782,7 @@ function startMainPlayback(){
   }
   play();
 }
-el("playBtn").onclick=()=>{ if(playing) stop(); else startMainPlayback(); };
+el("playBtn").onclick=togglePlay;
 el("stopBtn").onclick=()=>stop();
 function toggleLoop(){
   ui.loop=!ui.loop;
@@ -4744,7 +4808,7 @@ el("metronomeBtn").onclick=()=>{
 (function freeMetronome(){
   let next=0, beat=0, running=false;
   setInterval(()=>{
-    if(!ui.metronome || playing || !audioCtx || audioCtx.state!=="running"){ running=false; return; }
+    if(!ui.metronome || playing || paused || !audioCtx || audioCtx.state!=="running"){ running=false; return; }
     const ctx=audioCtx;
     if(!running){ running=true; next=ctx.currentTime+0.06; beat=0; }
     while(next < ctx.currentTime+0.12){
@@ -4851,6 +4915,7 @@ function setMode(m){
   }
   ui.mode=m;
   if(playing){ stop(); play(); }
+  else if(paused){ stop(); }
   paintTransport();
 }
 
@@ -5044,7 +5109,7 @@ el("sAdd").onclick=()=>{
 };
 el("sPlay").onclick=()=>{
   if(songIsEmpty("song")) return;
-  if(playing) stop();
+  if(playing || paused) stop();
   ui.blockId=project.song[0].id;
   ui.songStartPos=0;
   setMode("song"); play();

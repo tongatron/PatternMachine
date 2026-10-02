@@ -610,6 +610,8 @@ body.sound-view #liveKeysBtn{display:inline-flex; align-items:center;}
 .sync-state{margin:-4px 0 10px;}
 .sync-state.dirty{color:var(--text-dim);}
 .sync-state.err{color:var(--danger);}
+.sync-msg.ok{color:var(--ok); font-weight:700;}
+.sync-msg.err{color:var(--danger); font-weight:700;}
 .project-sync-tools{display:flex; align-items:center; gap:10px; margin:-2px 0 12px;}
 .project-sync-tools .tiny{color:var(--text-faint);}
 .project-sync-tools button{min-height:34px; padding:7px 12px; font-size:10px; letter-spacing:.08em; text-transform:uppercase;}
@@ -1077,7 +1079,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
         <button id="newBtn">New</button>
         <button id="undoBtn" title="Undo the last change (⌘Z)" aria-label="Undo" disabled>↶ Undo</button>
         <button id="redoBtn" title="Redo what you undid (⌘⇧Z)" aria-label="Redo" disabled>↷ Redo</button>
-        <button id="viewRecent" title="Open projects" aria-label="Open projects"><span id="recentLabel">Projects</span> <span id="recentCount"></span></button>
+        <button id="viewRecent" title="Open projects" aria-label="Open projects"><span id="recentLabel">Open projects</span></button>
       </div>
       <div class="project-io">
         <button id="viewMidi" hidden title="MIDI keyboard: connect it and choose what keys, pads and knobs do" aria-label="Open MIDI controller">MIDI</button>
@@ -1382,6 +1384,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <div class="project-sync-tools" id="projectSyncTools" hidden>
       <span class="tiny">Projects sync automatically when online.</span>
       <button type="button" class="mini" id="projectSyncNow">Sync now</button>
+      <span class="tiny sync-msg" id="projectSyncMsg" role="status" aria-live="polite"></span>
     </div>
     <div class="recent-wrap">
       <table class="recent">
@@ -1648,22 +1651,22 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-10-02.13"></script>
-<script src="engine/core.js?v=2026-10-02.13"></script>
-<script src="engine/styles-punk.js?v=2026-10-02.13"></script>
-<script src="engine/styles-post.js?v=2026-10-02.13"></script>
-<script src="engine/styles-machines.js?v=2026-10-02.13"></script>
-<script src="engine/styles-alt.js?v=2026-10-02.13"></script>
-<script src="engine/styles-groove.js?v=2026-10-02.13"></script>
-<script src="engine/styles-dub.js?v=2026-10-02.13"></script>
-<script src="engine/styles-break.js?v=2026-10-02.13"></script>
-<script src="engine/styles-soul.js?v=2026-10-02.13"></script>
-<script src="engine/styles-metal.js?v=2026-10-02.13"></script>
-<script src="engine/styles-electro.js?v=2026-10-02.13"></script>
-<script src="engine/variations.js?v=2026-10-02.13"></script>
-<script src="engine/import.js?v=2026-10-02.13"></script>
-<script src="engine/rhythm.js?v=2026-10-02.13"></script>
-<script src="engine/share.js?v=2026-10-02.13"></script>
+<script src="engine/machine-art.js?v=2026-10-03.1"></script>
+<script src="engine/core.js?v=2026-10-03.1"></script>
+<script src="engine/styles-punk.js?v=2026-10-03.1"></script>
+<script src="engine/styles-post.js?v=2026-10-03.1"></script>
+<script src="engine/styles-machines.js?v=2026-10-03.1"></script>
+<script src="engine/styles-alt.js?v=2026-10-03.1"></script>
+<script src="engine/styles-groove.js?v=2026-10-03.1"></script>
+<script src="engine/styles-dub.js?v=2026-10-03.1"></script>
+<script src="engine/styles-break.js?v=2026-10-03.1"></script>
+<script src="engine/styles-soul.js?v=2026-10-03.1"></script>
+<script src="engine/styles-metal.js?v=2026-10-03.1"></script>
+<script src="engine/styles-electro.js?v=2026-10-03.1"></script>
+<script src="engine/variations.js?v=2026-10-03.1"></script>
+<script src="engine/import.js?v=2026-10-03.1"></script>
+<script src="engine/rhythm.js?v=2026-10-03.1"></script>
+<script src="engine/share.js?v=2026-10-03.1"></script>
 <script>
 // Script principale di PATTERN-MACHINE: stato del progetto, audio, trasporto e interfaccia della pagina.
 // Il motore ritmico (SPEngine), i tempi (PMRhythm), import, link e gli altri moduli stanno in engine/*.js.
@@ -4449,7 +4452,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || el("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-02.13";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-03.1";
   document.body.appendChild(s);
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth")) loadSynth();
@@ -4457,7 +4460,7 @@ fetch("/api/me",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(me=>{
   if(!me||!me.name) return;
   window.__me=me;
   isGuest=me.role==="guest"; isMember=!isGuest;
-  if(isMember){ el("recentLabel").textContent="Projects"; el("recentTitle").textContent="Projects"; }
+  if(isMember) el("recentTitle").textContent="Projects";
   // Progetti sul server per gli utenti registrati; l'app per Mac li tiene nei suoi file.
   if(isMember && me.id && !db && !window.pmDesktop && !window.claude){
     db=serverProjects(me.id);
@@ -4977,13 +4980,26 @@ const DRAFT_MAIN="sp1200.autodraft";
 let DRAFT_KEY=LESSON_ID?DRAFT_MAIN+".lesson":DRAFT_MAIN;
 const lsAll=()=>{ try{ return JSON.parse(localStorage.getItem(LS_KEY)||"{}"); }catch(e){ return {}; } };
 const lsWrite=o=>{ try{ localStorage.setItem(LS_KEY,JSON.stringify(o)); }catch(e){} };
+// Sync now: il pulsante dice che sta lavorando e, accanto, resta scritto com'e' andata (con l'ora).
 async function syncProjectsNow(){
-  const b=el("projectSyncNow");
-  if(!db?.server?.sync || projectSyncBusy) return;
+  const b=el("projectSyncNow"), msg=el("projectSyncMsg");
+  if(!db?.server || !db.sync || projectSyncBusy) return;   // db.server e' un flag (true), non un oggetto
   projectSyncBusy=true;
-  if(b) b.disabled=true;
-  try{ await db.sync(); }
-  finally{ projectSyncBusy=false; if(b) b.disabled=false; }
+  const say=(text,kind="")=>{ if(msg){ msg.textContent=text; msg.className="tiny sync-msg"+(kind?" "+kind:""); } };
+  if(b){ b.disabled=true; b.textContent="Syncing…"; }
+  say("contacting the server…");
+  try{
+    // almeno mezzo secondo di "Syncing…": una sincronizzazione istantanea non deve sembrare un click a vuoto
+    await Promise.all([db.sync(), new Promise(r=>setTimeout(r,600))]);
+    const st=db.syncStatus(), at=new Date().toLocaleTimeString([], {hour:"2-digit", minute:"2-digit", second:"2-digit"});
+    const n=(await db.collection("projects").get()).docs.length, many=`${n} ${n===1?"project":"projects"}`;
+    if(st.error) say(st.offline ? `offline: ${many} saved in this browser, they will sync when you are back online`
+      : `sync failed: the server did not answer. ${many} saved in this browser, retrying in 30 s`, "err");
+    else if(st.pending) say(`${st.pending} still to send · last try ${at}`, "err");
+    else say(`synced ✓ ${many} up to date · ${at}`, "ok");
+    setStatus(st.error ? "sync failed: projects are safe in this browser" : st.pending ? "sync not complete yet" : "projects synced", st.error?"err":"");
+  }
+  finally{ projectSyncBusy=false; if(b){ b.disabled=false; b.textContent="Sync now"; } }
 }
 
 // ---------- progetti sincronizzati con il server ----------
@@ -5013,7 +5029,7 @@ function serverProjects(uid){
   const url=id=>"/api/projects/"+encodeURIComponent(id);
   const newId=()=>"p"+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
 
-  let running=null, again=false, retry=null;
+  let running=null, again=false, retry=null, failed=false;
   function paint(label,kind=""){
     const x=el("syncState"); if(!x) return;
     x.hidden=false; x.textContent=label; x.className="tiny sync-state"+(kind?" "+kind:"");
@@ -5078,8 +5094,10 @@ function serverProjects(uid){
       try{
         do{ again=false; await pushAndPull(); }while(again);
         const n=Object.keys(meta.dirty).length+Object.keys(meta.gone).length;
+        failed=false;
         paint(n?`${n} to sync`:"synced with your account ✓", n?"dirty":"");
       }catch(e){
+        failed=true;
         const n=Object.keys(meta.dirty).length+Object.keys(meta.gone).length;
         paint(navigator.onLine===false ? `offline: ${n} saved in this browser, will sync` : `sync failed: ${n} saved in this browser, retrying`,"err");
         retry=setTimeout(sync,30000);
@@ -5099,6 +5117,8 @@ function serverProjects(uid){
   sync();
   return {
     server:true, sync,
+    // com'e' finita l'ultima sincronizzazione (per i messaggi di Sync now)
+    syncStatus:()=>({error:failed, offline:navigator.onLine===false, pending:Object.keys(meta.dirty).length+Object.keys(meta.gone).length}),
     collection:()=>Object.assign({}, query, {
       async add(data){ const id=newId(); local[id]=data; meta.dirty[id]=1; changed(); return {id}; },
     }),
@@ -5451,10 +5471,8 @@ function renderRecent(list){
   body.innerHTML="";
   if(!list.length){
     body.innerHTML='<tr class="empty"><td colspan="8">no saved projects yet: use Save</td></tr>';
-    el("recentCount").textContent="";
     return;
   }
-  el("recentCount").textContent=`(${list.length})`;
   list.forEach(p=>{
     const tr=document.createElement("tr");
     tr.className="rec-row"+(p.id===currentProjectId?" current":"");
@@ -7229,7 +7247,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-10-02.13";
+const SW_VERSION="2026-10-03.1";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -7253,11 +7271,11 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sample-editor.js?v=2026-10-02.13"></script>
-<script src="engine/sampler.js?v=2026-10-02.13"></script>
-<script src="engine/vocal.js?v=2026-10-02.13"></script>
+<script src="engine/sample-editor.js?v=2026-10-03.1"></script>
+<script src="engine/sampler.js?v=2026-10-03.1"></script>
+<script src="engine/vocal.js?v=2026-10-03.1"></script>
 <script>PMSampler.init(); PMVocal.init();</script>
-<script src="engine/midi.js?v=2026-10-02.13"></script>
+<script src="engine/midi.js?v=2026-10-03.1"></script>
 
 </body>
 </html>

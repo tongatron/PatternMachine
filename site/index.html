@@ -1425,7 +1425,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
           <select id="genLen"><option>8</option><option>12</option><option>16</option><option>18</option><option>24</option><option>32</option><option>36</option></select>
         </label>
         <label class="fld"><input type="checkbox" id="genFill"> Fill</label>
-        <label class="fld" title="Keep the project's BPM and swing when applying a suggestion"><input type="checkbox" id="genKeepTempo" checked> Keep project tempo</label>
+        <label class="fld" title="Keep the project's BPM and swing when listening to and applying a suggestion"><input type="checkbox" id="genKeepTempo" checked> Keep project tempo</label>
         <label class="fld" title="Suggest beats close to a tempo (±5 BPM), the closest first">Tempo
           <select id="genTempo">
             <option value="project" id="genTempoProject">Near the project</option>
@@ -1648,22 +1648,22 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-10-02.11"></script>
-<script src="engine/core.js?v=2026-10-02.11"></script>
-<script src="engine/styles-punk.js?v=2026-10-02.11"></script>
-<script src="engine/styles-post.js?v=2026-10-02.11"></script>
-<script src="engine/styles-machines.js?v=2026-10-02.11"></script>
-<script src="engine/styles-alt.js?v=2026-10-02.11"></script>
-<script src="engine/styles-groove.js?v=2026-10-02.11"></script>
-<script src="engine/styles-dub.js?v=2026-10-02.11"></script>
-<script src="engine/styles-break.js?v=2026-10-02.11"></script>
-<script src="engine/styles-soul.js?v=2026-10-02.11"></script>
-<script src="engine/styles-metal.js?v=2026-10-02.11"></script>
-<script src="engine/styles-electro.js?v=2026-10-02.11"></script>
-<script src="engine/variations.js?v=2026-10-02.11"></script>
-<script src="engine/import.js?v=2026-10-02.11"></script>
-<script src="engine/rhythm.js?v=2026-10-02.11"></script>
-<script src="engine/share.js?v=2026-10-02.11"></script>
+<script src="engine/machine-art.js?v=2026-10-02.12"></script>
+<script src="engine/core.js?v=2026-10-02.12"></script>
+<script src="engine/styles-punk.js?v=2026-10-02.12"></script>
+<script src="engine/styles-post.js?v=2026-10-02.12"></script>
+<script src="engine/styles-machines.js?v=2026-10-02.12"></script>
+<script src="engine/styles-alt.js?v=2026-10-02.12"></script>
+<script src="engine/styles-groove.js?v=2026-10-02.12"></script>
+<script src="engine/styles-dub.js?v=2026-10-02.12"></script>
+<script src="engine/styles-break.js?v=2026-10-02.12"></script>
+<script src="engine/styles-soul.js?v=2026-10-02.12"></script>
+<script src="engine/styles-metal.js?v=2026-10-02.12"></script>
+<script src="engine/styles-electro.js?v=2026-10-02.12"></script>
+<script src="engine/variations.js?v=2026-10-02.12"></script>
+<script src="engine/import.js?v=2026-10-02.12"></script>
+<script src="engine/rhythm.js?v=2026-10-02.12"></script>
+<script src="engine/share.js?v=2026-10-02.12"></script>
 <script>
 // Script principale di PATTERN-MACHINE: stato del progetto, audio, trasporto e interfaccia della pagina.
 // Il motore ritmico (SPEngine), i tempi (PMRhythm), import, link e gli altri moduli stanno in engine/*.js.
@@ -4449,7 +4449,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || el("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-02.11";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-02.12";
   document.body.appendChild(s);
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth")) loadSynth();
@@ -6508,9 +6508,12 @@ async function startAudition(item){
   Object.assign(audition,{voices, step:0, next:ctx.currentTime+0.05});
   audition.timer=setInterval(()=>{
     const it=audition.item; if(!it) return;
-    const rr=PMRhythm.normalize(it.rhythm||rhythm()), ibpm=it.bpm||bpm();
+    // I suggerimenti della libreria, con "Keep project tempo", si ascoltano al BPM e allo swing del progetto: quello
+    // che si sente e' quello che resta dopo Replace. Le anteprime dei progetti salvati (it.voices) tengono il loro tempo.
+    const keep=!it.voices && el("genKeepTempo")?.checked;
+    const rr=PMRhythm.normalize(it.rhythm||rhythm()), ibpm=keep?bpm():it.bpm||bpm(), isw=keep?+el("swingRange").value||0:+it.swing||0;
     while(audition.next<ctx.currentTime+0.12){
-      const tt=PMRhythm.timing(ibpm,rr,+it.swing||0,audition.step);
+      const tt=PMRhythm.timing(ibpm,rr,isw,audition.step);
       audition.voices.forEach(v=>{ const x=v.arr[audition.step]; if(x) trigger(v.track,audition.next+tt.offset+nudgeOf(v.track),stepVel(x)); });
       audition.next+=tt.dur;
       audition.step=(audition.step+1)%it.len;
@@ -7226,7 +7229,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-10-02.11";
+const SW_VERSION="2026-10-02.12";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -7250,11 +7253,11 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sample-editor.js?v=2026-10-02.11"></script>
-<script src="engine/sampler.js?v=2026-10-02.11"></script>
-<script src="engine/vocal.js?v=2026-10-02.11"></script>
+<script src="engine/sample-editor.js?v=2026-10-02.12"></script>
+<script src="engine/sampler.js?v=2026-10-02.12"></script>
+<script src="engine/vocal.js?v=2026-10-02.12"></script>
 <script>PMSampler.init(); PMVocal.init();</script>
-<script src="engine/midi.js?v=2026-10-02.11"></script>
+<script src="engine/midi.js?v=2026-10-02.12"></script>
 
 </body>
 </html>

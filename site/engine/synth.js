@@ -958,6 +958,15 @@
       ${GEN_GROUPS.map(gr => `<div class="export-head">${esc(gr)}</div><div class="syn-gen-grid">${Object.entries(GENERATORS).filter(([, g]) => g.group === gr)
         .map(([k, g]) => `<button type="button" data-gen="${k}"${on.has(k) ? ' class="on"' : ""} aria-pressed="${on.has(k)}" title="${esc(on.has(k) ? "active in this pattern · click to turn it off" : g.hint || "")}">${esc(g.label)}</button>`).join("")}</div>`).join("")}`;
   }
+  // Accende nel menu aperto le variazioni attive, senza ricostruirlo (le scelte in alto restano dove sono).
+  function paintGenButtons() {
+    const on = activeGens();
+    el("synGen").querySelectorAll("[data-gen]").forEach(b => {
+      const k = b.dataset.gen, a = on.has(k);
+      b.classList.toggle("on", a); b.setAttribute("aria-pressed", a);
+      b.title = a ? "active in this pattern · click to turn it off" : GENERATORS[k].hint || "";
+    });
+  }
   function paintGen() {
     const b = el("synGenAgain"); if (!b) return;
     const g = GENERATORS[genOpts().last];
@@ -1277,8 +1286,9 @@
     el("synGen").innerHTML = genMenuHtml();
     el("synGen").onclick = e => {
       const b = e.target.closest("[data-gen]"); if (!b) return;
-      el("synGenMenu").open = false;
+      // il menu resta aperto (lo chiude chi lo usa): si provano e si sommano piu' variazioni di seguito
       if (b.classList.contains("on")) stopGenerator(b.dataset.gen); else runGenerator(b.dataset.gen);
+      paintGenButtons();
     };
     el("synGen").onchange = () => {
       view.gen = { ...genOpts(), prog: el("synGenProg").value, dens: el("synGenDens").value, oct: +el("synGenOct").value, add: el("synGenAdd").checked };

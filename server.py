@@ -52,7 +52,7 @@ DOWNLOAD_PLATFORMS = {
 
 # Visibili senza password: servono al browser per installare la PWA e alle anteprime dei link;
 # landing.html presenta il progetto a chi non ha ancora un account (con le sue schermate).
-OPEN_PATHS = {"/landing.html", "/funzioni.html", "/macchine.html", "/plugin.html", "/embed.html", "/privacy.html", "/robots.txt", "/sitemap.xml", "/login", "/logout", "/register", "/forgot", "/reset", "/manifest.json", "/api/app-message", "/assets/og-sp1200.png", "/assets/og-drum-machine-lab.jpg", "/assets/patternmachine-preview.jpg"}
+OPEN_PATHS = {"/landing.html", "/funzioni.html", "/macchine.html", "/plugin.html", "/embed.html", "/privacy.html", "/robots.txt", "/sitemap.xml", "/login", "/logout", "/register", "/forgot", "/reset", "/manifest.json", "/api/app-message", "/assets/og-sp1200.png", "/assets/og-drum-machine-lab.jpg", "/assets/patternmachine-preview.jpg", "/assets/og-pattern-machine.png"}
 OPEN_DIRS = ("/icons/", "/assets/landing/")
 
 # Dietro la password niente cache condivise (Cloudflare): "private" tiene la copia solo nel
@@ -661,22 +661,22 @@ PAGE_SHELL = """<!doctype html>
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#a3a097">
 <title>PATTERN-MACHINE — {title}</title>
-<meta name="description" content="Step drum machine with SP-1200, RX-5, 808, 909, 707, 606, CR-78, LinnDrum, DMX and more: pattern generator in dozens of styles, variations, song arranger and MIDI export.">
+<meta name="description" content="Step drum machine in the browser with 14 classic machines, from the SP-1200 and TR-808 to the TR-909 and RX-5. Patterns, songs and MIDI, WAV and MP3 export.">
 <!-- Anteprima dei link: chi condivide un link arriva qui (il sito e' dietro accesso), quindi i tag stanno in questa pagina. -->
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="PatternMachine">
-<meta property="og:title" content="PatternMachine — step drum machine with pattern generator">
-<meta property="og:description" content="Step drum machine with SP-1200, RX-5, 808, 909, 707, 606, CR-78, LinnDrum, DMX and more: pattern generator in dozens of styles, variations, song arranger and MIDI export.">
-<meta property="og:image" content="https://patternmachine.tongatron.org/assets/og-drum-machine-lab.jpg">
-<meta property="og:image:type" content="image/jpeg">
+<meta property="og:site_name" content="PATTERN-MACHINE">
+<meta property="og:title" content="PATTERN-MACHINE — drum machines and patterns in the browser">
+<meta property="og:description" content="Step drum machine in the browser with 14 classic machines, from the SP-1200 and TR-808 to the TR-909 and RX-5. Patterns, songs and MIDI, WAV and MP3 export.">
+<meta property="og:image" content="https://patternmachine.tongatron.org/assets/og-pattern-machine.png">
+<meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="800">
-<meta property="og:image:alt" content="SP-1200, TR-808, TR-909 and Yamaha RX5 with the PatternMachine interface in front">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="PATTERN-MACHINE, drum machines and patterns in the browser: SP-1200, TR-808, TR-909, RX-5, LinnDrum, TR-707, DMX, CR-78, TR-606, Drumulator, TR-727, SDS-V, DrumTraks, CR-8000">
 <meta property="og:url" content="https://patternmachine.tongatron.org/">
 <meta property="og:locale" content="en_US">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="PatternMachine — step drum machine with pattern generator">
-<meta name="twitter:image" content="https://patternmachine.tongatron.org/assets/og-drum-machine-lab.jpg">
+<meta name="twitter:title" content="PATTERN-MACHINE — drum machines and patterns in the browser">
+<meta name="twitter:image" content="https://patternmachine.tongatron.org/assets/og-pattern-machine.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <style>

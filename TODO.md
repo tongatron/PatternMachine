@@ -330,7 +330,7 @@ in italiano. Restano in italiano, perché fuori da queste pagine:
 - [ ] Spegnere il vecchio indirizzo `drummachine.tongatron.org` (oggi fa solo il trasloco dei dati salvati nel
   browser verso quello nuovo) quando nessuno lo usa piu': togliere l'hostname dal tunnel Cloudflare e `OLD_HOSTS`
   da `server.py`.
-- [ ] Immagine di anteprima dei link (`assets/og-drum-machine-lab.jpg`): rifarla col nuovo nome.
+- [x] Immagine di anteprima dei link: rifatta col nuovo nome (`assets/og-pattern-machine.png`, solo testo con l'elenco delle macchine).
 
 ## Manutenzione
 - [ ] **Remote git** per avere una copia del codice fuori dal Mac (i kit 808/909 restano fuori da git).

@@ -137,12 +137,12 @@ def main():
         for path in ["/engine/core.js", "/samples/Kick%201%20SP-1200.wav", "/machines/rx5/BDrum1-RX5.wav", "/sw.js", "/api/patterns", "/server.py"]:
             check("anonimo bloccato " + path, anon.call(path)[0], 401)
         # Anteprima dei link: senza password si vede l'immagine e la pagina di accesso porta i tag og:
-        st, hd, body = anon.call("/assets/og-drum-machine-lab.jpg")
+        st, hd, body = anon.call("/assets/og-pattern-machine.png")
         check("immagine di anteprima pubblica", st, 200)
-        check("immagine di anteprima jpeg", hd.get("content-type"), "image/jpeg")
+        check("immagine di anteprima png", hd.get("content-type"), "image/png")
         check("immagine di anteprima leggera", len(body) < 600_000, True)
         login_html = anon.call("/login")[2].decode()
-        check("pagina di accesso con og:image", 'property="og:image" content="https://patternmachine.tongatron.org/assets/og-drum-machine-lab.jpg"' in login_html, True)
+        check("pagina di accesso con og:image", 'property="og:image" content="https://patternmachine.tongatron.org/assets/og-pattern-machine.png"' in login_html, True)
         check("pagina di accesso con og:title", 'property="og:title"' in login_html, True)
         check("anonimo /api/me", anon.call("/api/me")[0], 401)
         s, _, body = anon.call("/api/app-message")

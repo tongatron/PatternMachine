@@ -2,7 +2,7 @@
   "id": "/",
   "name": "PATTERN-MACHINE",
   "short_name": "PATTERN-MACHINE",
-  "description": "Step drum machine with SP-1200, Yamaha RX-5, Roland TR-606 and TR-909, Logic samples, patterns, songs and MIDI export. Also works offline.",
+  "description": "Step drum machine with 14 classic machines, from the SP-1200 and TR-808 to the TR-909 and RX-5: patterns, songs and MIDI, WAV and MP3 export. Also works offline.",
   "lang": "en",
   "dir": "ltr",
   "start_url": "/?source=pwa",

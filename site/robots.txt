@@ -1,0 +1,15 @@
+User-agent: *
+Disallow: /login
+Disallow: /register
+Disallow: /forgot
+Disallow: /reset
+Disallow: /admin
+Disallow: /api/
+Disallow: /download/
+Disallow: /app.html
+Disallow: /synth.html
+Disallow: /index.html
+Disallow: /learn/
+Disallow: /embed.html
+
+Sitemap: https://patternmachine.tongatron.org/sitemap.xml

@@ -38,7 +38,7 @@ PATTERN_ID_RE = re.compile(r"^/api/patterns/([A-Za-z0-9\-]+)$")
 
 # Si serve solo cio' che fa parte del sito: server.py, mail.json, data/ e qualunque altro
 # file lasciato nella cartella (backup, appunti) restano fuori.
-STATIC_FILES = {"index.html", "landing.html", "funzioni.html", "macchine.html", "synth.html", "app.html", "plugin.html", "embed.html", "privacy.html", "manifest.json", "sw.js"}
+STATIC_FILES = {"index.html", "landing.html", "funzioni.html", "macchine.html", "synth.html", "app.html", "plugin.html", "embed.html", "privacy.html", "manifest.json", "sw.js", "robots.txt", "sitemap.xml"}
 # download/: le app (zip da ~100 MB) e app.json con versione e dimensione, scritti da desktop/scripts/release.sh;
 # il plug-in per Logic e plugin.json, scritti da plugin/scripts/release.sh.
 # learn/: il corso (lezioni e mini drum machine), come il resto del sito solo per chi ha l'accesso.
@@ -52,7 +52,7 @@ DOWNLOAD_PLATFORMS = {
 
 # Visibili senza password: servono al browser per installare la PWA e alle anteprime dei link;
 # landing.html presenta il progetto a chi non ha ancora un account (con le sue schermate).
-OPEN_PATHS = {"/landing.html", "/embed.html", "/privacy.html", "/login", "/logout", "/register", "/forgot", "/reset", "/manifest.json", "/api/app-message", "/assets/og-sp1200.png", "/assets/og-drum-machine-lab.jpg", "/assets/patternmachine-preview.jpg"}
+OPEN_PATHS = {"/landing.html", "/funzioni.html", "/macchine.html", "/plugin.html", "/embed.html", "/privacy.html", "/robots.txt", "/sitemap.xml", "/login", "/logout", "/register", "/forgot", "/reset", "/manifest.json", "/api/app-message", "/assets/og-sp1200.png", "/assets/og-drum-machine-lab.jpg", "/assets/patternmachine-preview.jpg"}
 OPEN_DIRS = ("/icons/", "/assets/landing/")
 
 # Dietro la password niente cache condivise (Cloudflare): "private" tiene la copia solo nel
@@ -75,6 +75,8 @@ CONTENT_TYPES = {
     ".js": "application/javascript; charset=utf-8",
     ".css": "text/css; charset=utf-8",
     ".json": "application/json; charset=utf-8",
+    ".xml": "application/xml; charset=utf-8",
+    ".txt": "text/plain; charset=utf-8",
     ".md": "text/markdown; charset=utf-8",
     ".zip": "application/zip",
     ".exe": "application/vnd.microsoft.portable-executable",
@@ -1378,7 +1380,8 @@ class Handler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Content-Type", CONTENT_TYPES.get(ext, "application/octet-stream"))
         self.send_header("Content-Length", str(size))
-        self.send_header("Cache-Control", "private, no-cache" if ext in NO_CACHE_EXT else LONG_CACHE)
+        cache = "public, max-age=3600" if ext in (".txt", ".xml") else ("private, no-cache" if ext in NO_CACHE_EXT else LONG_CACHE)
+        self.send_header("Cache-Control", cache)
         self.send_header("X-Content-Type-Options", "nosniff")
         parsed = urlparse(self.path)
         embed_frame = rel == "embed.html" or (rel == "index.html" and parse_qs(parsed.query).get("embed") == ["1"])

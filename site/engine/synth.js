@@ -3,7 +3,7 @@
 //
 // Dati nel progetto (li salvano serialize()/deserialize() di index.html):
 //   project.synth = {preset, key, scale, mute, params:{...manopole, uParams:{unita': {id: valore}}}}
-//   project.synthPatterns = [{id, name, len, synth:[{s:step, n:nota MIDI, l:lunghezza in step, a:1 accento, g:1 slide, k:generatore che l'ha scritta}]}]
+//   project.synthPatterns = [{id, name, len, synth:[{s:step, n:nota MIDI, l:lunghezza in step, a:1 accento, g:1 slide, k:generatore che l'ha scritta o "rec" se registrata dal vivo}]}]
 //   project.synthSong = corsia del synth nella canzone (vedi index.html, synthLayout())
 // Nomi delle note come in Logic: 60 = C3.
 //
@@ -508,7 +508,7 @@
     const notes = pat.synth;
     const i = notes.findIndex(x => x.s === s && x.n === n);
     if (i >= 0) notes.splice(i, 1);
-    const note = { s, n, l: 1, ...(accent ? { a: 1 } : {}) };
+    const note = { s, n, l: 1, k: "rec", ...(accent ? { a: 1 } : {}) };   // k:"rec" = registrata: Clear recording le ritrova
     notes.push(note);
     renderRoll();
     return { note, pat };
@@ -1184,6 +1184,7 @@
         <label class="fld">Scale <select id="synScale"></select></label>
         <details class="export-menu" id="synGenMenu"><summary>Generate ▾</summary><div class="export-list syn-gen" id="synGen"></div></details>
         <button id="synGenAgain" class="mini" type="button" hidden>↻ Again</button>
+        <button id="synRecClear" class="mini danger" type="button" hidden title="Remove the notes recorded live in this pattern, ready for a new take (generated and hand-drawn notes stay)">✕ Clear recording</button>
         <details class="export-menu" id="synMidiMenu"><summary>MIDI ▾</summary><div class="export-list">
           <div class="export-head">Synth line only</div>
           <button id="synMidiPat" type="button" title="The synth notes of this pattern as a .mid file for a Logic software instrument">MIDI pattern</button>
@@ -1309,6 +1310,12 @@
     document.addEventListener("click", e => {
       for (const id of ["synGenMenu", "synMidiMenu"]) if (!el(id).contains(e.target)) el(id).open = false;
     });
+    // Toglie solo le note registrate dal vivo (k:"rec"): il pattern e' pronto per una nuova registrazione.
+    el("synRecClear").onclick = () => {
+      const pat = curSynth(), n = pat.synth.filter(x => x.k === "rec").length; if (!n) return;
+      pushUndo(); pat.synth = pat.synth.filter(x => x.k !== "rec"); renderRoll();
+      setStatus(`synth: ${n} recorded ${n === 1 ? "note" : "notes"} cleared · ready for a new take`);
+    };
     el("synClear").onclick = () => {
       const pat = curSynth(); if (!pat.synth.length) return;
       pushUndo(); pat.synth = []; renderRoll(); setStatus("synth notes cleared");
@@ -1643,6 +1650,7 @@
   function renderRoll() {
     if (!built) return;
     const pat = curSynth(), roll = el("synRoll");
+    el("synRecClear").hidden = !(pat.synth || []).some(x => x.k === "rec");
     const { rows, inScale } = rowsFor(), len = pat.len, k = keyOf();
     roll.style.gridTemplateColumns = `56px repeat(${len}, minmax(${len > 16 ? 16 : 22}px, 1fr))`;
     const cover = new Map();   // "nota:step" -> nota che copre la cella

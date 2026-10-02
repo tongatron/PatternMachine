@@ -994,14 +994,18 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
   .topbar #accountLinks{margin-left:0;}
   #viewGrid, #viewSeq, #viewSynth, #viewSampler, #viewMix, #viewRecent{padding:10px 14px;}
 }
-/* Mixer: console tecnica. Una striscia per riga della griglia, poi i gruppi e il master. I pozzetti dei meter
-   restano scuri anche nel tema chiaro, come i LED di una console. */
+/* Mixer: console tecnica. Una striscia per riga della griglia, poi i gruppi e il master. Pozzetti (meter, pan,
+   letture) e LED prendono i colori del tema: incassati e chiari nel tema chiaro, scuri solo in quello scuro. */
+:root{--mx-well:#16171a; --mx-led-off:#26282b; --mx-read:#cfd4cf; --mx-mark:#f2efe6; --mx-clip-off:#3a1d1a;
+  --mx-g:#3fae5a; --mx-y:#e3b33a; --mx-r:#e2432f;}
+:root[data-theme="light"]{--mx-well:#c6c3b8; --mx-led-off:#b1aea3; --mx-read:#1c1b19; --mx-mark:#1c1b19; --mx-clip-off:#c2a49b;
+  --mx-g:#2e9a49; --mx-y:#d98f0c; --mx-r:#d8321e;}
 .mix-info{display:flex; flex-wrap:wrap; gap:3px 18px; margin:-4px 0 10px; font:10px var(--mono,monospace); color:var(--text-faint); font-variant-numeric:tabular-nums;}
 .mix-info b{color:var(--text-dim); font-weight:600;}
 .mix-strips{display:flex; gap:4px; overflow-x:auto; padding:2px 2px 10px; align-items:stretch;}
-.mx{--mx-well:#16171a; flex:0 0 auto; width:80px; display:flex; flex-direction:column; align-items:stretch; gap:6px;
+.mx{flex:0 0 auto; width:88px; display:flex; flex-direction:column; align-items:stretch; gap:6px;
   background:var(--plate,var(--panel-2)); border:1px solid var(--edge); border-radius:6px; padding:6px 6px 8px; font-variant-numeric:tabular-nums;}
-.mx.group{background:var(--panel-3);}
+.mx.group{background:var(--panel-3); width:98px;}
 .mx.master{width:124px; border-color:var(--accent-dim);}
 .mx.off .mx-body, .mx.off .mx-name, .mx.off .mx-panrow{opacity:.42;}
 .mx-sep{flex:0 0 1px; background:var(--edge); margin:0 4px;}
@@ -1011,25 +1015,28 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
   padding:3px 0; border-top:1px solid var(--edge-soft); border-bottom:1px solid var(--edge-soft);}
 .mx-panrow{display:flex; flex-direction:column; gap:2px;}
 .mx-panrow.empty{visibility:hidden;}
-.mx-pan{position:relative; height:14px; border-radius:3px; background:var(--mx-well); border:1px solid var(--edge); cursor:ew-resize; touch-action:none; outline:none;}
-.mx-pan::before{content:""; position:absolute; left:50%; top:2px; bottom:2px; width:1px; background:rgba(255,255,255,.3);}
+.mx-pan{position:relative; height:14px; border-radius:3px; background:var(--mx-well); border:1px solid var(--edge); box-shadow:inset 0 1px 2px rgba(0,0,0,.28); cursor:ew-resize; touch-action:none; outline:none;}
+.mx-pan::before{content:""; position:absolute; left:50%; top:2px; bottom:2px; width:1px; background:var(--mx-mark); opacity:.4;}
 .mx-pan i{position:absolute; top:4px; bottom:4px; background:var(--accent); border-radius:1px;}
-.mx-pan b{position:absolute; top:1px; bottom:1px; width:3px; margin-left:-1.5px; background:#efece4; border-radius:1px;}
+.mx-pan b{position:absolute; top:1px; bottom:1px; width:3px; margin-left:-1.5px; background:var(--mx-mark); border-radius:1px;}
 .mx-pan:focus-visible{outline:2px solid var(--accent); outline-offset:1px;}
 .mx-panval{font:9px var(--mono,monospace); color:var(--text-dim); text-align:center;}
 .mx-body{display:flex; gap:3px; justify-content:center; height:190px;}
 .mx-meter{display:block; height:190px;}
-.mx-fader{position:relative; flex:0 0 32px; height:190px; cursor:ns-resize; touch-action:none; outline:none;}
-.mx-fader::before{content:""; position:absolute; left:8px; top:11px; bottom:11px; width:4px; margin-left:-2px; border-radius:2px; background:var(--mx-well); box-shadow:inset 0 0 0 1px var(--edge);}
-.mx-fader .tick{position:absolute; left:15px; font:8px var(--mono,monospace); line-height:1; color:var(--text-faint); transform:translateY(-50%); white-space:nowrap; pointer-events:none;}
-.mx-cap{position:absolute; left:8px; width:18px; height:22px; margin:-11px 0 0 -9px; border-radius:3px;
+/* la scala del fader sta a destra della corsa, fuori dal cappuccio: i numeri restano leggibili a ogni posizione */
+.mx-fader{position:relative; flex:0 0 40px; height:190px; cursor:ns-resize; touch-action:none; outline:none;}
+.mx-fader::before{content:""; position:absolute; left:9px; top:11px; bottom:11px; width:4px; margin-left:-2px; border-radius:2px; background:var(--mx-well); box-shadow:inset 0 0 0 1px var(--edge), inset 0 1px 2px rgba(0,0,0,.3);}
+.mx-fader .tick{position:absolute; left:22px; font:8px var(--mono,monospace); line-height:1; color:var(--text-faint); transform:translateY(-50%); white-space:nowrap; pointer-events:none;}
+.mx-fader .tick::before{content:""; position:absolute; left:-3px; top:50%; width:2px; height:1px; background:currentColor;}
+.mx-cap{position:absolute; left:9px; width:18px; height:22px; margin:-11px 0 0 -9px; border-radius:3px;
   background:linear-gradient(#f5f3ed,#c8c4b9); border:1px solid #57544c; box-shadow:0 2px 4px rgba(0,0,0,.35); pointer-events:none;}
 .mx-cap::after{content:""; position:absolute; left:2px; right:2px; top:50%; height:2px; margin-top:-1px; background:#1d1d1d;}
 .mx-fader:focus-visible .mx-cap{outline:2px solid var(--accent); outline-offset:1px;}
 .mx-read{display:grid; grid-template-columns:1fr 1fr; gap:3px; font:9px var(--mono,monospace); text-align:center;}
-.mx-read span{padding:3px 0; border-radius:3px; background:var(--mx-well); color:#cfd4cf; white-space:nowrap; overflow:hidden;}
+.mx-read small{font-size:7.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-faint);}
+.mx-read span{padding:3px 0; border-radius:3px; background:var(--mx-well); color:var(--mx-read); font-weight:600; white-space:nowrap; overflow:hidden; box-shadow:inset 0 1px 2px rgba(0,0,0,.28);}
 .mx-read .pk{cursor:pointer;}
-.mx-read .pk.over{color:#ff6b57;}
+.mx-read .pk.over{color:var(--mx-r);}
 .mx-btns{display:flex; gap:4px; justify-content:center;}
 .mx-lim{padding:4px 7px; font-size:9.5px;}
 .mx-lim.on{background:var(--key-primary,var(--accent)); color:var(--on-accent); border-color:var(--accent-dim); font-weight:700;}
@@ -1641,22 +1648,22 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-10-02.7"></script>
-<script src="engine/core.js?v=2026-10-02.7"></script>
-<script src="engine/styles-punk.js?v=2026-10-02.7"></script>
-<script src="engine/styles-post.js?v=2026-10-02.7"></script>
-<script src="engine/styles-machines.js?v=2026-10-02.7"></script>
-<script src="engine/styles-alt.js?v=2026-10-02.7"></script>
-<script src="engine/styles-groove.js?v=2026-10-02.7"></script>
-<script src="engine/styles-dub.js?v=2026-10-02.7"></script>
-<script src="engine/styles-break.js?v=2026-10-02.7"></script>
-<script src="engine/styles-soul.js?v=2026-10-02.7"></script>
-<script src="engine/styles-metal.js?v=2026-10-02.7"></script>
-<script src="engine/styles-electro.js?v=2026-10-02.7"></script>
-<script src="engine/variations.js?v=2026-10-02.7"></script>
-<script src="engine/import.js?v=2026-10-02.7"></script>
-<script src="engine/rhythm.js?v=2026-10-02.7"></script>
-<script src="engine/share.js?v=2026-10-02.7"></script>
+<script src="engine/machine-art.js?v=2026-10-02.8"></script>
+<script src="engine/core.js?v=2026-10-02.8"></script>
+<script src="engine/styles-punk.js?v=2026-10-02.8"></script>
+<script src="engine/styles-post.js?v=2026-10-02.8"></script>
+<script src="engine/styles-machines.js?v=2026-10-02.8"></script>
+<script src="engine/styles-alt.js?v=2026-10-02.8"></script>
+<script src="engine/styles-groove.js?v=2026-10-02.8"></script>
+<script src="engine/styles-dub.js?v=2026-10-02.8"></script>
+<script src="engine/styles-break.js?v=2026-10-02.8"></script>
+<script src="engine/styles-soul.js?v=2026-10-02.8"></script>
+<script src="engine/styles-metal.js?v=2026-10-02.8"></script>
+<script src="engine/styles-electro.js?v=2026-10-02.8"></script>
+<script src="engine/variations.js?v=2026-10-02.8"></script>
+<script src="engine/import.js?v=2026-10-02.8"></script>
+<script src="engine/rhythm.js?v=2026-10-02.8"></script>
+<script src="engine/share.js?v=2026-10-02.8"></script>
 <script>
 // Script principale di PATTERN-MACHINE: stato del progetto, audio, trasporto e interfaccia della pagina.
 // Il motore ritmico (SPEngine), i tempi (PMRhythm), import, link e gli altri moduli stanno in engine/*.js.
@@ -4226,9 +4233,11 @@ function renderMixer(){
     body.append(cv,f);
     const read=document.createElement("div"); read.className="mx-read";
     const vol=document.createElement("span"), pk=document.createElement("span");
-    vol.title="Fader level"; pk.className="pk"; pk.title="Highest peak since the last reset · click: reset all";
+    vol.title="Fader gain in dB"; pk.className="pk"; pk.title="Highest peak since the last reset · click: reset all";
     pk.onclick=()=>mixMeters.forEach(m=>{ m.max=-Infinity; });
-    read.append(vol,pk);
+    const lab=text=>{ const x=document.createElement("small"); x.textContent=text; return x; };
+    read.append(lab("gain"),lab("peak"),vol,pk);
+    f.title="Volume · drag or arrow keys · double-click: default";
     d.append(body,read);
     // i fader che muovono un cursore della pagina (fader.src) salvano gia' la bozza da li'
     const fc=mxControl(f,{vertical:true, min:0, max:100, step:1, def:fader.def??100, get:fader.get, set:fader.set,
@@ -4254,7 +4263,7 @@ function renderMixer(){
       return b;
     };
     btns.append(mk("m","M","mute","Mute"), mk("s","S","solo","Solo"));
-    const d=strip({num:String(i+1).padStart(2,"0"), name:sampleLabel(t.sampleIndex), route:"→ DRM",
+    const d=strip({num:String(i+1).padStart(2,"0"), name:sampleLabel(t.sampleIndex), route:"→ Drums",
       fader:{def:80, get:()=>Math.round((t.vol??0.8)*100), set:v=>{ t.vol=v/100; }},
       pan:{get:()=>t.pan||0, set:v=>{ t.pan=v; applyPan(t.id); }},
       meter:mixOut(actx(),t.id) && bus.ch.get(t.id).an, extra:btns});
@@ -4272,9 +4281,9 @@ function renderMixer(){
     });
     return d;
   };
-  strip({num:"GRP", name:"Drums", title:"All the drums (Vol. drums)", route:"→ MST", cls:"group", fader:slider("drumsVol",100),
+  strip({num:"GRP", name:"Drums", title:"All the drums (Vol. drums)", route:"→ Master", cls:"group", fader:slider("drumsVol",100),
     meter:bus.drumsLR, extra:groupBtns("drums")});
-  if(window.PMSynth) strip({num:"GRP", name:"Synth", title:"The synth line (Vol. synth)", route:"→ MST", cls:"group", fader:slider("synthVol",100),
+  if(window.PMSynth) strip({num:"GRP", name:"Synth", title:"The synth line (Vol. synth)", route:"→ Master", cls:"group", fader:slider("synthVol",100),
     pan:{get:()=>project.synthPan||0, set:v=>{ project.synthPan=v; applyPan("synth"); }},
     meter:mixOut(actx(),"synth") && bus.ch.get("synth").lr, extra:groupBtns("synth")});
   sep();
@@ -4284,14 +4293,14 @@ function renderMixer(){
   lim.onclick=()=>{ project.limiter=!limiterOn(); applyLimiter(); paintLim(); };
   paintLim();
   const box=document.createElement("div"); box.className="mx-btns"; box.appendChild(lim);
-  strip({num:"MST", name:"Master", title:"General volume: drums, synth and metronome (Vol. general)", route:"→ OUT", cls:"group master",
+  strip({num:"MST", name:"Master", title:"General volume: drums, synth and metronome (Vol. general)", route:"→ Out", cls:"group master",
     fader:slider("masterVol",85), meter:bus.anLR, gr:true, extra:box});
   mixLast=performance.now();
   if(!mixRaf) mixRaf=requestAnimationFrame(paintMeters);
 }
 const mxY = db => 4+(MX_MAX-clamp(db,MX_MIN,MX_MAX))/(MX_MAX-MX_MIN)*(MX_H-8);
 // Un meter: scala in dB a sinistra, poi una colonna di LED per canale; sul master anche la riduzione del limiter.
-function drawMeter(m,now,grDb){
+function drawMeter(m,now,grDb,K){
   const dpr=window.devicePixelRatio||1, W=m.w, H=MX_H, c=m.cv.getContext("2d");
   if(m.cv.width!==Math.round(W*dpr)){ m.cv.width=Math.round(W*dpr); m.cv.height=Math.round(H*dpr); }
   c.setTransform(dpr,0,0,dpr,0,0); c.clearRect(0,0,W,H);
@@ -4306,21 +4315,21 @@ function drawMeter(m,now,grDb){
   const bw=9, seg=3;
   m.ch.forEach((ch,k)=>{
     const x=18+k*(bw+2);
-    c.fillStyle="#16171a"; c.fillRect(x,0,bw,H);
+    c.fillStyle=K.well; c.fillRect(x,0,bw,H);
     for(let y=H-4-seg; y>=4; y-=seg){
       const db=MX_MAX-(y+seg/2-4)/(H-8)*(MX_MAX-MX_MIN);
-      const col=db>0?"#e2432f":db>-6?"#e3b33a":"#3fae5a";
-      c.fillStyle=db<=ch.rms?col:db<=ch.pk?col:"#26282b"; c.globalAlpha=db<=ch.rms?1:db<=ch.pk?.42:1;
+      const col=db>0?K.r:db>-6?K.y:K.g;
+      c.fillStyle=db<=ch.rms?col:db<=ch.pk?col:K.off; c.globalAlpha=db<=ch.rms?1:db<=ch.pk?.42:1;
       c.fillRect(x+1,y,bw-2,seg-1);
     }
     c.globalAlpha=1;
-    if(isFinite(ch.hold) && ch.hold>MX_MIN){ c.fillStyle=ch.hold>0?"#ff6b57":"#f2efe6"; c.fillRect(x+1,Math.round(mxY(ch.hold))-1,bw-2,2); }
-    c.fillStyle=ch.clip>now?"#ff3b25":"#3a1d1a"; c.fillRect(x+1,0,bw-2,3);
+    if(isFinite(ch.hold) && ch.hold>MX_MIN){ c.fillStyle=ch.hold>0?K.r:K.mark; c.fillRect(x+1,Math.round(mxY(ch.hold))-1,bw-2,2); }
+    c.fillStyle=ch.clip>now?K.r:K.clipOff; c.fillRect(x+1,0,bw-2,3);
   });
   if(m.gr){
     const x=18+m.ch.length*(bw+2)+1, gw=9, h=clamp01(-grDb/12)*(H-8);
-    c.fillStyle="#16171a"; c.fillRect(x,0,gw,H);
-    c.fillStyle="#e3b33a"; c.fillRect(x+1,4,gw-2,h);
+    c.fillStyle=K.well; c.fillRect(x,0,gw,H);
+    c.fillStyle=K.y; c.fillRect(x+1,4,gw-2,h);
     c.fillStyle=ink; c.globalAlpha=.8; c.textAlign="center"; c.fillText("GR",x+gw/2,H-2); c.globalAlpha=1;
   }
 }
@@ -4330,6 +4339,9 @@ function paintMeters(){
   const now=performance.now(), dt=Math.min(0.1,(now-mixLast)/1000); mixLast=now;
   const bus=audioCtx && mixBuses.get(audioCtx);
   const gr=bus && bus.limOn ? (x=>typeof x==="object"?x.value:x)(bus.lim.reduction) : 0;
+  // colori del tema per pozzetti e LED, letti a ogni giro: il mixer segue subito il cambio Light/Dark
+  const K={well:cssToken("--mx-well","#16171a"), off:cssToken("--mx-led-off","#26282b"), mark:cssToken("--mx-mark","#f2efe6"),
+    clipOff:cssToken("--mx-clip-off","#3a1d1a"), g:cssToken("--mx-g","#3fae5a"), y:cssToken("--mx-y","#e3b33a"), r:cssToken("--mx-r","#e2432f")};
   mixMeters.forEach(m=>{
     let top=-Infinity;
     m.ans.forEach((an,k)=>{
@@ -4347,8 +4359,9 @@ function paintMeters(){
       top=Math.max(top,pdb);
     });
     if(top>m.max) m.max=top;
-    drawMeter(m,now,gr);
-    m.pk.textContent=isFinite(m.max)?fmtDb(m.max):"—"; m.pk.classList.toggle("over",m.max>0);
+    drawMeter(m,now,gr,K);
+    // sotto la scala dei meter (silenzio, o residui a -200 dB) il picco e' "nessun segnale"
+    m.pk.textContent=m.max>MX_MIN-48?fmtDb(m.max):"−∞"; m.pk.classList.toggle("over",m.max>0);
     // i cursori in alto (o il MIDI) possono muovere gli stessi volumi: la striscia li segue
     if(m.src && !m.fader.dragging() && document.activeElement!==m.fader.node) m.fader.paint();
   });
@@ -4436,7 +4449,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || el("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-02.7";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-02.8";
   document.body.appendChild(s);
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth")) loadSynth();
@@ -7213,7 +7226,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-10-02.7";
+const SW_VERSION="2026-10-02.8";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -7237,11 +7250,11 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sample-editor.js?v=2026-10-02.7"></script>
-<script src="engine/sampler.js?v=2026-10-02.7"></script>
-<script src="engine/vocal.js?v=2026-10-02.7"></script>
+<script src="engine/sample-editor.js?v=2026-10-02.8"></script>
+<script src="engine/sampler.js?v=2026-10-02.8"></script>
+<script src="engine/vocal.js?v=2026-10-02.8"></script>
 <script>PMSampler.init(); PMVocal.init();</script>
-<script src="engine/midi.js?v=2026-10-02.7"></script>
+<script src="engine/midi.js?v=2026-10-02.8"></script>
 
 </body>
 </html>

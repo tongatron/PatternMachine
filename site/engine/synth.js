@@ -3,7 +3,7 @@
 //
 // Dati nel progetto (li salvano serialize()/deserialize() di index.html):
 //   project.synth = {preset, key, scale, mute, params:{...manopole, uParams:{unita': {id: valore}}}}
-//   project.synthPatterns = [{id, name, len, synth:[{s:step, n:nota MIDI, l:lunghezza in step, a:1 accento, g:1 slide}]}]
+//   project.synthPatterns = [{id, name, len, synth:[{s:step, n:nota MIDI, l:lunghezza in step, a:1 accento, g:1 slide, k:generatore che l'ha scritta}]}]
 //   project.synthSong = corsia del synth nella canzone (vedi index.html, synthLayout())
 // Nomi delle note come in Logic: 60 = C3.
 //
@@ -810,15 +810,27 @@
       for (let tries = 0; tries < 6 && !notes.length; tries++)
         notes = g.run(pat).map(x => ({ ...x, n: x.n + shift })).filter(x => x.n >= 0 && x.n <= 127 && x.s >= 0 && x.s < len);
     } finally { dens = 1; }
-    notes.forEach(x => { x.l = clamp(Math.round(x.l || 1), 1, len - x.s); if (x.g && x.s + x.l >= len) delete x.g; });
+    // k: il generatore che ha scritto la nota. Serve al menu Generate per accendere le variazioni attive e toglierle.
+    notes.forEach(x => { x.l = clamp(Math.round(x.l || 1), 1, len - x.s); if (x.g && x.s + x.l >= len) delete x.g; x.k = k; });
     return notes.sort((a, b) => a.s - b.s || a.n - b.n);
+  }
+  // Le variazioni attive nel pattern aperto: i generatori di cui restano note.
+  const activeGens = () => new Set(curSynth().synth.map(x => x.k).filter(k => GENERATORS[k]));
+  // Spegne una variazione: toglie dal pattern le note che quel generatore ha scritto (il resto non si tocca).
+  function stopGenerator(k) {
+    const g = GENERATORS[k], pat = curSynth(); if (!g || !pat.synth.some(x => x.k === k)) return;
+    pushUndo();
+    pat.synth = pat.synth.filter(x => x.k !== k);
+    renderRoll();
+    setStatus(`synth: ${g.group.toLowerCase()} · ${g.label.toLowerCase()} off`);
   }
   function runGenerator(k) {
     const g = GENERATORS[k]; if (!g) return;
     const o = genOpts(), pat = curSynth();
     let notes = generateNotes(k, pat.len);
     pushUndo(); ensure();
-    if (o.add) { const key = x => x.s + ":" + x.n, fresh = new Set(notes.map(key)); notes = pat.synth.filter(x => !fresh.has(key(x))).concat(notes); }
+    // in aggiunta: un nuovo giro dello stesso generatore prende il posto del suo giro precedente, non ci si somma
+    if (o.add) { const key = x => x.s + ":" + x.n, fresh = new Set(notes.map(key)); notes = pat.synth.filter(x => x.k !== k && !fresh.has(key(x))).concat(notes); }
     pat.synth = notes.sort((a, b) => a.s - b.s || a.n - b.n);
     view.gen = { ...o, last: k }; saveView(); paintGen();
     centerOn(pat); renderRoll();
@@ -935,16 +947,16 @@
   }
 
   function genMenuHtml() {
-    const o = genOpts(), sel = (id, pairs, v) => `<select id="${id}">${pairs.map(([k, l]) => `<option value="${esc(k)}"${String(k) === String(v) ? " selected" : ""}>${esc(l)}</option>`).join("")}</select>`;
+    const o = genOpts(), on = activeGens(), sel = (id, pairs, v) => `<select id="${id}">${pairs.map(([k, l]) => `<option value="${esc(k)}"${String(k) === String(v) ? " selected" : ""}>${esc(l)}</option>`).join("")}</select>`;
     return `<div class="syn-gen-opts">
         <label>Chords ${sel("synGenProg", Object.entries(PROGRESSIONS).map(([k, [l]]) => [k, l]), o.prog)}</label>
         <label>Density ${sel("synGenDens", [["sparse", "Sparse"], ["normal", "Normal"], ["busy", "Busy"]], o.dens)}</label>
         <label>Octave ${sel("synGenOct", [[-1, "−1"], [0, "0"], [1, "+1"]], o.oct)}</label>
         <label class="syn-gen-add"><input type="checkbox" id="synGenAdd"${o.add ? " checked" : ""}> Add to the notes already there (layer bass, chords, melody)</label>
       </div>
-      <p class="syn-note">In the key and scale chosen above. One chord every 8 steps: a 16-step pattern uses the first two chords, 32 steps all four.</p>
+      <p class="syn-note">In the key and scale chosen above. One chord every 8 steps: a 16-step pattern uses the first two chords, 32 steps all four. Orange = active in this pattern: click it again to turn it off.</p>
       ${GEN_GROUPS.map(gr => `<div class="export-head">${esc(gr)}</div><div class="syn-gen-grid">${Object.entries(GENERATORS).filter(([, g]) => g.group === gr)
-        .map(([k, g]) => `<button type="button" data-gen="${k}"${g.hint ? ` title="${esc(g.hint)}"` : ""}>${esc(g.label)}</button>`).join("")}</div>`).join("")}`;
+        .map(([k, g]) => `<button type="button" data-gen="${k}"${on.has(k) ? ' class="on"' : ""} aria-pressed="${on.has(k)}" title="${esc(on.has(k) ? "active in this pattern · click to turn it off" : g.hint || "")}">${esc(g.label)}</button>`).join("")}</div>`).join("")}`;
   }
   function paintGen() {
     const b = el("synGenAgain"); if (!b) return;
@@ -1108,6 +1120,7 @@
 .syn-gen-grid{display:grid; grid-template-columns:1fr 1fr; gap:4px;}
 .syn-gen-grid button{font-size:10.5px; padding:6px 8px;}
 .syn-gen-grid button{min-width:0; white-space:normal;}
+.syn-gen-grid button.on{background:var(--key-primary,var(--accent)); color:var(--on-accent); border-color:var(--accent-dim); font-weight:700;}
 #synGenAgain{min-height:0; padding:6px 10px; font-size:10.5px;}
 #synPatChips{align-items:center; gap:7px;}
 .syn-pattern-actions{display:grid; grid-template-columns:repeat(2,minmax(92px,1fr)); grid-template-rows:repeat(2,auto); gap:6px;}
@@ -1265,7 +1278,7 @@
     el("synGen").onclick = e => {
       const b = e.target.closest("[data-gen]"); if (!b) return;
       el("synGenMenu").open = false;
-      runGenerator(b.dataset.gen);
+      if (b.classList.contains("on")) stopGenerator(b.dataset.gen); else runGenerator(b.dataset.gen);
     };
     el("synGen").onchange = () => {
       view.gen = { ...genOpts(), prog: el("synGenProg").value, dens: el("synGenDens").value, oct: +el("synGenOct").value, add: el("synGenAdd").checked };
@@ -1276,6 +1289,7 @@
     el("synGenMenu").ontoggle = () => {
       const L = el("synGen"); L.style.left = "";
       if (!el("synGenMenu").open) return;
+      L.innerHTML = genMenuHtml();          // le variazioni attive dipendono dal pattern aperto in questo momento
       const r = L.getBoundingClientRect(), over = r.right - (innerWidth - 16);
       if (over > 0) L.style.left = Math.max(-over, 16 - r.left) + "px";
     };

@@ -290,6 +290,7 @@ dialog.sed::backdrop{background:rgba(0,0,0,.55);}
 .sed-foot{display:flex; flex-wrap:wrap; justify-content:space-between; gap:4px 16px; align-items:baseline;}
 .sed-help{margin:0; font-size:9.5px; color:var(--text-faint); line-height:1.45;}
 .sed-status{font-size:10px; color:var(--text-dim);}
+#sedSave.saved:disabled{opacity:1; color:var(--ok); border-color:var(--ok); font-weight:700;}
 .sed-status.err{color:var(--danger);}
 @media (max-width:640px){
   .sed-shell{padding:10px 10px calc(10px + env(safe-area-inset-bottom)); gap:8px;}
@@ -636,11 +637,17 @@ dialog.sed::backdrop{background:rgba(0,0,0,.55);}
     const n = len(), dirty = st.id !== st.saved;
     $("sedTitle").textContent = st.name;
     $("sedInfo").innerHTML = `${fmt(n / st.sr)} · ${(st.sr / 1000).toFixed(1)} kHz · ${st.chs.length === 1 ? "mono" : st.chs.length === 2 ? "stereo" : st.chs.length + " channels"} · peak ${dbfs(dsp.peak(st.chs))}`
-      + (dirty ? " · <b>not saved</b>" : "");
+      + (dirty ? " · <b>not saved</b>" : st.savedOnce ? " · saved ✓" : "");
     // con un effetto o il Chop aperti si salva dopo averli chiusi; durante il Chop il pezzo (la selezione) resta fermo
     const busy = !!(st.fx || st.chop), chop = !!st.chop;
     $("sedUndo").disabled = !st.undo.length || chop; $("sedRedo").disabled = !st.redo.length || chop;
-    $("sedSave").disabled = !dirty || busy;
+    // Save dice sempre a che punto e': da salvare (acceso), in corso, salvato (✓ verde) o niente da salvare
+    const sv = $("sedSave");
+    sv.disabled = !dirty || busy || !!st.saving;
+    sv.textContent = st.saving ? "Saving…" : dirty ? "Save" : st.savedOnce ? "✓ Saved" : "No changes";
+    sv.classList.toggle("primary", dirty || !!st.saving); sv.classList.toggle("saved", !dirty && !!st.savedOnce && !st.saving);
+    sv.title = dirty ? (busy ? "Close the effect or Chop first, then save" : "Replace the sample: the grid rows and the synth that use it play the edit")
+      : st.savedOnce ? "Saved: the grid rows and the synth that use this sample play the edit" : "Nothing to save yet: edit the sound first";
     $("sedSaveNew").disabled = $("sedExport").disabled = busy;
     for (const b of ui.dlg.querySelectorAll("[data-need-sel]")) b.disabled = !hasSel();
     $("sedZoomSel").disabled = !hasSel(); $("sedNone").disabled = !hasSel() || chop;
@@ -1111,15 +1118,19 @@ dialog.sed::backdrop{background:rgba(0,0,0,.55);}
         if (name === null || !st) return;
         const next = await st.opts.saveAsNew(blob, audioBuffer(), name);
         if (!next) return;
-        st.opts = { ...st.opts, ...next }; st.name = next.name; st.saved = st.id;
+        st.opts = { ...st.opts, ...next }; st.name = next.name; st.saved = st.id; st.savedOnce = true;
         note("saved as “" + next.name + "”: you are now editing the new sample");
       } else {
-        if (await st.opts.save(blob, audioBuffer()) === false) return;
-        st.saved = st.id;
+        st.saving = true; refresh();
+        const done = await st.opts.save(blob, audioBuffer());
+        if (!st) return;
+        st.saving = false;
+        if (done === false) { refresh(); return; }
+        st.saved = st.id; st.savedOnce = true;
         note("saved: the grid and the synth play the edit");
       }
       refresh();
-    } catch (e) { note(e && e.message ? e.message : "The sample could not be saved", true); }
+    } catch (e) { if (st) { st.saving = false; refresh(); } note(e && e.message ? e.message : "The sample could not be saved", true); }
   }
   async function close() {
     if (!st) return;

@@ -5,6 +5,7 @@
 //   project.synth = {preset, key, scale, mute, params:{...manopole, uParams:{unita': {id: valore}}}}
 //   project.synthPatterns = [{id, name, len, synth:[{s:step, n:nota MIDI, l:lunghezza in step, a:1 accento, g:1 slide, k:generatore che l'ha scritta o "rec" se registrata dal vivo}]}]
 //   project.synthSong = corsia del synth nella canzone (vedi index.html, synthLayout())
+// I preset salvati dall'utente stanno nel browser (localStorage) e, per chi ha un account, anche sul server: vedi syncPresets().
 // Nomi delle note come in Logic: 60 = C3.
 //
 // Usa dal sito (variabili globali dello script principale): actx, project, curPattern, curSynth, synthById, makeSynthPattern, uid,
@@ -141,7 +142,75 @@
       return JSON.parse(localStorage.getItem(key) || old || "{}");
     } catch (e) { return {}; }
   }
-  function writeUserPresets(o) { try { localStorage.setItem(userPresetKey(), JSON.stringify(o)); } catch (e) { setStatus("presets can't be saved in this browser", "err"); } }
+  function writeUserPresets(o) {
+    // per la sincronizzazione: l'ora di ogni preset cambiato e una lapide per quelli tolti
+    const bank = engineOf() === "tone" ? "tone" : "custom", before = userPresets(), m = presetMeta(), now = Date.now();
+    for (const n of Object.keys(o)) if (JSON.stringify(o[n]) !== JSON.stringify(before[n])) { m.t[bank][n] = now; delete m.gone[bank][n]; }
+    for (const n of Object.keys(before)) if (!(n in o)) { delete m.t[bank][n]; m.gone[bank][n] = now; }
+    try { localStorage.setItem(userPresetKey(), JSON.stringify(o)); localStorage.setItem(META_KEY, JSON.stringify(m)); }
+    catch (e) { setStatus("presets can't be saved in this browser", "err"); }
+    clearTimeout(presetSyncTimer); presetSyncTimer = setTimeout(syncPresets, 800);
+  }
+  // ---------- preset sincronizzati con l'account (sito e app) ----------
+  // Qui i preset restano nel browser come prima ({nome: parametri} per banco); accanto, META_KEY tiene l'ora di
+  // ogni preset e le lapidi di quelli cancellati. Il documento dell'account ha la stessa informazione
+  // ({custom:{nome:{p,t}}, tone:{...}, gone:{custom:{nome:t}, tone:{}}}): a ogni giro i due si uniscono per nome,
+  // vince il piu' recente (una cancellazione piu' recente vince su un salvataggio piu' vecchio).
+  // Sul sito il documento passa da /api/synth-presets, nell'app da window.pmDesktop.presets (sessione dell'app).
+  const META_KEY = USER_KEY + ".sync", BANKS = ["custom", "tone"];
+  let presetSyncTimer = 0, presetSyncState = "local", presetSyncing = null;
+  function presetMeta() {
+    let m = {}; try { m = JSON.parse(localStorage.getItem(META_KEY) || "{}") || {}; } catch (e) {}
+    m.t = m.t || {}; m.gone = m.gone || {};
+    for (const b of BANKS) { m.t[b] = m.t[b] || {}; m.gone[b] = m.gone[b] || {}; }
+    return m;
+  }
+  function readBank(b) {
+    try { return JSON.parse(localStorage.getItem(USER_KEY + "." + b) || (b === "custom" ? localStorage.getItem(USER_KEY) : null) || "{}") || {}; }
+    catch (e) { return {}; }
+  }
+  const presetRemote = () => window.pmDesktop
+    ? (window.pmDesktop.presets ? { get: () => window.pmDesktop.presets.get(), put: doc => window.pmDesktop.presets.put(doc) } : null)
+    : { async get() { const r = await fetch("/api/synth-presets", { cache: "no-store" }); if (r.ok) return (await r.json()).presets || {};
+          if ([401, 403, 404].includes(r.status)) return null;       // ospite o non collegato: restano solo qui
+          throw new Error("presets " + r.status); },
+        async put(doc) { const r = await fetch("/api/synth-presets", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ presets: doc }) }); return r.ok; } };
+  // Unisce i preset di qui con il documento dell'account: {doc da rimandare, banks e meta da tenere qui}.
+  function mergePresets(remote) {
+    const m = presetMeta(), doc = { gone: {} }, banks = {};
+    for (const b of BANKS) {
+      const L = readBank(b), R = (remote && remote[b]) || {}, RG = (remote && remote.gone && remote.gone[b]) || {};
+      doc[b] = {}; doc.gone[b] = {}; banks[b] = {};
+      const t = {}, gone = {};
+      for (const n of new Set([...Object.keys(L), ...Object.keys(R), ...Object.keys(m.gone[b]), ...Object.keys(RG)])) {
+        const lt = n in L ? (m.t[b][n] || 1) : -1, rt = R[n] && R[n].p ? (+R[n].t || 1) : -1, gt = Math.max(+m.gone[b][n] || 0, +RG[n] || 0);
+        if (gt > Math.max(lt, rt)) { doc.gone[b][n] = gone[n] = gt; continue; }
+        const p = lt >= rt ? L[n] : R[n].p, when = Math.max(lt, rt);
+        banks[b][n] = p; t[n] = when; doc[b][n] = { p, t: when };
+      }
+      m.t[b] = t; m.gone[b] = gone;
+    }
+    return { doc, banks, meta: m };
+  }
+  // Un giro di sincronizzazione; lo stato (synced / local / error) lo mostra la finestra My presets.
+  function syncPresets() {
+    clearTimeout(presetSyncTimer);
+    if (presetSyncing) return presetSyncing;
+    presetSyncing = (async () => {
+      const remoteApi = presetRemote();
+      try {
+        const remote = remoteApi ? await remoteApi.get() : null;
+        if (!remote) { presetSyncState = "local"; return; }
+        const before = JSON.stringify(BANKS.map(readBank)), { doc, banks, meta } = mergePresets(remote);
+        try { for (const b of BANKS) localStorage.setItem(USER_KEY + "." + b, JSON.stringify(banks[b])); localStorage.setItem(META_KEY, JSON.stringify(meta)); } catch (e) {}
+        const sameDoc = JSON.stringify(doc) === JSON.stringify({ gone: remote.gone || {}, custom: remote.custom || {}, tone: remote.tone || {} });
+        presetSyncState = sameDoc || await remoteApi.put(doc) ? "synced" : "error";
+        if (JSON.stringify(BANKS.map(readBank)) !== before && built) paintTop();
+      } catch (e) { presetSyncState = "error"; }
+      finally { presetSyncing = null; if (pm) renderPresets(); }
+    })();
+    return presetSyncing;
+  }
   const presetParams = (name, bank = presetBank()) => {
     const src = bank[name] || userPresets()[name] || bank[bank === TONE_PRESETS ? DEFAULT_TONE_PRESET : DEFAULT_PRESET];
     return JSON.parse(JSON.stringify({ ...DEFAULTS, uParams: {}, ...src }));
@@ -946,6 +1015,95 @@
     libPreview = null; allOff();
   }
 
+  // ---------- gestione dei preset salvati (My presets…) ----------
+  // I suoni salvati in questo browser per il motore scelto: ascolto, uso, rinomina, cancella.
+  // L'ascolto carica il suono nel synth per sentirlo (anche dalla tastiera o col Play acceso); chiudendo senza
+  // "Use" torna il suono che c'era. pm: {had, orig:{preset, params}, heard, used} mentre la finestra e' aperta.
+  let pm = null;
+  const SYNC_NOTE = { synced: "Synced with your account ✓ (the same presets on the website and in the app).",
+    local: "Saved in this browser only: sign in with a registered account to sync them with the website and the app.",
+    error: "Sync failed: the presets are safe here and will sync at the next try." };
+  const cloneJson = o => JSON.parse(JSON.stringify(o));
+  function applySound(name, src) {
+    const sy = ensure(); sy.preset = name; sy.params = src ? cloneJson(src) : presetParams(name);
+    pushParams(); renderParams(); paintTop();
+    if (params().mType === "logue") primeUnit();
+  }
+  function restoreSound() {
+    if (!pm.had) { delete project.synth; pushParams(); renderParams(); paintTop(); }
+    else applySound(pm.orig.preset, pm.orig.params);
+  }
+  function buildPresets() {
+    if (el("synPresets")) return;
+    const d = document.createElement("div");
+    d.className = "overlay"; d.id = "synPresets"; d.hidden = true;
+    d.innerHTML = `<div class="modal" role="dialog" aria-label="Saved synth presets">
+      <div class="modal-head"><h3>My presets</h3><span class="tiny" id="synPresetsInfo"></span><button class="x" id="synPresetsClose" type="button" aria-label="Close">&times;</button></div>
+      <p class="syn-note" id="synPresetsNote" style="margin:0 0 11px;"></p>
+      <div class="lib-list" id="synPresetsList"></div></div>`;
+    document.body.appendChild(d);
+    d.onclick = e => { if (e.target === d) closePresets(); };
+    el("synPresetsClose").onclick = () => closePresets();
+    document.addEventListener("keydown", e => { if (e.key === "Escape" && !el("synPresets").hidden && !document.querySelector("dialog[open]")) closePresets(); });
+  }
+  function openPresets() {
+    buildPresets();
+    pm = { had: !!project.synth, orig: project.synth ? cloneJson({ preset: project.synth.preset, params: project.synth.params }) : null, heard: false, used: false };
+    el("synPresets").hidden = false;
+    renderPresets();
+    syncPresets();
+  }
+  function closePresets() {
+    if (!pm) return;
+    if (pm.heard && !pm.used) restoreSound();      // solo ascoltato: torna il suono di prima
+    pm = null; el("synPresets").hidden = true;
+  }
+  function renderPresets() {
+    const all = userPresets(), names = Object.keys(all).sort((a, b) => a.localeCompare(b)), list = el("synPresetsList");
+    const tone = engineOf() === "tone", inUse = pm.orig?.preset;
+    el("synPresetsInfo").textContent = `${names.length} saved`;
+    el("synPresetsNote").textContent = `Sounds saved in this browser for ${tone ? "the Tone.js engine" : "the KORG and Custom engines"}`
+      + ` (switch Engine to see ${tone ? "the KORG and Custom ones" : "the Tone.js ones"}). ▶ loads a sound so you can hear it, also from the keyboard; closing without Use brings back the sound you had. ${SYNC_NOTE[presetSyncState]}`;
+    list.innerHTML = names.length ? "" : `<p class="syn-note">No saved presets yet: shape a sound, then press Save preset.</p>`;
+    names.forEach(name => {
+      const row = document.createElement("div"); row.className = "lib-item" + (name === inUse ? " current" : "");
+      const mk = (label, cls, title, fn) => { const b = document.createElement("button"); b.type = "button"; b.className = cls; b.textContent = label; b.title = title; b.onclick = fn; return b; };
+      const play = mk("▶", "lib-play", "listen to this sound", () => {
+        applySound(name); pm.heard = true; auditionChord();
+        list.querySelectorAll(".lib-item.playing").forEach(x => x.classList.remove("playing"));
+        row.classList.add("playing"); setTimeout(() => row.classList.remove("playing"), 600);
+      });
+      play.setAttribute("aria-label", "Listen to " + name);
+      const meta = document.createElement("div"); meta.className = "lib-meta";
+      meta.innerHTML = `<div class="lib-name">${esc(name)}</div><div class="lib-tag">${tone ? "Tone.js" : all[name].mType === "logue" ? "KORG logue" : "Custom"}${name === inUse ? " · sound of this project" : ""}</div>`;
+      const acts = document.createElement("div"); acts.className = "syn-preset-acts";
+      acts.append(
+        mk("Use", "mini primary", "use this sound in the project and close", () => {
+          if (pm.heard) restoreSound();           // l'annulla deve riportare al suono di prima, non a un ascolto
+          pushUndo(); applySound(name); pm.used = true; closePresets(); auditionChord(); setStatus("preset loaded: " + name);
+        }),
+        mk("Rename", "mini", "rename this preset", async () => {
+          const next = await ask({ title: "Rename synth preset", message: `New name for "${name}".`, ok: "Rename", input: name });
+          if (next === null || !next.trim() || !pm) return;
+          const clean = next.trim().slice(0, 40), store = userPresets();
+          if (clean === name || !store[name]) return;
+          if (PRESETS[clean] || TONE_PRESETS[clean]) { setStatus("that name belongs to a factory preset", "err"); return; }
+          if (store[clean]) { setStatus("there is already a preset called " + clean, "err"); return; }
+          store[clean] = store[name]; delete store[name]; writeUserPresets(store);
+          if (pm.orig && pm.orig.preset === name) pm.orig.preset = clean;
+          if (project.synth && project.synth.preset === name) project.synth.preset = clean;
+          paintTop(); renderPresets(); setStatus("preset renamed: " + clean);
+        }),
+        mk("Delete", "mini danger", "delete this preset from this browser", async () => {
+          if (!await ask({ title: "Delete preset", message: `Delete "${name}" from this browser? A project that uses this sound keeps it.`, ok: "Delete", danger: true }) || !pm) return;
+          const store = userPresets(); delete store[name]; writeUserPresets(store);
+          paintTop(); renderPresets(); setStatus("preset deleted: " + name);
+        }));
+      row.append(play, meta, acts);
+      list.appendChild(row);
+    });
+  }
+
   function genMenuHtml() {
     const o = genOpts(), on = activeGens(), sel = (id, pairs, v) => `<select id="${id}">${pairs.map(([k, l]) => `<option value="${esc(k)}"${String(k) === String(v) ? " selected" : ""}>${esc(l)}</option>`).join("")}</select>`;
     return `<div class="syn-gen-opts">
@@ -1111,6 +1269,9 @@
 .syn-p .cap{text-transform:capitalize;}
 .syn-note{font-size:9.5px; color:var(--text-faint); margin:2px 0 6px; line-height:1.4;}
 .syn-preset-select{min-width:180px;}
+#synPresets .lib-meta{flex:1 1 0; min-width:0;}
+.syn-preset-acts{display:flex; flex-wrap:wrap; gap:5px; flex:0 0 auto;}
+#synPresets .lib-item.current{border-color:var(--accent-dim);}
 .synth-sec.menu-open{overflow:visible; z-index:40;}
 .synth-sec.menu-open .syn-sample-pick{z-index:5;}   /* sopra le righe Root, Start, Loop */
 .synth-sec .syn-sample-menu{min-width:0;}
@@ -1153,6 +1314,7 @@
         <label class="machine-label" for="synPreset">Preset</label>
         <select id="synPreset" class="machine-select syn-preset-select"></select>
         <button id="synSavePreset" class="mini" type="button" title="Save the current sound as a preset in this browser">Save preset</button>
+        <button id="synManagePresets" class="mini" type="button" title="The presets saved in this browser: listen, use, rename, delete">My presets…</button>
         <button id="synRenamePreset" class="mini" type="button" title="Rename the current preset">Rename preset</button>
         <button id="synDelPreset" class="mini danger" type="button" hidden>Delete preset</button>
         <span class="syn-links">
@@ -1280,6 +1442,9 @@
       if (!await ask({ title: "Delete preset", message: `Delete "${name}" from this browser? The sound in this project stays.`, ok: "Delete", danger: true })) return;
       delete all[name]; writeUserPresets(all); paintTop();
     };
+    el("synManagePresets").onclick = openPresets;
+    syncPresets();                                   // all'apertura del synth: i preset dell'account arrivano nel menu
+    window.addEventListener("online", syncPresets);
     el("synKey").innerHTML = NOTE_NAMES.map((n, i) => `<option value="${i}">${n}</option>`).join("");
     el("synScale").innerHTML = Object.entries(SCALES).map(([k, [label]]) => `<option value="${k}">${label}</option>`).join("");
     el("synKey").onchange = e => { pushUndo(); ensure().key = +e.target.value; renderRoll(); };

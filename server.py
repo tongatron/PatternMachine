@@ -212,6 +212,45 @@ def delete_user_projects(uid):
         pass
 
 
+# Preset del synth salvati dall'utente: un documento per account ({custom:{nome:{p,t}}, tone:{...}, gone:{...}}).
+# Il server lo conserva soltanto: browser e app lo uniscono per nome e data (engine/synth.js) prima di rimandarlo.
+PRESETS_DIR = os.environ.get("PATTERNMACHINE_SYNTH_PRESETS") or os.path.join(DATA_DIR, "synth-presets")
+PRESETS_LOCK = threading.Lock()
+MAX_PRESETS_BODY = 512 * 1024
+
+
+def synth_presets_file(uid):
+    if not SAFE_ID_RE.match(uid or ""):
+        raise ValueError("id utente non valido")
+    return os.path.join(PRESETS_DIR, uid + ".json")
+
+
+def load_synth_presets(uid):
+    try:
+        with open(synth_presets_file(uid), "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except (FileNotFoundError, ValueError):
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def save_synth_presets(uid, doc):
+    os.makedirs(PRESETS_DIR, mode=0o700, exist_ok=True)
+    path = synth_presets_file(uid)
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(doc, f, ensure_ascii=False, separators=(",", ":"))
+    os.chmod(tmp, 0o600)
+    os.replace(tmp, path)
+
+
+def delete_user_synth_presets(uid):
+    try:
+        os.remove(synth_presets_file(uid))
+    except (FileNotFoundError, ValueError):
+        pass
+
+
 def samples_manifest_file(uid):
     if not SAFE_ID_RE.match(uid or ""):
         raise ValueError("id utente non valido")
@@ -1306,6 +1345,7 @@ class Handler(BaseHTTPRequestHandler):
         if action == "delete":
             with PROJECTS_LOCK:
                 delete_user_projects(target["id"])
+                delete_user_synth_presets(target["id"])
             self._admin_page(message=f"User {target['name']} deleted.")
         elif target.get("email") and mail_config():
             send_reset(target, token)
@@ -1453,6 +1493,13 @@ class Handler(BaseHTTPRequestHandler):
             return
         if path == "/api/projects" or PROJECT_ID_RE.match(path):
             self._get_projects(path)
+            return
+        if path == "/api/synth-presets":
+            uid = self._project_owner()
+            if uid:
+                with PRESETS_LOCK:
+                    doc = load_synth_presets(uid)
+                self._send_json(200, {"presets": doc})
             return
         self._serve_static()
 
@@ -1656,6 +1703,22 @@ class Handler(BaseHTTPRequestHandler):
         new_id, rev, conflict, name = out
         self._send_json(200, {"id": new_id, "rev": rev, "conflict": conflict, "name": name})
 
+    def _put_synth_presets(self):
+        if not self._guard_write():
+            return
+        uid = self._project_owner()
+        if not uid:
+            return
+        body, failed = self._body_or_error(MAX_PRESETS_BODY)
+        if failed:
+            return
+        if not isinstance(body, dict) or not isinstance(body.get("presets"), dict):
+            self._send_json(400, {"error": "richiede {presets}"})
+            return
+        with PRESETS_LOCK:
+            save_synth_presets(uid, body["presets"])
+        self._send_json(200, {"ok": True})
+
     def _delete_project(self, pid):
         if not self._guard_write():
             return
@@ -1761,6 +1824,9 @@ class Handler(BaseHTTPRequestHandler):
         pm = PROJECT_ID_RE.match(path)
         if pm:
             self._put_project(pm.group(1))
+            return
+        if path == "/api/synth-presets":
+            self._put_synth_presets()
             return
         sm = SAMPLE_PATH_RE.match(path)
         if sm:

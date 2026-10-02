@@ -380,6 +380,19 @@ def main():
               sorted(oct(stat.S_IMODE(f.stat().st_mode)) for f in pfile.glob("*.json")), ["0o600", "0o600"])
         check("cartella dei progetti non servita", user.call("/data/projects/")[0], 404)
 
+        # --- preset del synth (un documento per account, uguale nel browser e nell'app) ---
+        presets = lambda c, body, h=same: c.call("/api/synth-presets", "PUT", body, h)   # noqa: E731
+        check("anonimo: niente preset", anon.call("/api/synth-presets")[0], 401)
+        check("ospite: niente preset", guest.call("/api/synth-presets")[0], 403)
+        check("ospite: non salva preset", presets(guest, {"presets": {}})[0], 403)
+        check("preset vuoti", json.loads(user.call("/api/synth-presets")[2]), {"presets": {}})
+        check("preset senza documento", presets(user, {"altro": 1})[0], 400)
+        check("preset da un altro sito", presets(user, {"presets": {}}, {"Origin": "https://altrove.example"})[0], 403)
+        doc = {"custom": {"Basso": {"p": {"cutoff": 20}, "t": 5}}, "tone": {}, "gone": {"custom": {}, "tone": {}}}
+        check("preset salvati", presets(user, {"presets": doc})[0], 200)
+        check("preset riletti", json.loads(user.call("/api/synth-presets")[2]), {"presets": doc})
+        check("preset troppo grandi", presets(user, {"presets": {"x": "y" * (600 * 1024)}})[0], 413)
+
         # --- segnalazioni ("Segnala un problema"): Telegram, altrimenti 503 se non c'e' niente di configurato ---
         del os.environ["PATTERNMACHINE_TELEGRAM_OUTBOX"]
         rep = {**same, "CF-Connecting-IP": "203.0.113.20"}

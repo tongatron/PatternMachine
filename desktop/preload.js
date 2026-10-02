@@ -29,6 +29,10 @@ contextBridge.exposeInMainWorld("pmDesktop", {
     open: page => ipcRenderer.send("account:open", page),
     onState: cb => { ipcRenderer.on("sync:state", (_e, state) => cb(state)); },
   },
+  presets: {
+    get: () => ipcRenderer.invoke("presets:get"),
+    put: doc => ipcRenderer.invoke("presets:put", doc),
+  },
   exportFile: (filename, data) => ipcRenderer.invoke("export:file", filename, bytes(data)),
   exportFolder: files => ipcRenderer.invoke("export:folder", files.map(f => ({ name: f.name, data: bytes(f.data) }))),
   reveal: p => ipcRenderer.send("export:reveal", p),

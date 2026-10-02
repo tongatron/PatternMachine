@@ -436,6 +436,16 @@ ipcMain.handle("account:login", async (_e, name, password) => {
 });
 ipcMain.handle("account:logout", () => { logout(); return true; });
 ipcMain.handle("sync:now", () => syncNow().then(() => syncState));
+// Preset del synth: il documento dell'account passa da qui con la sessione dell'app; a unirlo con quelli
+// salvati qui pensa la pagina (engine/synth.js). null/false = non collegati o server non raggiungibile.
+ipcMain.handle("presets:get", async () => {
+  if (!account) return null;
+  try { return (await apiJson("/api/synth-presets")).presets || {}; } catch (e) { return null; }
+});
+ipcMain.handle("presets:put", async (_e, doc) => {
+  if (!account || !doc || typeof doc !== "object") return false;
+  try { await apiJson("/api/synth-presets", { method: "PUT", body: { presets: doc } }); return true; } catch (e) { return false; }
+});
 ipcMain.on("account:open", (_e, page) => {
   if (["register", "forgot"].includes(page)) shell.openExternal(`${SERVER}/${page}`);
 });

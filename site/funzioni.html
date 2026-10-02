@@ -139,7 +139,7 @@ th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-sp
   <ol>
     <li><b>Choose the machine</b> from the <b>Machine</b> menu below the Save bar (SP-1200, RX-5, TR-808, TR-909, TR-707, TR-727, TR-606, CR-78, CR-8000, LinnDrum, DMX, Drumulator, DrumTraks, SDS-V): it changes the sound of every row. The default is the TR-808; the machine you choose is remembered next time. <b>About the machines</b> leads to their history.</li>
     <li><b>Load a beat</b>: in the Pattern panel press <b>Browse…</b>, filter by style and press Load. Or start from an empty grid with <b>+ New</b>.</li>
-    <li><b>Play</b> (or the space bar). While it plays you can turn steps on and off: you hear the change on the next pass.</li>
+    <li><b>Play</b> (or the space bar). <b>Stop</b> returns to the beginning; <b>Loop</b> repeats the current Pattern or Song. While it plays you can turn steps on and off: you hear the change on the next pass.</li>
     <li><b>Edit</b>: clicking a step turns it on or off. Above the grid, "Step click" sets what a click does (Probability, Ratchets, Flam, Tuning, Decay, Filter).</li>
     <li><b>All the options of a row</b>: click the track name. Below the steps a lane opens for each parameter (Level, Probability, Ratchets, Flam, Tuning, Decay, Filter); click a cell = next value, alt+click = back to default. One row opens at a time.</li>
     <li><b>Song</b>: in the Sequencer tab, chain the patterns, each with its own repeats, and press <b>Song</b> next to Play.</li>
@@ -164,7 +164,7 @@ th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-sp
 
 <section id="daw-midi">
   <h2>Connecting to DAWs, MIDI and clock</h2>
-  <p>The macOS version of PATTERN-MACHINE creates the virtual MIDI port <b>PatternMachine</b>. The port works with Logic Pro, Ableton Live, REAPER, FL Studio, Cubase, Bitwig, Studio One and any other DAW that handles MIDI.</p>
+  <p>The <b>DAW</b> tab, next to <b>Mixer</b>, is the export and connection hub. The macOS version of PATTERN-MACHINE also creates the virtual MIDI port <b>PatternMachine</b>. The port works with Logic Pro, Ableton Live, REAPER, FL Studio, Cubase, Bitwig, Studio One and any other DAW that handles MIDI.</p>
   <h3>Playing your DAW's instruments with PATTERN-MACHINE</h3>
   <ol>
     <li>In your DAW, open a track with a drum instrument and enable monitoring or record.</li>
@@ -203,6 +203,7 @@ th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-sp
   <div class="table-wrap"><table>
     <tr><th>Command</th><th>What it does</th></tr>
     <tr><td><code>space</code></td><td>Play / Stop</td></tr>
+    <tr><td><code>L</code></td><td>turn Pattern / Song loop on or off</td></tr>
     <tr><td><code>1 2 3 4</code> <code>Q W E R</code> <code>A S D F</code> <code>Z X C V</code></td><td>play rows 1–16 (like the numbered pad on the left of each row)</td></tr>
     <tr><td><b>Rec</b> + Play + pads or keys</td><td>records hits into the grid, quantized to the nearest step</td></tr>
     <tr><td>click / alt+click / shift+click</td><td>normal step / accent / ghost note</td></tr>

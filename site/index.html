@@ -6285,8 +6285,16 @@ function buildImport(res, {add, map}){
     };
     if(IMPORT_LENS.includes(total)) return [{patternId:addPattern(nm,total,gridAt(0,total)), repeats:1}];
     const blocks=[], bars=Math.min(128,Math.ceil(total/16));
-    for(let b=0;b<bars;b++){
-      const before=made, id=addPattern(nm,16,gridAt(b*16,16));
+    // Frasi da due battute (A B A B...): a battute singole la canzone sarebbe un blocco per battuta. Si prendono
+    // pattern da 32 step quando cosi' i blocchi della canzone sono di meno.
+    const barKey=Array.from({length:bars},()=>[]);
+    sec.hits.forEach(h=>{ const st=Math.round(h.pos), b=Math.floor(st/16); if(st>=0 && b<bars) barKey[b].push(sampleForNote(h.note,useMap)+":"+(st%16)+":"+levelOfVel(h.vel)); });
+    const keys=barKey.map(k=>[...new Set(k)].sort().join(","));
+    const runs=list=>list.reduce((n,k,i)=>n+(i===0||k!==list[i-1]?1:0),0);
+    const pairs=[]; for(let b=0;b<bars;b+=2) pairs.push(keys[b]+"|"+(b+1<bars?keys[b+1]:"-"));
+    const unit=bars>=2 && runs(pairs)<runs(keys) ? 2 : 1;
+    for(let b=0;b<bars;b+=unit){
+      const n=Math.min(unit,bars-b)*16, before=made, id=addPattern(nm,n,gridAt(b*16,n));
       if(made>before) data.patterns[data.patterns.length-1].name=`${nm} ${made}`;
       const last=blocks[blocks.length-1];
       if(last && last.patternId===id) last.repeats++; else blocks.push({patternId:id, repeats:1});

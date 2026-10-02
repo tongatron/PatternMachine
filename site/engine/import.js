@@ -50,7 +50,8 @@ function parseMidi(buf, name){
   for(let t=0;t<ntr && o+8<=u8.length;t++){
     if(str(o,4)!=="MTrk"){ o+=8+d.getUint32(o+4); continue; }
     const end=Math.min(u8.length, o+8+d.getUint32(o+4));
-    let p=o+8, tick=0, status=0;
+    let p=o+8, tick=0, status=0, trackEnd=0;
+    const notesBefore=notes.length;
     const vlq=()=>{ let v=0,b; do{ b=u8[p++]; v=(v<<7)|(b&0x7f); }while(b&0x80 && p<end); return v; };
     while(p<end){
       tick+=vlq();
@@ -61,14 +62,15 @@ function parseMidi(buf, name){
         if(type===0x51 && bpm===null && len===3) bpm=60000000/((u8[at]<<16)|(u8[at+1]<<8)|u8[at+2]);
         else if(type===0x58 && len>=2 && tick===0){ num=u8[at]; den=Math.pow(2,u8[at+1]); }
         else if(type===0x03 && !title){ const s=new TextDecoder().decode(u8.slice(at,at+len)).trim(); if(s && !/^(drums?|track ?\d*|batteria)$/i.test(s)) title=s; }
-        else if(type===0x2f){ endTick=Math.max(endTick,tick); break; }
+        else if(type===0x2f){ trackEnd=tick; break; }
         status=0;
       } else if(status===0xf0||status===0xf7){ p+=vlq(); status=0; }
       else if(hi===0x90){ const n=u8[p++], v=u8[p++]; if(v>0) notes.push({tick, ch:status&0x0f, note:n, vel:v}); }
       else if(hi===0xc0||hi===0xd0) p+=1;
       else p+=2;
     }
-    endTick=Math.max(endTick,tick);
+    // la fine conta solo per le tracce con note: quella del tempo, nei file di Logic, dura quanto tutto il progetto
+    if(notes.length>notesBefore) endTick=Math.max(endTick,trackEnd||tick);
     o=end;
   }
   if(!notes.length) throw new Error("the MIDI file has no notes");
@@ -76,7 +78,11 @@ function parseMidi(buf, name){
   const drums=notes.filter(n=>n.ch===9), use=drums.length?drums:notes;
   const per16=div/4, barLen=Math.round(num*16/den)||16;
   const last=Math.max(...use.map(n=>n.tick))/per16;
-  const len=Math.max(barLen, Math.ceil(Math.max(endTick/per16-0.5,last+0.5)/barLen)*barLen);
+  // Lunghezza: fino alla battuta dell'ultima nota. La fine dichiarata dal file puo' aggiungere al massimo una
+  // battuta (un loop che chiude in silenzio); una coda piu' lunga e' spazio vuoto del progetto, non musica.
+  const upTo=x=>Math.max(barLen, Math.ceil(x/barLen)*barLen);
+  const lenNotes=upTo(last+0.5), lenEnd=upTo(endTick/per16-0.5);
+  const len=lenEnd-lenNotes<=barLen ? Math.max(lenNotes,lenEnd) : lenNotes;
   return {name:title||name, bpm,
     sections:[{name:title||name, len, hits:use.map(n=>({pos:n.tick/per16, note:n.note, vel:n.vel}))}]};
 }

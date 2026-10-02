@@ -925,6 +925,8 @@ table.recent tr:last-child td{border-bottom:none;}
 table.recent .nm{font-weight:700; font-size:14px;}
 table.recent td{vertical-align:middle;}
 table.recent tr.rec-row{cursor:pointer;}
+/* Open, Rename, Remove: un po' piu' grandi dei .mini, facili da colpire anche a righe fitte */
+table.recent .acts button.mini{padding:7px 13px; font-size:11.5px; min-height:32px;}
 table.recent tr.rec-row:hover td{background:var(--panel-2);}
 /* anteprima: mini griglia del primo pattern + ascolto del pezzo */
 .rec-prev{display:flex; align-items:center; gap:8px;}
@@ -1383,7 +1385,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <p class="tiny sync-state" id="syncState" hidden></p>
     <div class="project-sync-tools" id="projectSyncTools" hidden>
       <span class="tiny">Projects sync automatically when online.</span>
-      <button type="button" class="mini" id="projectSyncNow">Sync now</button>
+      <button type="button" class="mini primary" id="projectSyncNow">Sync now</button>
       <span class="tiny sync-msg" id="projectSyncMsg" role="status" aria-live="polite"></span>
     </div>
     <div class="recent-wrap">
@@ -1651,22 +1653,22 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-10-03.2"></script>
-<script src="engine/core.js?v=2026-10-03.2"></script>
-<script src="engine/styles-punk.js?v=2026-10-03.2"></script>
-<script src="engine/styles-post.js?v=2026-10-03.2"></script>
-<script src="engine/styles-machines.js?v=2026-10-03.2"></script>
-<script src="engine/styles-alt.js?v=2026-10-03.2"></script>
-<script src="engine/styles-groove.js?v=2026-10-03.2"></script>
-<script src="engine/styles-dub.js?v=2026-10-03.2"></script>
-<script src="engine/styles-break.js?v=2026-10-03.2"></script>
-<script src="engine/styles-soul.js?v=2026-10-03.2"></script>
-<script src="engine/styles-metal.js?v=2026-10-03.2"></script>
-<script src="engine/styles-electro.js?v=2026-10-03.2"></script>
-<script src="engine/variations.js?v=2026-10-03.2"></script>
-<script src="engine/import.js?v=2026-10-03.2"></script>
-<script src="engine/rhythm.js?v=2026-10-03.2"></script>
-<script src="engine/share.js?v=2026-10-03.2"></script>
+<script src="engine/machine-art.js?v=2026-10-03.3"></script>
+<script src="engine/core.js?v=2026-10-03.3"></script>
+<script src="engine/styles-punk.js?v=2026-10-03.3"></script>
+<script src="engine/styles-post.js?v=2026-10-03.3"></script>
+<script src="engine/styles-machines.js?v=2026-10-03.3"></script>
+<script src="engine/styles-alt.js?v=2026-10-03.3"></script>
+<script src="engine/styles-groove.js?v=2026-10-03.3"></script>
+<script src="engine/styles-dub.js?v=2026-10-03.3"></script>
+<script src="engine/styles-break.js?v=2026-10-03.3"></script>
+<script src="engine/styles-soul.js?v=2026-10-03.3"></script>
+<script src="engine/styles-metal.js?v=2026-10-03.3"></script>
+<script src="engine/styles-electro.js?v=2026-10-03.3"></script>
+<script src="engine/variations.js?v=2026-10-03.3"></script>
+<script src="engine/import.js?v=2026-10-03.3"></script>
+<script src="engine/rhythm.js?v=2026-10-03.3"></script>
+<script src="engine/share.js?v=2026-10-03.3"></script>
 <script>
 // Script principale di PATTERN-MACHINE: stato del progetto, audio, trasporto e interfaccia della pagina.
 // Il motore ritmico (SPEngine), i tempi (PMRhythm), import, link e gli altri moduli stanno in engine/*.js.
@@ -4452,7 +4454,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || el("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-03.2";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-03.3";
   document.body.appendChild(s);
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth")) loadSynth();
@@ -7255,7 +7257,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-10-03.2";
+const SW_VERSION="2026-10-03.3";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -7279,11 +7281,11 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sample-editor.js?v=2026-10-03.2"></script>
-<script src="engine/sampler.js?v=2026-10-03.2"></script>
-<script src="engine/vocal.js?v=2026-10-03.2"></script>
+<script src="engine/sample-editor.js?v=2026-10-03.3"></script>
+<script src="engine/sampler.js?v=2026-10-03.3"></script>
+<script src="engine/vocal.js?v=2026-10-03.3"></script>
 <script>PMSampler.init(); PMVocal.init();</script>
-<script src="engine/midi.js?v=2026-10-03.2"></script>
+<script src="engine/midi.js?v=2026-10-03.3"></script>
 
 </body>
 </html>

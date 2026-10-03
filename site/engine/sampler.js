@@ -35,6 +35,10 @@
   function setSyncChoice(value){ syncEnabled=!!value; try{localStorage.setItem("pm.sampler-sync",syncEnabled?"1":"0");}catch(e){} const c=$("samplerSync"); if(c)c.checked=syncEnabled; }
   async function syncServer(){
     if(syncBusy) return;
+    syncBusy=true;
+    const button=$("samplerSyncNow");
+    if(button){ button.disabled=true; button.textContent="Syncing…"; }
+    setNote("Syncing samples and projects…");
     if(desktop){
       try{
         const state=await D.account.sync();
@@ -46,9 +50,9 @@
         else if(state?.state==="signed-out"||state?.state==="expired") setNote("Sign in to sync samples",true);
         else setNote(state?.message||"Sample sync will retry when the server is available",true);
       }catch(e){ setNote("Sample sync will retry when the server is available",true); }
+      finally{ syncBusy=false; if(button){ button.disabled=false; button.textContent="Sync now"; } }
       return;
     }
-    syncBusy=true; const button=$("samplerSyncNow"); if(button)button.disabled=true;
     try{
       const me=await fetch("/api/me",{credentials:"same-origin"});
       if(!me.ok) throw new Error("Sign in to sync samples");
@@ -78,6 +82,7 @@
       render(); refreshEngine(); setNote("Samples synced with your account");
     }catch(e){ if(!desktop)setSyncChoice(false); setNote(e.message||"Sample sync failed",true); }
     finally{ syncBusy=false; if(button)button.disabled=false; }
+    if(button) button.textContent="Sync now";
   }
   function serverTime(meta){ return Date.parse(meta?.updated_at||"")||Date.now(); }
   function formatBytes(n){ if(!n) return "0 B"; return n<1024*1024 ? `${Math.max(1,Math.round(n/1024))} KB` : `${(n/1024/1024).toFixed(1)} MB`; }
@@ -630,6 +635,12 @@
     drop.addEventListener("drop",e=>importFiles(e.dataTransfer.files));
     const sync=$("samplerSync"); if(sync){ syncEnabled=desktop||syncChoice(); sync.checked=syncEnabled; sync.onchange=()=>{ setSyncChoice(sync.checked); if(sync.checked)syncServer(); }; }
     const syncNow=$("samplerSyncNow"); if(syncNow)syncNow.onclick=syncServer;
+    if(desktop && D?.account?.onState) D.account.onState(st=>{
+      if(st.state==="syncing") setNote("Syncing samples and projects…");
+      else if(st.state==="ok") setNote("Samples and projects synced");
+      else if(st.state==="expired"||st.state==="signed-out") setNote("Sign in to sync samples",true);
+      else if(st.state==="error") setNote(st.message||"Sample sync will retry when the server is available",true);
+    });
     $("samplerResampleBtn").onclick=openResample;
     $("resampleMode").onclick=e=>{ const b=e.target.closest("button"); if(!b) return;
       res.mode=b.dataset.mode; res.ending=res.mode==="song"?"tail":"loop";     // la canzone di solito non gira in loop

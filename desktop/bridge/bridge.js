@@ -200,9 +200,9 @@
   });
 
   const acct=document.createElement("div"); acct.className="pm-account";
-  acct.innerHTML=`<span class="tiny" id="pmAccount"></span>
+  acct.innerHTML=`<span class="tiny" id="pmAccount" role="status" aria-live="polite"></span>
     <button type="button" class="mini primary" id="pmSignIn">Sign in</button>
-    <button type="button" class="mini" id="pmSyncNow" hidden>Sync now</button>
+    <button type="button" class="mini" id="pmSyncNow" title="Synchronize projects and samples now" hidden>Sync now</button>
     <button type="button" class="mini" id="pmSignOut" hidden>Sign out</button>`;
   el("recentTitle").after(acct);
   function paintAccount(st){
@@ -215,9 +215,12 @@
       ok:`Signed in as ${st.name} · synced ✓${time?" "+time:""}`,
       error:`Signed in as ${st.name} · ${st.message||"sync failed"}`,
     }[st.state]||"";
-    const a=el("pmAccount"); a.textContent=text; a.className="tiny"+(st.state==="error"||st.state==="expired"?" err":"");
+    const a=el("pmAccount"); a.textContent=text; a.className="tiny pm-sync-"+(st.state||"unknown")+(st.state==="error"||st.state==="expired"?" err":"");
     el("pmSignIn").hidden=on; el("pmSyncNow").hidden=!on; el("pmSignOut").hidden=!on;
-    el("pmSyncNow").disabled=st.state==="syncing";
+    const sync=el("pmSyncNow");
+    sync.disabled=st.state==="syncing";
+    sync.textContent=st.state==="syncing"?"Syncing…":"Sync now";
+    sync.setAttribute("aria-busy",String(st.state==="syncing"));
   }
   D.account.onState(paintAccount);
   D.account.status().then(paintAccount);

@@ -49,6 +49,17 @@
 .pm-account{display:flex; flex-wrap:wrap; align-items:center; gap:6px 8px; margin:-4px 0 12px;}
 .pm-account .tiny{margin-right:auto;}
 .pm-account .err{color:var(--danger);}
+.pm-desktop #samplerSyncNow,
+.pm-desktop #projectSyncNow,
+.pm-desktop #pmSyncNow{
+  background:var(--key-primary,var(--accent)); color:var(--on-accent); border-color:var(--accent-dim,var(--accent));
+  font-weight:700;
+}
+.pm-desktop #samplerSyncNow:disabled,
+.pm-desktop #projectSyncNow:disabled,
+.pm-desktop #pmSyncNow:disabled{opacity:.72; cursor:wait; filter:saturate(.8);}
+.pm-account .pm-sync-syncing{color:var(--accent); font-weight:700;}
+.pm-account .pm-sync-ok{color:var(--ok); font-weight:700;}
 .pm-login-dialog{width:min(440px,calc(100% - 32px));}
 .pm-login-dialog input[type=password]{width:100%; box-sizing:border-box; margin-top:4px; font-size:13px; font-family:inherit;
   background:var(--panel-2); color:var(--text); border:1px solid var(--edge); border-radius:6px; padding:6px 8px;}

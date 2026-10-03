@@ -165,7 +165,7 @@ html[data-embed="1"] .topbar, html[data-embed="1"] .project-panel, html[data-emb
 html[data-embed="1"] #machinePanel, html[data-embed="1"] #panelPatterns, html[data-embed="1"] #synthEnginePanel,
 html[data-embed="1"] #synthPatternPanel, html[data-embed="1"] #panelSeq, html[data-embed="1"] #panelSynth,
 html[data-embed="1"] #panelMix, html[data-embed="1"] #panelRecent, html[data-embed="1"] #panelMidi,
-html[data-embed="1"] #panelDaw, html[data-embed="1"] #drumSoundPanel, html[data-embed="1"] #panelSampler,
+html[data-embed="1"] #drumSoundPanel, html[data-embed="1"] #panelSampler,
 html[data-embed="1"] .site-footer, html[data-embed="1"] #libOverlay, html[data-embed="1"] dialog{display:none!important;}
 html[data-embed="1"] #panelTransport{position:sticky; top:0; z-index:10; margin:0; border-radius:0;}
 html[data-embed="1"] #panelTransport .transport-extra > :not(#counter){display:none;}
@@ -806,25 +806,6 @@ button.danger-fill{background:var(--danger); border-color:var(--danger); color:#
 .tabs button{padding:7px 14px; font-size:12px;}
 .tabs button.on{background:var(--key-on,var(--accent)); color:var(--on-accent); border-color:var(--accent-dim); font-weight:700;}
 
-.daw-head{display:flex; flex-wrap:wrap; align-items:flex-start; justify-content:space-between; gap:10px 18px; margin-bottom:12px;}
-.daw-kicker{font-size:9px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.16em;}
-.daw-head h2{margin-top:3px;}
-.daw-lead{max-width:720px; margin:0; color:var(--text-dim); line-height:1.55;}
-.daw-state{padding:7px 10px; border:1px solid var(--edge-soft); border-radius:6px; background:var(--panel-2); color:var(--text-dim); font:10px var(--mono,monospace); white-space:nowrap;}
-.daw-grid{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px;}
-.daw-card{min-width:0; padding:11px; border:1px solid var(--edge-soft); border-radius:8px; background:var(--panel-2);}
-.daw-card h3{margin:0 0 8px; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--text-dim);}
-.daw-card p{margin:8px 0 0; color:var(--text-faint); font-size:11px; line-height:1.5;}
-.daw-scope{display:flex; gap:6px;}
-.daw-scope button{flex:1 1 0; min-height:38px;}
-.daw-scope button.on{background:var(--key-primary,var(--accent)); color:var(--on-accent); border-color:var(--accent-dim); font-weight:700;}
-.daw-actions{display:flex; flex-wrap:wrap; gap:6px;}
-.daw-actions button{flex:1 1 145px; min-height:36px; text-align:left;}
-.daw-live{grid-column:1 / -1; display:flex; flex-wrap:wrap; align-items:center; gap:8px 14px;}
-.daw-live p{flex:1 1 420px; margin:0;}
-.daw-live .mini{white-space:nowrap; text-decoration:none;}
-@media (max-width:760px){.daw-grid{grid-template-columns:1fr 1fr;}.daw-live{grid-column:1 / -1;}}
-@media (max-width:520px){.daw-grid{grid-template-columns:1fr;}.daw-live{display:block;}.daw-live .mini{margin-top:8px;}}
 
 .seq-track{
   display:flex; gap:8px; overflow-x:auto; padding:6px 2px 12px; min-height:132px; align-items:stretch;
@@ -1001,16 +982,16 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 #synthEnginePanel .machine-bar{align-items:center;}
 .syn-links{display:inline-flex; flex-direction:column; align-items:flex-end; gap:5px; margin-left:auto;}
 .syn-brand{display:block; height:22px; width:auto; color:var(--text);}
-#viewGrid, #viewSeq, #viewSynth, #viewSampler, #viewMix, #viewDaw, #viewRecent{font-size:15px; padding:11px 22px; min-height:44px;}
-#viewGrid, #viewSeq, #viewSynth, #viewSampler, #viewMix, #viewDaw{
+#viewGrid, #viewSeq, #viewSynth, #viewSampler, #viewMix, #viewRecent{font-size:15px; padding:11px 22px; min-height:44px;}
+#viewGrid, #viewSeq, #viewSynth, #viewSampler, #viewMix{
   min-height:52px; padding:12px 24px; border:2px solid var(--edge);
   border-radius:9px; font-weight:800; letter-spacing:.08em;
   box-shadow:inset 0 2px 0 rgba(255,255,255,.16), inset 0 -3px 0 rgba(0,0,0,.22), 0 3px 0 rgba(0,0,0,.28);
   transition:transform .06s, box-shadow .06s, background .12s;
 }
-#viewGrid:hover, #viewSeq:hover, #viewSynth:hover, #viewSampler:hover, #viewMix:hover, #viewDaw:hover{border-color:var(--text-faint);}
-#viewGrid:active, #viewSeq:active, #viewSynth:active, #viewSampler:active, #viewMix:active, #viewDaw:active{transform:translateY(2px); box-shadow:inset 0 1px 0 rgba(255,255,255,.08), inset 0 -1px 0 rgba(0,0,0,.2);}
-#viewGrid.on, #viewSeq.on, #viewSynth.on, #viewSampler.on, #viewMix.on, #viewDaw.on{background:var(--key-primary,var(--accent)); border-color:var(--accent-dim); color:var(--on-accent); box-shadow:inset 0 2px 0 rgba(255,255,255,.35), inset 0 -3px 0 rgba(0,0,0,.2), 0 3px 0 rgba(0,0,0,.28);}
+#viewGrid:hover, #viewSeq:hover, #viewSynth:hover, #viewSampler:hover, #viewMix:hover{border-color:var(--text-faint);}
+#viewGrid:active, #viewSeq:active, #viewSynth:active, #viewSampler:active, #viewMix:active{transform:translateY(2px); box-shadow:inset 0 1px 0 rgba(255,255,255,.08), inset 0 -1px 0 rgba(0,0,0,.2);}
+#viewGrid.on, #viewSeq.on, #viewSynth.on, #viewSampler.on, #viewMix.on{background:var(--key-primary,var(--accent)); border-color:var(--accent-dim); color:var(--on-accent); box-shadow:inset 0 2px 0 rgba(255,255,255,.35), inset 0 -3px 0 rgba(0,0,0,.2), 0 3px 0 rgba(0,0,0,.28);}
 #pChoose, #pVary, #pNew, #synPatBrowse, #synPatNew{font-size:13px; padding:9px 16px; min-height:40px;}
 #recBtn{font-size:13.5px; padding:11px 18px; min-height:44px;}
 #bpmNum{height:44px; width:72px; font-size:14px;}
@@ -1019,7 +1000,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 .topbar #accountLinks{display:inline-flex; align-items:baseline; gap:10px; margin-left:auto;}
 @media (max-width:560px){
   .topbar #accountLinks{margin-left:0;}
-  #viewGrid, #viewSeq, #viewSynth, #viewSampler, #viewMix, #viewDaw, #viewRecent{padding:10px 14px;}
+  #viewGrid, #viewSeq, #viewSynth, #viewSampler, #viewMix, #viewRecent{padding:10px 14px;}
 }
 /* Mixer: console tecnica. Una striscia per riga della griglia, poi i gruppi e il master. Pozzetti (meter, pan,
    letture) e LED prendono i colori del tema: incassati e chiari nel tema chiaro, scuri solo in quello scuro. */
@@ -1143,7 +1124,6 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <button id="viewSeq" role="tab" aria-selected="false" aria-controls="panelSeq">Sequencer</button>
     <button id="viewSampler" role="tab" aria-selected="false" aria-controls="panelSampler" title="Import or record local sounds for your patterns">Sampler</button>
     <button id="viewMix" role="tab" aria-selected="false" aria-controls="panelMix" title="Levels, pan, meters and the master limiter">Mixer</button>
-    <button id="viewDaw" role="tab" aria-selected="false" aria-controls="panelDaw" title="Export to your DAW and connect PatternMachine">Export to your DAW</button>
   </div>
 
   <div class="panel" id="machinePanel">
@@ -1408,52 +1388,6 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       One strip per row of the drum grid, then the drums and synth groups and the master · the faders are the same volumes as the grid and the top bar, shown in dB (100% = 0 dB) · meters: RMS solid, peak lighter, the line holds the last peak, the red LED lights over 0 dBFS · click a peak readout to reset them all · drag, arrow keys or double-click (default) on faders and pans · the limiter keeps the master under 0 dB, live and in the WAV export (not in the stems) · pan, synth pan and limiter are saved in the project.
     </p>
   </div>
-
-  <section class="panel daw-panel" id="panelDaw" role="tabpanel" aria-label="DAW" hidden>
-    <div class="daw-head">
-      <div>
-        <div class="daw-kicker">Export · MIDI · clock</div>
-        <h2>DAW</h2>
-        <p class="daw-lead">Prepare the current Pattern or Song for Logic, Ableton Live, REAPER or another DAW. The exports use the project tempo, groove, levels and selected machine.</p>
-      </div>
-      <div class="daw-state" id="dawState">Song · 95 BPM</div>
-    </div>
-    <div class="daw-grid">
-      <section class="daw-card">
-        <h3>Export scope</h3>
-        <div class="daw-scope" role="group" aria-label="DAW export scope">
-          <button type="button" id="dawPatternBtn" aria-pressed="false">Pattern</button>
-          <button type="button" id="dawSongBtn" aria-pressed="true">Song</button>
-        </div>
-        <p id="dawScopeNote">The complete song will be exported.</p>
-      </section>
-      <section class="daw-card">
-        <h3>Quick export</h3>
-        <div class="daw-actions">
-          <button type="button" id="dawGmMidiBtn" class="mini primary" title="General MIDI, one drum track">General MIDI</button>
-          <button type="button" id="dawMultiMidiBtn" class="mini" title="General MIDI, one MIDI track per instrument">Multitrack MIDI</button>
-          <button type="button" id="dawWavBtn" class="mini" title="Rendered stereo WAV">WAV</button>
-        </div>
-        <p>Use MIDI to edit notes in the DAW, or WAV when the sound is already finished.</p>
-      </section>
-      <section class="daw-card">
-        <h3>DAW packages</h3>
-        <div class="daw-actions">
-          <button type="button" class="mini daw-btn" data-daw="logic" title="Logic Pro package with MIDI, stems, samples and instructions">Logic Pro</button>
-          <button type="button" class="mini daw-btn" data-daw="ableton" title="Ableton Live package with MIDI, stems, samples and instructions">Ableton Live</button>
-          <button type="button" class="mini daw-btn" data-daw="reaper" title="REAPER package with a ready-made project">REAPER</button>
-          <button type="button" class="mini daw-btn" data-daw="altre" title="Package for FL Studio, Cubase, Studio One, Bitwig and GarageBand">Other DAWs</button>
-        </div>
-        <p>Each package contains MIDI, aligned stems, samples and a short read-me.</p>
-      </section>
-      <section class="daw-card daw-live">
-        <h3 id="dawLiveTitle">Live connection</h3>
-        <p id="dawLiveNote">In the browser, export files here. The macOS app also provides live MIDI output and follows the DAW clock.</p>
-        <a class="mini" href="app.html">Mac app · live MIDI and clock</a>
-        <a class="mini" href="funzioni.html#daw-midi">Connection guide</a>
-      </section>
-    </div>
-  </section>
 
   <div class="panel" id="panelRecent" role="tabpanel" aria-label="Projects" hidden>
     <h2 id="recentTitle">Projects</h2>
@@ -2900,7 +2834,6 @@ function paintTransport(){
   el("modeSongBtn").classList.toggle("on",ui.mode==="song");
   el("modePatternBtn").setAttribute("aria-pressed",String(ui.mode!=="song"));
   el("modeSongBtn").setAttribute("aria-pressed",String(ui.mode==="song"));
-  paintDaw();
 }
 function toggleDrumsPlay(){
   if(playing || paused){ stop(); return; }
@@ -4079,26 +4012,10 @@ el("ssClear").onclick=async()=>{
 // ---------- viste ----------
 // Le schede in alto: vista -> pulsante. La Vista Live ("sound") non e' una scheda ma un interruttore
 // accanto alla Griglia: mostra la stessa griglia senza il resto dell'interfaccia.
-const VIEW_TABS={grid:"viewGrid", seq:"viewSeq", synth:"viewSynth", sampler:"viewSampler", mix:"viewMix", daw:"viewDaw",
+const VIEW_TABS={grid:"viewGrid", seq:"viewSeq", synth:"viewSynth", sampler:"viewSampler", mix:"viewMix",
   recent:"viewRecent", midi:"viewMidi"};
-const VIEW_START_MODE={grid:"pattern", synth:"song", seq:"song", sampler:"song", mix:"song", daw:"song"};
+const VIEW_START_MODE={grid:"pattern", synth:"song", seq:"song", sampler:"song", mix:"song"};
 let viewSection=null;     // ultima sezione aperta tra quelle di VIEW_START_MODE (la Vista Live conta come Drum Grid)
-function paintDaw(){
-  const song=ui.mode==="song", hasSong=project?.song?.length>0;
-  const patternBtn=el("dawPatternBtn"), songBtn=el("dawSongBtn");
-  if(!patternBtn || !songBtn) return;
-  patternBtn.classList.toggle("on",!song); songBtn.classList.toggle("on",song);
-  patternBtn.setAttribute("aria-pressed",String(!song)); songBtn.setAttribute("aria-pressed",String(song));
-  el("dawState").textContent=`${song?"Song":"Pattern"} · ${bpm()} BPM`;
-  el("dawScopeNote").textContent=song
-    ? (hasSong?`The complete song will be exported (${project.song.length} ${project.song.length===1?"block":"blocks"}).`:"The song is empty: add blocks in Sequencer.")
-    : `The current pattern “${curPattern()?.name||"Untitled"}” will be exported.`;
-  const live=!!window.pmDesktop;
-  el("dawLiveTitle").textContent=live?"Live connection":"Browser workflow";
-  el("dawLiveNote").textContent=live
-    ? "The app can send live MIDI and follow the DAW clock from its PatternMachine port."
-    : "In the browser, export files here. The macOS app also provides live MIDI output and follows the DAW clock.";
-}
 function setView(v){
   Object.entries(VIEW_TABS).forEach(([view,id])=>{
     el(id).classList.toggle("on",v===view);
@@ -4109,7 +4026,7 @@ function setView(v){
   el("viewSound").hidden = v!=="grid" && v!=="sound";
   document.body.classList.toggle("sound-view",v==="sound");
   document.body.classList.toggle("mix-view",v==="mix");
-  el("machinePanel").hidden = v==="synth" || v==="midi" || v==="mix" || v==="daw" || v==="sampler";
+  el("machinePanel").hidden = v==="synth" || v==="midi" || v==="mix" || v==="sampler";
   el("panelPatterns").hidden = v!=="grid";
   el("panelGrid").hidden = v!=="grid" && v!=="sound";
   el("panelSeq").hidden = v!=="seq";
@@ -4121,10 +4038,8 @@ function setView(v){
   el("panelMidi").hidden = v!=="midi";
   const wasMix=!el("panelMix").hidden;
   el("panelMix").hidden = v!=="mix";
-  el("panelDaw").hidden = v!=="daw";
   if(v==="mix") renderMixer();
   else if(wasMix) renderTracks();       // le righe della griglia riprendono volumi, mute e solo toccati nel mixer
-  if(v==="daw") paintDaw();
   paintTransport();
   // Modalita' di partenza di ogni sezione (se non sta gia' suonando): Drum Grid in Pattern, Synthesizer, Sequencer,
   // Sampler e Mixer in Song. Vale solo entrando nella sezione: poi Pattern/Song si sceglie come sempre
@@ -4822,13 +4737,6 @@ el("viewGrid").onclick=()=>setView("grid");
 el("viewSeq").onclick=()=>setView("seq");
 el("viewSampler").onclick=()=>setView("sampler");
 el("viewMix").onclick=()=>setView("mix");
-el("viewDaw").onclick=()=>setView("daw");
-const setDawScope=mode=>{ setMode(mode); paintDaw(); };
-el("dawPatternBtn").onclick=()=>setDawScope("pattern");
-el("dawSongBtn").onclick=()=>setDawScope("song");
-el("dawGmMidiBtn").onclick=()=>el("gmMidiBtn").click();
-el("dawMultiMidiBtn").onclick=()=>el("multiMidiBtn").click();
-el("dawWavBtn").onclick=()=>el(ui.mode==="song"?"wavSongBtn":"wavPatternBtn").click();
 el("viewSynth").onclick=()=>{
   if(window.PMSynth){ setView("synth"); return; }
   loadSynth();
@@ -4921,8 +4829,8 @@ function setMode(m){
 
 // ---------- tempo, swing, volumi e gruppi ----------
 const bpmRange=el("bpmRange"), bpmNum=el("bpmNum");
-bpmRange.oninput=()=>{ bpmNum.value=bpmRange.value; project.bpm=+bpmRange.value; paintTimeline(); paintDaw(); };
-bpmNum.oninput=()=>{ bpmRange.value=bpmNum.value; project.bpm=+bpmNum.value; paintTimeline(); paintDaw(); };
+bpmRange.oninput=()=>{ bpmNum.value=bpmRange.value; project.bpm=+bpmRange.value; paintTimeline(); };
+bpmNum.oninput=()=>{ bpmRange.value=bpmNum.value; project.bpm=+bpmNum.value; paintTimeline(); };
 [
   "projectName","bpmRange","bpmNum","swingRange","humanRange","drumsVol","synthVol","masterVol"
 ].forEach(id=>["input","change"].forEach(type=>el(id).addEventListener(type,scheduleDraft)));

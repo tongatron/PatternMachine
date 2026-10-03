@@ -4,17 +4,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Guide and features · PATTERN-MACHINE</title>
-<meta name="description" content="Complete PATTERN-MACHINE guide: step sequencing, groove, probability, ratchets, flam, MIDI, song mode, Logic export, WAV, MP3, projects and troubleshooting.">
+<meta name="description" content="Complete PATTERN-MACHINE guide: drum sequencing, Synthesizer notes, oscillators, filters, envelopes, LFO, effects, MIDI, song mode, DAW export and troubleshooting.">
 <link rel="canonical" href="https://patternmachine.tongatron.org/funzioni.html">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="PATTERN-MACHINE">
 <meta property="og:title" content="Guide and features · PATTERN-MACHINE">
-<meta property="og:description" content="Learn every PATTERN-MACHINE feature, from step sequencing and groove to MIDI, song mode and export for Logic and other DAWs.">
+<meta property="og:description" content="Learn every PATTERN-MACHINE feature, from drum and synth sequencing to oscillators, filters, MIDI, song mode and export for Logic and other DAWs.">
 <meta property="og:url" content="https://patternmachine.tongatron.org/funzioni.html">
 <meta property="og:image" content="https://patternmachine.tongatron.org/assets/og-pattern-machine.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Guide and features · PATTERN-MACHINE">
-<meta name="twitter:description" content="Step sequencing, groove, MIDI, song mode, Logic export and troubleshooting in one complete guide.">
+<meta name="twitter:description" content="Drum and synth sequencing, sound design, MIDI, song mode, DAW export and troubleshooting in one complete guide.">
 <meta name="twitter:image" content="https://patternmachine.tongatron.org/assets/og-pattern-machine.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
 <style>
@@ -127,7 +127,7 @@ th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-sp
     <p class="toc-group">Start here</p>
     <a href="#inizio">Getting started</a><a href="#tasti">Keyboard and mouse</a>
     <p class="toc-group">Make music</p>
-    <a href="#numeri">At a glance</a><a href="#macchine">Machines</a><a href="#griglia">Grid and steps</a><a href="#canzone">Song and Sequencer</a>
+    <a href="#numeri">At a glance</a><a href="#macchine">Machines</a><a href="#griglia">Grid and steps</a><a href="#synth">Synthesizer</a><a href="#canzone">Song and Sequencer</a>
     <p class="toc-group">Go deeper</p>
     <a href="#motore">Pattern engine</a><a href="#variazioni">Variations</a><a href="#stili">Styles</a>
     <p class="toc-group">Connect and share</p>
@@ -316,6 +316,110 @@ th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-sp
     <li data-it="Aggiungi hi-hat regolari, poi togli uno o due colpi per creare spazio.">Add regular hi-hats, then remove one or two hits to create space.</li>
     <li data-it="Trasforma un hi-hat in ghost note oppure aggiungi un accento: cambia la sensazione senza cambiare la forma.">Turn one hi-hat into a ghost note or add an accent: change the feel without changing the shape.</li>
   </ol>
+</section>
+
+<section id="synth">
+  <h2 data-it="Synthesizer">Synthesizer</h2>
+  <p data-it="Il Synthesizer aggiunge una linea melodica e armonica sincronizzata con la batteria. Puoi scrivere note nel piano roll, suonarle dalla tastiera del computer o da un controller MIDI, registrarle durante il playback, trasformarle con i generatori ed esportare la linea come MIDI, WAV o MP3 insieme alla song.">The Synthesizer adds a melodic and harmonic line locked to the drums. Draw notes in the piano roll, play them from the computer keyboard or a MIDI controller, record them during playback, transform them with generators and export the line as MIDI, WAV or MP3 with the song.</p>
+
+  <h3 data-it="Per iniziare">Start here</h3>
+  <ol>
+    <li data-it="Apri la scheda <b>Synthesizer</b> nella barra delle viste. La sezione Engine contiene il suono; la sezione Pattern contiene la linea che stai modificando.">Open the <b>Synthesizer</b> tab in the view bar. The Engine section contains the sound; the Pattern section contains the line you are editing.</li>
+    <li data-it="Scegli un preset oppure parti da un suono vuoto. I preset KORG, Custom e Tone.js hanno banchi separati; puoi salvare e rinominare i tuoi suoni.">Choose a preset or start from a blank sound. KORG, Custom and Tone.js presets have separate banks; you can save and rename your own sounds.</li>
+    <li data-it="Nel Pattern usa <b>+ New</b> per una linea vuota, <b>Duplicate</b> per creare una variante, <b>Clear</b> per togliere le note, <b>Rename</b> per dare un nome e <b>Steps</b> per scegliere 8, 16, 32, 64, 128 o 256 step.">In Pattern use <b>+ New</b> for an empty line, <b>Duplicate</b> for a variation, <b>Clear</b> to remove notes, <b>Rename</b> to name it and <b>Steps</b> to choose 8, 16, 32, 64, 128 or 256 steps.</li>
+    <li data-it="Scegli <b>Key</b> e <b>Scale</b> per avere un riferimento musicale. La scala limita la visualizzazione quando attivi <b>Scale notes only</b>; non sposta le note già scritte.">Choose <b>Key</b> and <b>Scale</b> for a musical reference. The scale filters the view when you enable <b>Scale notes only</b>; it does not move notes already written.</li>
+    <li data-it="Premi <b>Play</b> per ascoltare il synth con la batteria. <b>On</b> abilita o silenzia la linea; <b>Solo</b> ascolta il synth senza la batteria; <b>Panic</b> interrompe immediatamente le note rimaste aperte.">Press <b>Play</b> to hear the synth with the drums. <b>On</b> enables or mutes the line; <b>Solo</b> hears the synth without drums; <b>Panic</b> immediately releases notes that are still held.</li>
+  </ol>
+
+  <h3 data-it="Scrivere, allungare e suonare le note">Writing and playing notes</h3>
+  <div class="table-wrap"><table>
+    <tr><th data-it="Controllo">Control</th><th data-it="Cosa fa">What it does</th></tr>
+    <tr><td><b>Notes</b></td><td data-it="Clic su una cella: aggiunge o rimuove una nota. Trascina una nota per cambiarne la durata in step.">Click a cell to add or remove a note. Drag a note to change its length in steps.</td></tr>
+    <tr><td><b>Accent</b></td><td data-it="Rende la nota più forte e brillante. In alternativa usa <b>alt+click</b>.">Makes the note louder and brighter. You can also use <b>alt+click</b>.</td></tr>
+    <tr><td><b>Slide</b></td><td data-it="Collega la nota alla successiva con un passaggio continuo, utile per linee acid e bassi mono. In alternativa usa <b>shift+click</b>.">Connects the note to the next one with a continuous transition, useful for acid lines and mono basses. You can also use <b>shift+click</b>.</td></tr>
+    <tr><td><b>Oct − / Oct +</b></td><td data-it="Sposta l’area visibile del piano roll di un’ottava senza trasporre le note.">Moves the visible piano-roll range by one octave without transposing notes.</td></tr>
+    <tr><td><b>Scale notes only</b></td><td data-it="Nasconde le note fuori dalla scala selezionata per facilitare l’editing; la scala non forza automaticamente le note.">Hides notes outside the selected scale to make editing easier; it does not force notes into the scale.</td></tr>
+    <tr><td><b>MIDI in</b></td><td data-it="Riceve le note da un controller MIDI nel browser compatibile. Con <b>Rec</b> e <b>Play</b> attivi, le note vengono registrate nel pattern.">Receives notes from a MIDI controller in a compatible browser. With <b>Rec</b> and <b>Play</b> on, notes are recorded into the pattern.</td></tr>
+    <tr><td><b>Rec + Play</b></td><td data-it="Registra le note suonate dalla tastiera del computer, dal piano roll o dal MIDI input, quantizzandole allo step più vicino. La durata dipende da quanto tieni premuta la nota.">Records notes played from the computer keyboard, piano roll or MIDI input, quantized to the nearest step. Duration follows how long you hold the note.</td></tr>
+  </table></div>
+  <p class="muted" data-it="La tastiera del computer usa i tasti A W S E D F T G Y H U J K O L P ;. I tasti Z e X cambiano ottava; Shift aggiunge l’accento. In Logic, 60 corrisponde a C3.">The computer keyboard uses A W S E D F T G Y H U J K O L P ;. Z and X change octave; Shift adds an accent. In Logic's convention, 60 is C3.</p>
+
+  <h3 data-it="Motori, preset e sorgenti">Engines, presets and sources</h3>
+  <div class="table-wrap"><table>
+    <tr><th>Engine</th><th data-it="Caratteristiche">Characteristics</th><th data-it="Quando usarlo">Use it for</th></tr>
+    <tr><td><b>Custom</b></td><td data-it="Sintetizzatore subtractive interno con due oscillatori, multi engine, filtro, inviluppi, LFO, voci ed effetti. È il motore principale per i preset Acid, bass, pad e lead.">Built-in subtractive synth with two oscillators, multi engine, filter, envelopes, LFO, voices and effects. It is the main engine for Acid, bass, pad and lead presets.</td><td data-it="Suoni programmabili e render offline coerente.">Programmable sounds and consistent offline rendering.</td></tr>
+    <tr><td><b>KORG</b></td><td data-it="Usa una KORG logue unit come sorgente del multi engine, con le sezioni di filtro, inviluppo, voce ed effetti di PATTERN-MACHINE intorno.">Uses a KORG logue unit as the multi-engine source, with PATTERN-MACHINE filter, envelope, voice and effects sections around it.</td><td data-it="Waves e pluck ispirati al flusso dell’NTS-1 mkII.">Waves and pluck sounds based on the NTS-1 mkII signal flow.</td></tr>
+    <tr><td><b>Tone.js</b></td><td data-it="Motore alternativo più semplice: usa un PolySynth con un oscillatore, filtro e inviluppo amp. Il suo banco preset è separato.">Simpler alternative engine: uses a PolySynth with one oscillator, filter and amp envelope. Its preset bank is separate.</td><td data-it="Compatibilità e preset rapidi, quando non servono tutte le sezioni Custom.">Compatibility and quick patches when you do not need every Custom section.</td></tr>
+    <tr><td><b>Save preset</b></td><td data-it="Salva i parametri correnti nel banco utente del browser. Con un account, i preset possono sincronizzarsi tra dispositivi.">Saves the current parameters to the browser's user bank. With an account, presets can sync across devices.</td><td data-it="Conservare un suono per altri pattern o progetti.">Keeping a sound for other patterns or projects.</td></tr>
+  </table></div>
+  <p data-it="Il preset salva il suono, non le note. Il pattern salva invece note, durata, accento, slide e generatore usato. Cambiare preset non modifica la linea; cambiare linea non modifica il preset.">A preset saves the sound, not the notes. The pattern saves notes, length, accent, slide and generator metadata. Changing a preset does not change the line; changing the line does not change the preset.</p>
+
+  <h3 data-it="Parametri del suono">Sound parameters</h3>
+  <p data-it="I valori sono manopole normalizzate: non serve conoscere la sintesi per usarle. Parti da un preset, cambia un solo gruppo alla volta e usa A/B con Undo per capire l’effetto.">Values are normalized controls: you do not need synthesis knowledge to use them. Start from a preset, change one group at a time and use A/B with Undo to hear what changed.</p>
+  <div class="table-wrap"><table>
+    <tr><th>Section</th><th>Parameter</th><th data-it="Significato pratico">Practical meaning</th></tr>
+    <tr><td rowspan="3"><b>VCO 1</b></td><td>Wave</td><td data-it="Forma d’onda di base: Saw è ricca e brillante, Square è più vuota e digitale, Triangle è morbida, Sine è pura e profonda.">Basic waveform: Saw is rich and bright, Square is hollow and digital, Triangle is soft, Sine is pure and deep.</td></tr>
+    <tr><td>Shape</td><td data-it="Morfologia della forma d’onda. Aumentandola aggiungi armoniche o deformazione; l’effetto dipende dalla forma scelta.">Waveform character. Increasing it adds harmonics or deformation; the result depends on the selected wave.</td></tr>
+    <tr><td>Octave</td><td data-it="Sposta l’oscillatore di −2, −1, 0, +1 o +2 ottave.">Moves the oscillator by −2, −1, 0, +1 or +2 octaves.</td></tr>
+    <tr><td rowspan="6"><b>VCO 2</b></td><td>Wave / Shape / Octave</td><td data-it="Gli stessi concetti del VCO 1, ma per il secondo oscillatore. Mischiarlo al primo crea spessore e movimento.">The same concepts as VCO 1, for the second oscillator. Mixing it with VCO 1 adds thickness and movement.</td></tr>
+    <tr><td>Pitch</td><td data-it="Accorda il VCO 2 in semitoni da −12 a +12. +7 crea una quinta, +12 un raddoppio all’ottava.">Tunes VCO 2 by −12 to +12 semitones. +7 makes a fifth; +12 doubles it one octave higher.</td></tr>
+    <tr><td>Fine</td><td data-it="Micro-accordatura in centesimi. Piccoli valori positivi o negativi creano battimenti e unisoni più larghi.">Fine tuning in cents. Small positive or negative values create beating and wider unisons.</td></tr>
+    <tr><td>Ring mod</td><td data-it="Moltiplica i due oscillatori per un suono metallico e inarmonico. Con Off il secondo oscillatore resta una semplice voce miscelata.">Multiplies the two oscillators for a metallic, inharmonic sound. With Off, VCO 2 remains a normally mixed voice.</td></tr>
+    <tr><td>VCO 1 / VCO 2</td><td data-it="Nel Mixer sono i livelli indipendenti dei due oscillatori.">In Mixer, these are the independent levels of the two oscillators.</td></tr>
+    <tr><td>Multi</td><td data-it="Livello della sorgente Multi engine rispetto ai due VCO.">Level of the Multi engine source relative to the two VCOs.</td></tr>
+    <tr><td rowspan="7"><b>Multi engine</b></td><td>Type</td><td data-it="Sceglie la sorgente aggiuntiva: Sub osc per un’ottava bassa, Noise per rumore, Sample per un suono della Drum Machine/Sampler, KORG logue unit per waves o pluck.">Chooses the extra source: Sub osc for a low octave, Noise for noise, Sample for a Drum Machine/Sampler sound, KORG logue unit for waves or pluck.</td></tr>
+    <tr><td>Shape</td><td data-it="Per Sub osc va da square a sine; per Noise va da white a più scuro. Non è disponibile per sample e KORG unit.">For Sub osc it moves from square to sine; for Noise it moves from white to darker. It is not used by samples or KORG units.</td></tr>
+    <tr><td>Unit</td><td data-it="Sceglie l’unità KORG caricata, per esempio waves o pluck.">Chooses the loaded KORG unit, for example waves or pluck.</td></tr>
+    <tr><td>Sound</td><td data-it="Sceglie il campione della Drum Machine o del Sampler quando Type è Sample.">Chooses the Drum Machine or Sampler sound when Type is Sample.</td></tr>
+    <tr><td>Root</td><td data-it="Nota originale del campione. Se il campione è stato registrato a C2, imposta Root su C2 per mantenere l’intonazione naturale.">Original pitch of a sample. If it was recorded at C2, set Root to C2 to keep its natural pitch.</td></tr>
+    <tr><td>Start</td><td data-it="Punto di partenza del campione in percentuale. Alzarlo rimuove l’attacco iniziale.">Sample start position in percent. Raising it removes the beginning of the attack.</td></tr>
+    <tr><td>Loop</td><td data-it="Ripete il campione dopo il punto di Start finché la nota resta aperta. Utile per pad e texture; Off riproduce il campione una volta.">Loops the sample after Start while the note is held. Useful for pads and textures; Off plays it once.</td></tr>
+    <tr><td rowspan="7"><b>Filter</b></td><td>Type</td><td data-it="Low-pass 24 dB attenua le alte in modo deciso; Low-pass 12 dB è più dolce; High-pass taglia le basse; Band-pass lascia una banda centrale.">Low-pass 24 dB removes highs strongly; Low-pass 12 dB is gentler; High-pass removes lows; Band-pass leaves a middle band.</td></tr>
+    <tr><td>Cutoff</td><td data-it="Frequenza centrale del filtro. Basso = suono scuro, alto = suono aperto e brillante.">Filter frequency. Low is dark; high is open and bright.</td></tr>
+    <tr><td>Resonance</td><td data-it="Enfatizza la zona del cutoff. Valori alti rendono il filtro più appuntito e possono creare un tono quasi fischiante.">Emphasizes the cutoff area. High values make the filter sharper and can create a whistle-like tone.</td></tr>
+    <tr><td>EG amount</td><td data-it="Quanto l’inviluppo del filtro apre o chiude il cutoff. Valori negativi muovono il filtro nella direzione opposta.">How much the filter envelope moves the cutoff. Negative values move it in the opposite direction.</td></tr>
+    <tr><td>Key track</td><td data-it="Fa seguire il cutoff all’altezza della nota: le note acute diventano più aperte rispetto alle basse.">Makes cutoff follow note pitch: high notes become more open than low notes.</td></tr>
+    <tr><td>Velocity</td><td data-it="Quanto la velocity della nota modifica il cutoff. Suonando più forte il timbro può diventare più brillante.">How note velocity changes cutoff. Playing harder can make the tone brighter.</td></tr>
+    <tr><td>Drive</td><td data-it="Saturazione prima/dentro il percorso del filtro. Aggiunge densità e armoniche; controlla il Volume dopo averlo alzato.">Saturation in the filter path. Adds density and harmonics; check Volume after raising it.</td></tr>
+  </table></div>
+  <div class="table-wrap"><table>
+    <tr><th>Section</th><th>Parameter</th><th data-it="Significato pratico">Practical meaning</th></tr>
+    <tr><td rowspan="4"><b>Amp EG</b></td><td>Attack</td><td data-it="Tempo con cui il volume sale da zero. Breve = percussivo; lungo = entrata morbida.">Time for volume to rise from zero. Short is percussive; long is a soft fade-in.</td></tr>
+    <tr><td>Decay</td><td data-it="Tempo per scendere dal picco al livello Sustain.">Time to fall from the peak to Sustain.</td></tr>
+    <tr><td>Sustain</td><td data-it="Livello mantenuto mentre la nota resta aperta. A zero ottieni pluck e colpi; alto ottieni suoni continui.">Level held while the note is open. Zero gives plucks and hits; high gives sustained sounds.</td></tr>
+    <tr><td>Release</td><td data-it="Coda dopo il rilascio della nota. Breve chiude il groove; lunga crea code e pad.">Tail after the note is released. Short keeps grooves tight; long creates tails and pads.</td></tr>
+    <tr><td rowspan="4"><b>Filter EG</b></td><td>Attack</td><td data-it="Tempo con cui il movimento del filtro raggiunge il massimo.">Time for the filter movement to reach its peak.</td></tr>
+    <tr><td>Decay</td><td data-it="Tempo con cui il filtro scende verso il Sustain.">Time for the filter to fall toward Sustain.</td></tr>
+    <tr><td>Sustain</td><td data-it="Apertura del filtro mantenuta durante la nota.">Filter opening held during the note.</td></tr>
+    <tr><td>Release</td><td data-it="Coda del movimento del filtro dopo il rilascio.">Filter movement tail after release.</td></tr>
+    <tr><td rowspan="5"><b>LFO</b></td><td>Wave</td><td data-it="Forma dell’oscillazione ciclica: Triangle e Sine sono morbide, Saw e Square sono più nette, Sample &amp; hold crea cambi casuali a gradini.">Shape of the cyclic modulation: Triangle and Sine are smooth, Saw and Square are sharper, Sample &amp; hold creates random stepped changes.</td></tr>
+    <tr><td>Target</td><td data-it="Destinazione del LFO: Pitch per vibrato, Cutoff per movimento timbrico, Shape per la forma d’onda, Volume per tremolo.">LFO destination: Pitch for vibrato, Cutoff for timbral movement, Shape for waveform motion, Volume for tremolo.</td></tr>
+    <tr><td>Sync</td><td data-it="Free usa una frequenza indipendente; gli altri valori sincronizzano il ciclo al tempo, da 1/16 a 1/1.">Free uses an independent rate; the other values sync the cycle to tempo, from 1/16 to 1/1.</td></tr>
+    <tr><td>Rate</td><td data-it="Velocità del LFO quando Sync è Free. Da lenta e ampia a rapida e vibrante.">LFO speed when Sync is Free. From slow and broad to fast and vibrating.</td></tr>
+    <tr><td>Amount</td><td data-it="Profondità della modulazione. Parti da valori bassi: sul Pitch basta poco per ottenere un vibrato evidente.">Modulation depth. Start low: on Pitch, a small amount already makes an obvious vibrato.</td></tr>
+    <tr><td rowspan="6"><b>Voice</b></td><td>Mode</td><td data-it="Poly (8) permette fino a otto note; Mono usa una sola voce; Unison (4) sovrappone quattro voci per un suono largo.">Poly (8) allows up to eight notes; Mono uses one voice; Unison (4) layers four voices for a wide sound.</td></tr>
+    <tr><td>Glide</td><td data-it="Portamento tra una nota e la successiva, soprattutto evidente in Mono. Zero cambia subito; alto scivola più lentamente.">Portamento between notes, especially clear in Mono. Zero changes immediately; higher values glide more slowly.</td></tr>
+    <tr><td>Accent</td><td data-it="Quanto l’accento scritto sulla nota aumenta volume e apertura del filtro.">How much a note accent increases volume and filter opening.</td></tr>
+    <tr><td>Unison detune</td><td data-it="Scorda leggermente le quattro voci in modalità Unison. Più alto = più largo, ma anche più instabile.">Detunes the four voices in Unison. Higher is wider, but also less stable in pitch.</td></tr>
+    <tr><td>Gate</td><td data-it="Quanto dura una nota rispetto allo step. Basso lascia spazio tra le note; 100% le tiene fino al cambio successivo.">How long a note lasts within its step. Low leaves space; 100% holds until the next step.</td></tr>
+    <tr><td>Transpose</td><td data-it="Trasposizione globale del synth in semitoni, da −24 a +24, senza spostare le note nel piano roll.">Global synth transposition in semitones, −24 to +24, without moving notes in the piano roll.</td></tr>
+    <tr><td rowspan="6"><b>Effects</b></td><td>Chorus</td><td data-it="Aggiunge copie leggermente ritardate e modulate per un suono più largo.">Adds slightly delayed, modulated copies for a wider sound.</td></tr>
+    <tr><td>Delay</td><td data-it="Livello del delay ping-pong sincronizzato al tempo.">Level of the tempo-synced ping-pong delay.</td></tr>
+    <tr><td>Delay time</td><td data-it="Divisione ritmica delle ripetizioni: 1/16, 1/8, terzine, 1/4, 1/2 o 1/1.">Rhythmic division of repeats: 1/16, 1/8, triplets, 1/4, 1/2 or 1/1.</td></tr>
+    <tr><td>Feedback</td><td data-it="Numero e durata delle ripetizioni del delay. Valori alti possono riempire rapidamente il mix.">Number and decay of delay repeats. High values can fill the mix quickly.</td></tr>
+    <tr><td>Reverb</td><td data-it="Coda ambientale stereo. Basso dà profondità; alto mette il suono più lontano e diffuso.">Stereo room tail. Low adds depth; high places the sound further away and more diffuse.</td></tr>
+    <tr><td>Volume</td><td data-it="Livello del preset prima del volume Synth del mixer e del master.">Preset level before the mixer's Synth volume and master.</td></tr>
+  </table></div>
+
+  <h3 data-it="Come leggere i parametri insieme">How parameters work together</h3>
+  <ul>
+    <li data-it="Per un basso: Sine o Saw, VCO 2 basso, filtro Low-pass con Cutoff basso, Attack breve, Sustain alto e Mode Mono. Aggiungi poco Glide per legato.">For bass: Sine or Saw, lower VCO 2, Low-pass with low Cutoff, short Attack, high Sustain and Mono mode. Add a little Glide for legato.</li>
+    <li data-it="Per un pluck: Saw o Square, Attack zero, Decay breve, Sustain zero, Gate corto, Filter EG positivo e poco Delay/Reverb.">For a pluck: Saw or Square, zero Attack, short Decay, zero Sustain, short Gate, positive Filter EG and a little Delay/Reverb.</li>
+    <li data-it="Per un pad: due oscillatori, Poly o Unison, Attack e Release lunghi, Cutoff medio, Chorus e Reverb moderati, Gate vicino al 100%.">For a pad: two oscillators, Poly or Unison, long Attack and Release, medium Cutoff, moderate Chorus and Reverb, Gate near 100%.</li>
+    <li data-it="Per una linea acid: Saw, Mono, Cutoff e Resonance alti, Filter EG positivo, Accent alto, Gate medio e Slide sulle note di collegamento.">For an acid line: Saw, Mono, high Cutoff and Resonance, positive Filter EG, high Accent, medium Gate and Slide on connecting notes.</li>
+    <li data-it="Se il suono distorce, abbassa Drive, Volume, livelli VCO/Multi o il volume Synth nel Mixer. Gli effetti aumentano la coda ma non sostituiscono un corretto gain staging.">If the sound distorts, lower Drive, Volume, VCO/Multi levels or Synth volume in the Mixer. Effects add a tail but do not replace correct gain staging.</li>
+  </ul>
+  <p class="muted" data-it="Per approfondire il percorso audio e le unità KORG apri anche <a href=\"synth.html\">Synth engines and methods</a>.">For the audio path and KORG units, also open <a href="synth.html">Synth engines and methods</a>.</p>
 </section>
 
 <section id="canzone">
@@ -592,11 +696,11 @@ th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-sp
 </script>
 <script>
 (function(){
-  const order=["inizio","tasti","numeri","macchine","griglia","canzone","motore","variazioni","stili","daw-midi","export","import","progetti","troubleshooting","limiti"];
+  const order=["inizio","tasti","numeri","macchine","griglia","synth","canzone","motore","variazioni","stili","daw-midi","export","import","progetti","troubleshooting","limiti"];
   const main=document.querySelector(".docs-main");
   order.map(id=>document.getElementById(id)).filter(Boolean).forEach(section=>main.append(section));
   const sections=order.map(id=>document.getElementById(id)).filter(Boolean);
-  const labels=["Getting started","Keyboard and mouse","At a glance","Machines","Grid and steps","Song and Sequencer","Pattern engine","Variations","Styles","Connecting to DAWs, MIDI and clock","Export for Logic","Import","Projects, codes and links","Troubleshooting","Known limitations"];
+  const labels=["Getting started","Keyboard and mouse","At a glance","Machines","Grid and steps","Synthesizer","Song and Sequencer","Pattern engine","Variations","Styles","Connecting to DAWs, MIDI and clock","Export for Logic","Import","Projects, codes and links","Troubleshooting","Known limitations"];
   sections.forEach((section,i)=>{
     const nav=document.createElement("div"); nav.className="chapter-nav";
     const prev=i?`<a href="#${sections[i-1].id}" data-en="← ${labels[i-1]}" data-it="← ${window.PMGuide.IT[labels[i-1]]||labels[i-1]}">← ${labels[i-1]}</a>`:`<span class="disabled">—</span>`;

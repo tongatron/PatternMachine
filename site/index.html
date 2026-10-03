@@ -324,10 +324,26 @@ label.fld input[type=number]{width:54px;}
 #panelTransport{position:sticky; top:8px; z-index:20;}
 #synthPlayBtn, #drumsPlayBtn{display:none !important;}
 #panelTransport .transport-primary{
-  display:flex; flex-wrap:nowrap; align-items:center; gap:7px; min-width:0;
+  display:flex; flex-wrap:nowrap; align-items:center; gap:5px; min-width:0;
 }
-#panelTransport .transport-primary > .transport-bpm{flex:0 1 auto; min-width:0;}
+#panelTransport .transport-primary > #playBtn,
+#panelTransport .transport-primary > #stopBtn,
+#panelTransport .transport-primary > .transport-mode,
+#panelTransport .transport-primary > #loopBtn,
+#panelTransport .transport-primary > .transport-bpm,
+#panelTransport .transport-primary > #recBtn,
+#panelTransport .transport-primary > #metronomeBtn,
+#panelTransport .transport-primary > #tapBtn,
 #panelTransport .transport-primary > #viewSound{flex:0 0 auto;}
+#panelTransport .transport-primary .transport-mode button{min-width:84px; padding-inline:12px;}
+#panelTransport .transport-primary > label[title*="count-in"]{flex:0 0 auto; white-space:nowrap;}
+#panelTransport .transport-primary .transport-bpm{width:164px; white-space:nowrap;}
+#panelTransport .transport-primary .transport-bpm input[type=range]{width:72px;}
+#panelTransport .transport-primary #bpmNum{width:54px;}
+#panelTransport .transport-primary #countInSelect{width:70px;}
+#panelTransport .transport-primary #recBtn{padding-inline:14px;}
+#panelTransport .transport-primary #metronomeBtn{width:44px; padding-inline:0; justify-content:center;}
+#panelTransport .transport-primary > #viewSound{width:104px; padding-inline:10px;}
 #panelTransport .transport-secondary{
   display:flex; align-items:center; min-width:0; margin-top:8px; padding-top:8px;
   border-top:1px solid var(--edge-soft);

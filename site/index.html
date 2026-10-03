@@ -323,10 +323,25 @@ label.fld input[type=number]{width:54px;}
 }
 #panelTransport{position:sticky; top:8px; z-index:20;}
 #synthPlayBtn, #drumsPlayBtn{display:none !important;}
+#panelTransport .transport-primary{
+  display:flex; flex-wrap:nowrap; align-items:center; gap:7px; min-width:0;
+}
+#panelTransport .transport-primary > .transport-bpm{flex:0 1 auto; min-width:0;}
+#panelTransport .transport-primary > #viewSound{flex:0 0 auto;}
+#panelTransport .transport-secondary{
+  display:flex; align-items:center; min-width:0; margin-top:8px; padding-top:8px;
+  border-top:1px solid var(--edge-soft);
+}
+#panelTransport .transport-secondary .transport-extra{
+  display:flex; flex:1 1 auto; flex-wrap:wrap; align-items:center; gap:7px;
+  min-width:0;
+}
 @media (max-width:700px){
   /* su mobile il blocco del Play scorre con gli altri: fisso in primo piano copriva la pagina */
   #panelTransport{position:static; margin-top:10px;}
-  #panelTransport .transport-extra{display:flex; flex-wrap:wrap; gap:7px;}
+  #panelTransport .transport-primary{flex-wrap:wrap;}
+  #panelTransport .transport-primary > #playBtn{flex:1 1 100%;}
+  #panelTransport .transport-secondary{margin-top:7px; padding-top:7px;}
   #panelTransport label[title*="humanize"], #panelTransport #liveKeysBtn{display:none;}
   #panelTransport .counter{margin-left:auto;}
 }
@@ -1193,7 +1208,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
   <div class="panel" id="synthPatternPanel" hidden></div>
 
   <div class="panel" id="panelTransport">
-    <div class="flexline">
+    <div class="transport-primary">
       <button id="playBtn" title="Play (space bar)"><span class="ico">&#9654;</span> Play</button>
       <button id="stopBtn" type="button" title="Stop and return to the start" disabled>■ Stop</button>
       <div class="transport-mode" role="group" aria-label="Playback mode">
@@ -1202,19 +1217,21 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       </div>
       <button id="synthPlayBtn" type="button" hidden title="Play"><span class="ico">&#9654;</span> Play</button>
       <button id="drumsPlayBtn" type="button" hidden title="Play"><span class="ico">&#9654;</span> Play</button>
+      <button id="recBtn" class="live-keep"><span class="rec-dot" aria-hidden="true">&#9679;</span> Rec</button>
+      <button id="metronomeBtn" class="mini live-keep" type="button" aria-label="Metronome on/off" aria-pressed="false" title="Metronome on/off"><svg class="metro-ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.5h4l5.5 17h-15z"/><path d="M7.2 15.5h9.6" stroke-width="1.3"/><g class="rod"><path d="M12 19V2.5"/><rect x="10.2" y="7" width="3.6" height="2.6" rx=".6" fill="currentColor" stroke="none"/></g></svg></button>
+      <label class="fld live-keep transport-bpm">BPM
+        <input type="range" id="bpmRange" min="40" max="240" value="95">
+        <input type="number" id="bpmNum" min="40" max="240" value="95">
+      </label>
+      <button id="tapBtn" class="mini live-keep" aria-label="Tap tempo" title="Tap tempo">Tap</button>
+      <button id="viewSound" class="mini live-keep" type="button" aria-pressed="false" title="For playing live: the grid, Play, Rec, tempo and metronome">Live View</button>
+    </div>
+    <div class="transport-secondary">
       <div class="transport-extra">
         <button id="loopBtn" class="mini live-keep" type="button" aria-pressed="true" title="Loop pattern on">Loop</button>
         <label class="fld live-keep" title="Metronome count-in before playback">Count-in
           <select id="countInSelect" aria-label="Count-in"><option value="0">Off</option><option value="1">1 bar</option><option value="2">2 bars</option></select>
         </label>
-        <button id="recBtn" class="live-keep"><span class="rec-dot" aria-hidden="true">&#9679;</span> Rec</button>
-        <label class="fld live-keep">BPM
-          <input type="range" id="bpmRange" min="40" max="240" value="95">
-        <input type="number" id="bpmNum" min="40" max="240" value="95">
-        </label>
-        <button id="tapBtn" class="mini live-keep" aria-label="Tap tempo" title="Tap tempo">Tap</button>
-        <button id="viewSound" class="mini live-keep" type="button" aria-pressed="false" title="For playing live: the grid, Play, Rec, tempo and metronome">Live View</button>
-        <button id="metronomeBtn" class="mini live-keep" type="button" aria-label="Metronome on/off" aria-pressed="false" title="Metronome on/off"><svg class="metro-ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.5h4l5.5 17h-15z"/><path d="M7.2 15.5h9.6" stroke-width="1.3"/><g class="rod"><path d="M12 19V2.5"/><rect x="10.2" y="7" width="3.6" height="2.6" rx=".6" fill="currentColor" stroke="none"/></g></svg></button>
         <button id="liveKeysBtn" class="mini live-keep" type="button" title="Show the instrument keys">Keys</button>
         <span class="feel-group"><label class="fld" title="MPC-style swing: 50% straight, 66% triplet feel, 75% maximum">Swing <input type="range" id="swingRange" min="0" max="100" value="0"> <span id="swingPct" class="tiny">50%</span></label>
         <label class="fld" title="humanize: small random variations in timing (up to 10 ms) and velocity (up to 15%)">Humanize <input type="range" id="humanRange" min="0" max="100" value="0"> <span id="humanPct" class="tiny">0%</span></label></span>

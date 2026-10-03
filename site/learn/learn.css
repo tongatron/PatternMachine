@@ -237,3 +237,7 @@ h1.title{font-size:34px; line-height:1.1; font-weight:800; letter-spacing:-.01em
   background:linear-gradient(180deg,#e0743f,#b8471f); color:#fff; padding:5px 12px; border-radius:999px; transition:.2s;}
 .site-badge .mark{width:11px; height:11px; border-radius:50%; background:#fff; flex-shrink:0;}
 .site-badge:hover{box-shadow:0 0 0 2px #8a3418;}
+/* link al repository GitHub, sotto il pulsante di tongatron.org */
+.gh-link{display:inline-flex; align-items:center; gap:7px; color:inherit; text-decoration:none; font:600 12px/1.2 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;}
+.gh-link svg{width:16px; height:16px; fill:currentColor; flex-shrink:0;}
+.gh-link:hover{text-decoration:underline;}

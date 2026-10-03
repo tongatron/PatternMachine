@@ -1,8 +1,28 @@
-# PatternMachine per macOS (prototipo Electron)
+# PatternMachine Desktop — il tuo groove, direttamente nella DAW
 
-Lo stesso PatternMachine del sito, in un'app per Mac che parla direttamente con Logic Pro.
-Il sito (`../site`) non viene modificato: l'app lo carica dal disco e ci aggiunge un pannello **Logic**
-(`bridge/`), che sostituisce alcune funzioni del sito con quelle native.
+PatternMachine è una drum machine creativa per producer e musicisti: genera idee, scolpisci ogni colpo e porta il
+risultato in Logic Pro o nella tua DAW senza passaggi inutili.
+
+L'app desktop trasforma PatternMachine in uno strumento da studio: audio interno, MIDI live, sincronizzazione al
+trasporto della DAW, drag and drop e progetti locali in un'unica finestra.
+
+![PatternMachine Desktop: download e vantaggi dell'app](../docs/screenshots/app.jpg)
+
+## In evidenza
+
+- **Drag and drop nella DAW** — trascina MIDI o WAV direttamente nella timeline.
+- **MIDI live** — la porta virtuale `PatternMachine` pilota Drum Kit Designer, Drum Machine Designer e qualsiasi
+  strumento MIDI.
+- **Clock della DAW** — Play, Stop, ciclo, posizione e BPM restano agganciati a Logic, Ableton Live, REAPER e alle
+  altre DAW compatibili.
+- **Workflow offline** — i suoni sono inclusi e i progetti vengono salvati come file nella cartella Musica.
+- **Kit personalizzati** — importa una tua drum machine da una cartella o da uno ZIP.
+- **Export pronto per lo studio** — MIDI, WAV, stem, MP3 e pacchetti organizzati per Logic, Ableton e REAPER.
+
+![PatternMachine Desktop: griglia step e controllo del groove](../docs/screenshots/griglia.jpg)
+
+> Dall'idea al beat in pochi secondi: genera un pattern, applica una variazione, rifinisci il feeling e trascinalo
+> nella sessione.
 
 ## Perché un'app: cosa si guadagna rispetto al browser
 
@@ -18,6 +38,8 @@ Il sito (`../site`) non viene modificato: l'app lo carica dal disco e ci aggiung
 
 L'audio interno è lo stesso motore Web Audio del sito. Con "Internal sound" spento si sentono solo
 gli strumenti di Logic pilotati dal MIDI.
+
+![PatternMachine Desktop: arrangiamento Song](../docs/screenshots/sequencer.jpg)
 
 ## Usarla
 

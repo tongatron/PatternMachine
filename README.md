@@ -178,9 +178,3 @@ To try the site locally, serve the `site` folder with any static server:
 ```bash
 python3 -m http.server 8765 --directory site
 ```
-
-## Credits
-
-Made by [tongatron.org](https://tongatron.org).
-Apart from the SP-1200 and RX-5 samples, the machine kits are Apple's recreations shipped with Logic Pro, not original
-manufacturer samples. The machine names are trademarks of their respective owners.

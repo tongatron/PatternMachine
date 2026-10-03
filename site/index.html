@@ -1098,10 +1098,10 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
           <summary>Export</summary>
           <div class="export-list">
             <div class="export-head">MIDI</div>
-            <button id="expPatternBtn" title="Notes for Logic's SP-1200 kit (36 + slot)">MIDI pattern</button>
-            <button id="expSongBtn" title="Notes for Logic's SP-1200 kit (36 + slot)">MIDI song</button>
-            <button id="gmMidiBtn" title="General MIDI map (36 kick, 38 snare, 42 closed hat…): works in any DAW. Follows Pattern/Song">MIDI (General MIDI)</button>
+            <button id="expPatternBtn" title="General MIDI map (36 kick, 38 snare, 42 closed hat…): works in any DAW">MIDI pattern</button>
+            <button id="expSongBtn" title="General MIDI map (36 kick, 38 snare, 42 closed hat…): works in any DAW">MIDI song</button>
             <button id="multiMidiBtn" title="General MIDI map, one MIDI track per instrument: imported into a DAW it creates separate channels">Multitrack MIDI</button>
+            <button id="spMidiBtn" title="Notes for the SP-1200 kit built in Logic (36 + slot): not General MIDI. Follows Pattern/Song">MIDI for Logic SP-1200 kit</button>
             <div class="export-head">Audio</div>
             <button id="wavPatternBtn" title="Audio of the pattern looped 4 times, with row levels and effects">WAV pattern</button>
             <button id="wavSongBtn" title="Audio of the whole song, with row levels and effects">WAV song</button>
@@ -1571,7 +1571,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
           <select id="importMap">
             <option value="auto">detect automatically</option>
             <option value="gm">General MIDI (36 kick, 38 snare…)</option>
-            <option value="pm">PATTERN-MACHINE kit (36 + slot number)</option>
+            <option value="pm">Logic SP-1200 kit (36 + slot number)</option>
           </select>
         </label>
         <label class="chk"><input type="checkbox" id="importAdd"> add to the open project instead of opening a new one</label>
@@ -1666,22 +1666,22 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-10-03.4"></script>
-<script src="engine/core.js?v=2026-10-03.4"></script>
-<script src="engine/styles-punk.js?v=2026-10-03.4"></script>
-<script src="engine/styles-post.js?v=2026-10-03.4"></script>
-<script src="engine/styles-machines.js?v=2026-10-03.4"></script>
-<script src="engine/styles-alt.js?v=2026-10-03.4"></script>
-<script src="engine/styles-groove.js?v=2026-10-03.4"></script>
-<script src="engine/styles-dub.js?v=2026-10-03.4"></script>
-<script src="engine/styles-break.js?v=2026-10-03.4"></script>
-<script src="engine/styles-soul.js?v=2026-10-03.4"></script>
-<script src="engine/styles-metal.js?v=2026-10-03.4"></script>
-<script src="engine/styles-electro.js?v=2026-10-03.4"></script>
-<script src="engine/variations.js?v=2026-10-03.4"></script>
-<script src="engine/import.js?v=2026-10-03.4"></script>
-<script src="engine/rhythm.js?v=2026-10-03.4"></script>
-<script src="engine/share.js?v=2026-10-03.4"></script>
+<script src="engine/machine-art.js?v=2026-10-03.5"></script>
+<script src="engine/core.js?v=2026-10-03.5"></script>
+<script src="engine/styles-punk.js?v=2026-10-03.5"></script>
+<script src="engine/styles-post.js?v=2026-10-03.5"></script>
+<script src="engine/styles-machines.js?v=2026-10-03.5"></script>
+<script src="engine/styles-alt.js?v=2026-10-03.5"></script>
+<script src="engine/styles-groove.js?v=2026-10-03.5"></script>
+<script src="engine/styles-dub.js?v=2026-10-03.5"></script>
+<script src="engine/styles-break.js?v=2026-10-03.5"></script>
+<script src="engine/styles-soul.js?v=2026-10-03.5"></script>
+<script src="engine/styles-metal.js?v=2026-10-03.5"></script>
+<script src="engine/styles-electro.js?v=2026-10-03.5"></script>
+<script src="engine/variations.js?v=2026-10-03.5"></script>
+<script src="engine/import.js?v=2026-10-03.5"></script>
+<script src="engine/rhythm.js?v=2026-10-03.5"></script>
+<script src="engine/share.js?v=2026-10-03.5"></script>
 <script>
 // Script principale di PATTERN-MACHINE: stato del progetto, audio, trasporto e interfaccia della pagina.
 // Il motore ritmico (SPEngine), i tempi (PMRhythm), import, link e gli altri moduli stanno in engine/*.js.
@@ -4564,7 +4564,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || el("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-03.4";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-03.5";
   document.body.appendChild(s);
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth")) loadSynth();
@@ -5782,8 +5782,10 @@ async function saveBlob(blob, filename, label){
   }
 }
 
+// "MIDI pattern" e "MIDI song": General MIDI, si aprono in qualsiasi DAW.
 function exportMidi(which){
-  return saveBlob(midiBlob(buildMidi(which)), exportBase(which)+".mid", "MIDI");
+  if(songIsEmpty(which)) return;
+  return saveBlob(midiBlob(buildLogicMidi(which)), exportBase(which)+".mid", "MIDI "+which);
 }
 
 // Pattern o canzone? Lo dice il selettore del trasporto.
@@ -6270,15 +6272,16 @@ function exportDaw(daw="logic"){
 }
 document.querySelectorAll(".daw-btn").forEach(b=>{ b.onclick=()=>exportDaw(b.dataset.daw); });
 
-el("gmMidiBtn").onclick=()=>{
-  const which=exportScope();
-  if(songIsEmpty(which)) return;
-  return saveBlob(midiBlob(buildLogicMidi(which)), exportBase(which)+" - GM.mid", "MIDI (General MIDI)");
-};
 el("multiMidiBtn").onclick=()=>{
   const which=exportScope();
   if(songIsEmpty(which)) return;
   return saveBlob(midiBlob(buildMultiMidi(which)), exportBase(which)+" - multitrack.mid", "Multitrack MIDI");
+};
+// La mappa del kit SP-1200 costruito in Logic (36 + slot): l'unico export MIDI non General MIDI.
+el("spMidiBtn").onclick=()=>{
+  const which=exportScope();
+  if(songIsEmpty(which)) return;
+  return saveBlob(midiBlob(buildMidi(which)), exportBase(which)+" - SP-1200 kit.mid", "MIDI for Logic SP-1200 kit");
 };
 
 // Il menu Export si chiude dopo una scelta, al click fuori e con Esc.
@@ -6367,7 +6370,7 @@ function sampleForNote(note,map){
   const i=sampleIdx(GM_TO_SAMPLE[note]||"Perc 1");
   return i>=0?i:sampleIdx("Perc 1");
 }
-// "MIDI pattern" di PATTERN-MACHINE scrive 36 + slot: cassa e rullante coincidono col General MIDI (36, 38),
+// "MIDI for Logic SP-1200 kit" scrive 36 + slot: cassa e rullante coincidono col General MIDI (36, 38),
 // gli hi-hat no (43 e 45 invece di 42 e 46). Hi-hat del kit senza quelli GM = file fatto qui.
 function guessMap(res){
   const notes=new Set(res.sections.flatMap(s=>s.hits.map(h=>h.note)));
@@ -6460,7 +6463,7 @@ async function applyImport(res){
   remapUnavailable(); renderAll(); markCurrentRecent();
   const n=project.song.length, what=`${out.made} ${out.made===1?"pattern":"different patterns"}, ${n} ${n===1?"block":"blocks"} in the Song`;
   setStatus(res.audio ? `imported from audio at ${project.bpm} BPM: ${what} — it's an estimate, check the grid`
-                      : `imported: ${what}${out.map==="pm"?" · PATTERN-MACHINE kit notes":""}`);
+                      : `imported: ${what}${out.map==="pm"?" · Logic SP-1200 kit notes":""}`);
   return true;
 }
 
@@ -7379,7 +7382,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-10-03.4";
+const SW_VERSION="2026-10-03.5";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -7403,11 +7406,11 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sample-editor.js?v=2026-10-03.4"></script>
-<script src="engine/sampler.js?v=2026-10-03.4"></script>
-<script src="engine/vocal.js?v=2026-10-03.4"></script>
+<script src="engine/sample-editor.js?v=2026-10-03.5"></script>
+<script src="engine/sampler.js?v=2026-10-03.5"></script>
+<script src="engine/vocal.js?v=2026-10-03.5"></script>
 <script>PMSampler.init(); PMVocal.init();</script>
-<script src="engine/midi.js?v=2026-10-03.4"></script>
+<script src="engine/midi.js?v=2026-10-03.5"></script>
 
 </body>
 </html>

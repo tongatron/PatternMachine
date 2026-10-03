@@ -2414,6 +2414,15 @@ const patternHue = id => PATTERN_HUES[Math.max(0,project.patterns.findIndex(p=>p
 // ---------- audio ----------
 const chokeVoices=new Map();
 const revCache=new Map();
+const liveVoices=new Set();
+
+// Arresto d'emergenza per i colpi audio gia' schedulati. Un timer fermato non basta:
+// AudioBufferSourceNode continua a suonare anche se il trasporto non e' piu' attivo.
+function stopLiveAudio(){
+  for(const src of liveVoices){ try{ src.stop(); }catch(e){} }
+  liveVoices.clear();
+  chokeVoices.clear();
+}
 
 // 0..100 -> 200 Hz .. 20 kHz logaritmico; sopra 19 kHz il filtro e' considerato spento.
 const cutoffHz = v => 200*Math.pow(100, (v??100)/100);
@@ -2461,6 +2470,11 @@ function trigger(track, time, velocity, ctx=actx(), chokes=chokeVoices){
     src.connect(gain);
   }
   gain.connect(mixOut(ctx, track.id));
+  const live=ctx===audioCtx;
+  if(live){
+    liveVoices.add(src);
+    src.addEventListener("ended",()=>liveVoices.delete(src),{once:true});
+  }
 
   const offset=Math.min(0.95, (track.start||0)/100)*buf.duration;
   const avail=Math.max(0.01, (buf.duration-offset)/rate);
@@ -2788,6 +2802,7 @@ function pause(){
   playing=false;
   paused=true;
   clearInterval(timer); timer=null; queue=[];
+  stopLiveAudio();
   if(window.PMSynth) PMSynth.allOff();
   paintTransport();
   paintPlayhead();
@@ -2798,6 +2813,8 @@ function stop(){
   paused=false;
   synthOnly=false; drumsOnly=false;
   clearInterval(timer); timer=null; queue=[];
+  stopAudition();
+  stopLiveAudio();
   if(window.PMSynth) PMSynth.allOff();
   ui.songStartPos=0;
   pauseState=null;
@@ -2812,12 +2829,14 @@ const togglePlay = ()=> playing?pause():(paused?play({resume:true}):startMainPla
 function paintTransport(){
   const inSynth=!el("panelSynth").hidden, inDrums=el("viewGrid").classList.contains("on");
   const all=el("playBtn"), stopBtn=el("stopBtn"), loopBtn=el("loopBtn"), solo=el("synthPlayBtn"), drums=el("drumsPlayBtn");
+  const auditioning=typeof audition!=="undefined" && !!audition.item;
+  const audioActive=playing||paused||auditioning||liveVoices.size>0;
   all.classList.toggle("on",playing);
   all.innerHTML=playing ? '<span class="ico">&#10074;&#10074;</span> Pause' : (paused ? '<span class="ico">&#9654;</span> Resume' : '<span class="ico">&#9654;</span> Play');
   all.title=playing ? "Pause (space bar)" : (paused ? "Resume (space bar)" : "Play (space bar)");
   if(stopBtn){
-    stopBtn.disabled=!playing && !paused;
-    stopBtn.setAttribute("aria-disabled",String(!playing && !paused));
+    stopBtn.disabled=!audioActive;
+    stopBtn.setAttribute("aria-disabled",String(!audioActive));
   }
   if(loopBtn){
     loopBtn.classList.toggle("on",ui.loop);
@@ -6628,6 +6647,7 @@ async function startAudition(item){
   if(ctx.state==="suspended") ctx.resume();
   const voices=auditionVoices(item);
   audition.item=item; paintAudition();
+  paintTransport();
   await Promise.all(voices.map(v=>loadBuffer(v.track.sampleIndex).catch(()=>null)));
   if(audition.item!==item) return;                 // nel frattempo l'ascolto e' cambiato
   Object.assign(audition,{voices, step:0, next:ctx.currentTime+0.05});
@@ -6647,7 +6667,7 @@ async function startAudition(item){
 }
 function stopAudition(){
   clearInterval(audition.timer); audition.timer=null;
-  if(audition.item){ audition.item=null; paintAudition(); }
+  if(audition.item){ audition.item=null; paintAudition(); paintTransport(); }
 }
 function paintAudition(){
   document.querySelectorAll(".lib-item, #recentBody tr.rec-row").forEach(row=>{

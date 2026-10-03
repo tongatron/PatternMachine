@@ -415,6 +415,10 @@
   const siteStop=stop;
   stop=function(){
     following=false;
+    // Ferma anche anteprime e voci gia' schedulate: il trasporto del sito da solo
+    // non puo' cancellare un AudioBufferSourceNode gia' partito.
+    if(typeof stopAudition==="function") stopAudition();
+    if(typeof stopLiveAudio==="function") stopLiveAudio();
     siteStop.apply(this,arguments);
     D.midi.panic();
     paintClock();

@@ -65,7 +65,7 @@ for table in re.findall(r"const (\w+_SLOTS)=\[", page):
     kit = table[:-6].lower()                      # RX5_SLOTS -> rx5, TR808_SLOTS -> tr808
     files = set(re.findall(r'\["[^"]+","([^"]+)","[^"]+"\]', body))
     folder = site("machines", kit)
-    if os.path.isdir(folder):                     # i kit estratti da Logic possono mancare (non sono nel repository)
+    if os.path.isdir(folder):                     # i kit delle macchine possono mancare (non sono nel repository)
         have = {f[:-4] for f in os.listdir(folder) if f.endswith(".wav")}
         check(files <= have, f"{table}: file mancanti in machines/{kit}: {sorted(files - have)}")
 

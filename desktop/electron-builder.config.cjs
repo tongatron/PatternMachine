@@ -1,5 +1,5 @@
 // Configurazione del pacchetto desktop. Progetto personale: ogni build include tutti i suoni del sito,
-// compresi i kit estratti da Logic in site/machines (scripts/extract-logic-kits.sh).
+// compresi i kit delle macchine in site/machines.
 
 module.exports = {
   appId: "org.tongatron.patternmachine",

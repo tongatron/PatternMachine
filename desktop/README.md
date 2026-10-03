@@ -51,7 +51,7 @@ npm run dist            # crea dist/mac-arm64/PatternMachine.app (non firmata)
 ```
 
 L'app non è firmata: la prima volta si apre con tasto destro › Apri.
-È un progetto personale: ogni build include tutti i suoni del sito, cioè i campioni SP-1200 e RX-5 e tutti i kit estratti da Logic in `site/machines` (`scripts/extract-logic-kits.sh`), anche quelli che non vanno sul sito web. Prima di una build i kit devono essere stati estratti.
+È un progetto personale: ogni build include tutti i suoni del sito, cioè i campioni SP-1200 e RX-5 e tutti i kit delle macchine in `site/machines`, anche quelli che non vanno sul sito web. Prima di una build i kit devono essere presenti in quella cartella.
 
 ## Pubblicarla sul sito (pagina "App per Mac")
 
@@ -114,6 +114,6 @@ L'app controlla anche il messaggio opzionale `GET /api/app-message` e lo mostra 
 
 ## Idee per dopo
 
-- Caricare campioni e kit personali dal disco (anche direttamente da `/Applications/Logic Pro.app` o dalla libreria di Logic, senza estrarli prima).
+- Caricare campioni e kit personali dal disco.
 - Uscita multi-canale: una traccia MIDI o un canale per strumento, per il mixer di Logic.
 - Plugin Audio Unit (JUCE 8 con interfaccia WebView) per avere PatternMachine dentro Logic, con sync automatico.

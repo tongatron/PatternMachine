@@ -1666,22 +1666,22 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-10-03.6"></script>
-<script src="engine/core.js?v=2026-10-03.6"></script>
-<script src="engine/styles-punk.js?v=2026-10-03.6"></script>
-<script src="engine/styles-post.js?v=2026-10-03.6"></script>
-<script src="engine/styles-machines.js?v=2026-10-03.6"></script>
-<script src="engine/styles-alt.js?v=2026-10-03.6"></script>
-<script src="engine/styles-groove.js?v=2026-10-03.6"></script>
-<script src="engine/styles-dub.js?v=2026-10-03.6"></script>
-<script src="engine/styles-break.js?v=2026-10-03.6"></script>
-<script src="engine/styles-soul.js?v=2026-10-03.6"></script>
-<script src="engine/styles-metal.js?v=2026-10-03.6"></script>
-<script src="engine/styles-electro.js?v=2026-10-03.6"></script>
-<script src="engine/variations.js?v=2026-10-03.6"></script>
-<script src="engine/import.js?v=2026-10-03.6"></script>
-<script src="engine/rhythm.js?v=2026-10-03.6"></script>
-<script src="engine/share.js?v=2026-10-03.6"></script>
+<script src="engine/machine-art.js?v=2026-10-03.7"></script>
+<script src="engine/core.js?v=2026-10-03.7"></script>
+<script src="engine/styles-punk.js?v=2026-10-03.7"></script>
+<script src="engine/styles-post.js?v=2026-10-03.7"></script>
+<script src="engine/styles-machines.js?v=2026-10-03.7"></script>
+<script src="engine/styles-alt.js?v=2026-10-03.7"></script>
+<script src="engine/styles-groove.js?v=2026-10-03.7"></script>
+<script src="engine/styles-dub.js?v=2026-10-03.7"></script>
+<script src="engine/styles-break.js?v=2026-10-03.7"></script>
+<script src="engine/styles-soul.js?v=2026-10-03.7"></script>
+<script src="engine/styles-metal.js?v=2026-10-03.7"></script>
+<script src="engine/styles-electro.js?v=2026-10-03.7"></script>
+<script src="engine/variations.js?v=2026-10-03.7"></script>
+<script src="engine/import.js?v=2026-10-03.7"></script>
+<script src="engine/rhythm.js?v=2026-10-03.7"></script>
+<script src="engine/share.js?v=2026-10-03.7"></script>
 <script>
 // Script principale di PATTERN-MACHINE: stato del progetto, audio, trasporto e interfaccia della pagina.
 // Il motore ritmico (SPEngine), i tempi (PMRhythm), import, link e gli altri moduli stanno in engine/*.js.
@@ -1761,8 +1761,7 @@ const RX5_EXTRA=[ // [slot, file, nome, fallback]
   ["E-Tom 2","ETom2-RX5","E-Tom 2","Tom 2"],["E-Tom 3","ETom3-RX5","E-Tom 3","Tom 2"],["E-Tom 4","ETom4-RX5","E-Tom 4","Tom 2"],
   ["DX Orchestra","DXorch-RX5","DX Orchestra","Perc 6"],["E-Bass Low","EBassL-RX5","E-Bass Low","Kick 1"],["E-Bass High","EbassH-RX5","E-Bass High","Kick 2"],
 ];
-// 808 e 909: i kit "Boutique" di Logic Pro (ricreazioni di Apple, non i campioni Roland originali),
-// estratti con scripts/extract-logic-kits.sh. Le macchine senza rullante/hat separati coprono gli slot
+// 808 e 909: ricreazioni, non i campioni Roland originali. Le macchine senza rullante/hat separati coprono gli slot
 // del generatore con il suono piu' vicino; ogni file del kit e' comunque raggiungibile.
 const TR808_SLOTS=[ // [slot, file, nome]
   ["Kick 1","BD1","BD 1"],["Kick 2","BD2","BD 2"],
@@ -1791,8 +1790,7 @@ const TR909_SLOTS=[
 ];
 const TR909_EXTRA=[["909 Open Hat 2","HHo2","Open Hat 2","Open Hat 1"],["909 Tom 3","Tom3","Tom 3","Tom 2"],["909 Ride ST","RideST","Ride (st)","Ride 1"]];
 
-// LinnDrum, TR-707 e CR-78 vengono dalla libreria di Logic come 808 e 909 (stesso script): il LinnDrum e
-// il TR-707 dai kit del Sampler "Cory's LinnDrum Kit" e "TR-707 Processed Kit", il CR-78 dal kit "Boutique 78".
+// LinnDrum, TR-707 e CR-78.
 const LINN_SLOTS=[
   ["Kick 1","Kick1","Kick 1"],["Kick 2","Kick2","Kick 2"],
   ["Snare 1","Snare1","Snare 1"],["Snare 2","Snare2","Snare 2"],["Snare 3","Snare3","Snare 3"],
@@ -1834,9 +1832,8 @@ const CR78_SLOTS=[
 ];
 const CR78_EXTRA=[["78 BD 3","BD3","BD 3","Kick 2"],["78 Tamb 2","Tamb2","Tamb 2","Tambourine"],["78 Tamb 3","Tamb3","Tamb 3","Tambourine"],["78 Guiro 4","Guiro4","Guiro 4","Guiro 1"]];
 
-// Altri kit dalla libreria di Logic (stesso script). Kit del Sampler: TR-606, TR-727, CR-8000, DrumTraks,
-// Simmons SDS-V e le versioni "Unprocessed" di 808 e 909; kit Ultrabeat: DMX e Drumulator ("Vintage Machines")
-// e Boutique SP12. Come per il CR-78, i suoni che la macchina non ha prendono in prestito il piu' vicino.
+// Altri kit: TR-606, TR-727, CR-8000, DrumTraks, Simmons SDS-V, le versioni "Unprocessed" di 808 e 909,
+// DMX, Drumulator e SP12. Come per il CR-78, i suoni che la macchina non ha prendono in prestito il piu' vicino.
 const TR606_SLOTS=[
   ["Kick 1","Kick1","Kick 1"],["Kick 2","Kick2","Kick 2"],
   ["Snare 1","Snare1","Snare 1"],["Snare 2","Snare2","Snare 2"],["Snare 3","Snare3","Snare 3"],
@@ -4564,7 +4561,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || el("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-03.6";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-03.7";
   document.body.appendChild(s);
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth")) loadSynth();
@@ -7382,7 +7379,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-10-03.6";
+const SW_VERSION="2026-10-03.7";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -7406,11 +7403,11 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sample-editor.js?v=2026-10-03.6"></script>
-<script src="engine/sampler.js?v=2026-10-03.6"></script>
-<script src="engine/vocal.js?v=2026-10-03.6"></script>
+<script src="engine/sample-editor.js?v=2026-10-03.7"></script>
+<script src="engine/sampler.js?v=2026-10-03.7"></script>
+<script src="engine/vocal.js?v=2026-10-03.7"></script>
 <script>PMSampler.init(); PMVocal.init();</script>
-<script src="engine/midi.js?v=2026-10-03.6"></script>
+<script src="engine/midi.js?v=2026-10-03.7"></script>
 
 </body>
 </html>

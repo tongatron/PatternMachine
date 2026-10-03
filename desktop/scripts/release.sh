@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Prepara le app da scaricare dal sito: build macOS, Windows e Linux con tutti i suoni del sito
-# (campioni SP-1200 e RX-5 e i kit estratti da Logic in site/machines),
+# (campioni SP-1200 e RX-5 e i kit delle macchine in site/machines),
 # firma ad-hoc e zip/installers con scheda app.json in ../site/download/ (fuori da git).
 #
 #   desktop/scripts/release.sh
@@ -25,7 +25,7 @@ check_sounds() {   # $1 = cartella site/ dentro la build
   done
 }
 
-echo "== build macOS (tutti i suoni, anche i kit di Logic)"
+echo "== build macOS (tutti i suoni, anche i kit delle macchine)"
 rm -rf dist
 npx electron-builder --mac dir --arm64 --config electron-builder.config.cjs >/dev/null
 check_sounds "$APP/Contents/Resources/site"

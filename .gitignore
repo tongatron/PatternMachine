@@ -22,7 +22,8 @@ synth/vendor/
 synth/logue/*.o
 synth/logue/*.wasm
 
-# Kit estratti da Logic Pro (contenuti Apple, si rigenerano con scripts/extract-logic-kits.sh).
+# Kit delle macchine classiche: restano in locale, come lo script che li prepara.
+scripts/extract-*.sh
 site/machines/tr808/
 site/machines/tr909/
 site/machines/tr707/

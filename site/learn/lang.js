@@ -45,7 +45,7 @@
   function addSwitch(){
     const h=document.querySelector("header"); if(!h||h.querySelector(".lang-switch")) return;
     const box=document.createElement("span"); box.className="lang-switch";
-    box.innerHTML='<button type="button" data-lang="en">ENG</button><button type="button" data-lang="it">ITA</button>';
+    box.innerHTML='<button type="button" data-lang="en" aria-label="English"><span aria-hidden="true">🇬🇧</span> ENG</button><button type="button" data-lang="it" aria-label="Italiano"><span aria-hidden="true">🇮🇹</span> ITA</button>';
     h.insertBefore(box,h.querySelector(".back"));
     box.addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; window.PMLang.set(b.dataset.lang); });
   }

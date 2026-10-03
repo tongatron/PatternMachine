@@ -22,6 +22,7 @@
   const LOGUE_DIR = new URL("logue/", BASE);
 
   const clamp = (x, a, b) => x < a ? a : (x > b ? b : x);
+  const SYNTH_LENS = [8, 16, 32, 64, 128, 256];
   const NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
   const noteName = n => NOTE_NAMES[n % 12] + (Math.floor(n / 12) - 2);   // convenzione di Logic: 60 = C3
   const isBlack = n => [1, 3, 6, 8, 10].includes(n % 12);
@@ -1295,6 +1296,15 @@
 #synPatChips{align-items:center; gap:7px;}
 .syn-pattern-actions{display:grid; grid-template-columns:repeat(2,minmax(92px,1fr)); grid-template-rows:repeat(2,auto); gap:6px;}
 .syn-pattern-actions button{width:100%; min-width:92px;}
+.syn-steps-field{display:inline-flex; align-items:center; gap:6px;}
+.syn-steps-menu{min-width:74px;}
+.syn-steps-menu summary{justify-content:space-between; gap:12px; min-height:32px; padding:7px 9px; font-size:10px; letter-spacing:.04em; text-transform:none;}
+.syn-steps-menu summary::after{content:"▾"; color:var(--accent);}
+.syn-steps-menu .syn-step-list{right:0; left:auto; min-width:92px;}
+.syn-step-list button{display:flex; align-items:center; justify-content:space-between; gap:12px;}
+.syn-step-list button::after{content:""; width:6px; height:6px; border-radius:50%; background:transparent;}
+.syn-step-list button.on{background:var(--key-primary,var(--accent)); color:var(--on-accent); border-color:var(--accent-dim); font-weight:700;}
+.syn-step-list button.on::after{content:"✓"; width:auto; height:auto; background:none;}
 @media (max-width:560px){ .export-list.syn-gen{min-width:0; width:calc(100vw - 32px);} .syn-gen-grid{grid-template-columns:1fr;} .syn-gen-opts{grid-template-columns:1fr 1fr;} }
 .synth-credits{font-size:10px; color:var(--text-faint); margin:10px 0 0; line-height:1.5;}
 .synth-credits a{color:inherit;}
@@ -1334,7 +1344,12 @@
           <button id="synPatRename" class="mini" type="button">Rename</button>
           <button id="synPatDel" class="mini danger" type="button">Delete</button>
         </span>
-        <label class="fld" style="margin-left:auto;">Steps <select id="synPatLen"><option value="8">8</option><option value="16">16</option><option value="32">32</option></select></label>
+        <label class="fld syn-steps-field" style="margin-left:auto;">Steps <details class="export-menu syn-steps-menu" id="synPatLenMenu">
+          <summary id="synPatLenSummary" aria-label="Synth pattern length">16</summary>
+          <div class="export-list syn-step-list" id="synPatLenList" role="listbox" aria-label="Synth pattern steps">
+            ${SYNTH_LENS.map(n => `<button type="button" data-len="${n}" role="option">${n}</button>`).join("")}
+          </div>
+        </details></label>
       </div>`;
     el("synthEnginePanel").hidden = el("synthPatternPanel").hidden = el("panelSynth").hidden;
     el("panelSynth").innerHTML = `
@@ -1473,7 +1488,7 @@
     el("synMidiPat").onclick = () => { el("synMidiMenu").open = false; exportMidi("pattern"); };
     el("synMidiSong").onclick = () => { el("synMidiMenu").open = false; exportMidi("song"); };
     document.addEventListener("click", e => {
-      for (const id of ["synGenMenu", "synMidiMenu"]) if (!el(id).contains(e.target)) el(id).open = false;
+      for (const id of ["synGenMenu", "synMidiMenu", "synPatLenMenu"]) if (!el(id).contains(e.target)) el(id).open = false;
     });
     // Toglie solo le note registrate dal vivo (k:"rec"): il pattern e' pronto per una nuova registrazione.
     el("synRecClear").onclick = () => {
@@ -1534,7 +1549,13 @@
         + `<button type="button" class="pattern-more" data-rename="${esc(sp.id)}" title="Rename “${esc(sp.name)}”" aria-label="Rename ${esc(sp.name)}">…</button></span>`;
     }).join("") + `<span class="tiny">${n} synth ${n === 1 ? "pattern" : "patterns"}</span>`;
     lastPlayId = undefined;   // il ciclo di disegno rimette il contorno sul pattern che suona
-    el("synPatLen").value = cur.len;
+    const lenMenu = el("synPatLenMenu"), lenSummary = el("synPatLenSummary");
+    if (lenSummary) lenSummary.textContent = cur.len;
+    lenMenu?.querySelectorAll("[data-len]").forEach(b => {
+      const on = +b.dataset.len === cur.len;
+      b.classList.toggle("on", on);
+      b.setAttribute("aria-selected", String(on));
+    });
     el("synPatDel").disabled = n <= 1;
     el("synPatName").textContent = "— " + cur.name;
   }
@@ -1555,6 +1576,20 @@
       if (b && b.dataset.id !== curSynth().id) selectSynth(b.dataset.id);
     };
     el("synPatBrowse").onclick = openLib;
+    const lenMenu = el("synPatLenMenu");
+    lenMenu.onclick = e => {
+      const b = e.target.closest("[data-len]"); if (!b) return;
+      const sp = curSynth(), from = sp.len, to = +b.dataset.len;
+      lenMenu.open = false;
+      if (to === from) return;
+      pushUndo();
+      const base = sp.synth.filter(n => n.s < from), out = [];
+      for (let k = 0; k < to; k += from) base.forEach(n => {
+        if (n.s + k < to) out.push({ ...n, s: n.s + k, l: Math.min(n.l, to - n.s - k) });
+      });
+      sp.len = to; sp.synth = out;
+      paintPatternBar(); renderRoll();
+    };
     el("synPatNew").onclick = () => {
       pushUndo();
       const sp = makeSynthPattern("Synth " + (project.synthPatterns.length + 1), curSynth().len);
@@ -1577,16 +1612,6 @@
       const i = project.synthPatterns.indexOf(sp);
       project.synthPatterns.splice(i, 1);
       selectSynth(project.synthPatterns[Math.max(0, i - 1)].id);
-    };
-    // cambio di lunghezza come in Drum Grid: allungando le note si ripetono, accorciando si tagliano
-    el("synPatLen").onchange = e => {
-      const sp = curSynth(), from = sp.len, to = +e.target.value;
-      if (to === from) return;
-      pushUndo();
-      const base = sp.synth.filter(n => n.s < from), out = [];
-      for (let k = 0; k < to; k += from) base.forEach(n => { if (n.s + k < to) out.push({ ...n, s: n.s + k, l: Math.min(n.l, to - n.s - k) }); });
-      sp.len = to; sp.synth = out;
-      paintPatternBar(); renderRoll();
     };
   }
 

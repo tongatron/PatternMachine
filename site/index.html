@@ -2265,7 +2265,7 @@ function normalize(){
   // corsia del synth: un blocco che punta a un pattern sparito diventa una pausa lunga uguale
   project.synthSong.forEach(b=>{
     if(b.synthId && !synthById(b.synthId)) b.synthId=null;
-    b.repeats=clamp(b.repeats||1,1,MAX_REPEATS); b.len=[8,16,32].includes(b.len)?b.len:16;
+    b.repeats=clamp(b.repeats||1,1,MAX_REPEATS); b.len=SYNTH_LENS.includes(+b.len)?+b.len:16;
   });
   if(!synthById(ui.synthId)) ui.synthId=project.synthPatterns[0].id;
   if(!project.synthSong.some(b=>b.id===ui.synthBlockId)) ui.synthBlockId=project.synthSong[0]?.id||null;
@@ -2332,6 +2332,7 @@ el("grooveSelect").onchange=()=>applyRhythmChange({groove:el("grooveSelect").val
 // hanno una corsia propria sotto la batteria (project.synthSong: {id, synthId|null, repeats, len}); synthId null =
 // pausa di len step. Le note: {s:step, n:nota MIDI, l:lunghezza in step, a:accento, g:slide}.
 function makeSynthPattern(name,len=16){ return {id:uid(), name, len, synth:[]}; }
+const SYNTH_LENS=[8,16,32,64,128,256];
 const synthById = id => project.synthPatterns?.find(x=>x.id===id) || null;
 function curSynth(){ if(!synthById(ui.synthId)) ui.synthId=project.synthPatterns[0]?.id; return synthById(ui.synthId); }
 // Progetti di prima: le note stavano dentro i pattern di batteria (pattern.synth) e i blocchi della canzone
@@ -5365,7 +5366,7 @@ function deserialize(d,keepSel){
     patterns:(d.patterns||[]).map(p=>deserializePattern(p)),
     song:(d.song||[]).map(b=>deserializeSongBlock(b)),
     ...(hasSynthLane ? {
-      synthPatterns:d.synthPatterns.map(sp=>({id:sp.id, name:sp.name||"Synth", len:[8,16,32].includes(sp.len)?sp.len:16,
+      synthPatterns:d.synthPatterns.map(sp=>({id:sp.id, name:sp.name||"Synth", len:SYNTH_LENS.includes(+sp.len)?+sp.len:16,
         synth:(Array.isArray(sp.synth)?sp.synth:[]).map(n=>({...n}))})),
       synthSong:d.synthSong.map(b=>({id:b.id, synthId:b.synthId||null, repeats:b.repeats||1, len:b.len||16})),
     } : {}),

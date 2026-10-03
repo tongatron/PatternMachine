@@ -55,7 +55,7 @@ Switching machine maps every row to the closest sound. Each machine shows its ma
 ### Pattern generator
 - **67 styles** in 10 families: punk, post-punk, classic drum machines, alternative, hip hop / dance / latin, reggae / dub, breakbeat / DnB, soul / disco / afro, heavy rock / metal, electronic / club.
 - One-click **variations**, automatic **fills** and a library that suggests 8 patterns whenever you change style.
-- Import patterns from text ([PatternTXT format](PATTERNTXT-SPEC.md)) or MIDI.
+- Import patterns from text (PatternTXT format) or MIDI.
 
 ### Step grid
 - 8, 16 or 32 steps, 40–240 BPM, **swing**, **humanize**, per-track nudge, polyrhythms, choke groups.
@@ -170,7 +170,7 @@ Step-by-step instructions are in the [guide](https://patternmachine.tongatron.or
 | [`desktop/`](desktop) | desktop app for macOS, Windows and Linux ([notes](desktop/README.md)) |
 | [`plugin/`](plugin) | Logic Pro plug-in, AU / VST3 ([notes](plugin/README.md)) |
 | [`SP 1200/`](<SP 1200>) | original SP-1200 samples and pad mappings |
-| [`PATTERNTXT-SPEC.md`](PATTERNTXT-SPEC.md) | text format for patterns |
+| [`legacy/`](legacy) | early standalone pages: the first toolkit and the single-file SP-1200 |
 | `tests/` | engine and site checks |
 
 To try the site locally, serve the `site` folder with any static server:

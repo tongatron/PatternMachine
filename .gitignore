@@ -43,3 +43,13 @@ site/machines/tr909u/
 desktop/dist/
 site/download/
 .claude/settings.local.json
+
+# Note e materiali di sviluppo: restano in locale, nella repo pubblica c'è solo il README.
+AGENTS.md
+TODO.md
+PRIVACY-TODO.md
+PATTERNTXT-SPEC.md
+PIANO-SUONO-SP1200.md
+PatternTXT_Song.mid
+# Trasloco una tantum sul server: mostra percorsi e servizi, resta in locale.
+scripts/migra-server-patternmachine.sh

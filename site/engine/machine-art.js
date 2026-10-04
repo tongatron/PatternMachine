@@ -34,6 +34,8 @@
       look:{body:"#2e3033", panel:"#3a3d41", wood:null, keys:["#d8d6cf"], knobs:0, lcd:"#e0432a", faders:0, steps:12, text:"#d8d6cf"}},
     sp1200:{name:"E-mu SP-1200", short:"SP-1200", maker:"E-mu Systems", year:1987,
       look:{body:"#8f9194", panel:"#a3a5a8", wood:null, keys:["#d8d6cf"], knobs:0, lcd:"#5b7fb8", faders:8, steps:8, text:"#1f2a44"}},
+    logicVintageArcade:{name:"Logic Pro Vintage Arcade", short:"Vintage Arcade", maker:"Apple", year:"Logic Pro",
+      look:{body:"#3a3b42", panel:"#50525b", wood:null, keys:["#e0743f","#d8d6cf","#6e91b8"], knobs:4, lcd:"#c8471f", faders:0, steps:12, text:"#f0eee7"}},
   };
   function machineSvg(m){
     const L=m.look, W=320, H=150, x0=L.wood?16:0, w=W-2*x0, g=`g-${m.id}`;

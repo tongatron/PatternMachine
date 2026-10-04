@@ -492,14 +492,14 @@
   // ---------- sequencer ----------
   let noteSeq = 0, slideAt = -1, lastBpm = 0;
   // Note che partono allo step s del pattern, al tempo "time" (secondi del contesto audio).
-  function eventsForStep(pat, s, time, p, into) {
+  function eventsForStep(pat, s, time, p, into, timing=stepDur) {
     const slideIn = slideAt > 0 && Math.abs(slideAt - time) < 0.002;
     if (slideAt > 0 && slideAt < time + 0.002) slideAt = -1;
     for (const x of pat.synth || []) {
       if (x.s !== s) continue;
       let len = 0;
-      for (let k = 0; k < x.l; k++) len += stepDur(s + k);
-      const last = stepDur(s + x.l - 1);
+      for (let k = 0; k < x.l; k++) len += timing(s + k);
+      const last = timing(s + x.l - 1);
       const id = "q" + (++noteSeq), n = clamp(x.n + (p.trans || 0), 0, 127);
       // lo slide tiene la nota fin dentro la successiva (legato); le altre si chiudono secondo il Gate
       const end = x.g ? time + len + Math.min(0.03, last * 0.5) : time + len - last * (1 - (p.gate ?? 75) / 100);
@@ -508,13 +508,13 @@
     }
   }
   // Chiamata da scheduler() per ogni step messo in coda.
-  function step(pat, s, time) {
+  function step(pat, s, time, timing=stepDur) {
     if (!allowed || !pat || !pat.synth || !pat.synth.length || project.synth?.mute || (project.drumsSolo && !project.synth?.solo)) return;
     const p = params();
     if (engineOf() === "tone") {
       if (!toneSynth) { ensureTone().catch(() => {}); return; }
       const list = [];
-      eventsForStep(pat, s, time, p, list);
+      eventsForStep(pat, s, time, p, list, timing);
       for (let i = 0; i < list.length; i += 2) {
         const on = list[i], off = list[i + 1];
         if (!on || on.t !== "on" || !off) continue;
@@ -526,7 +526,7 @@
     const b = bpm();
     if (b !== lastBpm) { lastBpm = b; node.port.postMessage({ t: "bpm", bpm: b }); chain.apply(p, b, masterVol()); }
     const list = [];
-    eventsForStep(pat, s, time, p, list);
+    eventsForStep(pat, s, time, p, list, timing);
     if (list.length) node.port.postMessage({ t: "ev", list });
   }
   function allOff() {
@@ -1051,7 +1051,11 @@
   }
   // ---------- Browse: libreria di suggerimenti dai generatori (come Browse… dei pattern di batteria) ----------
   let libItems = [], libPreview = null;
-  const libOpts = () => Object.assign({ type: "*", len: curSynth().len }, view.lib || {});
+  const libOpts = () => Object.assign({ type: "*", len: curSynth().len, keepTempo: true, tempo: "project", bpm: bpm() }, view.lib || {});
+  const libTempoTarget = o => {
+    if (o.tempo === "any") return null;
+    return clamp(Math.round(o.tempo === "project" ? bpm() : (+o.bpm || bpm())), 40, 240);
+  };
   function libSuggest() {
     const o = libOpts(), keys = Object.keys(GENERATORS);
     const shuffle = a => a.slice().sort(() => Math.random() - 0.5);
@@ -1065,7 +1069,7 @@
       });
       pickKeys = pickKeys.concat(shuffle(keys).slice(0, Math.max(0, 8 - pickKeys.length)));
     } else pickKeys = Array(8).fill(o.type);
-    libItems = pickKeys.filter(k => GENERATORS[k]).slice(0, 8).map(k => ({ k, len: o.len, notes: generateNotes(k, o.len) }));
+    libItems = pickKeys.filter(k => GENERATORS[k]).slice(0, 8).map(k => ({ k, len: o.len, tempo: libTempoTarget(o), notes: generateNotes(k, o.len) }));
     renderLib();
   }
   function libSelect(id, pairs, v) {
@@ -1083,11 +1087,24 @@
     document.body.appendChild(d);
     d.onclick = e => { if (e.target === d) closeLib(); };
     el("synLibClose").onclick = closeLib;
-    el("synLibOpts").onchange = () => {
-      view.lib = { type: el("synLibType").value, len: +el("synLibLen").value };
+    const saveLibOptions = () => {
+      view.lib = {
+        type: el("synLibType").value,
+        len: +el("synLibLen").value,
+        keepTempo: el("synLibKeepTempo").checked,
+        tempo: el("synLibTempo").value,
+        bpm: +el("synLibBpm").value || bpm(),
+      };
       view.gen = { ...genOpts(), prog: el("synLibProg").value, dens: el("synLibDens").value, oct: +el("synLibOct").value };
+      el("synLibBpm").hidden = el("synLibTempo").value !== "custom";
       saveView(); if (built) el("synGen").innerHTML = genMenuHtml();
       libSuggest();
+    };
+    el("synLibOpts").onchange = saveLibOptions;
+    el("synLibOpts").oninput = e => {
+      if (e.target.id !== "synLibBpm") return;
+      view.lib = { ...libOpts(), bpm: +e.target.value || bpm() };
+      saveView();
     };
     document.addEventListener("keydown", e => { if (e.key === "Escape" && !el("synLib").hidden) closeLib(); });
   }
@@ -1096,14 +1113,24 @@
     const o = libOpts(), g = genOpts();
     const typeOpts = `<option value="*"${o.type === "*" ? " selected" : ""}>All kinds</option>` + GEN_GROUPS.map(gr => `<optgroup label="${esc(gr)}">${Object.entries(GENERATORS).filter(([, x]) => x.group === gr)
       .map(([k, x]) => `<option value="${k}"${k === o.type ? " selected" : ""}>${esc(x.label)}</option>`).join("")}</optgroup>`).join("");
+    const tempoTarget = libTempoTarget(o), tempoCustom = o.tempo === "custom";
     el("synLibOpts").innerHTML = `<label class="fld">Type <select id="synLibType">${typeOpts}</select></label>
       <label class="fld">Chords ${libSelect("synLibProg", Object.entries(PROGRESSIONS).map(([k, [l]]) => [k, l]), g.prog)}</label>
       <label class="fld">Density ${libSelect("synLibDens", [["sparse", "Sparse"], ["normal", "Normal"], ["busy", "Busy"]], g.dens)}</label>
       <label class="fld">Octave ${libSelect("synLibOct", [[-1, "−1"], [0, "0"], [1, "+1"]], g.oct)}</label>
       <label class="fld">Steps ${libSelect("synLibLen", [[8, "8"], [16, "16"], [32, "32"]], o.len)}</label>
+      <label class="fld" title="Keep the project's BPM when listening to and applying a suggestion"><input type="checkbox" id="synLibKeepTempo"${o.keepTempo !== false ? " checked" : ""}> Keep project tempo</label>
+      <label class="fld" title="Choose the tempo for the preview; synth patterns themselves are tempo-neutral">Tempo
+        <select id="synLibTempo">
+          <option value="project"${o.tempo === "project" ? " selected" : ""}>Near the project</option>
+          <option value="custom"${tempoCustom ? " selected" : ""}>Near…</option>
+          <option value="any"${o.tempo === "any" ? " selected" : ""}>Any tempo</option>
+        </select>
+        <input type="number" id="synLibBpm" min="40" max="240" value="${tempoTarget || bpm()}" aria-label="Target tempo in BPM" style="width:64px"${tempoCustom ? "" : " hidden"}>
+      </label>
       <button type="button" id="synLibMore" class="mini primary" title="8 new suggestions with the same settings">↻ More suggestions</button>`;
     el("synLibMore").onclick = libSuggest;
-    el("synLibKey").textContent = `In ${NOTE_NAMES[keyOf()]} ${SCALES[scaleOf()][0].toLowerCase()}, with the current sound. Key and scale are in Notes. Preview keeps the drum machine playing. Load replaces the notes of "${curSynth().name}", + Add makes a new synth pattern.`;
+    el("synLibKey").textContent = `In ${NOTE_NAMES[keyOf()]} ${SCALES[scaleOf()][0].toLowerCase()}, with the current sound. Synth patterns are tempo-neutral: Keep project tempo uses the project's BPM for preview and Replace; turn it off and choose Near… to use another BPM. Preview keeps the drum machine playing. Load replaces the notes of "${curSynth().name}", + Add makes a new synth pattern.`;
     el("synLib").hidden = false;
     libSuggest();
   }
@@ -1128,6 +1155,10 @@
       const load = document.createElement("button"); load.type = "button"; load.className = "mini primary"; load.textContent = "Replace pattern";
       load.title = "replace the notes of the synth pattern you are editing";
       load.onclick = () => {
+        const o = libOpts();
+        if (o.keepTempo === false && o.tempo === "custom") {
+          setBpm(libTempoTarget(o)); paintTimeline(); scheduleDraft();
+        }
         const sp = curSynth(); forgetSynthVariation(); pushUndo(); ensure();
         sp.len = item.len; sp.synth = item.notes.map(n => ({ ...n }));
         closeLib(); paintPatternBar(); centerOn(sp); renderRoll(); setStatus(`synth: ${g.label.toLowerCase()} loaded in ${sp.name}`);
@@ -1153,9 +1184,12 @@
     const me = libPreview;
     (engineOf() === "tone" ? ensureTone() : ensureAudio()).then(() => {
       if (libPreview !== me) return;
+      const o = libOpts(), previewBpm = o.keepTempo === false ? (libTempoTarget(o) || bpm()) : bpm();
+      const previewSwing = +el("swingRange").value || 0, previewRhythm = PMRhythm.normalize(project?.rhythm);
+      const previewStepDur = s => PMRhythm.timing(previewBpm, previewRhythm, previewSwing, s).dur;
       let s = 0, t = actx().currentTime + 0.08;
       me.timer = setInterval(() => {
-        while (t < actx().currentTime + 0.12) { step(pat, s, t); t += stepDur(s); s = (s + 1) % pat.len; }
+        while (t < actx().currentTime + 0.12) { step(pat, s, t, previewStepDur); t += previewStepDur(s); s = (s + 1) % pat.len; }
       }, 25);
     }).catch(() => stopPreview());
   }

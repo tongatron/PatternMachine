@@ -266,6 +266,7 @@ label.fld input[type=range]{width:84px;}
 label.fld input[type=number]{width:54px;}
 
 #playBtn{
+  --play-on:#f2c230;
   display:inline-flex; align-items:center; justify-content:center; gap:9px;
   min-width:148px; padding:11px 20px; border-radius:10px;
   font-size:14px; font-weight:800; letter-spacing:0.12em;
@@ -277,14 +278,16 @@ label.fld input[type=number]{width:54px;}
 #playBtn .ico{font-size:17px; line-height:1;}
 #playBtn kbd{font-size:9px; letter-spacing:0.04em; text-transform:none; background:transparent;
   color:inherit; border-color:currentColor; opacity:0.7;}
-#playBtn.on{background:var(--danger); border-color:var(--danger); color:#fff;
+/* in riproduzione: Play diventa Pause in giallo, Stop si accende di rosso */
+#playBtn.on{background:var(--play-on); border-color:color-mix(in srgb, var(--play-on) 70%, #000); color:#1d1600;
   animation:playPulse 1s ease-out infinite;}
+#playBtn.on ~ #stopBtn{background:var(--danger); border-color:color-mix(in srgb, var(--danger) 70%, #000); color:#fff; font-weight:700;}
 #stopBtn{min-height:44px; padding:11px 16px; font-size:13.5px;}
 #stopBtn:disabled{opacity:.45; cursor:default; filter:none;}
 #loopBtn.on{background:var(--key-primary,var(--accent)); color:var(--on-accent); border-color:var(--accent-dim);}
 @keyframes playPulse{
-  0%  {box-shadow:0 0 0 0 color-mix(in srgb, var(--danger) 55%, transparent), 0 6px 18px color-mix(in srgb, var(--danger) 35%, transparent);}
-  100%{box-shadow:0 0 0 12px transparent, 0 6px 18px color-mix(in srgb, var(--danger) 35%, transparent);}
+  0%  {box-shadow:0 0 0 0 color-mix(in srgb, var(--play-on) 55%, transparent), 0 6px 18px color-mix(in srgb, var(--play-on) 35%, transparent);}
+  100%{box-shadow:0 0 0 12px transparent, 0 6px 18px color-mix(in srgb, var(--play-on) 35%, transparent);}
 }
 @media (prefers-reduced-motion: reduce){ #playBtn.on{animation:none;} }
 @media (max-width:560px){ #playBtn{flex:1 1 100%; padding:14px 20px; font-size:15px;} }
@@ -299,6 +302,10 @@ label.fld input[type=number]{width:54px;}
   color:var(--counter-fg,var(--led-head)); background:var(--counter-bg,var(--panel-3)); border:1px solid var(--edge);
   text-shadow:var(--counter-glow,none); box-shadow:var(--counter-shadow,none);
   border-radius:var(--r-key,6px); padding:5px 11px; min-width:104px; text-align:center;
+}
+.counter.counting-in{
+  min-width:148px; background:var(--key-primary,var(--accent)); color:var(--on-accent);
+  border-color:var(--accent-dim); text-shadow:none; box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 22%,transparent), 0 3px 8px color-mix(in srgb,var(--accent) 30%,transparent);
 }
 /* Pattern/Song come interruttore a due posizioni: una sede incassata e un cursore (::before) che scorre
    sotto la voce attiva. Solo CSS: lo stato resta la classe .on messa da setMode(). */
@@ -1232,7 +1239,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       <button id="synthPlayBtn" type="button" hidden title="Play"><span class="ico">&#9654;</span> Play</button>
       <button id="drumsPlayBtn" type="button" hidden title="Play"><span class="ico">&#9654;</span> Play</button>
       <button id="loopBtn" class="mini live-keep" type="button" aria-pressed="true" title="Loop pattern on">Loop</button>
-      <label class="fld live-keep" title="Metronome count-in before playback">Count-in
+        <label class="fld live-keep" title="Metronome count-in before playback and recording">Count-in
         <select id="countInSelect" aria-label="Count-in"><option value="0">Off</option><option value="1">1 bar</option><option value="2">2 bars</option></select>
       </label>
       <button id="recBtn" class="live-keep"><span class="rec-dot" aria-hidden="true">&#9679;</span> Rec</button>
@@ -1256,7 +1263,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
             <button type="button" id="synthMuteBtn" class="chip-btn m" aria-pressed="false" title="Mute the synth (also in exports)" aria-label="Mute synth">M</button><button type="button" id="synthSoloBtn" class="chip-btn s" aria-pressed="false" title="Solo the synth: the drums stay silent" aria-label="Solo synth">S</button></span>
           <label class="fld" title="General volume: drums, synth and metronome">General <input type="range" id="masterVol" min="0" max="100" value="85"></label>
         </div>
-        <div class="counter" id="counter">1 . 1</div>
+        <div class="counter live-keep" id="counter" role="status" aria-live="polite">1 . 1</div>
       </div>
     </div>
   </div>
@@ -1697,22 +1704,22 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-10-03.7"></script>
-<script src="engine/core.js?v=2026-10-03.7"></script>
-<script src="engine/styles-punk.js?v=2026-10-03.7"></script>
-<script src="engine/styles-post.js?v=2026-10-03.7"></script>
-<script src="engine/styles-machines.js?v=2026-10-03.7"></script>
-<script src="engine/styles-alt.js?v=2026-10-03.7"></script>
-<script src="engine/styles-groove.js?v=2026-10-03.7"></script>
-<script src="engine/styles-dub.js?v=2026-10-03.7"></script>
-<script src="engine/styles-break.js?v=2026-10-03.7"></script>
-<script src="engine/styles-soul.js?v=2026-10-03.7"></script>
-<script src="engine/styles-metal.js?v=2026-10-03.7"></script>
-<script src="engine/styles-electro.js?v=2026-10-03.7"></script>
-<script src="engine/variations.js?v=2026-10-03.7"></script>
-<script src="engine/import.js?v=2026-10-03.7"></script>
-<script src="engine/rhythm.js?v=2026-10-03.7"></script>
-<script src="engine/share.js?v=2026-10-03.7"></script>
+<script src="engine/machine-art.js?v=2026-10-04.1"></script>
+<script src="engine/core.js?v=2026-10-04.1"></script>
+<script src="engine/styles-punk.js?v=2026-10-04.1"></script>
+<script src="engine/styles-post.js?v=2026-10-04.1"></script>
+<script src="engine/styles-machines.js?v=2026-10-04.1"></script>
+<script src="engine/styles-alt.js?v=2026-10-04.1"></script>
+<script src="engine/styles-groove.js?v=2026-10-04.1"></script>
+<script src="engine/styles-dub.js?v=2026-10-04.1"></script>
+<script src="engine/styles-break.js?v=2026-10-04.1"></script>
+<script src="engine/styles-soul.js?v=2026-10-04.1"></script>
+<script src="engine/styles-metal.js?v=2026-10-04.1"></script>
+<script src="engine/styles-electro.js?v=2026-10-04.1"></script>
+<script src="engine/variations.js?v=2026-10-04.1"></script>
+<script src="engine/import.js?v=2026-10-04.1"></script>
+<script src="engine/rhythm.js?v=2026-10-04.1"></script>
+<script src="engine/share.js?v=2026-10-04.1"></script>
 <script>
 // Script principale di PATTERN-MACHINE: stato del progetto, audio, trasporto e interfaccia della pagina.
 // Il motore ritmico (SPEngine), i tempi (PMRhythm), import, link e gli altri moduli stanno in engine/*.js.
@@ -3355,6 +3362,8 @@ function paintPlayhead(){
   const active=playing||paused;
   const showHead = active && !countingIn && (ui.mode==="pattern" ? true : visible.patternId===pat.id);
   const led=el("playheadLed"), label=el("playheadLabel");
+  const counter=el("counter");
+  counter.classList.toggle("counting-in",countingIn);
   led.classList.toggle("on",playing && showHead);
   const beatSteps=rhythmBeatSteps();
   if(countingIn){
@@ -3371,9 +3380,9 @@ function paintPlayhead(){
   const where=ui.mode==="song" ? `B${(visible.blockIndex??0)+1}` : visible.bar;
   if(countingIn){
     const step=Math.max(0,countInStep), bar=Math.floor(step/rhythmBarSteps())+1, beat=Math.floor((step%rhythmBarSteps())/beatSteps)+1;
-    el("counter").textContent=`Count-in ${bar} . ${beat}`;
+    counter.textContent=`Count-in ${bar} . ${beat}`;
   } else {
-    el("counter").textContent = active && showHead
+    counter.textContent = active && showHead
       ? `${where} . ${Math.floor(visible.step/beatSteps)+1} . ${visible.step%beatSteps+1}`
       : "1 . 1";
   }
@@ -4592,7 +4601,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || el("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-03.7";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-04.1";
   document.body.appendChild(s);
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth")) loadSynth();
@@ -4860,7 +4869,17 @@ function fillKitOptions(sel){
     });
   }),800);
 })();
-el("recBtn").onclick=()=>{ recording=!recording; el("recBtn").classList.toggle("on",recording); };
+el("recBtn").onclick=async()=>{
+  recording=!recording;
+  el("recBtn").classList.toggle("on",recording);
+  if(recording && !playing){
+    await play({resume:paused});
+    if(!playing){
+      recording=false;
+      el("recBtn").classList.remove("on");
+    }
+  }
+};
 // Il pattern di un blocco diventa quello aperto: in modalita' Pattern e' quello che suona
 // (se sta gia' suonando, continua dallo stesso punto dentro il nuovo pattern).
 function showBlockPattern(p){
@@ -7412,7 +7431,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-10-03.7";
+const SW_VERSION="2026-10-04.1";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -7436,11 +7455,11 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sample-editor.js?v=2026-10-03.7"></script>
-<script src="engine/sampler.js?v=2026-10-03.7"></script>
-<script src="engine/vocal.js?v=2026-10-03.7"></script>
+<script src="engine/sample-editor.js?v=2026-10-04.1"></script>
+<script src="engine/sampler.js?v=2026-10-04.1"></script>
+<script src="engine/vocal.js?v=2026-10-04.1"></script>
 <script>PMSampler.init(); PMVocal.init();</script>
-<script src="engine/midi.js?v=2026-10-03.7"></script>
+<script src="engine/midi.js?v=2026-10-04.1"></script>
 
 </body>
 </html>

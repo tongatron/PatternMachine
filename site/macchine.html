@@ -9,12 +9,12 @@
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="PATTERN-MACHINE">
 <meta property="og:title" content="The machines · PATTERN-MACHINE">
-<meta property="og:description" content="Compare fourteen classic drum machines plus a Logic Pro stock kit, from the CR-78 and TR-808 to the TR-909, RX5 and SP-1200, with side-by-side listening.">
+<meta property="og:description" content="Compare fourteen classic drum machines, from the CR-78 and TR-808 to the TR-909, RX5 and SP-1200, with side-by-side listening.">
 <meta property="og:url" content="https://patternmachine.tongatron.org/macchine.html">
 <meta property="og:image" content="https://patternmachine.tongatron.org/assets/og-pattern-machine.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="The machines · PATTERN-MACHINE">
-<meta name="twitter:description" content="Compare fourteen classic drum machines plus a Logic Pro stock kit with side-by-side listening inside PATTERN-MACHINE.">
+<meta name="twitter:description" content="Compare fourteen classic drum machines with side-by-side listening inside PATTERN-MACHINE.">
 <meta name="twitter:image" content="https://patternmachine.tongatron.org/assets/og-pattern-machine.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
 <style>
@@ -134,7 +134,7 @@ table.cmp button.playing{background:var(--key-primary); color:var(--on-accent);}
 </nav>
 
 <section id="ritmo">
-  <h2>Same beat, fifteen kits</h2>
+  <h2>Same beat, fourteen machines</h2>
   <p>One pattern, played by one machine at a time. Switch machine while it plays to hear only the difference in tone; turn on <b>Cycle</b> to move to the next machine every two bars. Click the squares to turn them on and off.</p>
   <div class="sim-top">
     <button class="primary" id="seqPlay">&#9654; Play</button>
@@ -180,9 +180,9 @@ table.cmp button.playing{background:var(--key-primary); color:var(--on-accent);}
 </section>
 
 <section id="schede">
-  <h2>The fifteen kits</h2>
+  <h2>The fourteen machines</h2>
   <div id="cards"></div>
-  <p class="note">The illustrations are stylized drawings. The SP-1200 and RX5 sounds are samples of the machines; the others come from kits that recreate them or from the named stock Logic Pro kit.</p>
+  <p class="note">The illustrations are stylized drawings. The SP-1200 and RX5 sounds are samples of the machines; all the others come from kits that recreate them.</p>
 </section>
 
 <section id="tabella">
@@ -297,12 +297,6 @@ const MACHINES=[
    story:[`The successor to the SP-12 (1985), it isn't just a drum machine: it samples from any source, including records. It has ten seconds of memory in total, so producers played vinyl at 45 rpm to fit more in and then pitched it back down: the result is even grittier.`,
      `The 12 bits, the low sample rate and the filters give golden-age rap its grit and weight: for many it is still the sound of boom bap. It's also the machine this site was born from.`],
    heard:["Pete Rock & CL Smooth, “They Reminisce Over You (T.R.O.Y.)” (1992)","New York rap from the late '80s into the '90s"],},
-  {id:"logicVintageArcade", name:"Logic Pro Vintage Arcade", short:"Vintage Arcade", maker:"Apple", year:"Logic Pro", gen:"Factory kit",
-   dir:"machines/logic-vintage-arcade/", files:{kick:"kick",snare:"snare1",hat:"perc",open:"perc",clap:"snare2",tom:"snare2",cow:"perc"},
-   specs:["stock Logic sounds","electronic kit","exported from Drum Machine Designer"],
-   story:[`Vintage Arcade is a stock Logic Pro Drum Machine Designer kit, exported here as a compact browser kit. It is not a claim that these are samples from a vintage hardware machine: the source is the installed Logic library.`,
-     `The small set of exported voices keeps the kit lightweight in the browser; the repeated percussion fallback preserves the same playable layout as the other machines.`],
-   heard:["Logic Pro Drum Machine Designer kit pieces"],},
 ];
 const byId=Object.fromEntries(MACHINES.map(m=>[m.id,m]));
 const VOICES=[["kick","Kick"],["snare","Snare"],["hat","Closed hat"],["open","Open hat"],["clap","Clap"],["tom","Tom"],["cow","Cowbell"]];
@@ -379,10 +373,10 @@ $("cards").addEventListener("click",async e=>{
 
 const TABLE=[
   ["Year",m=>m.year],["Type",m=>m.gen],
-  ["Sounds",m=>({tr606:"analog circuits",cr8000:"analog circuits",dmx:"8-bit samples",sdsv:"analog synthesis",drumulator:"8-bit samples",drumtraks:"samples",tr727:"samples (percussion only)",cr78:"analog circuits",tr808:"analog circuits",linn:"8-bit samples",tr909:"analog + 6-bit cymbals",tr707:"samples",rx5:"12-bit samples",sp1200:"12-bit samples, 26 kHz",logicVintageArcade:"Logic stock samples"})[m.id]],
-  ["Programming",m=>({tr606:"16-step sequencer",cr8000:"preset and user rhythms",dmx:"real-time or step entry",sdsv:"played with pads",drumulator:"real-time or step entry",drumtraks:"real-time or step entry",tr727:"grid on the display",cr78:"preset and user rhythms",tr808:"16-step sequencer",linn:"real-time or step entry",tr909:"16-step sequencer",tr707:"grid on the display",rx5:"real-time or step entry",sp1200:"real-time or step entry",logicVintageArcade:"browser step sequencer"})[m.id]],
-  ["MIDI",m=>({tr606:"no",cr8000:"no",dmx:"no",sdsv:"no",drumulator:"no",drumtraks:"yes",tr727:"yes",cr78:"no",tr808:"no",linn:"with modification",tr909:"yes",tr707:"yes",rx5:"yes",sp1200:"yes",logicVintageArcade:"yes"})[m.id]],
-  ["Genres",m=>({tr606:"acid, industrial",cr8000:"synth pop",dmx:"rap, electro, new wave",sdsv:"'80s pop",drumulator:"pop, rock",drumtraks:"synth pop",tr727:"house, Latin",cr78:"pop, new wave",tr808:"electro, hip hop, trap",linn:"'80s pop",tr909:"house, techno",tr707:"house, italo, pop",rx5:"pop, soundtracks",sp1200:"hip hop, boom bap",logicVintageArcade:"electronic, arcade"})[m.id]],
+  ["Sounds",m=>({tr606:"analog circuits",cr8000:"analog circuits",dmx:"8-bit samples",sdsv:"analog synthesis",drumulator:"8-bit samples",drumtraks:"samples",tr727:"samples (percussion only)",cr78:"analog circuits",tr808:"analog circuits",linn:"8-bit samples",tr909:"analog + 6-bit cymbals",tr707:"samples",rx5:"12-bit samples",sp1200:"12-bit samples, 26 kHz"})[m.id]],
+  ["Programming",m=>({tr606:"16-step sequencer",cr8000:"preset and user rhythms",dmx:"real-time or step entry",sdsv:"played with pads",drumulator:"real-time or step entry",drumtraks:"real-time or step entry",tr727:"grid on the display",cr78:"preset and user rhythms",tr808:"16-step sequencer",linn:"real-time or step entry",tr909:"16-step sequencer",tr707:"grid on the display",rx5:"real-time or step entry",sp1200:"real-time or step entry"})[m.id]],
+  ["MIDI",m=>({tr606:"no",cr8000:"no",dmx:"no",sdsv:"no",drumulator:"no",drumtraks:"yes",tr727:"yes",cr78:"no",tr808:"no",linn:"with modification",tr909:"yes",tr707:"yes",rx5:"yes",sp1200:"yes"})[m.id]],
+  ["Genres",m=>({tr606:"acid, industrial",cr8000:"synth pop",dmx:"rap, electro, new wave",sdsv:"'80s pop",drumulator:"pop, rock",drumtraks:"synth pop",tr727:"house, Latin",cr78:"pop, new wave",tr808:"electro, hip hop, trap",linn:"'80s pop",tr909:"house, techno",tr707:"house, italo, pop",rx5:"pop, soundtracks",sp1200:"hip hop, boom bap"})[m.id]],
 ];
 $("specTable").innerHTML=`<tr><th></th>${MACHINES.map(m=>`<th>${m.short}</th>`).join("")}</tr>`+
   TABLE.map(([k,f])=>`<tr><th>${k}</th>${MACHINES.map(m=>`<td>${f(m)}</td>`).join("")}</tr>`).join("");

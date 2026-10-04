@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
 <title>PATTERN-MACHINE — drum machines and patterns in the browser</title>
-<meta name="description" content="Step drum machine in the browser with 14 classic machines plus a Logic Pro stock kit, from the SP-1200 and TR-808 to the TR-909 and RX-5. Patterns, songs and MIDI, WAV and MP3 export.">
+<meta name="description" content="Step drum machine in the browser with 14 classic machines, from the SP-1200 and TR-808 to the TR-909 and RX-5. Patterns, songs and MIDI, WAV and MP3 export.">
 <link rel="canonical" href="https://patternmachine.tongatron.org/">
 <meta name="theme-color" content="#0a0a0b" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#a3a097" media="(prefers-color-scheme: light)">
@@ -58,7 +58,7 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="PATTERN-MACHINE">
 <meta property="og:title" content="PATTERN-MACHINE — drum machines and patterns in the browser">
-<meta property="og:description" content="Step drum machine in the browser with 14 classic machines plus a Logic Pro stock kit, from the SP-1200 and TR-808 to the TR-909 and RX-5. Patterns, songs and MIDI, WAV and MP3 export.">
+<meta property="og:description" content="Step drum machine in the browser with 14 classic machines, from the SP-1200 and TR-808 to the TR-909 and RX-5. Patterns, songs and MIDI, WAV and MP3 export.">
 <meta property="og:image" content="https://patternmachine.tongatron.org/assets/og-pattern-machine.png">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
@@ -69,7 +69,7 @@
 
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="PATTERN-MACHINE — drum machines and patterns in the browser">
-<meta name="twitter:description" content="Step drum machine in the browser with 14 classic machines plus a Logic Pro stock kit, from the SP-1200 and TR-808 to the TR-909 and RX-5. Patterns, songs and MIDI, WAV and MP3 export.">
+<meta name="twitter:description" content="Step drum machine in the browser with 14 classic machines, from the SP-1200 and TR-808 to the TR-909 and RX-5. Patterns, songs and MIDI, WAV and MP3 export.">
 <meta name="twitter:image" content="https://patternmachine.tongatron.org/assets/og-pattern-machine.png">
 <script defer src="https://analytics.tongatron.org/script.js" data-website-id="9daa93b6-2afb-494a-89fb-288437a030d1" data-domains="patternmachine.tongatron.org"></script>
 </head>
@@ -1705,22 +1705,22 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-10-04.11"></script>
-<script src="engine/core.js?v=2026-10-04.11"></script>
-<script src="engine/styles-punk.js?v=2026-10-04.11"></script>
-<script src="engine/styles-post.js?v=2026-10-04.11"></script>
-<script src="engine/styles-machines.js?v=2026-10-04.11"></script>
-<script src="engine/styles-alt.js?v=2026-10-04.11"></script>
-<script src="engine/styles-groove.js?v=2026-10-04.11"></script>
-<script src="engine/styles-dub.js?v=2026-10-04.11"></script>
-<script src="engine/styles-break.js?v=2026-10-04.11"></script>
-<script src="engine/styles-soul.js?v=2026-10-04.11"></script>
-<script src="engine/styles-metal.js?v=2026-10-04.11"></script>
-<script src="engine/styles-electro.js?v=2026-10-04.11"></script>
-<script src="engine/variations.js?v=2026-10-04.11"></script>
-<script src="engine/import.js?v=2026-10-04.11"></script>
-<script src="engine/rhythm.js?v=2026-10-04.11"></script>
-<script src="engine/share.js?v=2026-10-04.11"></script>
+<script src="engine/machine-art.js?v=2026-10-04.9"></script>
+<script src="engine/core.js?v=2026-10-04.9"></script>
+<script src="engine/styles-punk.js?v=2026-10-04.9"></script>
+<script src="engine/styles-post.js?v=2026-10-04.9"></script>
+<script src="engine/styles-machines.js?v=2026-10-04.9"></script>
+<script src="engine/styles-alt.js?v=2026-10-04.9"></script>
+<script src="engine/styles-groove.js?v=2026-10-04.9"></script>
+<script src="engine/styles-dub.js?v=2026-10-04.9"></script>
+<script src="engine/styles-break.js?v=2026-10-04.9"></script>
+<script src="engine/styles-soul.js?v=2026-10-04.9"></script>
+<script src="engine/styles-metal.js?v=2026-10-04.9"></script>
+<script src="engine/styles-electro.js?v=2026-10-04.9"></script>
+<script src="engine/variations.js?v=2026-10-04.9"></script>
+<script src="engine/import.js?v=2026-10-04.9"></script>
+<script src="engine/rhythm.js?v=2026-10-04.9"></script>
+<script src="engine/share.js?v=2026-10-04.9"></script>
 <script>
 // Script principale di PATTERN-MACHINE: stato del progetto, audio, trasporto e interfaccia della pagina.
 // Il motore ritmico (SPEngine), i tempi (PMRhythm), import, link e gli altri moduli stanno in engine/*.js.
@@ -2007,22 +2007,6 @@ const SP12B_SLOTS=[
   ["Clave 1","User_Stick","Stick"],["Perc 1","User_Perc1","Perc 1"],
 ];
 const SP12B_EXTRA=[["SP12 BD 6","User_BD6","BD 6","Kick 2"],["SP12 Clap 2","Preset_Clap1","Clap (preset)","Finger Snap"],["SP12 Rim 2","Preset_Rim","Rim (preset)","Rimshot"]];
-// Kit aggiuntivo esportato dalla libreria stock di Logic Pro (Vintage Arcade).
-// Logic non installa campioni dedicati a LM-1, RZ-1, TR-505 o MPC60: il kit
-// resta quindi esplicitamente attribuito a Logic e usa fallback leggeri.
-const LOGIC_VINTAGE_SLOTS=[
-  ["Kick 1","kick","Kick"],["Kick 2","kick","Kick"],
-  ["Snare 1","snare1","Snare 1"],["Snare 2","snare2","Snare 2"],["Snare 3","snare2","Snare 2"],
-  ["Rimshot","snare2","Snare 2"],["Finger Snap","snare2","Snare 2"],
-  ["Closed Hat 1","perc","Percussion"],["Closed Hat 2","perc","Percussion"],["Open Hat 1","perc","Percussion"],
-  ["Tom 1","snare2","Snare 2"],["Tom 2","snare2","Snare 2"],
-  ["Crash 1","perc","Percussion"],["Ride 1","perc","Percussion"],["China","perc","Percussion"],["Cymbal","perc","Percussion"],
-  ["Cowbell 1","perc","Percussion"],
-  ["Conga 1","perc","Percussion"],["Conga 2","perc","Percussion"],["Conga 3","perc","Percussion"],
-  ["Tambourine","perc","Percussion"],["Cabasa 1","perc","Percussion"],
-  ["Clave 1","perc","Percussion"],["Perc 1","perc","Percussion"],
-];
-const LOGIC_VINTAGE_EXTRA=[];
 
 const KITS={
   std:{label:"SP-1200 · 16 bit", url:x=>`samples/${x.name} SP-1200.wav`, name:x=>x.name, has:x=>!x.extra},
@@ -2046,12 +2030,11 @@ const MACHINES={
   drumulator:{label:"E-mu Drumulator", slots:DRUMULATOR_SLOTS, extra:DRUMULATOR_EXTRA},
   drumtraks:{label:"Sequential DrumTraks", slots:DRUMTRAKS_SLOTS, extra:DRUMTRAKS_EXTRA},
   sdsv:{label:"Simmons SDS-V", slots:SDSV_SLOTS, extra:SDSV_EXTRA},
-  logicVintageArcade:{path:"logic-vintage-arcade", label:"Logic Pro · Vintage Arcade", slots:LOGIC_VINTAGE_SLOTS, extra:LOGIC_VINTAGE_EXTRA},
 };
 Object.entries(MACHINES).forEach(([id,m])=>{
   m.extra.forEach(([name,,,fallback])=>SAMPLES.push({name,bank:"D",extra:true,fallback}));
   const sounds=Object.fromEntries([...m.slots,...m.extra].map(([slot,file,label])=>[slot,{file,label}]));
-  KITS[id]={label:m.label, source:m.source, remote:true, url:x=>`machines/${m.path||id}/${sounds[x.name].file}.wav`,
+  KITS[id]={label:m.label, source:m.source, remote:true, url:x=>`machines/${id}/${sounds[x.name].file}.wav`,
     name:x=>sounds[x.name].label, has:x=>x.name in sounds};
 });
 // Informazioni di base e tecniche per macchina, mostrate accanto al selettore.
@@ -2072,7 +2055,6 @@ const MACHINE_INFO={
   tr727:{maker:"Roland", year:1985, gen:"Digital samples", specs:["Latin percussion only","MIDI"]},
   rx5:{maker:"Yamaha", year:1986, gen:"Digital samples", specs:["12-bit samples","sound cartridges"]},
   sp1200:{maker:"E-mu Systems", year:1987, gen:"Sampler", specs:["samples at 12 bit, about 26 kHz","8 faders"]},
-  logicVintageArcade:{maker:"Apple", year:"Logic Pro", gen:"Factory kit", specs:["stock Logic sounds","electronic kit"]},
 };
 const MACHINE_INFO_ALIAS={std:"sp1200","12bit":"sp1200", sp12b:"sp1200", tr808u:"tr808", tr909u:"tr909"};
 function updateMachineInfo(k){
@@ -4113,9 +4095,7 @@ function setView(v){
   });
   el("viewSound").classList.toggle("on",v==="sound");
   el("viewSound").setAttribute("aria-pressed",v==="sound");
-  // Live View resta disponibile anche dal Synthesizer: il pulsante mantiene la stessa sede
-  // nella barra Transport e porta alla vista live condivisa della macchina.
-  el("viewSound").hidden = v!=="grid" && v!=="synth" && v!=="sound";
+  el("viewSound").hidden = v!=="grid" && v!=="sound";
   document.body.classList.toggle("sound-view",v==="sound");
   document.body.classList.toggle("mix-view",v==="mix");
   el("machinePanel").hidden = v==="synth" || v==="midi" || v==="mix" || v==="sampler";
@@ -4625,7 +4605,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || el("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-04.11";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-04.9";
   document.body.appendChild(s);
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth")) loadSynth();
@@ -4853,7 +4833,7 @@ const KIT_KEY="pm.kit";
 const KIT_MENU_HIDDEN=new Set(["sp12b","tr808u","tr909u"]);
 // La macchina scelta l'ultima volta, se c'e' ancora nel menu.
 const savedKit=()=>{ const k=storeGet(KIT_KEY); return KITS[k]&&!KIT_MENU_HIDDEN.has(k) ? k : null; };
-const KIT_MENU_FIRST=["std","12bit","rx5","tr606","tr808","tr909","tr707","tr727","cr78","cr8000","linn","dmx","drumulator","drumtraks","sdsv","logicVintageArcade"];
+const KIT_MENU_FIRST=["std","12bit","rx5","tr606","tr808","tr909","tr707","tr727","cr78","cr8000","linn","dmx","drumulator","drumtraks","sdsv"];
 function fillKitOptions(sel){
   if(!sel) return;
   sel.innerHTML="";
@@ -7469,7 +7449,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-10-04.11";
+const SW_VERSION="2026-10-04.9";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -7493,11 +7473,11 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sample-editor.js?v=2026-10-04.11"></script>
-<script src="engine/sampler.js?v=2026-10-04.11"></script>
-<script src="engine/vocal.js?v=2026-10-04.11"></script>
+<script src="engine/sample-editor.js?v=2026-10-04.9"></script>
+<script src="engine/sampler.js?v=2026-10-04.9"></script>
+<script src="engine/vocal.js?v=2026-10-04.9"></script>
 <script>PMSampler.init(); PMVocal.init();</script>
-<script src="engine/midi.js?v=2026-10-04.11"></script>
+<script src="engine/midi.js?v=2026-10-04.9"></script>
 
 </body>
 </html>

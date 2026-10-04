@@ -334,6 +334,7 @@ th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-sp
     <li data-it="Apri la scheda <b>Synthesizer</b> nella barra delle viste. La sezione Engine contiene il suono; la sezione Pattern contiene la linea che stai modificando.">Open the <b>Synthesizer</b> tab in the view bar. The Engine section contains the sound; the Pattern section contains the line you are editing.</li>
     <li data-it="Scegli un preset oppure parti da un suono vuoto. I preset KORG, Custom e Tone.js hanno banchi separati; puoi salvare e rinominare i tuoi suoni.">Choose a preset or start from a blank sound. KORG, Custom and Tone.js presets have separate banks; you can save and rename your own sounds.</li>
     <li data-it="Nel Pattern usa <b>+ New</b> per una linea vuota, <b>Duplicate</b> per creare una variante, <b>Clear</b> per togliere le note, <b>Rename</b> per dare un nome e <b>Steps</b> per scegliere 8, 16, 32, 64, 128 o 256 step.">In Pattern use <b>+ New</b> for an empty line, <b>Duplicate</b> for a variation, <b>Clear</b> to remove notes, <b>Rename</b> to name it and <b>Steps</b> to choose 8, 16, 32, 64, 128 or 256 steps.</li>
+    <li data-it="<b>Generate</b> propone più linee tra bassi, accordi, arpeggi e melodie. <b>Vary</b> propone trasformazioni reversibili della linea: più rada o fitta, half-time, doppio tempo, reverse, invert, ottave, stutter e accenti; clicca di nuovo per tornare all’originale."><b>Generate</b> proposes several lines across bass, chords, arpeggios and melodies. <b>Vary</b> offers reversible transformations of the line: sparse or busy, half-time, double-time, reverse, invert, octaves, stutter and accents; click again to restore the original.</li>
     <li data-it="Scegli <b>Key</b> e <b>Scale</b> per avere un riferimento musicale. La scala limita la visualizzazione quando attivi <b>Scale notes only</b>; non sposta le note già scritte.">Choose <b>Key</b> and <b>Scale</b> for a musical reference. The scale filters the view when you enable <b>Scale notes only</b>; it does not move notes already written.</li>
     <li data-it="Premi <b>Play</b> per ascoltare il synth con la batteria. <b>On</b> abilita o silenzia la linea; <b>Solo</b> ascolta il synth senza la batteria; <b>Panic</b> interrompe immediatamente le note rimaste aperte.">Press <b>Play</b> to hear the synth with the drums. <b>On</b> enables or mutes the line; <b>Solo</b> hears the synth without drums; <b>Panic</b> immediately releases notes that are still held.</li>
   </ol>
@@ -457,7 +458,7 @@ th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-sp
     <li>Each style is a "profile": BPM range, swing, weighted variants, allowed fills, required hits (checked by the tests) and a generator.</li>
     <li>All randomness goes through a <b>seeded</b> generator: the same code always regenerates the same pattern.</li>
     <li><b>Verse</b> and <b>chorus</b> sections, 16 or 32 steps long, optional ending <b>fill</b>.</li>
-    <li><b>Suggestions</b>: as soon as you choose a style (or "random" from a group or from all), section, length or fill, the library shows 8 patterns that differ from one another in place of the previous ones, ranked by interest: syncopation, accents and ghost notes, number of voices, variety within the bar, balanced density. The ● dots show the level. <b>↻ More suggestions</b> generates another 8 with the same settings; favorites stay.</li>
+    <li><b>Suggestions</b>: as soon as you choose a style (or "random" from a group or from all), section, length or fill, the library shows 8 patterns that differ from one another in place of the previous ones, ranked by interest: syncopation, accents and ghost notes, number of voices, variety within the bar, balanced density. The ● dots show the level. <b>↻ More suggestions</b> generates another 8 with the same settings; <b>Vary current pattern</b> adds 8 different variations of the pattern you are editing; favorites stay.</li>
     <li><b>Similar</b>: four close patterns (crossed with a pattern of the same style, plus small mutations).</li>
     <li><b>Lock</b>: keep some voices (for example kick and snare) and regenerate the others.</li>
     <li><b>Arrange</b>: derives intro, chorus, break and outro from a pattern.</li>
@@ -598,18 +599,18 @@ th{border-bottom:1px solid var(--edge); font:700 10px/1.3 var(--mono); letter-sp
 <footer class="site-footer"><a class="report-link" href="./#segnala">Report a problem</a><span class="site-version"><!--build-->version of day month year HH:MM<!--/build--></span><a class="site-badge" href="https://tongatron.org/"><span class="mark"></span><span>tongatron.org</span></a><a class="gh-link" href="https://github.com/tongatron/PatternMachine"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg><span>View on GitHub</span></a></footer>
 </div>
 
-<script src="engine/core.js?v=2026-10-04.4"></script>
-<script src="engine/styles-punk.js?v=2026-10-04.4"></script>
-<script src="engine/styles-post.js?v=2026-10-04.4"></script>
-<script src="engine/styles-machines.js?v=2026-10-04.4"></script>
-<script src="engine/styles-alt.js?v=2026-10-04.4"></script>
-<script src="engine/styles-groove.js?v=2026-10-04.4"></script>
-<script src="engine/styles-dub.js?v=2026-10-04.4"></script>
-<script src="engine/styles-break.js?v=2026-10-04.4"></script>
-<script src="engine/styles-soul.js?v=2026-10-04.4"></script>
-<script src="engine/styles-metal.js?v=2026-10-04.4"></script>
-<script src="engine/styles-electro.js?v=2026-10-04.4"></script>
-<script src="engine/variations.js?v=2026-10-04.4"></script>
+<script src="engine/core.js?v=2026-10-04.5"></script>
+<script src="engine/styles-punk.js?v=2026-10-04.5"></script>
+<script src="engine/styles-post.js?v=2026-10-04.5"></script>
+<script src="engine/styles-machines.js?v=2026-10-04.5"></script>
+<script src="engine/styles-alt.js?v=2026-10-04.5"></script>
+<script src="engine/styles-groove.js?v=2026-10-04.5"></script>
+<script src="engine/styles-dub.js?v=2026-10-04.5"></script>
+<script src="engine/styles-break.js?v=2026-10-04.5"></script>
+<script src="engine/styles-soul.js?v=2026-10-04.5"></script>
+<script src="engine/styles-metal.js?v=2026-10-04.5"></script>
+<script src="engine/styles-electro.js?v=2026-10-04.5"></script>
+<script src="engine/variations.js?v=2026-10-04.5"></script>
 <script>
 // Stili, gruppi e variazioni vengono dal motore: questa pagina non va aggiornata a mano quando se ne aggiungono.
 (function(){

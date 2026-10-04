@@ -1494,7 +1494,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
           <input type="number" id="genBpm" min="40" max="240" value="93" aria-label="Target tempo in BPM" style="width:64px" hidden>
         </label>
         <button type="button" id="genMore" class="mini primary" title="8 new suggestions with the same settings">↻ More suggestions</button>
-        <button id="genVar" class="mini">Vary current pattern</button>
+        <button id="genVar" class="mini" title="8 variation proposals for the pattern you are editing">Vary current pattern</button>
         <div class="tempo-note" id="genTempoNote" hidden aria-live="polite">
           <span id="genTempoNoteText"></span>
           <button type="button" id="genTempoNearby">Use nearby styles</button>
@@ -1707,22 +1707,22 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-10-04.4"></script>
-<script src="engine/core.js?v=2026-10-04.4"></script>
-<script src="engine/styles-punk.js?v=2026-10-04.4"></script>
-<script src="engine/styles-post.js?v=2026-10-04.4"></script>
-<script src="engine/styles-machines.js?v=2026-10-04.4"></script>
-<script src="engine/styles-alt.js?v=2026-10-04.4"></script>
-<script src="engine/styles-groove.js?v=2026-10-04.4"></script>
-<script src="engine/styles-dub.js?v=2026-10-04.4"></script>
-<script src="engine/styles-break.js?v=2026-10-04.4"></script>
-<script src="engine/styles-soul.js?v=2026-10-04.4"></script>
-<script src="engine/styles-metal.js?v=2026-10-04.4"></script>
-<script src="engine/styles-electro.js?v=2026-10-04.4"></script>
-<script src="engine/variations.js?v=2026-10-04.4"></script>
-<script src="engine/import.js?v=2026-10-04.4"></script>
-<script src="engine/rhythm.js?v=2026-10-04.4"></script>
-<script src="engine/share.js?v=2026-10-04.4"></script>
+<script src="engine/machine-art.js?v=2026-10-04.5"></script>
+<script src="engine/core.js?v=2026-10-04.5"></script>
+<script src="engine/styles-punk.js?v=2026-10-04.5"></script>
+<script src="engine/styles-post.js?v=2026-10-04.5"></script>
+<script src="engine/styles-machines.js?v=2026-10-04.5"></script>
+<script src="engine/styles-alt.js?v=2026-10-04.5"></script>
+<script src="engine/styles-groove.js?v=2026-10-04.5"></script>
+<script src="engine/styles-dub.js?v=2026-10-04.5"></script>
+<script src="engine/styles-break.js?v=2026-10-04.5"></script>
+<script src="engine/styles-soul.js?v=2026-10-04.5"></script>
+<script src="engine/styles-metal.js?v=2026-10-04.5"></script>
+<script src="engine/styles-electro.js?v=2026-10-04.5"></script>
+<script src="engine/variations.js?v=2026-10-04.5"></script>
+<script src="engine/import.js?v=2026-10-04.5"></script>
+<script src="engine/rhythm.js?v=2026-10-04.5"></script>
+<script src="engine/share.js?v=2026-10-04.5"></script>
 <script>
 // Script principale di PATTERN-MACHINE: stato del progetto, audio, trasporto e interfaccia della pagina.
 // Il motore ritmico (SPEngine), i tempi (PMRhythm), import, link e gli altri moduli stanno in engine/*.js.
@@ -4605,7 +4605,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || el("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-04.4";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-04.5";
   document.body.appendChild(s);
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth")) loadSynth();
@@ -6924,6 +6924,19 @@ function genVariation(src=curPattern()){
   });
   return {name:src.name+" var", tag:"variazione", len:src.len, byTrack, fresh:true};
 }
+function genVariationProposals(src=curPattern()){
+  const made=[], signatures=new Set();
+  const signature=item=>Object.values(item.byTrack||{}).map(a=>a.join("")).join("|");
+  for(let i=0;i<8;i++){
+    let item=genVariation(src), sig=signature(item);
+    for(let tries=0;tries<8 && signatures.has(sig);tries++){ item=genVariation(src); sig=signature(item); }
+    item.name=`${src.name} · Variation ${i+1}`;
+    item.tag="variation proposal";
+    item.fresh=true;
+    signatures.add(sig); made.push(item);
+  }
+  return made;
+}
 
 function patternRoles(src){
   const roles={}, trackOf={};
@@ -7357,9 +7370,7 @@ el("codeForm").onsubmit=e=>{
   if(openCode(el("genCode").value)) el("genCode").value="";
 };
 el("genVar").onclick=()=>{
-  library.forEach(i=>i.fresh=false);
-  library=[genVariation()].concat(library);
-  renderLibrary();
+  pushToLibrary(genVariationProposals(),null);
   el("libList").scrollTop=0;
 };
 
@@ -7438,7 +7449,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-10-04.4";
+const SW_VERSION="2026-10-04.5";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -7462,11 +7473,11 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sample-editor.js?v=2026-10-04.4"></script>
-<script src="engine/sampler.js?v=2026-10-04.4"></script>
-<script src="engine/vocal.js?v=2026-10-04.4"></script>
+<script src="engine/sample-editor.js?v=2026-10-04.5"></script>
+<script src="engine/sampler.js?v=2026-10-04.5"></script>
+<script src="engine/vocal.js?v=2026-10-04.5"></script>
 <script>PMSampler.init(); PMVocal.init();</script>
-<script src="engine/midi.js?v=2026-10-04.4"></script>
+<script src="engine/midi.js?v=2026-10-04.5"></script>
 
 </body>
 </html>

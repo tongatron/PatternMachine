@@ -898,6 +898,7 @@
     const g = GENERATORS[k]; if (!g) return;
     const o = genOpts(), pat = curSynth();
     let notes = generateNotes(k, pat.len);
+    forgetSynthVariation();
     pushUndo(); ensure();
     // in aggiunta: un nuovo giro dello stesso generatore prende il posto del suo giro precedente, non ci si somma
     if (o.add) { const key = x => x.s + ":" + x.n, fresh = new Set(notes.map(key)); notes = pat.synth.filter(x => x.k !== k && !fresh.has(key(x))).concat(notes); }
@@ -906,13 +907,165 @@
     centerOn(pat); renderRoll();
     setStatus(`synth: ${g.group.toLowerCase()} · ${g.label.toLowerCase()} in ${NOTE_NAMES[keyOf()]} ${SCALES[scaleOf()][0].toLowerCase()}${o.add ? " (added)" : ""}`);
   }
+
+  // Variazioni del synth: trasformano la linea aperta senza cambiare lunghezza o tonalita'.
+  // Come per la batteria, una sola variazione resta attiva alla volta e il secondo clic ripristina l'originale.
+  const SYNTH_VARIATION_GROUPS = ["Rhythm", "Pitch", "Texture"];
+  const SYNTH_VARIATIONS = [
+    { id: "sparse", group: "Rhythm", label: "Sparse", hint: "removes weaker notes and leaves more space" },
+    { id: "busy", group: "Rhythm", label: "Busier", hint: "adds passing notes in the gaps" },
+    { id: "half", group: "Rhythm", label: "Half-time", hint: "stretches the phrase over twice the space" },
+    { id: "double", group: "Rhythm", label: "Double-time", hint: "adds a second hit between the existing notes" },
+    { id: "reverse", group: "Pitch", label: "Reverse", hint: "plays the phrase backwards" },
+    { id: "invert", group: "Pitch", label: "Invert", hint: "mirrors the melody around its centre" },
+    { id: "octave", group: "Pitch", label: "Octave lift", hint: "adds octave doubles to selected notes" },
+    { id: "stutter", group: "Texture", label: "Stutter", hint: "repeats accents in short bursts" },
+    { id: "accents", group: "Texture", label: "Accents", hint: "emphasizes the pulse and off-beat answers" },
+  ];
+  let activeSynthVariationId = null, synthVariationBase = null;
+  const cloneSynthNotes = notes => (notes || []).map(x => ({ ...x }));
+  function normalizeSynthNotes(notes, len) {
+    const byKey = new Map();
+    notes.forEach(x => {
+      if (!Number.isFinite(+x.s) || !Number.isFinite(+x.n)) return;
+      const s = clamp(Math.round(+x.s), 0, len - 1), n = clamp(Math.round(+x.n), 0, 127);
+      const y = { ...x, s, n, l: clamp(Math.round(+x.l || 1), 1, len - s) };
+      const key = `${s}:${n}`, old = byKey.get(key);
+      if (!old || (!!y.a && !old.a) || y.l > old.l) byKey.set(key, y);
+    });
+    return [...byKey.values()].sort((a, b) => a.s - b.s || a.n - b.n);
+  }
+  function snapSynthNote(n) {
+    const root = keyOf(), sc = scaleNotes(), candidates = [];
+    for (let oct = -1; oct <= 10; oct++) sc.forEach(d => candidates.push(root + d + oct * 12));
+    return candidates.reduce((best, x) => Math.abs(x - n) < Math.abs(best - n) ? x : best, candidates[0]);
+  }
+  function synthVariationNotes(type, source, len) {
+    const base = cloneSynthNotes(source), occupied = new Set(base.map(x => `${x.s}:${x.n}`));
+    const fresh = (x, extra = {}) => ({ ...x, ...extra, k: `vary:${type}` });
+    let out;
+    if (type === "sparse") {
+      out = base.filter((x, i) => x.a || x.s % 4 === 0 || (i % 3 === 0 && x.s % 2 === 0));
+      if (!out.length) out = [base[0]];
+    } else if (type === "busy" || type === "double") {
+      out = base.map(x => fresh(x));
+      const limit = type === "busy" ? Math.max(2, Math.ceil(base.length * 0.55)) : base.length;
+      base.filter(x => x.s + 1 < len).slice(0, limit).forEach((x, i) => {
+        const s = x.s + 1, n = type === "busy" ? snapSynthNote(x.n + (i % 2 ? 1 : -1)) : x.n;
+        if (occupied.has(`${s}:${n}`)) return;
+        occupied.add(`${s}:${n}`); out.push(fresh(x, { s, n, l: 1, a: undefined, g: undefined }));
+      });
+    } else if (type === "half") {
+      out = base.map(x => {
+        const s = x.s * 2;
+        return s < len ? fresh(x, { s, l: Math.min(len - s, Math.max(1, x.l * 2)) }) : null;
+      }).filter(Boolean);
+    } else if (type === "reverse") {
+      out = base.map(x => {
+        const l = clamp(x.l || 1, 1, len), s = clamp(len - x.s - l, 0, len - 1);
+        return fresh(x, { s, l: Math.min(l, len - s) });
+      });
+    } else if (type === "invert") {
+      const centre = base.reduce((sum, x) => sum + x.n, 0) / Math.max(1, base.length);
+      out = base.map(x => fresh(x, { n: clamp(Math.round(2 * centre - x.n), 0, 127) }));
+    } else if (type === "octave") {
+      out = base.map(x => fresh(x));
+      base.filter((x, i) => i % 2 === 0).forEach(x => {
+        const n = x.n + 12 <= 127 ? x.n + 12 : x.n - 12;
+        if (n < 0 || occupied.has(`${x.s}:${n}`)) return;
+        occupied.add(`${x.s}:${n}`); out.push(fresh(x, { n, a: undefined, g: undefined }));
+      });
+    } else if (type === "stutter") {
+      out = base.map(x => fresh(x));
+      base.filter(x => x.a || x.s % 4 === 0).forEach(x => [1, 2].forEach(delta => {
+        const s = x.s + delta;
+        if (s >= len || occupied.has(`${s}:${x.n}`)) return;
+        occupied.add(`${s}:${x.n}`); out.push(fresh(x, { s, l: 1, a: undefined, g: undefined }));
+      }));
+    } else if (type === "accents") {
+      out = base.map(x => fresh(x, { a: x.s % 4 === 0 || x.s % 8 === 6 ? 1 : undefined }));
+    } else out = base;
+    const normalized = normalizeSynthNotes(out, len);
+    return normalized.length ? normalized : normalizeSynthNotes(base.slice(0, 1), len);
+  }
+  const synthVariationMeta = id => SYNTH_VARIATIONS.find(x => x.id === id);
+  function paintSynthVariationState() {
+    const box = el("synVaryPanel"), btn = el("synPatVary");
+    if (!box || !btn) return;
+    box.querySelectorAll("[data-synth-variation-id]").forEach(b => {
+      const active = b.dataset.synthVariationId === activeSynthVariationId;
+      b.classList.toggle("on", active); b.setAttribute("aria-pressed", String(active));
+    });
+    const off = el("synVaryOff"); if (off) off.hidden = !activeSynthVariationId;
+    btn.classList.toggle("on", !box.hidden || !!activeSynthVariationId);
+  }
+  function forgetSynthVariation() {
+    activeSynthVariationId = null; synthVariationBase = null; paintSynthVariationState();
+  }
+  function disableSynthVariation() {
+    if (!synthVariationBase) { forgetSynthVariation(); return; }
+    pushUndo();
+    curSynth().synth = cloneSynthNotes(synthVariationBase.synth);
+    activeSynthVariationId = null; synthVariationBase = null;
+    paintPatternBar(); renderRoll(); paintSynthVariationState(); setStatus("synth variation off");
+  }
+  function varySynthCurrent(type) {
+    if (activeSynthVariationId === type) { disableSynthVariation(); return; }
+    const pat = curSynth();
+    if (!pat.synth.length) { setStatus("empty synth pattern: nothing to vary", "err"); return; }
+    if (!synthVariationBase) synthVariationBase = { len: pat.len, synth: cloneSynthNotes(pat.synth) };
+    pushUndo();
+    pat.synth = synthVariationNotes(type, synthVariationBase.synth, synthVariationBase.len);
+    activeSynthVariationId = type;
+    const meta = synthVariationMeta(type);
+    centerOn(pat); paintPatternBar(); renderRoll(); paintSynthVariationState();
+    setStatus(`synth: ${meta.label.toLowerCase()} · click again to turn it off`);
+  }
+  function makeSynthVariationSections(host) {
+    const sections = new Map();
+    SYNTH_VARIATION_GROUPS.forEach(group => {
+      const section = document.createElement("details"); section.className = "variation-section"; section.open = true;
+      const summary = document.createElement("summary"); summary.textContent = group;
+      const options = document.createElement("div"); options.className = "variation-options";
+      section.append(summary, options); host.appendChild(section); sections.set(group, options);
+    });
+    return sections;
+  }
+  function initSynthVary() {
+    const box = el("synVaryPanel"), btn = el("synPatVary");
+    if (!box || !btn) return;
+    const hint = document.createElement("span"); hint.className = "tiny";
+    hint.textContent = "click a variation to apply it; click it again to restore the original synth line.";
+    box.appendChild(hint);
+    const off = document.createElement("button"); off.type = "button"; off.id = "synVaryOff"; off.className = "mini";
+    off.textContent = "Turn variation off"; off.hidden = true; off.onclick = disableSynthVariation; box.appendChild(off);
+    const sections = makeSynthVariationSections(box);
+    SYNTH_VARIATIONS.forEach(t => {
+      const b = document.createElement("button"); b.type = "button"; b.className = "mini";
+      b.dataset.synthVariationId = t.id; b.textContent = t.label; b.title = t.hint; b.setAttribute("aria-pressed", "false");
+      b.onclick = () => varySynthCurrent(t.id);
+      sections.get(t.group).appendChild(b);
+    });
+    btn.onclick = () => { box.hidden = !box.hidden; btn.setAttribute("aria-expanded", String(!box.hidden)); paintSynthVariationState(); };
+    paintSynthVariationState();
+  }
   // ---------- Browse: libreria di suggerimenti dai generatori (come Browse… dei pattern di batteria) ----------
   let libItems = [], libPreview = null;
   const libOpts = () => Object.assign({ type: "*", len: curSynth().len }, view.lib || {});
   function libSuggest() {
     const o = libOpts(), keys = Object.keys(GENERATORS);
-    const pickKeys = o.type === "*" ? keys.slice().sort(() => Math.random() - 0.5).slice(0, 8) : Array(8).fill(o.type);
-    libItems = pickKeys.filter(k => GENERATORS[k]).map(k => ({ k, len: o.len, notes: generateNotes(k, o.len) }));
+    const shuffle = a => a.slice().sort(() => Math.random() - 0.5);
+    let pickKeys;
+    if (o.type === "*") {
+      // Una proposta per famiglia prima dei duplicati: la libreria mette sempre a confronto
+      // basso, accordi, arpeggi e melodia, poi completa con altre idee casuali.
+      pickKeys = GEN_GROUPS.flatMap(group => {
+        const groupKeys = keys.filter(k => GENERATORS[k].group === group);
+        return groupKeys.length ? [pick(groupKeys)] : [];
+      });
+      pickKeys = pickKeys.concat(shuffle(keys).slice(0, Math.max(0, 8 - pickKeys.length)));
+    } else pickKeys = Array(8).fill(o.type);
+    libItems = pickKeys.filter(k => GENERATORS[k]).slice(0, 8).map(k => ({ k, len: o.len, notes: generateNotes(k, o.len) }));
     renderLib();
   }
   function libSelect(id, pairs, v) {
@@ -975,7 +1128,7 @@
       const load = document.createElement("button"); load.type = "button"; load.className = "mini primary"; load.textContent = "Replace pattern";
       load.title = "replace the notes of the synth pattern you are editing";
       load.onclick = () => {
-        const sp = curSynth(); pushUndo(); ensure();
+        const sp = curSynth(); forgetSynthVariation(); pushUndo(); ensure();
         sp.len = item.len; sp.synth = item.notes.map(n => ({ ...n }));
         closeLib(); paintPatternBar(); centerOn(sp); renderRoll(); setStatus(`synth: ${g.label.toLowerCase()} loaded in ${sp.name}`);
       };
@@ -1293,6 +1446,12 @@
 .syn-gen-grid button{min-width:0; white-space:normal;}
 .syn-gen-grid button.on{background:var(--key-primary,var(--accent)); color:var(--on-accent); border-color:var(--accent-dim); font-weight:700;}
 #synGenAgain{min-height:0; padding:6px 10px; font-size:10.5px;}
+#synVaryPanel[hidden]{display:none;}
+#synPatVary.on, #synVaryPanel .mini.on{
+  background:var(--key-primary,var(--accent)); color:var(--on-accent);
+  border-color:var(--accent-dim); font-weight:700;
+}
+#synVaryPanel{align-items:center;}
 #synPatChips{align-items:center; gap:7px;}
 .syn-pattern-actions{display:grid; grid-template-columns:repeat(2,minmax(92px,1fr)); grid-template-rows:repeat(2,auto); gap:6px;}
 .syn-pattern-actions button{width:100%; min-width:92px;}
@@ -1337,6 +1496,7 @@
       <div class="chips" id="synPatChips" role="group" aria-label="Synth pattern to edit"></div>
       <div class="flexline">
         <button id="synPatBrowse" class="mini primary" type="button" title="Suggestions from the generators: listen and apply">✦ Generate</button>
+        <button id="synPatVary" class="mini" type="button" aria-expanded="false" title="Apply or remove a variation on the synth pattern you are editing">✦ Vary</button>
         <button id="synPatNew" class="mini" type="button" title="A new empty synth pattern">+ New</button>
         <span class="syn-pattern-actions">
           <button id="synPatDup" class="mini" type="button">Duplicate</button>
@@ -1350,7 +1510,8 @@
             ${SYNTH_LENS.map(n => `<button type="button" data-len="${n}" role="option">${n}</button>`).join("")}
           </div>
         </details></label>
-      </div>`;
+      </div>
+      <div class="lib-locks syn-vary-panel" id="synVaryPanel" hidden></div>`;
     el("synthEnginePanel").hidden = el("synthPatternPanel").hidden = el("panelSynth").hidden;
     el("panelSynth").innerHTML = `
       <h2>Notes <span id="synPatName"></span><span class="synth-beta">test</span></h2>
@@ -1493,14 +1654,15 @@
     // Toglie solo le note registrate dal vivo (k:"rec"): il pattern e' pronto per una nuova registrazione.
     el("synRecClear").onclick = () => {
       const pat = curSynth(), n = pat.synth.filter(x => x.k === "rec").length; if (!n) return;
-      pushUndo(); pat.synth = pat.synth.filter(x => x.k !== "rec"); renderRoll();
+      forgetSynthVariation(); pushUndo(); pat.synth = pat.synth.filter(x => x.k !== "rec"); renderRoll();
       setStatus(`synth: ${n} recorded ${n === 1 ? "note" : "notes"} cleared · ready for a new take`);
     };
     el("synClear").onclick = () => {
       const pat = curSynth(); if (!pat.synth.length) return;
-      pushUndo(); pat.synth = []; renderRoll(); setStatus("synth notes cleared");
+      forgetSynthVariation(); pushUndo(); pat.synth = []; renderRoll(); setStatus("synth notes cleared");
     };
     bindPatternBar();
+    initSynthVary();
     el("synTap").onclick = e => { const b = e.target.closest("[data-mode]"); if (!b) return; view.tap = b.dataset.mode; saveView(); paintTap(); };
     el("synDown").onclick = () => { view.base = clamp(view.base - 12, 0, 96); saveView(); renderRoll(); };
     el("synUp").onclick = () => { view.base = clamp(view.base + 12, 0, 96); saveView(); renderRoll(); };
@@ -1566,7 +1728,7 @@
     pushUndo(); sp.name = name.trim().slice(0, 40); paintPatternBar();
   }
   function selectSynth(id) {
-    ui.synthId = id; paintPatternBar(); centerOn(curSynth()); renderRoll();
+    forgetSynthVariation(); ui.synthId = id; paintPatternBar(); centerOn(curSynth()); renderRoll();
   }
   function bindPatternBar() {
     el("synPatChips").onclick = e => {
@@ -1582,7 +1744,7 @@
       const sp = curSynth(), from = sp.len, to = +b.dataset.len;
       lenMenu.open = false;
       if (to === from) return;
-      pushUndo();
+      forgetSynthVariation(); pushUndo();
       const base = sp.synth.filter(n => n.s < from), out = [];
       for (let k = 0; k < to; k += from) base.forEach(n => {
         if (n.s + k < to) out.push({ ...n, s: n.s + k, l: Math.min(n.l, to - n.s - k) });
@@ -1891,13 +2053,13 @@
       const mode = e.altKey ? "acc" : (e.shiftKey ? "slide" : view.tap);
       if (mode !== "note") {
         if (!hit) return;
-        pushUndo();
+        forgetSynthVariation(); pushUndo();
         const f = mode === "acc" ? "a" : "g";
         if (hit[f]) delete hit[f]; else hit[f] = 1;
         renderRoll();
         return;
       }
-      pushUndo();
+      forgetSynthVariation(); pushUndo();
       ensure();   // il progetto ricorda il suono con cui sono state scritte le note
       if (hit) drag = { note: hit, from: s, moved: false, created: false };
       else {

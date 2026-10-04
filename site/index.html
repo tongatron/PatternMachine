@@ -1705,22 +1705,22 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-10-04.7"></script>
-<script src="engine/core.js?v=2026-10-04.7"></script>
-<script src="engine/styles-punk.js?v=2026-10-04.7"></script>
-<script src="engine/styles-post.js?v=2026-10-04.7"></script>
-<script src="engine/styles-machines.js?v=2026-10-04.7"></script>
-<script src="engine/styles-alt.js?v=2026-10-04.7"></script>
-<script src="engine/styles-groove.js?v=2026-10-04.7"></script>
-<script src="engine/styles-dub.js?v=2026-10-04.7"></script>
-<script src="engine/styles-break.js?v=2026-10-04.7"></script>
-<script src="engine/styles-soul.js?v=2026-10-04.7"></script>
-<script src="engine/styles-metal.js?v=2026-10-04.7"></script>
-<script src="engine/styles-electro.js?v=2026-10-04.7"></script>
-<script src="engine/variations.js?v=2026-10-04.7"></script>
-<script src="engine/import.js?v=2026-10-04.7"></script>
-<script src="engine/rhythm.js?v=2026-10-04.7"></script>
-<script src="engine/share.js?v=2026-10-04.7"></script>
+<script src="engine/machine-art.js?v=2026-10-04.8"></script>
+<script src="engine/core.js?v=2026-10-04.8"></script>
+<script src="engine/styles-punk.js?v=2026-10-04.8"></script>
+<script src="engine/styles-post.js?v=2026-10-04.8"></script>
+<script src="engine/styles-machines.js?v=2026-10-04.8"></script>
+<script src="engine/styles-alt.js?v=2026-10-04.8"></script>
+<script src="engine/styles-groove.js?v=2026-10-04.8"></script>
+<script src="engine/styles-dub.js?v=2026-10-04.8"></script>
+<script src="engine/styles-break.js?v=2026-10-04.8"></script>
+<script src="engine/styles-soul.js?v=2026-10-04.8"></script>
+<script src="engine/styles-metal.js?v=2026-10-04.8"></script>
+<script src="engine/styles-electro.js?v=2026-10-04.8"></script>
+<script src="engine/variations.js?v=2026-10-04.8"></script>
+<script src="engine/import.js?v=2026-10-04.8"></script>
+<script src="engine/rhythm.js?v=2026-10-04.8"></script>
+<script src="engine/share.js?v=2026-10-04.8"></script>
 <script>
 // Script principale di PATTERN-MACHINE: stato del progetto, audio, trasporto e interfaccia della pagina.
 // Il motore ritmico (SPEngine), i tempi (PMRhythm), import, link e gli altri moduli stanno in engine/*.js.
@@ -4088,8 +4088,6 @@ el("ssClear").onclick=async()=>{
 // accanto alla Griglia: mostra la stessa griglia senza il resto dell'interfaccia.
 const VIEW_TABS={grid:"viewGrid", seq:"viewSeq", synth:"viewSynth", sampler:"viewSampler", mix:"viewMix",
   recent:"viewRecent", midi:"viewMidi"};
-const VIEW_START_MODE={grid:"pattern", synth:"song", seq:"song", sampler:"song", mix:"song"};
-let viewSection=null;     // ultima sezione aperta tra quelle di VIEW_START_MODE (la Vista Live conta come Drum Grid)
 function setView(v){
   Object.entries(VIEW_TABS).forEach(([view,id])=>{
     el(id).classList.toggle("on",v===view);
@@ -4115,15 +4113,8 @@ function setView(v){
   if(v==="mix") renderMixer();
   else if(wasMix) renderTracks();       // le righe della griglia riprendono volumi, mute e solo toccati nel mixer
   paintTransport();
-  // Modalita' di partenza di ogni sezione (se non sta gia' suonando): Drum Grid in Pattern, Synthesizer, Sequencer,
-  // Sampler e Mixer in Song. Vale solo entrando nella sezione: poi Pattern/Song si sceglie come sempre
-  // (nel Sequencer, Pattern suona il blocco selezionato).
-  const section = v==="sound" ? "grid" : v;
-  if(section!==viewSection && section in VIEW_START_MODE){
-    viewSection=section;
-    const want=VIEW_START_MODE[section];
-    if(!playing && ui.mode!==want && (want==="pattern" || project.song.length)){ ui.mode=want; paintTransport(); }
-  }
+  // Pattern/Song e' una scelta del trasporto condivisa da tutte le sezioni:
+  // cambiando Drum, Synth, Sequencer o le altre viste non deve essere riscritta.
   el("helpKeys").hidden = v!=="grid";
   if(v==="sound") showLiveHelp();
   if(v==="recent") refreshRecent();
@@ -4614,7 +4605,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || el("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-04.7";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-04.8";
   document.body.appendChild(s);
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth")) loadSynth();
@@ -7458,7 +7449,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-10-04.7";
+const SW_VERSION="2026-10-04.8";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -7482,11 +7473,11 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sample-editor.js?v=2026-10-04.7"></script>
-<script src="engine/sampler.js?v=2026-10-04.7"></script>
-<script src="engine/vocal.js?v=2026-10-04.7"></script>
+<script src="engine/sample-editor.js?v=2026-10-04.8"></script>
+<script src="engine/sampler.js?v=2026-10-04.8"></script>
+<script src="engine/vocal.js?v=2026-10-04.8"></script>
 <script>PMSampler.init(); PMVocal.init();</script>
-<script src="engine/midi.js?v=2026-10-04.7"></script>
+<script src="engine/midi.js?v=2026-10-04.8"></script>
 
 </body>
 </html>

@@ -962,6 +962,7 @@ dialog.sed::backdrop{background:rgba(0,0,0,.55);}
   }
 
   // ---------- ascolto ----------
+  let playReq = 0;
   function audioBuffer(ctx = actx(), chs = st.chs) {
     const buf = ctx.createBuffer(chs.length, chs[0].length, st.sr);
     chs.forEach((c, i) => buf.copyToChannel(c, i));
@@ -975,10 +976,13 @@ dialog.sed::backdrop{background:rgba(0,0,0,.55);}
   // `at`: il punto da cui ripartire (quando cambia l'anteprima di un effetto mentre suona);
   // `span`: [da, a] al posto della selezione (una fetta del Chop), senza loop.
   // Loop: ripete la selezione; senza selezione tutto il suono, partendo dal cursore.
+  // Dopo una registrazione dal microfono il contesto puo' metterci molto a ripartire: resume() non si aspetta
+  // senza limite, la sorgente parte comunque e si sente appena il contesto torna a girare.
   async function play(at, span) {
     stop();
-    const ctx = actx(); if (ctx.state === "suspended") await ctx.resume();
-    if (!st) return;
+    const ctx = actx(), req = ++playReq;
+    if (ctx.state !== "running") await Promise.race([ctx.resume().catch(() => {}), new Promise(r => setTimeout(r, 250))]);
+    if (!st || req !== playReq) return;
     const n = len(), sel = hasSel(), loop = st.loop && !span, cursor = st.sel.a < n - 1 ? st.sel.a : 0;
     const [from, to] = span || (sel ? [st.sel.a, st.sel.b] : [loop ? 0 : cursor, n]);
     const pos = at == null ? (loop && !sel ? cursor : from) : clamp(Math.round(at), from, Math.max(from, to - 1));
@@ -990,6 +994,7 @@ dialog.sed::backdrop{background:rgba(0,0,0,.55);}
     refresh(); tick();
   }
   function stop() {
+    playReq++;                 // un Play ancora in attesa del contesto non parte piu'
     if (!st || !st.play) return;
     const { src } = st.play; st.play = null;
     try { src.onended = null; src.stop(); } catch (e) {}

@@ -1403,8 +1403,6 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <div class="seq-track" id="seqTrack"></div>
     <div class="seq-lane-head">
       <span class="seq-lane-label">♪ Synth</span>
-      <select id="seqSynthPick" aria-label="Synth pattern to insert"></select>
-      <button id="ssAdd" class="mini primary" title="Insert the synth pattern after the selected synth block">+ Insert</button>
       <button id="ssRest" class="mini" title="A silent block: the synth pauses (one bar, the length can be changed on the block)">+ Rest</button>
       <button id="ssDup" class="mini" title="Duplicate the selected synth block">Duplicate</button>
       <button id="ssRename" class="mini" title="Rename the selected block's synth pattern only">Rename</button>
@@ -1707,22 +1705,22 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-10-04.6"></script>
-<script src="engine/core.js?v=2026-10-04.6"></script>
-<script src="engine/styles-punk.js?v=2026-10-04.6"></script>
-<script src="engine/styles-post.js?v=2026-10-04.6"></script>
-<script src="engine/styles-machines.js?v=2026-10-04.6"></script>
-<script src="engine/styles-alt.js?v=2026-10-04.6"></script>
-<script src="engine/styles-groove.js?v=2026-10-04.6"></script>
-<script src="engine/styles-dub.js?v=2026-10-04.6"></script>
-<script src="engine/styles-break.js?v=2026-10-04.6"></script>
-<script src="engine/styles-soul.js?v=2026-10-04.6"></script>
-<script src="engine/styles-metal.js?v=2026-10-04.6"></script>
-<script src="engine/styles-electro.js?v=2026-10-04.6"></script>
-<script src="engine/variations.js?v=2026-10-04.6"></script>
-<script src="engine/import.js?v=2026-10-04.6"></script>
-<script src="engine/rhythm.js?v=2026-10-04.6"></script>
-<script src="engine/share.js?v=2026-10-04.6"></script>
+<script src="engine/machine-art.js?v=2026-10-04.7"></script>
+<script src="engine/core.js?v=2026-10-04.7"></script>
+<script src="engine/styles-punk.js?v=2026-10-04.7"></script>
+<script src="engine/styles-post.js?v=2026-10-04.7"></script>
+<script src="engine/styles-machines.js?v=2026-10-04.7"></script>
+<script src="engine/styles-alt.js?v=2026-10-04.7"></script>
+<script src="engine/styles-groove.js?v=2026-10-04.7"></script>
+<script src="engine/styles-dub.js?v=2026-10-04.7"></script>
+<script src="engine/styles-break.js?v=2026-10-04.7"></script>
+<script src="engine/styles-soul.js?v=2026-10-04.7"></script>
+<script src="engine/styles-metal.js?v=2026-10-04.7"></script>
+<script src="engine/styles-electro.js?v=2026-10-04.7"></script>
+<script src="engine/variations.js?v=2026-10-04.7"></script>
+<script src="engine/import.js?v=2026-10-04.7"></script>
+<script src="engine/rhythm.js?v=2026-10-04.7"></script>
+<script src="engine/share.js?v=2026-10-04.7"></script>
 <script>
 // Script principale di PATTERN-MACHINE: stato del progetto, audio, trasporto e interfaccia della pagina.
 // Il motore ritmico (SPEngine), i tempi (PMRhythm), import, link e gli altri moduli stanno in engine/*.js.
@@ -3996,7 +3994,7 @@ function synthCard(x,idx){
   card.onclick=()=>{
     const same=synthBlockPreview.blockId===b.id;
     ui.synthBlockId=b.id;
-    if(sp){ ui.synthId=sp.id; el("seqSynthPick").value=sp.id; ui.songStartPos=x.start; }
+    if(sp){ ui.synthId=sp.id; ui.songStartPos=x.start; }
     else stopSynthBlockPreview();
     renderSong();
     if(sp){ if(same) stopSynthBlockPreview(); else startSynthBlockPreview(b.id,sp); }
@@ -4020,19 +4018,15 @@ function synthLaneSummary(L){
   return length+" · same length as the drums";
 }
 function renderSynthLane(){
-  const host=el("seqSynthTrack"), pick=el("seqSynthPick");
-  const keep=pick.value;
-  pick.innerHTML="";
-  project.synthPatterns.forEach((sp,i)=>addOption(pick,sp.id,`${i+1}. ${sp.name} · ${sp.len} step`));
-  pick.value=synthById(keep)?keep:ui.synthId;
+  const host=el("seqSynthTrack");
   host.innerHTML=""; synthCards=[];
   const L=synthLayout();
   if(!L.blocks.length){
     const e=document.createElement("div"); e.className="song-empty synth";
     const auto=synthPlayLayout().auto && curSynth();
     e.textContent=auto
-      ? `no synth blocks: “${curSynth().name}” repeats under the whole song — pick a synth pattern and press Insert to arrange it`
-      : "no synth blocks — pick a synth pattern and press Insert: it plays under the drums from bar 1";
+      ? `no synth blocks: “${curSynth().name}” repeats under the whole song — every new synth pattern is added here as a block`
+      : "no synth blocks — every new synth pattern is added here as a block and plays under the drums";
     host.appendChild(e);
   }
   L.blocks.forEach((x,idx)=>host.appendChild(synthCard(x,idx)));
@@ -4045,10 +4039,22 @@ function insertSynthBlock(block){
   if(i>=0) project.synthSong.splice(i+1,0,block); else project.synthSong.push(block);
   ui.synthBlockId=block.id; renderSong();
 }
-el("ssAdd").onclick=()=>{
-  const sp=synthById(el("seqSynthPick").value)||curSynth();
-  insertSynthBlock({id:uid(), synthId:sp.id, repeats:1, len:sp.len});
-};
+// Ogni pattern nuovo entra da solo in fondo alla canzone, batteria e synth: non serve inserirlo a mano.
+// Chi chiama ha gia' fatto pushUndo() e ridisegna dopo.
+function addPatternToSong(p){
+  const b={id:uid(), patternId:p.id, repeats:1, section:"verse"};
+  project.song.push(b); ui.blockId=b.id;
+}
+// Con la corsia vuota il pattern del synth aperto girava sotto tutta la canzone: prima di aggiungere il nuovo
+// diventa un blocco vero, lungo quanto la canzone, cosi' continua a suonare.
+function addSynthToSong(sp){
+  const prev=curSynth(), total=songLayout().total;
+  if(!project.synthSong.length && prev && prev.id!==sp.id && prev.synth.length && total)
+    project.synthSong.push({id:uid(), synthId:prev.id, repeats:clamp(Math.ceil(total/prev.len),1,MAX_REPEATS), len:prev.len});
+  const b={id:uid(), synthId:sp.id, repeats:1, len:sp.len};
+  project.synthSong.push(b); ui.synthBlockId=b.id;
+  renderSong();
+}
 el("ssRest").onclick=()=>insertSynthBlock({id:uid(), synthId:null, repeats:1, len:16});
 el("ssDup").onclick=()=>{
   const i=project.synthSong.findIndex(b=>b.id===ui.synthBlockId);
@@ -4065,7 +4071,7 @@ el("ssRename").onclick=()=>{
   const block=project.synthSong.find(b=>b.id===ui.synthBlockId && b.synthId);
   if(block) renameSynthBlock(block);
   else {
-    const sp=synthById(el("seqSynthPick").value)||curSynth();
+    const sp=curSynth();
     if(sp) renameSynthPattern(sp);
   }
 };
@@ -4608,7 +4614,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || el("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-04.6";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-04.7";
   document.body.appendChild(s);
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth")) loadSynth();
@@ -4983,7 +4989,7 @@ function selectPattern(id){ resetGridVariationState(); ui.patternId=id; el("pLen
 el("pNew").onclick=()=>{
   pushUndo();
   const p=makePattern("Beat "+(project.patterns.length+1), curPattern().len);
-  project.patterns.push(p); normalize(); selectPattern(p.id);
+  project.patterns.push(p); normalize(); addPatternToSong(p); selectPattern(p.id);
 };
 // Copia indipendente di un pattern (griglia, blocchi per step, lunghezze delle righe).
 function copyPattern(src, name){
@@ -5005,7 +5011,7 @@ el("pDup").onclick=()=>{
   pushUndo();
   const src=curPattern();
   const p=copyPattern(src, copyName(src.name, project.patterns.map(x=>x.name)));
-  selectPattern(p.id);
+  addPatternToSong(p); selectPattern(p.id);
 };
 async function renamePattern(p){
   const n=await ask({title:"Rename pattern", ok:"Rename", input:p.name});
@@ -7023,7 +7029,7 @@ async function applyLibrary(item, asNew){
   if(asNew){
     let n=item.name, k=2;
     while(project.patterns.some(p=>p.name===n)) n=`${item.name} (${k++})`;
-    pat=makePattern(n,item.len); project.patterns.push(pat);
+    pat=makePattern(n,item.len); project.patterns.push(pat); addPatternToSong(pat);
   }
   else { pat=curPattern(); pat.name=item.name; pat.len=item.len; }
   pat.grid={}; pat.mods={};
@@ -7452,7 +7458,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-10-04.6";
+const SW_VERSION="2026-10-04.7";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -7476,11 +7482,11 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sample-editor.js?v=2026-10-04.6"></script>
-<script src="engine/sampler.js?v=2026-10-04.6"></script>
-<script src="engine/vocal.js?v=2026-10-04.6"></script>
+<script src="engine/sample-editor.js?v=2026-10-04.7"></script>
+<script src="engine/sampler.js?v=2026-10-04.7"></script>
+<script src="engine/vocal.js?v=2026-10-04.7"></script>
 <script>PMSampler.init(); PMVocal.init();</script>
-<script src="engine/midi.js?v=2026-10-04.6"></script>
+<script src="engine/midi.js?v=2026-10-04.7"></script>
 
 </body>
 </html>

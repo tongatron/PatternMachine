@@ -1103,7 +1103,7 @@
       <label class="fld">Steps ${libSelect("synLibLen", [[8, "8"], [16, "16"], [32, "32"]], o.len)}</label>
       <button type="button" id="synLibMore" class="mini primary" title="8 new suggestions with the same settings">↻ More suggestions</button>`;
     el("synLibMore").onclick = libSuggest;
-    el("synLibKey").textContent = `In ${NOTE_NAMES[keyOf()]} ${SCALES[scaleOf()][0].toLowerCase()}, with the current sound. Key and scale are in Notes. Load replaces the notes of "${curSynth().name}", + Add makes a new synth pattern.`;
+    el("synLibKey").textContent = `In ${NOTE_NAMES[keyOf()]} ${SCALES[scaleOf()][0].toLowerCase()}, with the current sound. Key and scale are in Notes. Preview keeps the drum machine playing. Load replaces the notes of "${curSynth().name}", + Add makes a new synth pattern.`;
     el("synLib").hidden = false;
     libSuggest();
   }
@@ -1137,17 +1137,16 @@
       add.onclick = () => {
         pushUndo(); ensure();
         const sp = makeSynthPattern(g.label, item.len); sp.synth = item.notes.map(n => ({ ...n }));
-        project.synthPatterns.push(sp); closeLib(); selectSynth(sp.id); setStatus("new synth pattern: " + sp.name);
+        project.synthPatterns.push(sp); addSynthToSong(sp); closeLib(); selectSynth(sp.id); setStatus("new synth pattern: " + sp.name);
       };
       acts.append(load, add);
       row.append(play, meta, mini, acts);
       list.appendChild(row);
     });
   }
-  // Ascolto di un suggerimento: gira da solo col suono attuale, finche' non lo fermi o parte il Play.
+  // Ascolto di un suggerimento: gira col suono attuale sopra la batteria, senza fermare il trasporto.
   function startPreview(item, row) {
     stopPreview();
-    if (playing) stop();
     const pat = { len: item.len, synth: item.notes };
     libPreview = { item, row, timer: null };
     row.classList.add("playing"); row.querySelector(".lib-play").textContent = "■";
@@ -1156,7 +1155,6 @@
       if (libPreview !== me) return;
       let s = 0, t = actx().currentTime + 0.08;
       me.timer = setInterval(() => {
-        if (playing) { stopPreview(); return; }
         while (t < actx().currentTime + 0.12) { step(pat, s, t); t += stepDur(s); s = (s + 1) % pat.len; }
       }, 25);
     }).catch(() => stopPreview());
@@ -1755,13 +1753,13 @@
     el("synPatNew").onclick = () => {
       pushUndo();
       const sp = makeSynthPattern("Synth " + (project.synthPatterns.length + 1), curSynth().len);
-      project.synthPatterns.push(sp); selectSynth(sp.id); setStatus("new synth pattern: " + sp.name);
+      project.synthPatterns.push(sp); addSynthToSong(sp); selectSynth(sp.id); setStatus("new synth pattern: " + sp.name);
     };
     el("synPatDup").onclick = () => {
       pushUndo();
       const src = curSynth(), sp = makeSynthPattern(copyName(src.name, project.synthPatterns.map(x => x.name)), src.len);
       sp.synth = src.synth.map(n => ({ ...n }));
-      project.synthPatterns.splice(project.synthPatterns.indexOf(src) + 1, 0, sp); selectSynth(sp.id);
+      project.synthPatterns.splice(project.synthPatterns.indexOf(src) + 1, 0, sp); addSynthToSong(sp); selectSynth(sp.id);
     };
     el("synPatRename").onclick = () => renameSynth(curSynth());
     el("synPatDel").onclick = async () => {

@@ -3419,7 +3419,10 @@ function renderTimeline(){
   seqLayout.blocks.forEach(x=>{
     const seg=document.createElement("div");
     seg.className="tl-seg"+(x.b.id===ui.blockId?" sel":"");
-    seg.style.flex=`${x.steps} 1 0`;
+    // posizione e larghezza in proporzione agli step, come la corsia del synth: con flex ogni blocco aveva in
+    // piu' il suo margine interno e le due corsie non combaciavano
+    seg.style.position="absolute"; seg.style.top="0"; seg.style.bottom="0";
+    seg.style.left=`${x.start/seqLayout.total*100}%`; seg.style.width=`${x.steps/seqLayout.total*100}%`;
     seg.style.setProperty("--seg-color",`hsl(${songSectionColor(x.b.section||"verse")} 70% 55%)`);
     seg.style.setProperty("--bar-w",`${rhythmBarSteps()/x.steps*100}%`);
     const name=document.createElement("b"); name.textContent=x.p?x.p.name:"?";

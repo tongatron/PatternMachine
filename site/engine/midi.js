@@ -174,7 +174,7 @@
   // ---------- vista ----------
   let built = false;
   const CSS = `
-#panelMidi .midi-top{display:flex; flex-wrap:wrap; gap:8px; align-items:center;}
+#panelMidi .midi-top{display:flex; flex-wrap:wrap; gap:10px 16px; align-items:center;}
 #panelMidi .midi-dev{font-size:12px; color:var(--text-dim);}
 #panelMidi .midi-dev b{color:var(--text);}
 #panelMidi .midi-top .push{margin-left:auto;}
@@ -212,10 +212,8 @@
       <h2>MIDI controller</h2>
       <div class="midi-top">
         <button id="midiConnect" class="primary" type="button">Connect</button>
-        <span class="midi-dev" id="midiDev"></span>
-      </div>
-      <div class="midi-top midi-prof">
         <label class="fld" title="Each keyboard has its own assignments; playing a keyboard shows its own">Keyboard <select id="midiProfile"></select></label>
+        <span class="midi-dev" id="midiDev"></span>
         <button id="midiReset" class="mini push" type="button" title="Back to the assignments of this keyboard as it leaves the factory">Factory assignments</button>
       </div>
       <p class="midi-help">Connect a MIDI keyboard by USB and press <b>Connect</b> (Chrome, Edge or Firefox; Safari can't read MIDI devices).

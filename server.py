@@ -957,7 +957,8 @@ class Handler(BaseHTTPRequestHandler):
     def _gate(self, path):
         """True se la richiesta puo' proseguire; altrimenti ha gia' risposto."""
         embed_home = path == "/" and parse_qs(urlparse(self.path).query).get("embed") == ["1"]
-        if path in OPEN_PATHS or embed_home or path.startswith(OPEN_DIRS) or self._authorized():
+        live_home = path == "/index.html" and parse_qs(urlparse(self.path).query).get("live") == ["1"]
+        if path in OPEN_PATHS or embed_home or live_home or path.startswith(OPEN_DIRS) or self._authorized():
             return True
         if self.command == "GET" and path.startswith("/download/"):
             self._page(401, "Members-only download", """<div class="card">
@@ -1425,7 +1426,8 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("X-Content-Type-Options", "nosniff")
         parsed = urlparse(self.path)
         embed_frame = rel == "embed.html" or (rel == "index.html" and parse_qs(parsed.query).get("embed") == ["1"])
-        if ext == ".html" and not embed_frame:
+        live_frame = rel == "index.html" and parse_qs(parsed.query).get("live") == ["1"]
+        if ext == ".html" and not (embed_frame or live_frame):
             self.send_header("X-Frame-Options", "DENY")
         self.end_headers()
         # a pezzi: lo zip dell'app non passa tutto dalla memoria

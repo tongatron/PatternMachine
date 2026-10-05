@@ -68,13 +68,6 @@ Switching machine maps every row to the closest sound. Each machine shows its ma
 Chain patterns into blocks (verse, chorus, fill…), each with its own repeats. Drag blocks to reorder them, start playback
 from any point on the timeline or solo a single block.
 
-### Live view
-The beat grid with Play, Rec, tempo and metronome, nothing else: made for playing live.
-- Every key or tap **plays** the instrument without writing it into the pattern; a pop-up lists which key plays which instrument.
-- **⌥ + key** or **⌘ + click on a pad** writes the hit into the step that is playing.
-- **⌘ + click on a step** turns it on or off (with ⌥ for an accent, ⇧ for a ghost note).
-- With **Rec** on during playback, plain keys record too.
-
 ### Export
 | Format | What you get |
 |---|---|
@@ -148,13 +141,11 @@ Step-by-step instructions are in the [guide](https://patternmachine.tongatron.or
 
 ## Screenshots
 
-| Live view | Song arranger |
+| Song arranger | Dark theme |
 |---|---|
-| ![Live view](docs/screenshots/solo-suono.jpg) | ![Song arranger](docs/screenshots/sequencer.jpg) |
+| ![Song arranger](docs/screenshots/sequencer.jpg) | ![Dark theme](docs/screenshots/tema-scuro.jpg) |
 
-| Dark theme | Mobile |
-|---|---|
-| ![Dark theme](docs/screenshots/tema-scuro.jpg) | <img src="docs/screenshots/mobile.jpg" alt="Mobile" width="260"> |
+<img src="docs/screenshots/mobile.jpg" alt="Mobile" width="260">
 
 | The machines | Desktop app downloads |
 |---|---|

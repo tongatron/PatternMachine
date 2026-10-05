@@ -68,7 +68,17 @@ a{color:var(--accent)}
 .intro{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 18px}
 .intro h2{flex:1 1 100%;margin-bottom:0}
 .intro p{margin:0;color:var(--text-dim)}
+.howto{display:flex;flex:1 1 100%;flex-wrap:wrap;gap:7px 18px;margin-top:7px;color:var(--text)}
+.howto span{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:700}
+.howto b{display:inline-grid;place-items:center;width:21px;height:21px;border-radius:50%;background:var(--accent);color:var(--on-accent);font-size:11px}
+.audio-note{flex:1 1 auto;font-size:11px!important;color:var(--text-faint)!important}
 .intro .source{margin-left:auto;font-size:11px;white-space:nowrap}
+.preset-panel{padding-top:12px;padding-bottom:12px}
+.preset-panel h2{display:inline-block;margin:0 14px 0 0;padding:0;border:0}
+.preset-row{display:inline-flex;flex-wrap:wrap;gap:7px;vertical-align:middle}
+.preset-row button{border:1px solid var(--edge);border-radius:5px;background:var(--key);color:var(--text);box-shadow:var(--key-shadow);padding:6px 10px;font:700 11px/1.2 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;cursor:pointer}
+.preset-row button:hover{border-color:var(--text-faint)}
+.preset-row button.selected{background:var(--key-on);border-color:var(--accent-dim);color:var(--on-accent)}
 .editor-panel{padding:0;overflow:hidden;min-height:720px}
 strudel-repl{display:block;height:720px;min-height:620px}
 strudel-repl iframe{display:block;width:100%;height:100%;border:0}
@@ -107,8 +117,25 @@ strudel-repl iframe{display:block;width:100%;height:100%;border:0}
 
   <section class="panel intro">
     <h2>Live coding with Strudel</h2>
-    <p>Write and reshape algorithmic patterns in the browser. Press the play button in the editor to start.</p>
+    <p>Write and reshape algorithmic patterns in the browser.</p>
+    <div class="howto" aria-label="How to start">
+      <span><b>1</b> Press play</span>
+      <span><b>2</b> Edit the code</span>
+      <span><b>3</b> Press update</span>
+    </div>
+    <p class="audio-note">The first click may ask your browser for permission to play audio.</p>
     <a class="source" href="https://strudel.cc/" target="_blank" rel="noopener">Strudel documentation ↗</a>
+  </section>
+
+  <section class="panel preset-panel" aria-label="Starter patterns">
+    <h2>Start with a preset</h2>
+    <div class="preset-row">
+      <button type="button" data-preset="drums" class="selected" aria-pressed="true">Drum groove</button>
+      <button type="button" data-preset="bass" aria-pressed="false">Bassline</button>
+      <button type="button" data-preset="ambient" aria-pressed="false">Ambient</button>
+      <button type="button" data-preset="random" aria-pressed="false">Random</button>
+      <button type="button" data-preset="reset" aria-pressed="false">Reset</button>
+    </div>
   </section>
 
   <section class="panel editor-panel" aria-label="Strudel live coding editor">
@@ -133,6 +160,39 @@ strudel-repl iframe{display:block;width:100%;height:100%;border:0}
     root.dataset.theme=next;
     try{localStorage.setItem("sp1200.theme",next)}catch(e){}
   };
+
+  const presetCodes={
+    drums:`stack(
+  s("bd ~ bd ~"),
+  s("~ sd ~ sd"),
+  s("hh*8")
+)`,
+    bass:`note("c2 eb2 f2 g2").s("sawtooth").lpf(700).slow(2)`,
+    ambient:`note("<c4 eb4 g4 bb4>").s("sine").slow(4).room(.8)`,
+    random:`s("bd [~ bd] sd [hh hh]").sometimesBy(.4, rev)`,
+    reset:`stack(
+  s("bd ~ bd ~"),
+  s("~ sd ~ sd"),
+  s("hh*8")
+)`
+  };
+  let currentEditor=document.getElementById("strudelEditor");
+  document.querySelectorAll("[data-preset]").forEach(button=>{
+    button.onclick=()=>{
+      const code=presetCodes[button.dataset.preset];
+      if(!code||!currentEditor)return;
+      const replacement=document.createElement("strudel-repl");
+      replacement.id="strudelEditor";
+      replacement.appendChild(document.createComment(`\n${code}\n`));
+      currentEditor.replaceWith(replacement);
+      currentEditor=replacement;
+      document.querySelectorAll("[data-preset]").forEach(item=>{
+        const selected=item===button;
+        item.classList.toggle("selected",selected);
+        item.setAttribute("aria-pressed",String(selected));
+      });
+    };
+  });
 </script>
 </body>
 </html>

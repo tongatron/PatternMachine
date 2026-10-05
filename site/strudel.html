@@ -19,7 +19,7 @@
     document.documentElement.dataset.theme=t;
   })();
 </script>
-<script src="https://unpkg.com/@strudel/repl@1.3.0"></script>
+<script src="https://unpkg.com/@strudel/embed@1.3.0"></script>
 <style>
 *{box-sizing:border-box}
 :root{
@@ -70,7 +70,7 @@ a{color:var(--accent)}
 .intro p{margin:0;color:var(--text-dim)}
 .intro .source{margin-left:auto;font-size:11px;white-space:nowrap}
 .editor-panel{padding:0;overflow:hidden;min-height:720px}
-strudel-editor{display:block;min-height:720px}
+strudel-repl{display:block;height:720px;min-height:620px}
 .license-note{margin:10px 2px 0;color:var(--text-faint);font-size:11px}
 .site-footer{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;margin:22px 0 6px;font-size:11px;color:var(--text-dim)}
 .site-badge{display:inline-flex;align-items:center;gap:10px;text-decoration:none;font:700 14px/1.2 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:linear-gradient(180deg,#e0743f,#b8471f);color:#fff;padding:5px 12px;border-radius:999px}
@@ -111,7 +111,7 @@ strudel-editor{display:block;min-height:720px}
   </section>
 
   <section class="panel editor-panel" aria-label="Strudel live coding editor">
-    <strudel-editor id="strudelEditor">
+    <strudel-repl id="strudelEditor">
       <!--
       stack(
         s("bd ~ bd ~"),
@@ -119,7 +119,7 @@ strudel-editor{display:block;min-height:720px}
         s("hh*8")
       )
       -->
-    </strudel-editor>
+    </strudel-repl>
   </section>
 
   <p class="license-note">Strudel is loaded from its official web package. The editor requires an internet connection the first time it is opened.</p>

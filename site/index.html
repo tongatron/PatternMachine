@@ -74,7 +74,11 @@
 <script defer src="https://analytics.tongatron.org/script.js" data-website-id="9daa93b6-2afb-494a-89fb-288437a030d1" data-domains="patternmachine.tongatron.org"></script>
 </head>
 <body style="margin:0">
-<script>if(new URLSearchParams(location.search).has("embed")) document.documentElement.dataset.embed="1";</script>
+<script>
+  const pmQuery=new URLSearchParams(location.search);
+  if(pmQuery.has("embed")) document.documentElement.dataset.embed="1";
+  if(pmQuery.has("live")){ document.documentElement.dataset.live="1"; window.__PM_LIVE=true; }
+</script>
 <style>
 /* Tema scuro: nero e grigi neutri; il colore resta a pulsanti, LED e pattern.
    La stessa palette arancione del tema chiaro mantiene coerenti gli stati attivi. */
@@ -172,6 +176,63 @@ html[data-embed="1"] #panelTransport .transport-extra > :not(#counter){display:n
 html[data-embed="1"] #panelGrid{display:block!important; border:0; border-radius:0; margin:0; min-height:calc(100vh - 76px);}
 html[data-embed="1"] #addRowLine{display:none;}
 html[data-embed="1"] #playBtn{min-height:42px; padding-inline:18px;}
+
+/* Live View: una pagina da palco, senza editor, trasporto o progetto. Il motore resta quello della pagina
+   principale, ma qui si vede soltanto la superficie per suonare. */
+html[data-live="1"] body{min-height:100vh; padding:clamp(16px,3vw,34px); background:var(--body-bg,var(--bg));}
+html[data-live="1"] .wrap{max-width:1180px; min-height:calc(100vh - 68px);}
+html[data-live="1"] .wrap> :not(#liveView){display:none!important;}
+html[data-live="1"] #liveView{display:flex; min-height:calc(100vh - 68px); flex-direction:column; gap:16px;}
+.live-head{display:flex; align-items:flex-end; justify-content:space-between; gap:24px;}
+.live-kicker{color:var(--accent); font-size:10px; font-weight:800; letter-spacing:.2em; text-transform:uppercase; margin-bottom:7px;}
+.live-head h1{font-size:clamp(24px,4vw,42px); letter-spacing:.12em; margin:0;}
+.live-lead{color:var(--text-dim); font-size:12px; line-height:1.5; margin:9px 0 0; max-width:520px;}
+.live-head-actions{display:flex; align-items:center; flex-wrap:wrap; justify-content:flex-end; gap:8px;}
+.live-head-actions a{font-size:10px; color:var(--text-dim); text-decoration:none; border-bottom:1px solid var(--edge); padding:6px 0;}
+.live-head-actions a:hover{color:var(--text); border-color:var(--accent);}
+.live-state{display:inline-flex; align-items:center; gap:7px; color:var(--text-faint); font-size:10px; white-space:nowrap;}
+.live-state::before{content:""; width:7px; height:7px; border-radius:50%; background:var(--text-faint);}
+.live-state.ready{color:var(--ok);}.live-state.ready::before{background:var(--ok); box-shadow:0 0 0 3px color-mix(in srgb,var(--ok) 18%,transparent);}
+.live-shell{display:flex; flex:1 1 auto; flex-direction:column; min-height:0; margin:0; padding:0; overflow:hidden;}
+.live-toolbar{display:flex; align-items:center; flex-wrap:wrap; gap:10px; padding:13px 15px; border-bottom:1px solid var(--edge-soft); background:var(--panel-2);}
+.live-instrument-tabs{display:flex; gap:3px; padding:3px; border:1px solid var(--edge); border-radius:var(--r-key,6px); background:var(--panel-3);}
+.live-instrument-tabs button{min-width:104px; border:0; box-shadow:none; background:transparent;}
+.live-instrument-tabs button.on{background:var(--key-primary,var(--accent)); color:var(--on-accent); font-weight:800;}
+.live-field{display:inline-flex; align-items:center; gap:7px; color:var(--text-dim); font-size:10px; text-transform:uppercase; letter-spacing:.06em;}
+.live-field select{min-width:190px;}
+.live-field input[type=range]{width:110px;}
+.live-field output{min-width:35px; color:var(--text); text-align:right;}
+.live-spacer{flex:1 1 auto;}
+.live-panic{color:var(--danger); border-color:color-mix(in srgb,var(--danger) 55%,var(--edge));}
+.live-stage{display:flex; flex:1 1 auto; flex-direction:column; min-height:420px; padding:clamp(16px,3vw,34px); background:linear-gradient(145deg,color-mix(in srgb,var(--panel) 96%,var(--accent)),var(--panel));}
+.live-stage-head{display:flex; align-items:baseline; justify-content:space-between; gap:14px; margin-bottom:18px;}
+.live-stage-title{margin:0; font-size:13px; letter-spacing:.14em; text-transform:uppercase;}
+.live-stage-note{color:var(--text-faint); font-size:10px; text-align:right;}
+.live-panel[hidden]{display:none!important;}
+.live-pads{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:clamp(8px,1.4vw,14px); width:min(760px,100%); margin:auto;}
+.live-pad{aspect-ratio:1.35; min-height:82px; display:flex; flex-direction:column; align-items:flex-start; justify-content:flex-end; gap:7px; padding:clamp(12px,2vw,20px); border-radius:clamp(8px,1.2vw,14px); background:linear-gradient(145deg,var(--panel-3),var(--panel-2)); border:1px solid var(--edge); box-shadow:0 5px 0 color-mix(in srgb,var(--edge) 62%,transparent),0 12px 24px rgba(0,0,0,.2); text-align:left;}
+.live-pad:hover{border-color:var(--text-faint); transform:translateY(-1px);}
+.live-pad:active,.live-pad.hit{background:linear-gradient(145deg,var(--accent),var(--accent-dim)); border-color:var(--accent); color:var(--on-accent); box-shadow:0 2px 0 color-mix(in srgb,var(--accent-dim) 80%,#000),0 8px 22px color-mix(in srgb,var(--accent) 28%,transparent); transform:translateY(3px);}
+.live-pad-key{font-size:11px; font-weight:800; color:var(--accent); letter-spacing:.1em; text-transform:uppercase;}
+.live-pad.hit .live-pad-key{color:inherit;}
+.live-pad-name{font-size:clamp(11px,1.5vw,14px); font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;}
+.live-synth-wrap{display:flex; flex:1 1 auto; flex-direction:column; justify-content:center; gap:16px; width:min(1000px,100%); margin:auto;}
+.live-synth-meta{display:flex; align-items:center; gap:10px; color:var(--text-dim); font-size:10px;}
+.live-synth-meta strong{color:var(--text); font-size:12px;}
+.live-synth-meta span{color:var(--text-faint);}
+.live-keyboard{position:relative; display:grid; grid-template-columns:repeat(24,minmax(0,1fr)); height:clamp(190px,30vw,310px); padding:0 1px 1px; border:1px solid var(--edge); border-radius:8px; background:var(--panel-3); overflow:hidden; box-shadow:0 12px 28px rgba(0,0,0,.24);}
+.live-key{position:relative; z-index:1; display:flex; align-items:flex-end; justify-content:center; grid-row:1; min-width:0; padding:0 0 15px; border:0; border-right:1px solid var(--edge-soft); border-radius:0 0 5px 5px; background:linear-gradient(180deg,var(--text),color-mix(in srgb,var(--text-dim) 75%,var(--panel))); color:var(--panel); font-size:9px; font-weight:800;}
+.live-key:hover{filter:brightness(1.06);}.live-key.on{background:linear-gradient(180deg,#ff9a4d,var(--accent)); color:#fff;}
+.live-key.black{z-index:2; grid-row:1; height:61%; margin:0 -34%; padding-bottom:9px; border:1px solid #171717; border-top:0; border-radius:0 0 4px 4px; background:linear-gradient(180deg,#333338,#101012); color:#aaa; box-shadow:0 4px 6px rgba(0,0,0,.42);}
+.live-key.black.on{background:linear-gradient(180deg,#f27835,#8c2413); color:#fff;}
+.live-help{display:flex; justify-content:space-between; gap:12px; color:var(--text-faint); font-size:10px; line-height:1.4;}
+.live-help kbd{padding:2px 5px; border:1px solid var(--edge); border-radius:3px; color:var(--text-dim);}
+.live-foot{display:flex; justify-content:space-between; gap:12px; color:var(--text-faint); font-size:10px;}
+@media (max-width:700px){
+  html[data-live="1"] body{padding:12px;}.live-head{align-items:flex-start; flex-direction:column; gap:14px;}.live-head-actions{justify-content:flex-start;}
+  html[data-live="1"] #liveView{min-height:calc(100vh - 24px);}.live-stage{min-height:0; padding:16px 12px;}.live-toolbar{gap:8px;}.live-field select{min-width:150px;}.live-spacer{display:none;}.live-panic{margin-left:auto;}
+  .live-pads{gap:8px;}.live-pad{min-height:72px; padding:10px;}.live-keyboard{height:220px;}.live-help,.live-foot{flex-direction:column;}
+}
 
 .topbar{display:grid; grid-template-columns:minmax(0,1fr) auto; grid-template-areas:"title account" "controls controls"; align-items:baseline; gap:10px 16px; margin-bottom:12px;}
 .topbar h1{grid-area:title;}
@@ -1094,10 +1155,53 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </style>
 
 <div class="wrap">
+  <section id="liveView" aria-labelledby="liveTitle" hidden>
+    <header class="live-head">
+      <div>
+        <div class="live-kicker">PATTERN-MACHINE · LIVE VIEW</div>
+        <h1 id="liveTitle">Play an instrument</h1>
+        <p class="live-lead">A focused surface for playing live. Choose an instrument, touch a pad or play the keyboard.</p>
+      </div>
+      <div class="live-head-actions">
+        <span class="live-state" id="liveAudioState">Click a control to start audio</span>
+        <button type="button" id="liveThemeBtn" class="mini" aria-label="Switch theme">Theme</button>
+        <a href="./" title="Open the full PatternMachine studio">Full studio ↗</a>
+      </div>
+    </header>
+    <div class="panel live-shell">
+      <div class="live-toolbar">
+        <div class="live-instrument-tabs" role="tablist" aria-label="Live instrument">
+          <button type="button" id="liveDrumsTab" class="on" role="tab" aria-selected="true">Drums</button>
+          <button type="button" id="liveSynthTab" role="tab" aria-selected="false">Synth</button>
+        </div>
+        <label class="live-field" id="liveKitField">Kit <select id="liveKitSelect" aria-label="Drum kit"></select></label>
+        <label class="live-field" id="livePresetField" hidden>Preset <select id="livePresetSelect" aria-label="Synth preset"></select></label>
+        <span class="live-spacer"></span>
+        <label class="live-field" title="Master output volume">Volume <input type="range" id="liveMasterRange" min="0" max="100" value="85"><output id="liveMasterOut">85%</output></label>
+        <button type="button" id="livePanic" class="live-panic" title="Release every playing note and stop audio">■ Panic</button>
+      </div>
+      <div class="live-stage">
+        <div class="live-panel" id="liveDrumsPanel" role="tabpanel" aria-labelledby="liveDrumsTab">
+          <div class="live-stage-head"><h2 class="live-stage-title">Drum pads</h2><span class="live-stage-note" id="liveKitName">SP-1200 · 16 bit</span></div>
+          <div class="live-pads" id="livePads" aria-label="Drum pads"></div>
+        </div>
+        <div class="live-panel" id="liveSynthPanel" role="tabpanel" aria-labelledby="liveSynthTab" hidden>
+          <div class="live-synth-wrap">
+            <div class="live-stage-head"><h2 class="live-stage-title">Synth keyboard</h2><span class="live-stage-note">Hold notes to play them</span></div>
+            <div class="live-synth-meta"><strong id="livePresetName">Acid 303</strong><span>· computer keys or touch</span></div>
+            <div class="live-keyboard" id="liveKeyboard" aria-label="Synth keyboard"></div>
+            <div class="live-help"><span><kbd>A W S E D F T G Y H U J K O L P ;</kbd> play · <kbd>Z</kbd>/<kbd>X</kbd> octave</span><span>Shift = accent</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="live-foot"><span>Drums: <kbd>1 2 3 4 · Q W E R · A S D F · Z X C V</kbd></span><span id="liveHint">Touch, click or use your computer keyboard</span></div>
+    </div>
+  </section>
   <div class="topbar">
     <h1>PATTERN-MACHINE</h1>
     <div class="topbar-controls">
       <span class="topbar-guides">
+        <a class="linkbtn" href="live.html" title="Open the focused live playing surface for drums and synth">Live View</a>
         <a class="linkbtn help-link" href="funzioni.html" title="Complete guide to every PATTERN-MACHINE feature">Complete guide</a>
         <a class="linkbtn learn-link" href="learn/index.html" title="Learn drum machine programming with hands-on lessons">Learn drum machine programming</a>
       </span>
@@ -1717,6 +1821,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 // progetti e salvataggio · export (MIDI, WAV, MP3, pacchetti per DAW) · segnalazioni · import · libreria · avvio.
 
 // ---------- utilita' ----------
+const LIVE_VIEW=!!window.__PM_LIVE;
 const el = id => document.getElementById(id);
 const clamp = (v,lo,hi) => Math.max(lo,Math.min(hi,v));
 const clamp01 = v => clamp(v,0,1);
@@ -2139,6 +2244,8 @@ function setSampleSet(k,quiet=false){
   }
   sampleSet=k;
   el("kitSelect").value=k;
+  const liveKit=el("liveKitSelect"); if(liveKit) liveKit.value=k;
+  if(el("liveKitName")) el("liveKitName").textContent=KITS[k].label;
   updateMachineInfo(k);
   paintKitButtons();
   const moved=remapUnavailable();
@@ -4511,7 +4618,8 @@ function hitPad(idx, vel=1){
   if(!b || typeof b.then==="function"){ loadBuffer(t.sampleIndex).then(()=>trigger(t,actx().currentTime,vel)); }
   else trigger(t, ctx.currentTime, vel);
   const padEl=el("rows").children[idx]?.querySelector(".pad");
-  if(padEl){ padEl.classList.add("hit"); setTimeout(()=>padEl.classList.remove("hit"),90); }
+  const livePad=el("livePads")?.querySelector(`[data-live-pad="${idx}"]`);
+  [padEl,livePad].forEach(p=>{ if(p){ p.classList.add("hit"); setTimeout(()=>p.classList.remove("hit"),90); } });
   if(recording && playing) recordHit(t);
 }
 
@@ -4544,10 +4652,10 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || el("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-06.1";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-06.2";
   document.body.appendChild(s);
 }
-if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth")) loadSynth();
+if(LIVE_VIEW || (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth"))) loadSynth();
 fetch("/api/me",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(me=>{
   if(!me||!me.name) return;
   window.__me=me;
@@ -4666,6 +4774,9 @@ document.addEventListener("keydown",(e)=>{
     }
   }
   if(tag==="INPUT"||tag==="SELECT"||tag==="TEXTAREA") return;
+  if(LIVE_VIEW && (e.code==="Space" || (e.key.toLowerCase()==="l" && !e.metaKey && !e.ctrlKey && !e.altKey))){
+    e.preventDefault(); return;
+  }
   if(e.key==="?" && !e.metaKey && !e.ctrlKey && !e.altKey && !helpKeys.hidden){
     e.preventDefault(); helpKeys.open=!helpKeys.open;
     if(helpKeys.open) helpKeys.querySelector("summary")?.focus();
@@ -4786,10 +4897,12 @@ function fillKitOptions(sel){
   // Le macchine predefinite restano in un unico elenco; i kit personali hanno un gruppo separato.
   fillKitOptions(sel);
   fillKitOptions(el("libKitSelect"));
+  fillKitOptions(el("liveKitSelect"));
   sel.value=sampleSet;
   el("libKitSelect").value=sampleSet;
+  el("liveKitSelect").value=sampleSet;
   // la macchina scelta da uno dei due menu (pagina e libreria) resta per la prossima visita
-  [sel, el("libKitSelect")].forEach(menu=>{
+  [sel, el("libKitSelect"), el("liveKitSelect")].forEach(menu=>{
     menu.onchange=()=>{ setSampleSet(menu.value); storeSet(KIT_KEY,menu.value); };
   });
   paintKitButtons();
@@ -7344,6 +7457,113 @@ loadSharedProject();
   if(shared){ openLib(); openCode(shared); }
 }
 
+// ---------- Live View ----------
+// Superficie minima per suonare: non modifica il progetto, il pattern o il trasporto.
+(function liveView(){
+  if(!LIVE_VIEW) return;
+  const root=el("liveView"), pads=el("livePads"), keyboard=el("liveKeyboard");
+  root.hidden=false;
+  let instrument="drums", synthReady=false, liveOctave=3;
+  const held=new Set(), heldKeys=new Map(), noteButtons=new Map();
+  const typing={KeyA:0,KeyW:1,KeyS:2,KeyE:3,KeyD:4,KeyF:5,KeyT:6,KeyG:7,KeyY:8,KeyH:9,KeyU:10,KeyJ:11,KeyK:12,KeyO:13,KeyL:14,KeyP:15,Semicolon:16};
+  const noteNames=["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+  const noteName=n=>noteNames[n%12]+(Math.floor(n/12)-1);
+  const state=(message,ready=false)=>{ const box=el("liveAudioState"); box.textContent=message; box.classList.toggle("ready",ready); };
+  const audioStarted=()=>state("Audio ready",true);
+  const stopHeld=()=>{ held.forEach(n=>window.PMSynth?.liveNote?.(n,0)); held.clear(); heldKeys.clear(); noteButtons.forEach(b=>b.classList.remove("on")); };
+
+  function paintPads(){
+    pads.innerHTML="";
+    project.tracks.slice(0,16).forEach((t,i)=>{
+      const b=document.createElement("button"); b.type="button"; b.className="live-pad"; b.dataset.livePad=i;
+      b.innerHTML=`<span class="live-pad-key">${PAD_LABEL[i]||"·"}</span><span class="live-pad-name"></span>`;
+      b.querySelector(".live-pad-name").textContent=sampleLabel(t.sampleIndex);
+      b.title=`Play ${sampleLabel(t.sampleIndex)} · ${PAD_LABEL[i]||""}`;
+      b.onpointerdown=e=>{ e.preventDefault(); audioStarted(); hitPad(i); };
+      pads.appendChild(b);
+    });
+    if(!project.tracks.length) pads.innerHTML='<div class="tiny">No drum voices in this project.</div>';
+  }
+
+  function buildKeyboard(){
+    keyboard.innerHTML=""; noteButtons.clear();
+    const from=liveOctave*12+12, to=from+23;
+    const whites=[];
+    for(let n=from;n<=to;n++) if(![1,3,6,8,10].includes(n%12)) whites.push(n);
+    whites.forEach(n=>{
+      const b=document.createElement("button"); b.type="button"; b.className="live-key white"; b.dataset.note=n;
+      b.innerHTML=`<span>${noteName(n)}</span>`; keyboard.appendChild(b); noteButtons.set(n,b);
+    });
+    [from+1,from+3,from+6,from+8,from+10,from+13,from+15,from+18,from+20,from+22].forEach(n=>{
+      if(n>to) return;
+      const before=whites.filter(x=>x<n).length;
+      const b=document.createElement("button"); b.type="button"; b.className="live-key black"; b.dataset.note=n;
+      b.textContent=noteName(n); b.style.left=`calc(${before} * (100% / ${whites.length}) - (100% / ${whites.length} * .31))`;
+      keyboard.appendChild(b); noteButtons.set(n,b);
+    });
+    keyboard.setAttribute("aria-label",`Synth keyboard from ${noteName(from)} to ${noteName(to)}`);
+    wireKeyboard();
+  }
+  function noteOn(n,accent=false){
+    if(!synthReady || held.has(n)) return;
+    audioStarted(); held.add(n); noteButtons.get(n)?.classList.add("on"); window.PMSynth?.liveNote?.(n,accent?1:.8);
+  }
+  function noteOff(n){ if(!held.has(n)) return; held.delete(n); noteButtons.get(n)?.classList.remove("on"); window.PMSynth?.liveNote?.(n,0); }
+  function wireKeyboard(){
+    let down=null;
+    const keyAt=e=>e.target.closest?.("[data-note]");
+    keyboard.onpointerdown=e=>{ const k=keyAt(e); if(!k) return; e.preventDefault(); keyboard.setPointerCapture?.(e.pointerId); down=+k.dataset.note; noteOn(down); };
+    keyboard.onpointermove=e=>{ if(down===null) return; const k=document.elementFromPoint(e.clientX,e.clientY)?.closest?.("#liveKeyboard [data-note]"); if(k&&+k.dataset.note!==down){ noteOff(down); down=+k.dataset.note; noteOn(down); } };
+    const up=()=>{ if(down!==null){ noteOff(down); down=null; } };
+    keyboard.onpointerup=up; keyboard.onpointercancel=up; keyboard.onpointerleave=up;
+  }
+  function syncPreset(){
+    const src=el("synPreset"), target=el("livePresetSelect");
+    if(!src||!target||!src.options.length) return false;
+    target.innerHTML=src.innerHTML; target.value=src.value;
+    el("livePresetName").textContent=src.value||"Synth";
+    return true;
+  }
+  function prepareSynth(){
+    loadSynth();
+    const tick=()=>{
+      if(!window.PMSynth){ setTimeout(tick,80); return; }
+      if(!synthReady){ synthReady=true; PMSynth.show(); syncPreset(); }
+      else syncPreset();
+    };
+    tick();
+  }
+  function setInstrument(next){
+    stopHeld(); instrument=next; window.__pmLiveInstrument=next;
+    const drums=next==="drums";
+    el("liveDrumsTab").classList.toggle("on",drums); el("liveSynthTab").classList.toggle("on",!drums);
+    el("liveDrumsTab").setAttribute("aria-selected",String(drums)); el("liveSynthTab").setAttribute("aria-selected",String(!drums));
+    el("liveDrumsPanel").hidden=!drums; el("liveSynthPanel").hidden=drums; el("liveKitField").hidden=!drums; el("livePresetField").hidden=drums;
+    el("liveHint").textContent=drums?"Touch, click or use 1–V on your computer keyboard":"Hold notes with the keyboard or computer keys";
+    if(!drums) prepareSynth();
+  }
+  el("liveDrumsTab").onclick=()=>setInstrument("drums");
+  el("liveSynthTab").onclick=()=>setInstrument("synth");
+  el("livePanic").onclick=()=>{ stopHeld(); stopLiveAudio(); window.PMSynth?.allOff?.(); state("All notes stopped"); };
+  el("liveMasterRange").oninput=e=>{ el("masterVol").value=e.target.value; el("masterVol").dispatchEvent(new Event("input")); el("liveMasterOut").textContent=e.target.value+"%"; };
+  el("liveThemeBtn").onclick=()=>el("themeToggle").click();
+  el("livePresetSelect").onchange=e=>{ const src=el("synPreset"); if(!src) return; src.value=e.target.value; src.dispatchEvent(new Event("change")); el("livePresetName").textContent=e.target.value; };
+  window.addEventListener("keydown",e=>{
+    if(instrument!=="synth"||e.metaKey||e.ctrlKey||e.altKey) return;
+    const tag=document.activeElement?.tagName||""; if(["INPUT","SELECT","TEXTAREA","BUTTON"].includes(tag)) return;
+    if(e.code==="KeyZ"||e.code==="KeyX"){
+      e.preventDefault(); e.stopImmediatePropagation(); if(!e.repeat){ liveOctave=clamp(liveOctave+(e.code==="KeyX"?1:-1),1,6); buildKeyboard(); } return;
+    }
+    if(!(e.code in typing)) return;
+    e.preventDefault(); e.stopImmediatePropagation(); if(!e.repeat){ const n=liveOctave*12+12+typing[e.code]; heldKeys.set(e.code,n); noteOn(n,e.shiftKey); }
+  },true);
+  window.addEventListener("keyup",e=>{ if(instrument!=="synth"||!(e.code in typing)) return; const n=heldKeys.get(e.code); heldKeys.delete(e.code); if(n!==undefined) noteOff(n); },true);
+  window.addEventListener("blur",stopHeld);
+  window.addEventListener("pm:project-loaded",paintPads);
+  paintPads(); buildKeyboard(); state("Click a control to start audio");
+  setTimeout(()=>syncPreset(),120);
+})();
+
 let resizeTimer=null;
 window.addEventListener("resize",()=>{
   clearTimeout(resizeTimer);
@@ -7382,7 +7602,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-10-06.1";
+const SW_VERSION="2026-10-06.2";
 (function pwa(){
   const netBadge=el("netBadge");
 

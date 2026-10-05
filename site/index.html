@@ -6755,6 +6755,7 @@ function makeVariationSections(host){
   const sections=new Map();
   VARIATION_GROUP_ORDER.forEach(group=>{
     const section=document.createElement("details"); section.className="variation-section";
+    section.open=true;
     const summary=document.createElement("summary"); summary.textContent=VARIATION_GROUP_LABEL[group]||group;
     const options=document.createElement("div"); options.className="variation-options";
     section.append(summary,options); host.appendChild(section); sections.set(group,options);

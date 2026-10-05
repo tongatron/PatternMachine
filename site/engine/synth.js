@@ -1024,7 +1024,7 @@
   function makeSynthVariationSections(host) {
     const sections = new Map();
     SYNTH_VARIATION_GROUPS.forEach(group => {
-      const section = document.createElement("details"); section.className = "variation-section";
+      const section = document.createElement("details"); section.className = "variation-section"; section.open = true;
       const summary = document.createElement("summary"); summary.textContent = group;
       const options = document.createElement("div"); options.className = "variation-options";
       section.append(summary, options); host.appendChild(section); sections.set(group, options);
@@ -1573,10 +1573,6 @@
         <span class="tiny" id="synRange"></span>
       </div>
       <div class="synth-roll-wrap"><div class="synth-roll" id="synRoll"></div></div>
-      <details class="wave-panel" id="waveSynth">
-        <summary>Audio waveform <span class="wave-caption" id="waveSynthCaption">selected synth pattern</span></summary>
-        <canvas id="waveSynthCanvas" height="124" aria-label="Waveform of the selected synth pattern"></canvas>
-      </details>
       <div class="synth-kbd" id="synKbd" aria-label="Keyboard"></div>
       <div class="synth-under">
         <span class="tiny" id="synKbdInfo"></span>
@@ -1585,6 +1581,10 @@
         <canvas id="synScope" width="400" height="80" aria-hidden="true"></canvas>
       </div>
       <div class="synth-params" id="synParams"></div>
+      <details class="wave-panel" id="waveSynth">
+        <summary>Audio waveform <span class="wave-caption" id="waveSynthCaption">selected synth pattern</span></summary>
+        <canvas id="waveSynthCanvas" height="124" aria-label="Waveform of the selected synth pattern"></canvas>
+      </details>
       <p class="synth-credits">Multi engine › <b>KORG logue unit</b>: oscillators from the
         <a href="https://github.com/korginc/logue-sdk" target="_blank" rel="noopener">KORG logue-sdk</a> (NTS-1 mkII, BSD-3-Clause),
         compiled to WebAssembly, one instance per voice. To record: turn on Rec, press Play and play the keys.</p>`;

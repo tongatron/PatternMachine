@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Live coding · PATTERN-MACHINE</title>
+<meta name="description" content="Live code algorithmic music patterns with Strudel inside PATTERN-MACHINE.">
+<link rel="canonical" href="https://patternmachine.tongatron.org/strudel.html">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="theme-color" content="#0a0a0b" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#a3a097" media="(prefers-color-scheme: light)">
+<script>
+  (function(){
+    let t="light";
+    try{ t=localStorage.getItem("sp1200.theme")==="dark"?"dark":"light"; }catch(e){}
+    document.documentElement.dataset.theme=t;
+  })();
+</script>
+<script src="https://unpkg.com/@strudel/repl@1.3.0"></script>
+<style>
+*{box-sizing:border-box}
+:root{
+  --bg:#0a0a0b; --body-bg:#0a0a0b; --panel:#161617; --panel-2:#222224;
+  --edge:#4b4b50; --edge-soft:#323235; --text:#efefed; --text-dim:#bcbcbc; --text-faint:#8f8f8f;
+  --accent:#c8471f; --accent-dim:#8a3418; --on-accent:#fff6ee;
+  --plate:#161617; --key:linear-gradient(180deg,#3a3a3d,#252527); --key-shadow:none;
+  --key-on:linear-gradient(180deg,#e0743f,#b8471f); --shadow:0 1px 0 rgba(255,255,255,.04) inset,0 4px 14px rgba(0,0,0,.32);
+}
+@media(prefers-color-scheme:light){
+  :root:not([data-theme="dark"]){
+    --bg:#a3a097; --body-bg:linear-gradient(180deg,#adaaa1,#9a978e); --panel:#d9d6cc; --panel-2:#c4c1b7;
+    --edge:#55534b; --edge-soft:#7d7a71; --text:#1c1b19; --text-dim:#2b2a26; --text-faint:#3a3833;
+    --accent:#c8471f; --accent-dim:#8a3418; --on-accent:#fff6ee; --plate:linear-gradient(180deg,#e2dfd6,#cfccc2);
+    --key:linear-gradient(180deg,#dcd9cf,#b5b2a8); --key-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 1px 0 rgba(0,0,0,.35);
+    --key-on:linear-gradient(180deg,#e0743f,#b8471f); --shadow:inset 0 1px 0 rgba(255,255,255,.65),inset 0 -1px 0 rgba(0,0,0,.18),0 2px 0 rgba(0,0,0,.25);
+  }
+}
+:root[data-theme="light"]{
+  --bg:#a3a097; --body-bg:linear-gradient(180deg,#adaaa1,#9a978e); --panel:#d9d6cc; --panel-2:#c4c1b7;
+  --edge:#55534b; --edge-soft:#7d7a71; --text:#1c1b19; --text-dim:#2b2a26; --text-faint:#3a3833;
+  --accent:#c8471f; --accent-dim:#8a3418; --on-accent:#fff6ee; --plate:linear-gradient(180deg,#e2dfd6,#cfccc2);
+  --key:linear-gradient(180deg,#dcd9cf,#b5b2a8); --key-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 1px 0 rgba(0,0,0,.35);
+  --key-on:linear-gradient(180deg,#e0743f,#b8471f); --shadow:inset 0 1px 0 rgba(255,255,255,.65),inset 0 -1px 0 rgba(0,0,0,.18),0 2px 0 rgba(0,0,0,.25);
+}
+html,body{margin:0;min-height:100%;background:var(--body-bg);color:var(--text);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+body{padding:max(18px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) 40px max(16px,env(safe-area-inset-left))}
+a{color:var(--accent)}
+.wrap{max-width:1100px;margin:0 auto}
+.topbar{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px 16px;margin-bottom:12px}
+.topbar h1{font-size:26px;letter-spacing:.18em;text-transform:uppercase;margin:0;line-height:1.15}
+.topbar-controls{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px 16px;margin-left:auto}
+.linkbtn,.theme-toggle{display:inline-flex;align-items:center;border:1px solid var(--edge);background:var(--key);color:var(--text);border-radius:var(--r-key,6px);box-shadow:var(--key-shadow);padding:8px 14px;font-size:12.5px;font-weight:700;line-height:1.3;letter-spacing:.04em;text-decoration:none;white-space:nowrap}
+.linkbtn:hover,.theme-toggle:hover{border-color:var(--text-faint)}
+.theme-toggle{cursor:pointer;gap:7px}
+.theme-toggle .track{width:28px;height:14px;border:1px solid var(--edge);border-radius:99px;background:var(--panel-2);padding:1px}
+.theme-toggle .knob{display:block;width:10px;height:10px;border-radius:50%;background:var(--accent);transition:transform .15s}
+:root[data-theme="dark"] .theme-toggle .knob{transform:translateX(13px)}
+.tabs{display:flex;flex-wrap:wrap;gap:10px;margin:22px 0}
+.tabs a{display:inline-flex;align-items:center;justify-content:center;min-height:52px;padding:12px 24px;border:2px solid var(--edge);border-radius:9px;background:var(--key);color:var(--text);box-shadow:inset 0 2px 0 rgba(255,255,255,.16),inset 0 -3px 0 rgba(0,0,0,.22),0 3px 0 rgba(0,0,0,.28);font-size:15px;font-weight:800;line-height:1.2;letter-spacing:.08em;text-transform:uppercase;text-decoration:none;white-space:nowrap;transition:transform .06s,box-shadow .06s,background .12s}
+.tabs a:hover{border-color:var(--text-faint)}
+.tabs a:active{transform:translateY(2px);box-shadow:inset 0 1px 0 rgba(255,255,255,.08),inset 0 -1px 0 rgba(0,0,0,.2)}
+.tabs a.on{background:var(--key-on);border-color:var(--accent-dim);color:var(--on-accent);font-weight:800}
+.panel{background:var(--plate);border:1px solid var(--edge);border-radius:var(--r-panel,10px);padding:16px 18px;box-shadow:var(--shadow);margin-bottom:10px}
+.panel h2{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-dim);margin:0 0 9px;padding-bottom:7px;border-bottom:1px solid var(--accent)}
+.intro{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 18px}
+.intro h2{flex:1 1 100%;margin-bottom:0}
+.intro p{margin:0;color:var(--text-dim)}
+.intro .source{margin-left:auto;font-size:11px;white-space:nowrap}
+.editor-panel{padding:0;overflow:hidden;min-height:720px}
+strudel-editor{display:block;min-height:720px}
+.license-note{margin:10px 2px 0;color:var(--text-faint);font-size:11px}
+.site-footer{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;margin:22px 0 6px;font-size:11px;color:var(--text-dim)}
+.site-badge{display:inline-flex;align-items:center;gap:10px;text-decoration:none;font:700 14px/1.2 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:linear-gradient(180deg,#e0743f,#b8471f);color:#fff;padding:5px 12px;border-radius:999px}
+.site-badge .mark{width:11px;height:11px;border-radius:50%;background:#fff;flex-shrink:0}
+@media(max-width:760px){
+  .topbar-controls{margin-left:0}
+  .tabs{overflow-x:auto;flex-wrap:nowrap;padding:0 2px 7px}
+  .tabs a{flex:0 0 auto;padding:10px 15px;font-size:12px;min-height:46px}
+  .editor-panel,strudel-editor{min-height:620px}
+}
+@media(max-width:560px){.topbar h1{font-size:21px}.intro .source{margin-left:0}.panel{padding:13px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <h1>PATTERN-MACHINE</h1>
+    <div class="topbar-controls">
+      <a class="linkbtn" href="./">Drum machine</a>
+      <a class="linkbtn" href="funzioni.html">Complete guide</a>
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch theme"><span>Theme</span><span class="track" aria-hidden="true"><span class="knob"></span></span></button>
+    </div>
+  </div>
+
+  <nav class="tabs" aria-label="PatternMachine views">
+    <a href="./">Drum Grid</a>
+    <a href="./">Synthesizer</a>
+    <a href="./">Sequencer</a>
+    <a href="./">Sampler</a>
+    <a href="./">Mixer</a>
+    <a class="on" href="strudel.html" aria-current="page">Live Coding</a>
+  </nav>
+
+  <section class="panel intro">
+    <h2>Live coding with Strudel</h2>
+    <p>Write and reshape algorithmic patterns in the browser. Press the play button in the editor to start.</p>
+    <a class="source" href="https://strudel.cc/" target="_blank" rel="noopener">Strudel documentation ↗</a>
+  </section>
+
+  <section class="panel editor-panel" aria-label="Strudel live coding editor">
+    <strudel-editor id="strudelEditor">
+      <!--
+      stack(
+        s("bd ~ bd ~"),
+        s("~ sd ~ sd"),
+        s("hh*8")
+      )
+      -->
+    </strudel-editor>
+  </section>
+
+  <p class="license-note">Strudel is loaded from its official web package. The editor requires an internet connection the first time it is opened.</p>
+  <footer class="site-footer"><a href="./#segnala">Report a problem</a><a href="privacy.html">Privacy policy</a><span><!--build-->version of day month year HH:MM<!--/build--></span><a class="site-badge" href="https://tongatron.org/"><span class="mark"></span><span>tongatron.org</span></a><a class="gh-link" href="https://github.com/tongatron/PatternMachine">View on GitHub</a></footer>
+</div>
+<script>
+  const root=document.documentElement, toggle=document.getElementById("themeToggle");
+  toggle.onclick=()=>{
+    const next=root.dataset.theme==="dark"?"light":"dark";
+    root.dataset.theme=next;
+    try{localStorage.setItem("sp1200.theme",next)}catch(e){}
+  };
+</script>
+</body>
+</html>

@@ -834,6 +834,12 @@ button.danger-fill{background:var(--danger); border-color:var(--danger); color:#
 .tabs{display:flex; flex-wrap:wrap; gap:10px; margin:22px 0;}
 .tabs button{padding:7px 14px; font-size:12px;}
 .tabs button.on{background:var(--key-on,var(--accent)); color:var(--on-accent); border-color:var(--accent-dim); font-weight:700;}
+.tabs .tab-link{display:inline-flex; align-items:center; justify-content:center; padding:12px 24px; min-height:52px; box-sizing:border-box;
+  border:2px solid var(--edge); border-radius:9px; background:var(--key,var(--panel-2)); color:var(--text); box-shadow:inset 0 2px 0 rgba(255,255,255,.16), inset 0 -3px 0 rgba(0,0,0,.22), 0 3px 0 rgba(0,0,0,.28);
+  font-size:15px; font-weight:800; line-height:1.2; letter-spacing:.08em; text-transform:uppercase; text-decoration:none; white-space:nowrap;
+  transition:transform .06s, box-shadow .06s, background .12s;}
+.tabs .tab-link:hover{border-color:var(--text-faint);}
+.tabs .tab-link:active{transform:translateY(2px); box-shadow:inset 0 1px 0 rgba(255,255,255,.08), inset 0 -1px 0 rgba(0,0,0,.2);}
 
 
 .seq-track{
@@ -1152,12 +1158,13 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     </div>
   </div>
 
-  <div class="tabs" role="tablist" aria-label="PatternMachine views">
+  <div class="tabs" aria-label="PatternMachine views">
     <button id="viewGrid" class="on" role="tab" aria-selected="true" aria-controls="machinePanel">Drum Grid</button>
     <button id="viewSynth" role="tab" aria-selected="false" aria-controls="panelSynth" title="Synth line of the pattern, in time with the drums">Synthesizer</button>
     <button id="viewSeq" role="tab" aria-selected="false" aria-controls="panelSeq">Sequencer</button>
     <button id="viewSampler" role="tab" aria-selected="false" aria-controls="panelSampler" title="Import or record local sounds for your patterns">Sampler</button>
     <button id="viewMix" role="tab" aria-selected="false" aria-controls="panelMix" title="Levels, pan, meters and the master limiter">Mixer</button>
+    <a id="liveCodingLink" class="tab-link" href="strudel.html" title="Live coding with Strudel">Live Coding</a>
   </div>
 
   <div class="panel" id="machinePanel">
@@ -1677,22 +1684,22 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-10-05.1"></script>
-<script src="engine/core.js?v=2026-10-05.1"></script>
-<script src="engine/styles-punk.js?v=2026-10-05.1"></script>
-<script src="engine/styles-post.js?v=2026-10-05.1"></script>
-<script src="engine/styles-machines.js?v=2026-10-05.1"></script>
-<script src="engine/styles-alt.js?v=2026-10-05.1"></script>
-<script src="engine/styles-groove.js?v=2026-10-05.1"></script>
-<script src="engine/styles-dub.js?v=2026-10-05.1"></script>
-<script src="engine/styles-break.js?v=2026-10-05.1"></script>
-<script src="engine/styles-soul.js?v=2026-10-05.1"></script>
-<script src="engine/styles-metal.js?v=2026-10-05.1"></script>
-<script src="engine/styles-electro.js?v=2026-10-05.1"></script>
-<script src="engine/variations.js?v=2026-10-05.1"></script>
-<script src="engine/import.js?v=2026-10-05.1"></script>
-<script src="engine/rhythm.js?v=2026-10-05.1"></script>
-<script src="engine/share.js?v=2026-10-05.1"></script>
+<script src="engine/machine-art.js?v=2026-10-06.1"></script>
+<script src="engine/core.js?v=2026-10-06.1"></script>
+<script src="engine/styles-punk.js?v=2026-10-06.1"></script>
+<script src="engine/styles-post.js?v=2026-10-06.1"></script>
+<script src="engine/styles-machines.js?v=2026-10-06.1"></script>
+<script src="engine/styles-alt.js?v=2026-10-06.1"></script>
+<script src="engine/styles-groove.js?v=2026-10-06.1"></script>
+<script src="engine/styles-dub.js?v=2026-10-06.1"></script>
+<script src="engine/styles-break.js?v=2026-10-06.1"></script>
+<script src="engine/styles-soul.js?v=2026-10-06.1"></script>
+<script src="engine/styles-metal.js?v=2026-10-06.1"></script>
+<script src="engine/styles-electro.js?v=2026-10-06.1"></script>
+<script src="engine/variations.js?v=2026-10-06.1"></script>
+<script src="engine/import.js?v=2026-10-06.1"></script>
+<script src="engine/rhythm.js?v=2026-10-06.1"></script>
+<script src="engine/share.js?v=2026-10-06.1"></script>
 <script>
 // Script principale di PATTERN-MACHINE: stato del progetto, audio, trasporto e interfaccia della pagina.
 // Il motore ritmico (SPEngine), i tempi (PMRhythm), import, link e gli altri moduli stanno in engine/*.js.
@@ -4537,7 +4544,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || el("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-05.1";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-06.1";
   document.body.appendChild(s);
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth")) loadSynth();
@@ -7375,7 +7382,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-10-05.1";
+const SW_VERSION="2026-10-06.1";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -7399,11 +7406,11 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sample-editor.js?v=2026-10-05.1"></script>
-<script src="engine/sampler.js?v=2026-10-05.1"></script>
-<script src="engine/vocal.js?v=2026-10-05.1"></script>
+<script src="engine/sample-editor.js?v=2026-10-06.1"></script>
+<script src="engine/sampler.js?v=2026-10-06.1"></script>
+<script src="engine/vocal.js?v=2026-10-06.1"></script>
 <script>PMSampler.init(); PMVocal.init();</script>
-<script src="engine/midi.js?v=2026-10-05.1"></script>
+<script src="engine/midi.js?v=2026-10-06.1"></script>
 
 </body>
 </html>

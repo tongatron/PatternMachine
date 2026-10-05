@@ -12,6 +12,11 @@
 .pm-sep{width:1px; align-self:stretch; background:var(--edge); margin:0 4px;}
 .pm-clock{color:var(--accent, var(--text-dim));}
 .pm-port{color:var(--text-dim);}
+/* Uscita MIDI: arancione quando e' accesa, pallino rosso quando e' spenta. */
+.pm-midi-out{display:inline-flex; align-items:center; gap:6px;}
+.pm-midi-out .pm-midi-dot{color:var(--danger,#d83a2f); font-size:1.2em; line-height:0;}
+.pm-midi-out.on{background:var(--key-primary,var(--accent)); color:var(--on-accent); border-color:var(--accent-dim); font-weight:700;}
+.pm-midi-out.on .pm-midi-dot{display:none;}
 .pm-machine-tools{display:flex; flex-wrap:wrap; gap:6px; align-items:center; width:100%; margin-top:8px;}
 .pm-machine-tools .pm-machine-note{font-size:10px; color:var(--text-dim);}
 .pm-kit-dialog{width:min(620px,calc(100% - 32px)); max-height:min(760px,calc(100% - 32px)); box-sizing:border-box; padding:0;

@@ -128,9 +128,12 @@
   }).catch(()=>{});
 
   const SETTINGS_KEY="pm.desktop";
-  const settings=Object.assign({midiOut:true, midiRouting:"drums", noteMap:"gm", internalAudio:true, follow:false, daw:"logic"},
+  const settings=Object.assign({midiOut:false, midiRouting:"drums", noteMap:"gm", internalAudio:true, follow:false, daw:"logic"},
     (()=>{ try{ return JSON.parse(localStorage.getItem(SETTINGS_KEY)||"{}"); }catch(e){ return {}; } })());
   const saveSettings=()=>{ try{ localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings)); }catch(e){} };
+  // L'uscita MIDI parte spenta e si accende solo dal pulsante: prima era accesa di default e, con una DAW
+  // aperta, ogni colpo suonava anche sullo strumento selezionato. Chi l'aveva accesa cosi' riparte da spenta.
+  if(!settings.midiOutChosen){ settings.midiOut=false; settings.midiOutChosen=true; saveSettings(); }
 
   // ---------- progetti come file in ~/Music/PatternMachine/Progetti ----------
   // Stessa forma dell'aggancio "db" che il sito gia' usa (doc/collection/onSnapshot).
@@ -458,7 +461,7 @@
       <label class="fld" title="Choose the DAW that sends MIDI Clock; it is used to name the source in the connection status"><select data-set="daw">
         <option value="logic">Logic Pro</option><option value="ableton">Ableton Live</option><option value="reaper">REAPER</option><option value="fl">FL Studio</option><option value="cubase">Cubase</option><option value="bitwig">Bitwig</option><option value="studioone">Studio One</option><option value="garageband">GarageBand</option><option value="other">Other DAW</option>
       </select></label>
-      <label class="fld" title="Notes go out on the PatternMachine virtual MIDI port: the DAW receives them like a keyboard"><input type="checkbox" data-set="midiOut"> MIDI output</label>
+      <button class="mini pm-midi-out" id="pmMidiOut" type="button" aria-pressed="false"><span class="pm-midi-dot" aria-hidden="true">&#9679;</span> MIDI out</button>
       <label class="fld" title="Channel 10 stays compatible with drum racks; Separate channels gives each row its own channel"><select data-set="midiRouting"><option value="drums">Channel 10</option><option value="multi">Separate channels</option></select></label>
       <label class="fld" title="General MIDI for drum racks and compatible instruments, or the PatternMachine SP-1200 kit (36 + sample number)">Notes
         <select data-set="noteMap"><option value="gm">General MIDI</option><option value="sp">Kit SP-1200 (36+)</option></select></label>
@@ -476,11 +479,25 @@
     inp.onchange=()=>{
       settings[k]=inp.type==="checkbox"?inp.checked:inp.value;
       saveSettings();
-      if(k==="midiOut" && !settings.midiOut) D.midi.panic();
       if(k==="follow"){ clockTimes=[]; if(!settings.follow && following) stop(); }
       paintClock();
     };
   });
+  const midiBtn=el("pmMidiOut");
+  function paintMidiOut(){
+    midiBtn.classList.toggle("on",!!settings.midiOut);
+    midiBtn.setAttribute("aria-pressed",String(!!settings.midiOut));
+    midiBtn.title=settings.midiOut
+      ? "MIDI output on: notes go out on the PatternMachine virtual MIDI port, the DAW receives them like a keyboard. Click to turn it off"
+      : "MIDI output off. Click to send notes to the DAW on the PatternMachine virtual MIDI port";
+  }
+  midiBtn.onclick=()=>{
+    settings.midiOut=!settings.midiOut;
+    saveSettings();
+    if(!settings.midiOut) D.midi.panic();
+    paintMidiOut();
+  };
+  paintMidiOut();
   panel.querySelectorAll(".pm-drag").forEach(h=>{
     h.addEventListener("pointerdown",()=>{ if(h.dataset.kind==="wav") prepareWav(); });
     h.addEventListener("dragstart",e=>{ e.preventDefault(); dragOut(h.dataset.kind); });

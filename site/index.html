@@ -1164,7 +1164,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <button id="viewSeq" role="tab" aria-selected="false" aria-controls="panelSeq">Sequencer</button>
     <button id="viewSampler" role="tab" aria-selected="false" aria-controls="panelSampler" title="Import or record local sounds for your patterns">Sampler</button>
     <button id="viewMix" role="tab" aria-selected="false" aria-controls="panelMix" title="Levels, pan, meters and the master limiter">Mixer</button>
-    <a id="liveCodingLink" class="tab-link" href="strudel.html" target="_blank" rel="noopener" title="Open Strudel Live Coding in a new tab">STRUDEL LIVE CODING</a>
+    <a id="liveCodingLink" class="tab-link" href="strudel.html" target="_blank" rel="noopener" title="Open Strudel Live Coding in a new window">STRUDEL LIVE CODING</a>
   </div>
 
   <div class="panel" id="machinePanel">
@@ -7411,6 +7411,17 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
 <script src="engine/vocal.js?v=2026-10-06.1"></script>
 <script>PMSampler.init(); PMVocal.init();</script>
 <script src="engine/midi.js?v=2026-10-06.1"></script>
+<script>
+  (function openStrudelWindow(){
+    const link=document.getElementById("liveCodingLink");
+    if(!link) return;
+    link.addEventListener("click",event=>{
+      event.preventDefault();
+      const popup=window.open(link.href,"patternmachine-strudel","popup=yes,width=1280,height=900,resizable=yes,scrollbars=yes");
+      if(!popup) window.open(link.href,"_blank");
+    });
+  })();
+</script>
 
 </body>
 </html>

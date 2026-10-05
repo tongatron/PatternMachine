@@ -1788,22 +1788,22 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-10-06.2"></script>
-<script src="engine/core.js?v=2026-10-06.2"></script>
-<script src="engine/styles-punk.js?v=2026-10-06.2"></script>
-<script src="engine/styles-post.js?v=2026-10-06.2"></script>
-<script src="engine/styles-machines.js?v=2026-10-06.2"></script>
-<script src="engine/styles-alt.js?v=2026-10-06.2"></script>
-<script src="engine/styles-groove.js?v=2026-10-06.2"></script>
-<script src="engine/styles-dub.js?v=2026-10-06.2"></script>
-<script src="engine/styles-break.js?v=2026-10-06.2"></script>
-<script src="engine/styles-soul.js?v=2026-10-06.2"></script>
-<script src="engine/styles-metal.js?v=2026-10-06.2"></script>
-<script src="engine/styles-electro.js?v=2026-10-06.2"></script>
-<script src="engine/variations.js?v=2026-10-06.2"></script>
-<script src="engine/import.js?v=2026-10-06.2"></script>
-<script src="engine/rhythm.js?v=2026-10-06.2"></script>
-<script src="engine/share.js?v=2026-10-06.2"></script>
+<script src="engine/machine-art.js?v=2026-10-06.3"></script>
+<script src="engine/core.js?v=2026-10-06.3"></script>
+<script src="engine/styles-punk.js?v=2026-10-06.3"></script>
+<script src="engine/styles-post.js?v=2026-10-06.3"></script>
+<script src="engine/styles-machines.js?v=2026-10-06.3"></script>
+<script src="engine/styles-alt.js?v=2026-10-06.3"></script>
+<script src="engine/styles-groove.js?v=2026-10-06.3"></script>
+<script src="engine/styles-dub.js?v=2026-10-06.3"></script>
+<script src="engine/styles-break.js?v=2026-10-06.3"></script>
+<script src="engine/styles-soul.js?v=2026-10-06.3"></script>
+<script src="engine/styles-metal.js?v=2026-10-06.3"></script>
+<script src="engine/styles-electro.js?v=2026-10-06.3"></script>
+<script src="engine/variations.js?v=2026-10-06.3"></script>
+<script src="engine/import.js?v=2026-10-06.3"></script>
+<script src="engine/rhythm.js?v=2026-10-06.3"></script>
+<script src="engine/share.js?v=2026-10-06.3"></script>
 <script>
 // Script principale di PATTERN-MACHINE: stato del progetto, audio, trasporto e interfaccia della pagina.
 // Il motore ritmico (SPEngine), i tempi (PMRhythm), import, link e gli altri moduli stanno in engine/*.js.
@@ -4652,7 +4652,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || el("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-06.2";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-06.3";
   document.body.appendChild(s);
 }
 if(LIVE_VIEW || (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth"))) loadSynth();
@@ -4774,9 +4774,7 @@ document.addEventListener("keydown",(e)=>{
     }
   }
   if(tag==="INPUT"||tag==="SELECT"||tag==="TEXTAREA") return;
-  if(LIVE_VIEW && (e.code==="Space" || (e.key.toLowerCase()==="l" && !e.metaKey && !e.ctrlKey && !e.altKey))){
-    e.preventDefault(); return;
-  }
+  if(LIVE_VIEW) return;
   if(e.key==="?" && !e.metaKey && !e.ctrlKey && !e.altKey && !helpKeys.hidden){
     e.preventDefault(); helpKeys.open=!helpKeys.open;
     if(helpKeys.open) helpKeys.querySelector("summary")?.focus();
@@ -7464,8 +7462,9 @@ loadSharedProject();
   const root=el("liveView"), pads=el("livePads"), keyboard=el("liveKeyboard");
   root.hidden=false;
   let instrument="drums", synthReady=false, liveOctave=3;
-  const held=new Set(), heldKeys=new Map(), noteButtons=new Map();
+  const held=new Set(), heldKeys=new Map(), noteButtons=new Map(), drumKeys=new Set();
   const typing={KeyA:0,KeyW:1,KeyS:2,KeyE:3,KeyD:4,KeyF:5,KeyT:6,KeyG:7,KeyY:8,KeyH:9,KeyU:10,KeyJ:11,KeyK:12,KeyO:13,KeyL:14,KeyP:15,Semicolon:16};
+  const drumTyping={Digit1:0,Digit2:1,Digit3:2,Digit4:3,KeyQ:4,KeyW:5,KeyE:6,KeyR:7,KeyA:8,KeyS:9,KeyD:10,KeyF:11,KeyZ:12,KeyX:13,KeyC:14,KeyV:15};
   const noteNames=["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
   const noteName=n=>noteNames[n%12]+(Math.floor(n/12)-1);
   const state=(message,ready=false)=>{ const box=el("liveAudioState"); box.textContent=message; box.classList.toggle("ready",ready); };
@@ -7509,6 +7508,12 @@ loadSharedProject();
     audioStarted(); held.add(n); noteButtons.get(n)?.classList.add("on"); window.PMSynth?.liveNote?.(n,accent?1:.8);
   }
   function noteOff(n){ if(!held.has(n)) return; held.delete(n); noteButtons.get(n)?.classList.remove("on"); window.PMSynth?.liveNote?.(n,0); }
+  function hitLivePad(i){
+    const b=pads.querySelector(`[data-live-pad="${i}"]`);
+    if(!b) return;
+    audioStarted(); hitPad(i);
+    b.classList.add("hit"); setTimeout(()=>b.classList.remove("hit"),90);
+  }
   function wireKeyboard(){
     let down=null;
     const keyAt=e=>e.target.closest?.("[data-note]");
@@ -7549,15 +7554,27 @@ loadSharedProject();
   el("liveThemeBtn").onclick=()=>el("themeToggle").click();
   el("livePresetSelect").onchange=e=>{ const src=el("synPreset"); if(!src) return; src.value=e.target.value; src.dispatchEvent(new Event("change")); el("livePresetName").textContent=e.target.value; };
   window.addEventListener("keydown",e=>{
-    if(instrument!=="synth"||e.metaKey||e.ctrlKey||e.altKey) return;
-    const tag=document.activeElement?.tagName||""; if(["INPUT","SELECT","TEXTAREA","BUTTON"].includes(tag)) return;
+    if(e.metaKey||e.ctrlKey||e.altKey) return;
+    const tag=document.activeElement?.tagName||"";
+    if(["INPUT","SELECT","TEXTAREA"].includes(tag)) return;
+    if(instrument==="drums"){
+      const i=drumTyping[e.code];
+      if(i===undefined) return;
+      e.preventDefault(); e.stopImmediatePropagation();
+      if(!e.repeat && !drumKeys.has(e.code)){ drumKeys.add(e.code); hitLivePad(i); }
+      return;
+    }
     if(e.code==="KeyZ"||e.code==="KeyX"){
       e.preventDefault(); e.stopImmediatePropagation(); if(!e.repeat){ liveOctave=clamp(liveOctave+(e.code==="KeyX"?1:-1),1,6); buildKeyboard(); } return;
     }
     if(!(e.code in typing)) return;
     e.preventDefault(); e.stopImmediatePropagation(); if(!e.repeat){ const n=liveOctave*12+12+typing[e.code]; heldKeys.set(e.code,n); noteOn(n,e.shiftKey); }
   },true);
-  window.addEventListener("keyup",e=>{ if(instrument!=="synth"||!(e.code in typing)) return; const n=heldKeys.get(e.code); heldKeys.delete(e.code); if(n!==undefined) noteOff(n); },true);
+  window.addEventListener("keyup",e=>{
+    if(instrument==="drums"){ drumKeys.delete(e.code); return; }
+    if(!(e.code in typing)) return;
+    const n=heldKeys.get(e.code); heldKeys.delete(e.code); if(n!==undefined) noteOff(n);
+  },true);
   window.addEventListener("blur",stopHeld);
   window.addEventListener("pm:project-loaded",paintPads);
   paintPads(); buildKeyboard(); state("Click a control to start audio");
@@ -7602,7 +7619,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-10-06.2";
+const SW_VERSION="2026-10-06.3";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -7626,11 +7643,11 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sample-editor.js?v=2026-10-06.2"></script>
-<script src="engine/sampler.js?v=2026-10-06.2"></script>
-<script src="engine/vocal.js?v=2026-10-06.2"></script>
+<script src="engine/sample-editor.js?v=2026-10-06.3"></script>
+<script src="engine/sampler.js?v=2026-10-06.3"></script>
+<script src="engine/vocal.js?v=2026-10-06.3"></script>
 <script>PMSampler.init(); PMVocal.init();</script>
-<script src="engine/midi.js?v=2026-10-06.2"></script>
+<script src="engine/midi.js?v=2026-10-06.3"></script>
 <script>
   (function openStrudelWindow(){
     const link=document.getElementById("liveCodingLink");

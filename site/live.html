@@ -13,6 +13,11 @@
 </style>
 </head>
 <body>
-<iframe src="index.html?live=1" title="PATTERN-MACHINE Live View" allow="autoplay" allowfullscreen></iframe>
+<iframe id="liveFrame" src="index.html?live=1" title="PATTERN-MACHINE Live View" allow="autoplay" allowfullscreen tabindex="0"></iframe>
+<script>
+  const liveFrame=document.getElementById("liveFrame");
+  liveFrame.addEventListener("load",()=>liveFrame.contentWindow?.focus());
+  liveFrame.addEventListener("pointerdown",()=>liveFrame.contentWindow?.focus());
+</script>
 </body>
 </html>

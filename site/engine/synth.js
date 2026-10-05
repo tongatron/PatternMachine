@@ -1024,7 +1024,7 @@
   function makeSynthVariationSections(host) {
     const sections = new Map();
     SYNTH_VARIATION_GROUPS.forEach(group => {
-      const section = document.createElement("details"); section.className = "variation-section"; section.open = true;
+      const section = document.createElement("details"); section.className = "variation-section";
       const summary = document.createElement("summary"); summary.textContent = group;
       const options = document.createElement("div"); options.className = "variation-options";
       section.append(summary, options); host.appendChild(section); sections.set(group, options);
@@ -1573,7 +1573,7 @@
         <span class="tiny" id="synRange"></span>
       </div>
       <div class="synth-roll-wrap"><div class="synth-roll" id="synRoll"></div></div>
-      <details class="wave-panel" id="waveSynth" open>
+      <details class="wave-panel" id="waveSynth">
         <summary>Audio waveform <span class="wave-caption" id="waveSynthCaption">selected synth pattern</span></summary>
         <canvas id="waveSynthCanvas" height="124" aria-label="Waveform of the selected synth pattern"></canvas>
       </details>

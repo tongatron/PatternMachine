@@ -837,7 +837,7 @@ button.danger-fill{background:var(--danger); border-color:var(--danger); color:#
 .tabs .tab-link{display:inline-flex; align-items:center; justify-content:center; padding:12px 24px; min-height:52px; box-sizing:border-box;
   border:2px solid var(--edge); border-radius:9px; background:var(--key,var(--panel-2)); color:var(--text); box-shadow:inset 0 2px 0 rgba(255,255,255,.16), inset 0 -3px 0 rgba(0,0,0,.22), 0 3px 0 rgba(0,0,0,.28);
   font-size:15px; font-weight:800; line-height:1.2; letter-spacing:.08em; text-transform:uppercase; text-decoration:none; white-space:nowrap;
-  transition:transform .06s, box-shadow .06s, background .12s;}
+  margin-left:auto; transition:transform .06s, box-shadow .06s, background .12s;}
 .tabs .tab-link:hover{border-color:var(--text-faint);}
 .tabs .tab-link:active{transform:translateY(2px); box-shadow:inset 0 1px 0 rgba(255,255,255,.08), inset 0 -1px 0 rgba(0,0,0,.2);}
 
@@ -1292,11 +1292,11 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       <button id="addRowBtn" class="mini">+ Row</button>
       <button id="pruneRowsBtn" class="mini" title="Removes rows with no hits in any pattern of the project (rows are shared by all patterns)">Remove empty rows</button>
     </div>
-    <details class="drum-sound-panel" id="drumSoundPanel" open>
+    <details class="drum-sound-panel" id="drumSoundPanel">
       <summary>Drum Sound <span class="drum-sound-name" id="drumSoundName"></span></summary>
       <div class="drum-sound-body" id="drumSoundBody"></div>
     </details>
-    <details class="wave-panel" id="waveDrums" open>
+    <details class="wave-panel" id="waveDrums">
       <summary>Audio waveform <span class="wave-caption" id="waveDrumsCaption">selected drum pattern</span></summary>
       <canvas id="waveDrumsCanvas" height="124" aria-label="Waveform of the selected drum pattern"></canvas>
     </details>
@@ -1406,7 +1406,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       <span class="tiny" id="synthLaneInfo" style="margin-left:auto;"></span>
     </div>
     <div class="seq-track seq-synth-track" id="seqSynthTrack"></div>
-    <details class="wave-panel" id="waveSequencer" open>
+    <details class="wave-panel" id="waveSequencer">
       <summary>Audio waveform <span class="wave-caption" id="waveSequencerCaption">song arrangement</span></summary>
       <canvas id="waveSequencerCanvas" height="124" aria-label="Waveform of the song arrangement"></canvas>
     </details>
@@ -1419,7 +1419,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <h2>Mixer</h2>
     <div class="mix-info" id="mixInfo"></div>
     <div class="mix-strips" id="mixStrips"></div>
-    <details class="wave-panel" id="waveMixer" open>
+    <details class="wave-panel" id="waveMixer">
       <summary>Audio waveform <span class="wave-caption" id="waveMixerCaption">complete mix</span></summary>
       <canvas id="waveMixerCanvas" height="124" aria-label="Waveform of the complete mix"></canvas>
     </details>
@@ -1510,7 +1510,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     </div>
   </div>
 
-  <details class="help" id="helpKeys" open>
+  <details class="help" id="helpKeys">
     <summary>Playing: keys and controls</summary>
     <div class="help-body">
       <section>
@@ -6755,7 +6755,6 @@ function makeVariationSections(host){
   const sections=new Map();
   VARIATION_GROUP_ORDER.forEach(group=>{
     const section=document.createElement("details"); section.className="variation-section";
-    section.open=true;
     const summary=document.createElement("summary"); summary.textContent=VARIATION_GROUP_LABEL[group]||group;
     const options=document.createElement("div"); options.className="variation-options";
     section.append(summary,options); host.appendChild(section); sections.set(group,options);

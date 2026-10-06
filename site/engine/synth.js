@@ -537,19 +537,21 @@
   }
 
   // ---------- suonare dal vivo (tastiera del computer, tasti a schermo, MIDI) ----------
-  const held = new Map();   // nota -> {t0, rec:{note, pat} se si sta registrando}
-  function liveOn(n, vel = 0.8) {
-    if (held.has(n)) return;
+  const held = new Map();   // nota -> {t0, audioNote, engine, source, rec:{note, pat} se si sta registrando}
+  function liveOn(n, vel = 0.8, source = "live") {
+    if (held.has(n)) return false;
     const ctx = actx(); if (ctx.state === "suspended") ctx.resume();
-    held.set(n, { t0: ctx.currentTime, rec: recording && playing ? recordNote(n, vel >= 0.99) : null });
+    const engine = engineOf(), audioNote = clamp(n + (params().trans || 0), 0, 127);
+    const h = { t0: ctx.currentTime, audioNote, engine, source, rec: recording && playing ? recordNote(n, vel >= 0.99) : null };
+    held.set(n, h);
     paintKeys();
-    const ready = engineOf() === "tone" ? ensureTone() : ensureAudio();
+    const ready = engine === "tone" ? ensureTone() : ensureAudio();
     ready.then(nd => {
-      if (!held.has(n)) return;
-      const note = clamp(n + (params().trans || 0), 0, 127);
-      if (engineOf() === "tone") nd.triggerAttack(noteName(note), actx().currentTime, vel);
-      else nd.port.postMessage({ t: "ev", list: [{ t: "on", time: 0, n: note, v: vel, id: "k" + n }] });
+      if (held.get(n) !== h) return;
+      if (engine === "tone") nd.triggerAttack(noteName(audioNote), actx().currentTime, vel);
+      else nd.port.postMessage({ t: "ev", list: [{ t: "on", time: 0, n: audioNote, v: vel, id: "k" + n }] });
     }).catch(() => {});
+    return true;
   }
   function liveOff(n) {
     const h = held.get(n);
@@ -562,8 +564,8 @@
       h.rec.note.l = clamp(steps, 1, Math.max(1, h.rec.pat.len - h.rec.note.s));
       renderRoll();
     }
-    if (toneSynth) { try { toneSynth.triggerRelease(noteName(clamp(n + (params().trans || 0), 0, 127))); } catch (e) {} }
-    if (node) node.port.postMessage({ t: "ev", list: [{ t: "off", time: 0, id: "k" + n }] });
+    if (h.engine === "tone") { if (toneSynth) { try { toneSynth.triggerRelease(noteName(h.audioNote)); } catch (e) {} } }
+    else if (node) node.port.postMessage({ t: "ev", list: [{ t: "off", time: 0, id: "k" + n }] });
   }
   // Registrazione: come recordHit() della batteria, la nota va nello step piu' vicino a quello che suona.
   function recordNote(n, accent) {
@@ -604,7 +606,7 @@
     }
     if (e.code in TYPING) {
       e.preventDefault(); e.stopImmediatePropagation();
-      if (!e.repeat) { const n = typingBase() + TYPING[e.code]; liveOn(n, e.shiftKey ? 1 : 0.8); follow(n); }
+      if (!e.repeat) { const n = typingBase() + TYPING[e.code]; liveOn(n, e.shiftKey ? 1 : 0.8, "typing"); follow(n); }
       return;
     }
     // nella vista Synth i tasti rimasti delle batterie non suonano i pad
@@ -613,14 +615,18 @@
   window.addEventListener("keyup", e => {
     if (!(e.code in TYPING)) return;
     const n = typingBase() + TYPING[e.code];
-    if (held.has(n)) liveOff(n);
+    if (held.get(n)?.source === "typing") liveOff(n);
   }, true);
-  window.addEventListener("blur", () => { for (const n of [...held.keys()]) liveOff(n); });
+  window.addEventListener("blur", () => {
+    for (const n of [...held.keys()]) liveOff(n);
+    if (drag) { drag = null; renderRoll(); }
+  });
 
   // Tastiera MIDI: la gestisce engine/midi.js (tasti, pad e manopole), che chiama liveOn/liveOff e knob() qui sotto.
   function midiNote(n, vel) {
     if (!allowed) return;
-    if (vel > 0) { liveOn(n, vel); follow(n); } else liveOff(n);
+    if (vel > 0) { liveOn(n, vel, "midi"); follow(n); }
+    else if (held.get(n)?.source === "midi") liveOff(n);
   }
   // Manopola MIDI -> parametro del synth (frac 0..1 sull'intervallo del parametro). Un solo passo di annulla
   // per giro: si registra quando la manopola riparte dopo una pausa.
@@ -1420,6 +1426,8 @@
 .sr-cell.tie{opacity:.72;}
 .sr-cell.end{border-radius:0 4px 4px 0;}
 .sr-cell.note.end{border-radius:4px;}
+.sr-cell.note.end::before{content:""; position:absolute; right:2px; top:4px; bottom:4px; width:2px; border-radius:2px; background:currentColor; opacity:.35; pointer-events:none;}
+.sr-cell.note.end:hover::before{opacity:.9;}
 .sr-cell.acc{background:var(--step-acc, var(--led-accent));}
 .sr-cell.slide.end::after{content:""; position:absolute; right:-6px; top:50%; width:10px; height:6px; margin-top:-5px; border:2px solid var(--text); border-left:0; border-bottom:0; border-radius:0 8px 0 0; z-index:1; pointer-events:none;}
 .synth-kbd{position:relative; display:flex; height:64px; margin-top:10px; user-select:none; -webkit-user-select:none; touch-action:none;}
@@ -1563,7 +1571,7 @@
       <div class="flexline">
         <span class="tiny">Click:</span>
         <div class="modeswitch" id="synTap" role="group" aria-label="What a click on a note changes">
-          <button type="button" data-mode="note" title="add a note (drag to make it longer), click a note to remove it">Notes</button>
+          <button type="button" data-mode="note" title="add a note; drag an existing note to move it, drag its final edge to resize, click to remove it">Notes</button>
           <button type="button" data-mode="acc" title="accent: louder and brighter (alt+click)">Accent</button>
           <button type="button" data-mode="slide" title="slide into the next note, like a TB-303 (shift+click)">Slide</button>
         </div>
@@ -1702,7 +1710,7 @@
     el("synMidiIn").hidden = !navigator.requestMIDIAccess || !window.PMMidi;
     el("synMidiIn").onclick = () => window.PMMidi && PMMidi.toggle();
     if (window.PMMidi) PMMidi.paint();
-    el("synPanic").onclick = () => { held.clear(); paintKeys(); if (node) node.port.postMessage({ t: "panic" }); };
+    el("synPanic").onclick = () => allOff();
     wireRoll();
     wireKeyboard();
     paintTap();
@@ -1996,7 +2004,7 @@
   }
 
   // ---------- piano roll ----------
-  let rollCols = [], drag = null, lastPh = -1, lastPlayId;
+  let rollCols = [], drag = null, rollPaintFrame = 0, lastPh = -1, lastPlayId;
   function rowsFor() {
     const sc = scaleNotes(), k = keyOf();
     const inScale = n => sc.includes(((n - k) % 12 + 12) % 12);
@@ -2033,6 +2041,7 @@
   }
   function renderRoll() {
     if (!built) return;
+    if (rollPaintFrame) { cancelAnimationFrame(rollPaintFrame); rollPaintFrame = 0; }
     const pat = curSynth(), roll = el("synRoll");
     el("synRecClear").hidden = !(pat.synth || []).some(x => x.k === "rec");
     const { rows, inScale } = rowsFor(), len = pat.len, k = keyOf();
@@ -2066,15 +2075,31 @@
     paintTop();
     paintKeys();
   }
-  const cellAt = (x, y) => { const t = document.elementFromPoint(x, y); return t && t.closest ? t.closest("#synRoll .sr-cell") : null; };
+  function scheduleRoll() {
+    if (rollPaintFrame) return;
+    rollPaintFrame = requestAnimationFrame(() => { rollPaintFrame = 0; renderRoll(); });
+  }
+  const pointAt = (x, y, fallback) => {
+    const t = document.elementFromPoint(x, y);
+    const cell = t && t.closest ? t.closest("#synRoll .sr-cell") : null;
+    if (cell) return { n: +cell.dataset.n, s: +cell.dataset.s };
+    const key = t && t.closest ? t.closest("#synRoll .sr-key") : null;
+    return key ? { n: +key.dataset.key, s: fallback?.s ?? 0 } : null;
+  };
   function wireRoll() {
     const roll = el("synRoll");
+    let keyDown = null;
+    const releaseKey = () => {
+      if (keyDown?.started) liveOff(keyDown.n);
+      keyDown = null;
+    };
     roll.addEventListener("pointerdown", e => {
       const key = e.target.closest(".sr-key");
       if (key) {
-        const n = +key.dataset.key; liveOn(n);
-        const up = () => { liveOff(n); removeEventListener("pointerup", up); };
-        addEventListener("pointerup", up);
+        e.preventDefault();
+        const n = +key.dataset.key;
+        keyDown = { n, started: liveOn(n, e.shiftKey ? 1 : 0.8, "roll") };
+        try { roll.setPointerCapture(e.pointerId); } catch (err) {}
         return;
       }
       const cell = e.target.closest(".sr-cell");
@@ -2091,13 +2116,22 @@
         renderRoll();
         return;
       }
-      forgetSynthVariation(); pushUndo();
+      forgetSynthVariation();
       ensure();   // il progetto ricorda il suono con cui sono state scritte le note
-      if (hit) drag = { note: hit, from: s, moved: false, created: false };
+      if (hit) {
+        // L'ultimo quarto della cella finale e' una maniglia implicita di resize;
+        // il resto della nota si trascina senza cambiare durata (anche per note di 1 step).
+        const cellRect = cell.getBoundingClientRect();
+        const resize = s >= hit.s + hit.l - 1 && e.clientX >= cellRect.left + cellRect.width * 0.72;
+        drag = { note: hit, origin: { s: hit.s, n: hit.n, l: hit.l }, start: { s, n }, last: { s, n },
+          moved: false, created: false, mode: resize ? "resize" : "move", pointerId: e.pointerId };
+      }
       else {
+        pushUndo();
         const note = { s, n, l: 1 };
         pat.synth.push(note);
-        drag = { note, from: s, moved: false, created: true };
+        drag = { note, origin: { s, n, l: 1 }, start: { s, n }, last: { s, n },
+          moved: false, created: true, mode: "resize", pointerId: e.pointerId };
         preview(n);
         renderRoll();
       }
@@ -2105,37 +2139,58 @@
     });
     roll.addEventListener("pointermove", e => {
       if (!drag) return;
-      const c = cellAt(e.clientX, e.clientY);
-      if (!c) return;
-      const s = +c.dataset.s;
-      if (s === drag.from && !drag.moved) return;
-      drag.moved = true;
-      const l = clamp(s - drag.note.s + 1, 1, curSynth().len - drag.note.s);
-      if (l !== drag.note.l) { drag.note.l = l; renderRoll(); }
+      const p = pointAt(e.clientX, e.clientY, drag.last);
+      if (!p) return;
+      drag.last = p;
+      const pat = curSynth(), note = drag.note;
+      if (drag.mode === "resize") {
+        const l = clamp(p.s - note.s + 1, 1, pat.len - note.s);
+        if (l === note.l) return;
+        if (!drag.moved) pushUndo();
+        drag.moved = true; note.l = l; scheduleRoll();
+        return;
+      }
+      const s = clamp(drag.origin.s + p.s - drag.start.s, 0, pat.len - drag.origin.l);
+      const n = clamp(drag.origin.n + p.n - drag.start.n, 0, 127);
+      if (s === note.s && n === note.n) return;
+      const clash = pat.synth.some(x => x !== note && x.s === s && x.n === n);
+      if (clash) return;
+      if (!drag.moved) pushUndo();
+      drag.moved = true; note.s = s; note.n = n; scheduleRoll();
     });
-    const end = () => {
+    const end = e => {
+      if (e?.pointerId !== undefined && drag?.pointerId !== undefined && e.pointerId !== drag.pointerId) return;
       if (!drag) return;
       const d = drag; drag = null;
-      if (!d.created && !d.moved) {        // click su una nota senza trascinare: si toglie
+      const cancelled = e?.type === "pointercancel" || e?.type === "lostpointercapture";
+      if (cancelled) {
         const pat = curSynth();
+        if (d.created) pat.synth = (pat.synth || []).filter(x => x !== d.note);
+        else if (d.moved) Object.assign(d.note, d.origin);
+      } else if (!d.created && !d.moved) { // click su una nota senza trascinare: si toglie
+        const pat = curSynth();
+        pushUndo();
         pat.synth = (pat.synth || []).filter(x => x !== d.note);
-        renderRoll();
       }
+      renderRoll();
     };
     roll.addEventListener("pointerup", end);
     roll.addEventListener("pointercancel", end);
+    roll.addEventListener("lostpointercapture", e => { releaseKey(); end(e); });
+    roll.addEventListener("pointerup", releaseKey);
+    roll.addEventListener("pointercancel", releaseKey);
   }
   // Una nota breve per sentire cosa si e' scritto (a trasporto fermo).
   function preview(n) {
-    if (playing) return;
-    liveOn(n, 0.8);
-    setTimeout(() => liveOff(n), Math.max(140, 60 / bpm() / 4 * 1000));
+    if (playing || held.has(n)) return;
+    if (!liveOn(n, 0.8, "preview")) return;
+    setTimeout(() => { if (held.get(n)?.source === "preview") liveOff(n); }, Math.max(140, 60 / bpm() / 4 * 1000));
   }
   function auditionChord() {
     if (playing) return;
     const p = params(), notes = p.mode === "poly" ? triad(0, 48 + keyOf()) : [bassRoot()];
-    notes.forEach(n => liveOn(n, 0.8));
-    setTimeout(() => notes.forEach(liveOff), 450);
+    const started = notes.filter(n => !held.has(n) && liveOn(n, 0.8, "audition"));
+    setTimeout(() => started.forEach(n => { if (held.get(n)?.source === "audition") liveOff(n); }), 450);
   }
 
   // ---------- tastiera a schermo ----------
@@ -2165,18 +2220,21 @@
   }
   function wireKeyboard() {
     const box = el("synKbd");
-    let down = null;
+    let down = null, downStarted = false;
     box.addEventListener("pointerdown", e => {
       const k = e.target.closest("[data-n]"); if (!k) return;
       e.preventDefault(); try { box.setPointerCapture(e.pointerId); } catch (err) {}
-      down = +k.dataset.n; liveOn(down); follow(down);
+      down = +k.dataset.n; downStarted = liveOn(down, 0.8, "keyboard"); follow(down);
     });
     box.addEventListener("pointermove", e => {
       if (down === null) return;
       const t = document.elementFromPoint(e.clientX, e.clientY), k = t && t.closest && t.closest("#synKbd [data-n]");
-      if (k && +k.dataset.n !== down) { liveOff(down); down = +k.dataset.n; liveOn(down); follow(down); }
+      if (k && +k.dataset.n !== down) {
+        if (downStarted) liveOff(down);
+        down = +k.dataset.n; downStarted = liveOn(down, 0.8, "keyboard"); follow(down);
+      }
     });
-    const up = () => { if (down !== null) { liveOff(down); down = null; } };
+    const up = () => { if (down !== null) { if (downStarted) liveOff(down); down = null; downStarted = false; } };
     box.addEventListener("pointerup", up); box.addEventListener("pointercancel", up);
   }
 

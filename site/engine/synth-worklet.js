@@ -223,7 +223,12 @@ class PMSynthProcessor extends AudioWorkletProcessor {
   addEvents(list) {
     for (const e of list) this.ev.push(e);
     // a parita' di tempo prima i note off: una nota che finisce dove ne inizia un'altra non la spegne
-    this.ev.sort((a, b) => (a.time - b.time) || (a.t === "off" ? -1 : 1));
+    this.ev.sort((a, b) => {
+      const time = a.time - b.time;
+      if (time) return time;
+      if (a.t === b.t) return 0;
+      return a.t === "off" ? -1 : 1;
+    });
   }
 
   // ---------- gestione delle voci ----------

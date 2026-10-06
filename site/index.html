@@ -900,6 +900,8 @@ button.danger-fill{background:var(--danger); border-color:var(--danger); color:#
 .tabs{display:flex; flex-wrap:wrap; gap:10px; margin:22px 0;}
 .tabs button{padding:7px 14px; font-size:12px;}
 .tabs button.on{background:var(--key-on,var(--accent)); color:var(--on-accent); border-color:var(--accent-dim); font-weight:700;}
+.tabs .live-playing-link{display:inline-flex; align-items:center; justify-content:center; margin-left:auto; min-height:52px; padding:12px 24px; border:2px solid var(--edge); border-radius:9px; background:var(--key,var(--panel-2)); color:var(--text); box-shadow:inset 0 2px 0 rgba(255,255,255,.16), inset 0 -3px 0 rgba(0,0,0,.22), 0 3px 0 rgba(0,0,0,.28); font-size:15px; font-weight:800; letter-spacing:.08em; text-decoration:none;}
+.tabs .live-playing-link:hover{border-color:var(--text-faint); background:var(--key,var(--panel-2)); color:var(--text); transform:translateY(2px); box-shadow:inset 0 1px 0 rgba(255,255,255,.08), inset 0 -1px 0 rgba(0,0,0,.2);}
 .seq-track{
   display:flex; gap:8px; overflow-x:auto; padding:6px 2px 12px; min-height:132px; align-items:stretch;
 }
@@ -1271,6 +1273,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <button id="viewSeq" role="tab" aria-selected="false" aria-controls="panelSeq">Sequencer</button>
     <button id="viewSampler" role="tab" aria-selected="false" aria-controls="panelSampler" title="Import or record local sounds for your patterns">Sampler</button>
     <button id="viewMix" role="tab" aria-selected="false" aria-controls="panelMix" title="Levels, pan, meters and the master limiter">Mixer</button>
+    <a class="live-playing-link" href="index.html?live=1" title="Open the focused Live Playing surface for drums and synth">Live Playing</a>
   </div>
 
   <div class="panel" id="panelTransport">

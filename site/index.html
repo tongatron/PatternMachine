@@ -897,8 +897,12 @@ button.danger-fill{background:var(--danger); border-color:var(--danger); color:#
 .tabs{display:flex; flex-wrap:wrap; gap:10px; margin:22px 0;}
 .tabs button{padding:7px 14px; font-size:12px;}
 .tabs button.on{background:var(--key-on,var(--accent)); color:var(--on-accent); border-color:var(--accent-dim); font-weight:700;}
-.tabs .live-playing-tab{display:inline-flex; align-items:center; justify-content:center; padding:7px 14px; border:1px solid var(--accent-dim); border-radius:var(--r-key,6px); background:var(--key-primary,var(--accent)); color:var(--on-accent); box-shadow:var(--key-shadow,none); font-size:12px; font-weight:700; letter-spacing:.04em; text-decoration:none; text-transform:uppercase; white-space:nowrap;}
-.tabs .live-playing-tab:hover{border-color:var(--accent); filter:brightness(1.06);}
+.live-playing-link{display:inline-flex; align-items:center; justify-content:center; gap:6px; border:1px dashed color-mix(in srgb,var(--ok) 72%,var(--edge)); border-radius:var(--r-key,6px); background:color-mix(in srgb,var(--ok) 8%,var(--key,var(--panel-2))); color:var(--ok); box-shadow:none; font-weight:700; letter-spacing:.04em; text-decoration:none; text-transform:uppercase; white-space:nowrap;}
+.live-playing-link::before{content:"◈"; font-size:.8em; line-height:1;}
+.live-playing-link:hover{border-color:var(--ok); background:color-mix(in srgb,var(--ok) 14%,var(--key,var(--panel-2))); color:var(--ok);}
+.topbar .live-playing-link{padding:8px 14px; font-size:12.5px;}
+.tabs .live-playing-link{padding:7px 14px; font-size:12px;}
+#panelTransport .live-playing-link{padding:6px 12px; font-size:10.5px;}
 .seq-track{
   display:flex; gap:8px; overflow-x:auto; padding:6px 2px 12px; min-height:132px; align-items:stretch;
 }
@@ -1196,7 +1200,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <h1>PATTERN-MACHINE</h1>
     <div class="topbar-controls">
       <span class="topbar-guides">
-        <a class="linkbtn" href="index.html?live=1" title="Open the focused live playing surface for drums and synth">Live Playing</a>
+        <a class="linkbtn live-playing-link" href="index.html?live=1" title="Open the focused Live Playing surface for drums and synth">Live Playing</a>
         <a class="linkbtn help-link" href="funzioni.html" title="Complete guide to every PATTERN-MACHINE feature">Complete guide</a>
         <a class="linkbtn learn-link" href="learn/index.html" title="Learn drum machine programming with hands-on lessons">Learn drum machine programming</a>
       </span>
@@ -1263,7 +1267,6 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <button id="viewSeq" role="tab" aria-selected="false" aria-controls="panelSeq">Sequencer</button>
     <button id="viewSampler" role="tab" aria-selected="false" aria-controls="panelSampler" title="Import or record local sounds for your patterns">Sampler</button>
     <button id="viewMix" role="tab" aria-selected="false" aria-controls="panelMix" title="Levels, pan, meters and the master limiter">Mixer</button>
-    <a class="live-playing-tab" href="index.html?live=1" title="Open the Live Playing Interface">Live Playing</a>
   </div>
 
   <div class="panel" id="machinePanel">
@@ -1331,6 +1334,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
   <div class="panel" id="panelTransport">
     <div class="transport-primary">
       <button id="playBtn" title="Play (space bar)"><span class="ico">&#9654;</span> Play</button>
+      <a class="live-playing-link" href="index.html?live=1" title="Open the focused Live Playing surface for drums and synth">Live Playing</a>
       <button id="stopBtn" type="button" title="Stop and return to the start" disabled>■ Stop</button>
       <div class="transport-mode" role="group" aria-label="Playback mode">
         <button type="button" id="modePatternBtn" class="on" aria-pressed="true">Pattern</button>
@@ -4122,6 +4126,21 @@ function insertSynthBlock(block){
 function addPatternToSong(p){
   const b={id:uid(), patternId:p.id, repeats:1, section:"verse"};
   project.song.push(b); ui.blockId=b.id;
+}
+let patternSequencerOfferOpen=false;
+async function offerPatternToSequencer(p){
+  if(!p || patternSequencerOfferOpen) return false;
+  patternSequencerOfferOpen=true;
+  try{
+    const yes=await ask({
+      title:"Add to Sequencer?",
+      message:`Also add “${p.name}” as a new pattern block in the Sequencer?`,
+      ok:"Add to Sequencer",
+      cancel:"Only replace pattern"
+    });
+    if(!yes) return false;
+    pushUndo(); addPatternToSong(p); renderSong(); setStatus(`pattern added to Sequencer: ${p.name}`); return true;
+  }finally{ patternSequencerOfferOpen=false; }
 }
 // Con la corsia vuota il pattern del synth aperto girava sotto tutta la canzone: prima di aggiungere il nuovo
 // diventa un blocco vero, lungo quanto la canzone, cosi' continua a suonare.
@@ -7081,6 +7100,7 @@ async function applyLibrary(item, asNew){
   ui.patternId=pat.id; el("pLen").value=pat.len;
   renderAll(); closeLib();
   setStatus((asNew?"added: ":"loaded: ")+item.name);
+  if(!asNew) void offerPatternToSequencer(pat);
 }
 
 // Un pulsante delle righe della libreria.

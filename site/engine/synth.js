@@ -890,6 +890,25 @@
     notes.forEach(x => { x.l = clamp(Math.round(x.l || 1), 1, len - x.s); if (x.g && x.s + x.l >= len) delete x.g; x.k = k; });
     return notes.sort((a, b) => a.s - b.s || a.n - b.n);
   }
+  function addSynthToSequencer(sp = curSynth()) {
+    if (!sp || !sp.synth?.length) { setStatus("empty synth pattern: add notes before sending it to the Sequencer", "err"); return false; }
+    if (typeof addSynthToSong !== "function") { setStatus("Sequencer is not available", "err"); return false; }
+    pushUndo(); addSynthToSong(sp); setStatus(`synth pattern added to Sequencer: ${sp.name}`); return true;
+  }
+  let synthSequencerOfferOpen = false;
+  async function offerSynthToSequencer(sp = curSynth()) {
+    if (!sp || !sp.synth?.length || synthSequencerOfferOpen || typeof ask !== "function") return false;
+    synthSequencerOfferOpen = true;
+    try {
+      const yes = await ask({
+        title: "Add to Sequencer?",
+        message: `Also add “${sp.name}” as a new synth block in the Sequencer?`,
+        ok: "Add to Sequencer",
+        cancel: "Only in Synth",
+      });
+      return yes ? addSynthToSequencer(sp) : false;
+    } finally { synthSequencerOfferOpen = false; }
+  }
   // Le variazioni attive nel pattern aperto: i generatori di cui restano note.
   const activeGens = () => new Set(curSynth().synth.map(x => x.k).filter(k => GENERATORS[k]));
   // Spegne una variazione: toglie dal pattern le note che quel generatore ha scritto (il resto non si tocca).
@@ -912,6 +931,7 @@
     view.gen = { ...o, last: k }; saveView(); paintGen();
     centerOn(pat); renderRoll();
     setStatus(`synth: ${g.group.toLowerCase()} · ${g.label.toLowerCase()} in ${NOTE_NAMES[keyOf()]} ${SCALES[scaleOf()][0].toLowerCase()}${o.add ? " (added)" : ""}`);
+    void offerSynthToSequencer(pat);
   }
 
   // Variazioni del synth: trasformano la linea aperta senza cambiare lunghezza o tonalita'.
@@ -1168,6 +1188,7 @@
         const sp = curSynth(); forgetSynthVariation(); pushUndo(); ensure();
         sp.len = item.len; sp.synth = item.notes.map(n => ({ ...n }));
         closeLib(); paintPatternBar(); centerOn(sp); renderRoll(); setStatus(`synth: ${g.label.toLowerCase()} loaded in ${sp.name}`);
+        void offerSynthToSequencer(sp);
       };
       const add = document.createElement("button"); add.type = "button"; add.className = "mini"; add.textContent = "Add as new";
       add.title = "add it as a new synth pattern";
@@ -1496,6 +1517,11 @@
 .syn-pattern-actions{display:grid; grid-template-columns:repeat(2,minmax(92px,1fr)); grid-template-rows:repeat(2,auto); gap:6px;}
 .syn-pattern-actions button{width:100%; min-width:92px;}
 .syn-steps-field{display:inline-flex; align-items:center; gap:6px;}
+.synth-notes-head{display:flex; align-items:center; gap:8px;}
+.synth-notes-head>span:first-child{min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.synth-notes-head .synth-beta{flex:0 0 auto;}
+.synth-notes-head .synth-add-seq{margin-left:auto; flex:0 0 auto; color:var(--ok); border-color:color-mix(in srgb,var(--ok) 70%,var(--edge));}
+.synth-notes-head .synth-add-seq:hover{border-color:var(--ok); color:var(--ok);}
 .syn-steps-menu{min-width:74px;}
 .syn-steps-menu summary{justify-content:space-between; gap:12px; min-height:32px; padding:7px 9px; font-size:10px; letter-spacing:.04em; text-transform:none;}
 .syn-steps-menu summary::after{content:"▾"; color:var(--accent);}
@@ -1554,7 +1580,7 @@
       <div class="lib-locks syn-vary-panel" id="synVaryPanel" hidden></div>`;
     el("synthEnginePanel").hidden = el("synthPatternPanel").hidden = el("panelSynth").hidden;
     el("panelSynth").innerHTML = `
-      <h2>Notes <span id="synPatName"></span><span class="synth-beta">test</span></h2>
+      <h2 class="synth-notes-head"><span>Notes <span id="synPatName"></span></span><span class="synth-beta">test</span><button id="synAddToSeq" class="mini synth-add-seq" type="button" title="Add this synth pattern as a new block in the Sequencer">＋ Add to sequencer</button></h2>
       <div class="flexline">
         <button id="synOn" class="mini on" type="button" aria-pressed="true" title="Mute or unmute the synth in playback and exports">On</button>
         <button id="synSolo" class="mini" type="button" aria-pressed="false" title="Play the synth without the drums">Solo</button>
@@ -1711,6 +1737,7 @@
     el("synMidiIn").onclick = () => window.PMMidi && PMMidi.toggle();
     if (window.PMMidi) PMMidi.paint();
     el("synPanic").onclick = () => allOff();
+    el("synAddToSeq").onclick = () => addSynthToSequencer();
     wireRoll();
     wireKeyboard();
     paintTap();
@@ -1736,6 +1763,12 @@
     el("synKey").value = keyOf(); el("synScale").value = scaleOf();
     el("synFold").checked = !!view.fold;
     el("synPatName").textContent = "— " + curSynth().name;
+    const add = el("synAddToSeq");
+    if (add) {
+      const hasNotes = !!curSynth()?.synth?.length;
+      add.disabled = !hasNotes;
+      add.title = hasNotes ? "Add this synth pattern as a new block in the Sequencer" : "Add notes to this synth pattern before sending it to the Sequencer";
+    }
     paintPatternBar();
   }
 

@@ -902,7 +902,6 @@ button.danger-fill{background:var(--danger); border-color:var(--danger); color:#
 .live-playing-link:hover{border-color:var(--ok); background:color-mix(in srgb,var(--ok) 14%,var(--key,var(--panel-2))); color:var(--ok);}
 .topbar .live-playing-link{padding:8px 14px; font-size:12.5px;}
 .tabs .live-playing-link{padding:7px 14px; font-size:12px;}
-#panelTransport .live-playing-link{padding:6px 12px; font-size:10.5px;}
 .seq-track{
   display:flex; gap:8px; overflow-x:auto; padding:6px 2px 12px; min-height:132px; align-items:stretch;
 }
@@ -1267,6 +1266,45 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <button id="viewSeq" role="tab" aria-selected="false" aria-controls="panelSeq">Sequencer</button>
     <button id="viewSampler" role="tab" aria-selected="false" aria-controls="panelSampler" title="Import or record local sounds for your patterns">Sampler</button>
     <button id="viewMix" role="tab" aria-selected="false" aria-controls="panelMix" title="Levels, pan, meters and the master limiter">Mixer</button>
+    <a class="live-playing-link" href="index.html?live=1" title="Open the focused Live Playing surface for drums and synth">Live Playing</a>
+  </div>
+
+  <div class="panel" id="panelTransport">
+    <div class="transport-primary">
+      <button id="playBtn" title="Play (space bar)"><span class="ico">&#9654;</span> Play</button>
+      <button id="stopBtn" type="button" title="Stop and return to the start" disabled>■ Stop</button>
+      <div class="transport-mode" role="group" aria-label="Playback mode">
+        <button type="button" id="modePatternBtn" class="on" aria-pressed="true">Pattern</button>
+        <button type="button" id="modeSongBtn" aria-pressed="false">Song</button>
+      </div>
+      <button id="synthPlayBtn" type="button" hidden title="Play"><span class="ico">&#9654;</span> Play</button>
+      <button id="drumsPlayBtn" type="button" hidden title="Play"><span class="ico">&#9654;</span> Play</button>
+      <button id="loopBtn" class="mini" type="button" aria-pressed="true" title="Loop pattern on">Loop</button>
+        <label class="fld" title="Metronome count-in before playback and recording">Count-in
+        <select id="countInSelect" aria-label="Count-in"><option value="0">Off</option><option value="1">1 bar</option><option value="2">2 bars</option></select>
+      </label>
+      <button id="recBtn"><span class="rec-dot" aria-hidden="true">&#9679;</span> Rec</button>
+      <button id="metronomeBtn" class="mini" type="button" aria-label="Metronome on/off" aria-pressed="false" title="Metronome on/off"><svg class="metro-ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.5h4l5.5 17h-15z"/><path d="M7.2 15.5h9.6" stroke-width="1.3"/><g class="rod"><path d="M12 19V2.5"/><rect x="10.2" y="7" width="3.6" height="2.6" rx=".6" fill="currentColor" stroke="none"/></g></svg></button>
+      <label class="fld transport-bpm">BPM
+        <input type="range" id="bpmRange" min="40" max="240" value="95">
+        <input type="number" id="bpmNum" min="40" max="240" value="95">
+      </label>
+      <button id="tapBtn" class="mini" aria-label="Tap tempo" title="Tap tempo">Tap</button>
+    </div>
+    <div class="transport-secondary">
+      <div class="transport-extra">
+        <span class="feel-group"><label class="fld" title="MPC-style swing: 50% straight, 66% triplet feel, 75% maximum">Swing <input type="range" id="swingRange" min="0" max="100" value="0"> <span id="swingPct" class="tiny">50%</span></label>
+        <label class="fld" title="humanize: small random variations in timing (up to 10 ms) and velocity (up to 15%)">Humanize <input type="range" id="humanRange" min="0" max="100" value="0"> <span id="humanPct" class="tiny">0%</span></label></span>
+        <div class="vol-group" role="group" aria-label="Volumes">
+          <span class="vol-ch"><label class="fld" title="Volume of the drums (saved in the project)">Drums <input type="range" id="drumsVol" min="0" max="100" value="100"></label>
+            <button type="button" id="drumsMuteBtn" class="chip-btn m" aria-pressed="false" title="Mute the drums" aria-label="Mute drums">M</button><button type="button" id="drumsSoloBtn" class="chip-btn s" aria-pressed="false" title="Solo the drums: the synth stays silent" aria-label="Solo drums">S</button></span>
+          <span class="vol-ch"><label class="fld" title="Volume of the synth (saved in the project)">Synth <input type="range" id="synthVol" min="0" max="100" value="100"></label>
+            <button type="button" id="synthMuteBtn" class="chip-btn m" aria-pressed="false" title="Mute the synth (also in exports)" aria-label="Mute synth">M</button><button type="button" id="synthSoloBtn" class="chip-btn s" aria-pressed="false" title="Solo the synth: the drums stay silent" aria-label="Solo synth">S</button></span>
+          <label class="fld" title="General volume: drums, synth and metronome">General <input type="range" id="masterVol" min="0" max="100" value="85"></label>
+        </div>
+        <div class="counter" id="counter" role="status" aria-live="polite">1 . 1</div>
+      </div>
+    </div>
   </div>
 
   <div class="panel" id="machinePanel">
@@ -1327,48 +1365,9 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <div class="lib-locks" id="pVaryPanel" hidden></div>
   </div>
 
-  <!-- Synthesizer: Engine e Pattern stanno sopra Play come Drum Machine e Pattern della batteria (li riempie engine/synth.js) -->
+  <!-- Synthesizer: Engine e Pattern (li riempie engine/synth.js) -->
   <div class="panel" id="synthEnginePanel" hidden></div>
   <div class="panel" id="synthPatternPanel" hidden></div>
-
-  <div class="panel" id="panelTransport">
-    <div class="transport-primary">
-      <button id="playBtn" title="Play (space bar)"><span class="ico">&#9654;</span> Play</button>
-      <a class="live-playing-link" href="index.html?live=1" title="Open the focused Live Playing surface for drums and synth">Live Playing</a>
-      <button id="stopBtn" type="button" title="Stop and return to the start" disabled>■ Stop</button>
-      <div class="transport-mode" role="group" aria-label="Playback mode">
-        <button type="button" id="modePatternBtn" class="on" aria-pressed="true">Pattern</button>
-        <button type="button" id="modeSongBtn" aria-pressed="false">Song</button>
-      </div>
-      <button id="synthPlayBtn" type="button" hidden title="Play"><span class="ico">&#9654;</span> Play</button>
-      <button id="drumsPlayBtn" type="button" hidden title="Play"><span class="ico">&#9654;</span> Play</button>
-      <button id="loopBtn" class="mini" type="button" aria-pressed="true" title="Loop pattern on">Loop</button>
-        <label class="fld" title="Metronome count-in before playback and recording">Count-in
-        <select id="countInSelect" aria-label="Count-in"><option value="0">Off</option><option value="1">1 bar</option><option value="2">2 bars</option></select>
-      </label>
-      <button id="recBtn"><span class="rec-dot" aria-hidden="true">&#9679;</span> Rec</button>
-      <button id="metronomeBtn" class="mini" type="button" aria-label="Metronome on/off" aria-pressed="false" title="Metronome on/off"><svg class="metro-ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.5h4l5.5 17h-15z"/><path d="M7.2 15.5h9.6" stroke-width="1.3"/><g class="rod"><path d="M12 19V2.5"/><rect x="10.2" y="7" width="3.6" height="2.6" rx=".6" fill="currentColor" stroke="none"/></g></svg></button>
-      <label class="fld transport-bpm">BPM
-        <input type="range" id="bpmRange" min="40" max="240" value="95">
-        <input type="number" id="bpmNum" min="40" max="240" value="95">
-      </label>
-      <button id="tapBtn" class="mini" aria-label="Tap tempo" title="Tap tempo">Tap</button>
-    </div>
-    <div class="transport-secondary">
-      <div class="transport-extra">
-        <span class="feel-group"><label class="fld" title="MPC-style swing: 50% straight, 66% triplet feel, 75% maximum">Swing <input type="range" id="swingRange" min="0" max="100" value="0"> <span id="swingPct" class="tiny">50%</span></label>
-        <label class="fld" title="humanize: small random variations in timing (up to 10 ms) and velocity (up to 15%)">Humanize <input type="range" id="humanRange" min="0" max="100" value="0"> <span id="humanPct" class="tiny">0%</span></label></span>
-        <div class="vol-group" role="group" aria-label="Volumes">
-          <span class="vol-ch"><label class="fld" title="Volume of the drums (saved in the project)">Drums <input type="range" id="drumsVol" min="0" max="100" value="100"></label>
-            <button type="button" id="drumsMuteBtn" class="chip-btn m" aria-pressed="false" title="Mute the drums" aria-label="Mute drums">M</button><button type="button" id="drumsSoloBtn" class="chip-btn s" aria-pressed="false" title="Solo the drums: the synth stays silent" aria-label="Solo drums">S</button></span>
-          <span class="vol-ch"><label class="fld" title="Volume of the synth (saved in the project)">Synth <input type="range" id="synthVol" min="0" max="100" value="100"></label>
-            <button type="button" id="synthMuteBtn" class="chip-btn m" aria-pressed="false" title="Mute the synth (also in exports)" aria-label="Mute synth">M</button><button type="button" id="synthSoloBtn" class="chip-btn s" aria-pressed="false" title="Solo the synth: the drums stay silent" aria-label="Solo synth">S</button></span>
-          <label class="fld" title="General volume: drums, synth and metronome">General <input type="range" id="masterVol" min="0" max="100" value="85"></label>
-        </div>
-        <div class="counter" id="counter" role="status" aria-live="polite">1 . 1</div>
-      </div>
-    </div>
-  </div>
 
   <div class="panel" id="panelGrid" role="tabpanel" aria-label="Drum Grid">
     <h2 id="gridTitle">Grid</h2>

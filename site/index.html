@@ -190,6 +190,8 @@ html[data-live="1"] #liveView{display:flex; min-height:calc(100vh - 68px); flex-
 .live-head-actions{display:flex; align-items:center; flex-wrap:wrap; justify-content:flex-end; gap:8px;}
 .live-head-actions a{font-size:10px; color:var(--text-dim); text-decoration:none; border-bottom:1px solid var(--edge); padding:6px 0;}
 .live-head-actions a:hover{color:var(--text); border-color:var(--accent);}
+.live-head-actions .live-return{background:var(--key-primary,var(--accent)); color:var(--on-accent); border-color:var(--accent-dim); font-weight:700;}
+.live-head-actions .live-return:hover{color:var(--on-accent); border-color:var(--accent); filter:brightness(1.06);}
 .live-state{display:inline-flex; align-items:center; gap:7px; color:var(--text-faint); font-size:10px; white-space:nowrap;}
 .live-state::before{content:""; width:7px; height:7px; border-radius:50%; background:var(--text-faint);}
 .live-state.ready{color:var(--ok);}.live-state.ready::before{background:var(--ok); box-shadow:0 0 0 3px color-mix(in srgb,var(--ok) 18%,transparent);}
@@ -1158,14 +1160,16 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
   <section id="liveView" aria-labelledby="liveTitle" hidden>
     <header class="live-head">
       <div>
-        <div class="live-kicker">PATTERN-MACHINE · LIVE PLAYING</div>
+        <div class="live-kicker">PATTERN-MACHINE · LIVE PLAYING INTERFACE</div>
         <h1 id="liveTitle">Play an instrument</h1>
         <p class="live-lead">A focused surface for playing live. Choose an instrument, touch a pad or play the keyboard.</p>
       </div>
       <div class="live-head-actions">
         <span class="live-state" id="livePlayingState">Click a control to start live playing</span>
-        <button type="button" id="liveThemeBtn" class="mini" aria-label="Switch theme">Theme</button>
-        <a href="./" title="Open the full PatternMachine studio">Full studio ↗</a>
+        <button type="button" class="theme-toggle" id="liveThemeBtn" role="switch" aria-checked="false" aria-label="Dark theme" title="Switch between light and dark theme">
+          <span class="tt-side tt-light">Light</span><span class="tt-track" aria-hidden="true"><span class="tt-knob"></span></span><span class="tt-side tt-dark">Dark</span>
+        </button>
+        <a class="linkbtn live-return" href="./" title="Return to the full PatternMachine studio">Return to Full studio ↗</a>
       </div>
     </header>
     <div class="panel live-shell">
@@ -1788,22 +1792,22 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-10-06.5"></script>
-<script src="engine/core.js?v=2026-10-06.5"></script>
-<script src="engine/styles-punk.js?v=2026-10-06.5"></script>
-<script src="engine/styles-post.js?v=2026-10-06.5"></script>
-<script src="engine/styles-machines.js?v=2026-10-06.5"></script>
-<script src="engine/styles-alt.js?v=2026-10-06.5"></script>
-<script src="engine/styles-groove.js?v=2026-10-06.5"></script>
-<script src="engine/styles-dub.js?v=2026-10-06.5"></script>
-<script src="engine/styles-break.js?v=2026-10-06.5"></script>
-<script src="engine/styles-soul.js?v=2026-10-06.5"></script>
-<script src="engine/styles-metal.js?v=2026-10-06.5"></script>
-<script src="engine/styles-electro.js?v=2026-10-06.5"></script>
-<script src="engine/variations.js?v=2026-10-06.5"></script>
-<script src="engine/import.js?v=2026-10-06.5"></script>
-<script src="engine/rhythm.js?v=2026-10-06.5"></script>
-<script src="engine/share.js?v=2026-10-06.5"></script>
+<script src="engine/machine-art.js?v=2026-10-06.6"></script>
+<script src="engine/core.js?v=2026-10-06.6"></script>
+<script src="engine/styles-punk.js?v=2026-10-06.6"></script>
+<script src="engine/styles-post.js?v=2026-10-06.6"></script>
+<script src="engine/styles-machines.js?v=2026-10-06.6"></script>
+<script src="engine/styles-alt.js?v=2026-10-06.6"></script>
+<script src="engine/styles-groove.js?v=2026-10-06.6"></script>
+<script src="engine/styles-dub.js?v=2026-10-06.6"></script>
+<script src="engine/styles-break.js?v=2026-10-06.6"></script>
+<script src="engine/styles-soul.js?v=2026-10-06.6"></script>
+<script src="engine/styles-metal.js?v=2026-10-06.6"></script>
+<script src="engine/styles-electro.js?v=2026-10-06.6"></script>
+<script src="engine/variations.js?v=2026-10-06.6"></script>
+<script src="engine/import.js?v=2026-10-06.6"></script>
+<script src="engine/rhythm.js?v=2026-10-06.6"></script>
+<script src="engine/share.js?v=2026-10-06.6"></script>
 <script>
 // Script principale di PATTERN-MACHINE: stato del progetto, audio, trasporto e interfaccia della pagina.
 // Il motore ritmico (SPEngine), i tempi (PMRhythm), import, link e gli altri moduli stanno in engine/*.js.
@@ -4652,7 +4656,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || el("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-06.5";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-06.6";
   document.body.appendChild(s);
 }
 if(LIVE_VIEW || (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth"))) loadSynth();
@@ -7551,7 +7555,6 @@ loadSharedProject();
   el("liveSynthTab").onclick=()=>setInstrument("synth");
   el("livePanic").onclick=()=>{ stopHeld(); stopLiveAudio(); window.PMSynth?.allOff?.(); state("Live playing stopped"); };
   el("liveMasterRange").oninput=e=>{ el("masterVol").value=e.target.value; el("masterVol").dispatchEvent(new Event("input")); el("liveMasterOut").textContent=e.target.value+"%"; };
-  el("liveThemeBtn").onclick=()=>el("themeToggle").click();
   el("livePresetSelect").onchange=e=>{ const src=el("synPreset"); if(!src) return; src.value=e.target.value; src.dispatchEvent(new Event("change")); el("livePresetName").textContent=e.target.value; };
   window.addEventListener("keydown",e=>{
     if(e.metaKey||e.ctrlKey||e.altKey) return;
@@ -7600,26 +7603,26 @@ window.addEventListener("resize",()=>{
 // ---------- tema chiaro / scuro ----------
 // Di default Chiaro; l'interruttore passa a Scuro. Il tema forza i token e la barra del browser.
 (function themeSwitch(){
-  const KEY="sp1200.theme", root=document.documentElement, toggle=el("themeToggle");
+  const KEY="sp1200.theme", root=document.documentElement, toggles=[...document.querySelectorAll(".theme-toggle")];
   const metas=[...document.querySelectorAll('meta[name="theme-color"]')];
   function apply(choice){
     root.dataset.theme=choice;
-    toggle.setAttribute("aria-checked",String(choice==="dark"));
+    toggles.forEach(toggle=>toggle.setAttribute("aria-checked",String(choice==="dark")));
     metas.forEach(m=>m.setAttribute("content", cssToken("--bg")));
   }
   // una vecchia scelta "auto" (tolta) torna al chiaro
   let choice=storeGet(KEY)==="dark"?"dark":"light";
   apply(choice);
-  toggle.onclick=()=>{
+  toggles.forEach(toggle=>toggle.onclick=()=>{
     choice=choice==="dark"?"light":"dark";
     storeSet(KEY,choice);
     apply(choice);
-  };
+  });
 })();
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-10-06.5";
+const SW_VERSION="2026-10-06.6";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -7643,11 +7646,11 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sample-editor.js?v=2026-10-06.5"></script>
-<script src="engine/sampler.js?v=2026-10-06.5"></script>
-<script src="engine/vocal.js?v=2026-10-06.5"></script>
+<script src="engine/sample-editor.js?v=2026-10-06.6"></script>
+<script src="engine/sampler.js?v=2026-10-06.6"></script>
+<script src="engine/vocal.js?v=2026-10-06.6"></script>
 <script>PMSampler.init(); PMVocal.init();</script>
-<script src="engine/midi.js?v=2026-10-06.5"></script>
+<script src="engine/midi.js?v=2026-10-06.6"></script>
 <script>
   (function openStrudelWindow(){
     const link=document.getElementById("liveCodingLink");

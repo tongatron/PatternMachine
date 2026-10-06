@@ -213,13 +213,13 @@ html[data-live="1"] #liveView{display:flex; height:100%; min-height:0; flex-dire
 .live-stage-title{margin:0; font-size:13px; letter-spacing:.14em; text-transform:uppercase;}
 .live-stage-note{color:var(--text-faint); font-size:10px; text-align:right;}
 .live-panel[hidden]{display:none!important;}
-.live-pads{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:clamp(5px,1vw,12px); width:min(760px,100%); margin:auto;}
-.live-pad{aspect-ratio:1.35; min-height:0; display:flex; flex-direction:column; align-items:flex-start; justify-content:flex-end; gap:7px; padding:clamp(8px,1.5vw,18px); border-radius:clamp(8px,1.2vw,14px); background:linear-gradient(145deg,var(--panel-3),var(--panel-2)); border:1px solid var(--edge); box-shadow:0 5px 0 color-mix(in srgb,var(--edge) 62%,transparent),0 12px 24px rgba(0,0,0,.2); text-align:left;}
+.live-pads{display:grid; grid-template-columns:repeat(8,minmax(0,1fr)); gap:clamp(6px,1vw,12px); width:min(1160px,100%); margin:auto;}
+.live-pad{aspect-ratio:1.6; min-height:0; display:flex; flex-direction:column; align-items:flex-start; justify-content:flex-end; gap:5px; padding:clamp(8px,1.1vw,15px); border-radius:clamp(8px,1.2vw,14px); background:linear-gradient(145deg,var(--panel-3),var(--panel-2)); border:1px solid var(--edge); box-shadow:0 4px 0 color-mix(in srgb,var(--edge) 62%,transparent),0 8px 18px rgba(0,0,0,.18); text-align:left;}
 .live-pad:hover{border-color:var(--text-faint); transform:translateY(-1px);}
 .live-pad:active,.live-pad.hit{background:linear-gradient(145deg,var(--accent),var(--accent-dim)); border-color:var(--accent); color:var(--on-accent); box-shadow:0 2px 0 color-mix(in srgb,var(--accent-dim) 80%,#000),0 8px 22px color-mix(in srgb,var(--accent) 28%,transparent); transform:translateY(3px);}
 .live-pad-key{font-size:11px; font-weight:800; color:var(--accent); letter-spacing:.1em; text-transform:uppercase;}
 .live-pad.hit .live-pad-key{color:inherit;}
-.live-pad-name{font-size:clamp(11px,1.5vw,14px); font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;}
+.live-pad-name{font-size:clamp(10px,1.1vw,13px); font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;}
 .live-synth-wrap{display:flex; flex:1 1 auto; flex-direction:column; justify-content:center; gap:16px; width:min(1000px,100%); margin:auto;}
 .live-synth-meta{display:flex; align-items:center; gap:10px; color:var(--text-dim); font-size:10px;}
 .live-synth-meta strong{color:var(--text); font-size:12px;}
@@ -235,8 +235,9 @@ html[data-live="1"] #liveView{display:flex; height:100%; min-height:0; flex-dire
 @media (max-width:700px){
   html[data-live="1"] body{padding:10px;}.live-head{align-items:flex-start; flex-direction:column; gap:8px;}.live-head-actions{justify-content:flex-start;}.live-lead{margin-top:4px;}
   html[data-live="1"] #liveView{height:100%; min-height:0;}.live-stage{padding:10px 8px;}.live-toolbar{gap:7px;}.live-field select{min-width:140px;}.live-spacer{display:none;}.live-panic{margin-left:auto;}
-  .live-pads{gap:6px;}.live-pad{padding:8px;}.live-keyboard{height:clamp(100px,25vh,190px);}.live-help,.live-foot{flex-direction:column;}
+  .live-pads{grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px;}.live-pad{padding:8px;}.live-keyboard{height:clamp(100px,25vh,190px);}.live-help,.live-foot{flex-direction:column;}
 }
+@media (min-width:701px) and (max-width:1000px){.live-pads{grid-template-columns:repeat(6,minmax(0,1fr));}}
 
 .topbar{display:grid; grid-template-columns:minmax(0,1fr) auto; grid-template-areas:"title account" "controls controls"; align-items:baseline; gap:10px 16px; margin-bottom:12px;}
 .topbar h1{grid-area:title;}
@@ -7590,7 +7591,9 @@ loadSharedProject();
   }
   el("liveDrumsTab").onclick=()=>setInstrument("drums");
   el("liveSynthTab").onclick=()=>setInstrument("synth");
-  el("liveDrumSourceSelect").onchange=e=>{ liveDrumSource=e.target.value; paintPads(); };
+  const focusDrumKeys=()=>{ if(instrument==="drums") el("liveDrumsTab").focus({preventScroll:true}); };
+  el("liveDrumSourceSelect").onchange=e=>{ liveDrumSource=e.target.value; paintPads(); focusDrumKeys(); };
+  el("liveKitSelect").addEventListener("change",focusDrumKeys);
   el("livePanic").onclick=()=>{ stopHeld(); stopLiveAudio(); window.PMSynth?.allOff?.(); state("Live playing stopped"); };
   el("liveMasterRange").oninput=e=>{ const value=e.target.value; el("masterVol").value=value; el("masterVol").dispatchEvent(new Event("input")); el("liveMasterOut").textContent=value+"%"; };
   el("livePresetSelect").onchange=e=>{ const src=el("synPreset"); if(!src) return; src.value=e.target.value; src.dispatchEvent(new Event("change")); el("livePresetName").textContent=e.target.value; };
@@ -7621,6 +7624,7 @@ loadSharedProject();
   window.__pmLiveRefresh=()=>{ paintPads(); syncSynthSettings(); syncPreset(); buildKeyboard(); };
   window.addEventListener("pm:project-loaded",()=>window.__pmLiveRefresh?.());
   paintPads(); syncSynthSettings(); buildKeyboard(); state("Click a control to start live playing");
+  setTimeout(focusDrumKeys,0);
   setTimeout(()=>syncPreset(),120);
 })();
 

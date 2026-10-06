@@ -650,6 +650,10 @@
   // Ogni generatore riceve il pattern e restituisce le note {s, n, l, a?, g?}. Seguono il giro di accordi scelto
   // (gradi della scala), la densita' (rndD) e l'ottava; runGenerator() pulisce, somma o sostituisce la linea.
   const scaleNotes = () => SCALES[scaleOf()][1];
+  const liveSettings = () => {
+    const scale=scaleOf();
+    return {key:keyOf(), scale, scaleName:SCALES[scale][0], notes:scaleNotes().slice(), noteNames:NOTE_NAMES.slice(), preset:project.synth?.preset||DEFAULT_PRESET};
+  };
   const degree = (d, root) => {           // grado della scala (anche negativo o oltre l'ottava) -> nota MIDI
     const sc = scaleNotes(), L = sc.length;
     return root + sc[((d % L) + L) % L] + 12 * Math.floor(d / L);
@@ -2356,7 +2360,7 @@
     unitsSent: [...unitsSent], unitsReady: [...unitsReady], unitErrors: unitErrors.slice(-3),
     samplesSent: [...samplesSent.keys()], samplesReady: [...samplesReady] });
 
-  window.PMSynth = { step, allOff, show, paint: paintTop, setAllowed, renamePattern: renameSynth, renderOffline, hasNotes, exportMidi, level, debug, midiNote, liveNote: midiNote, knob, knobTargets, currentPattern: () => curSynth(),
+  window.PMSynth = { step, allOff, show, paint: paintTop, setAllowed, renamePattern: renameSynth, renderOffline, hasNotes, exportMidi, level, debug, midiNote, liveNote: midiNote, liveSettings, knob, knobTargets, currentPattern: () => curSynth(),
     useSample, refreshSample };
   setAllowed(true);
   window.paintGroupMS?.();   // M/S del synth nel trasporto: compaiono ora che il synth c'e'

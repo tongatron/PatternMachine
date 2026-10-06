@@ -197,6 +197,39 @@ html[data-live="1"] #liveView{display:flex; min-height:calc(100vh - 68px); flex-
 .live-state.ready{color:var(--ok);}.live-state.ready::before{background:var(--ok); box-shadow:0 0 0 3px color-mix(in srgb,var(--ok) 18%,transparent);}
 .live-shell{display:flex; flex:1 1 auto; flex-direction:column; min-height:0; margin:0; padding:0; overflow:hidden;}
 .live-toolbar{display:flex; align-items:center; flex-wrap:wrap; gap:10px; padding:13px 15px; border-bottom:1px solid var(--edge-soft); background:var(--panel-2);}
+.live-view-tabs{display:flex; gap:3px; padding:3px; border:1px solid var(--edge); border-radius:var(--r-key,6px); background:var(--panel-3);}
+.live-view-tabs button{min-width:84px; border:0; box-shadow:none; background:transparent; color:var(--text-dim); font-weight:700;}
+.live-view-tabs button.on{background:var(--key-primary,var(--accent)); color:var(--on-accent); font-weight:800;}
+.live-play-controls{display:flex; align-items:center; flex-wrap:wrap; gap:10px;}
+.live-page-panel{padding:12px;}
+.live-page-head{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px;}
+.live-page-head h3{margin:0; font-size:15px; letter-spacing:.05em;}
+.live-page-meta{color:var(--text-faint); font:11px var(--mono);}
+.live-page-actions{display:flex; align-items:center; flex-wrap:wrap; gap:8px;}
+.live-page-actions button,.live-seq-add,.live-seq-card-actions button,.live-mix-ms button{border:1px solid var(--edge); border-radius:var(--r-key,6px); background:var(--panel-3); color:var(--text); padding:7px 10px; font:700 11px var(--mono); cursor:pointer;}
+.live-page-actions button.primary,.live-seq-add{background:var(--key-primary,var(--accent)); border-color:var(--accent-dim); color:var(--on-accent);}
+.live-page-actions button:hover,.live-seq-add:hover,.live-seq-card-actions button:hover,.live-mix-ms button:hover{filter:brightness(1.06); transform:translateY(1px);}
+.live-seq-tools{display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:12px; padding-bottom:12px; border-bottom:1px solid var(--edge-soft);}
+.live-seq-tools select{min-width:170px;}
+.live-seq-track{display:flex; gap:8px; overflow-x:auto; padding:3px 2px 10px;}
+.live-seq-block{min-width:154px; max-width:220px; padding:10px; border:1px solid var(--edge); border-radius:8px; background:var(--panel-3); box-shadow:var(--shadow-sm);}
+.live-seq-block.selected{border-color:var(--accent); box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 20%,transparent);}
+.live-seq-block small{display:block; margin-bottom:5px; color:var(--text-faint); font:10px var(--mono);}
+.live-seq-block strong{display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12px;}
+.live-seq-card-actions{display:flex; align-items:center; justify-content:space-between; gap:6px; margin-top:8px;}
+.live-seq-card-actions button{padding:3px 7px;}
+.live-seq-repeats{color:var(--text-faint); font:11px var(--mono);}
+.live-seq-lane{margin-top:12px;}
+.live-seq-lane-title{display:flex; align-items:center; justify-content:space-between; margin-bottom:5px; color:var(--text-faint); font:700 10px var(--mono); letter-spacing:.08em; text-transform:uppercase;}
+.live-seq-empty{padding:14px; border:1px dashed var(--edge); border-radius:8px; color:var(--text-faint); font:11px var(--mono);}
+.live-mix-grid{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px;}
+.live-mix-channel{padding:12px; border:1px solid var(--edge); border-radius:8px; background:var(--panel-3); box-shadow:var(--shadow-sm);}
+.live-mix-channel h4{margin:0 0 10px; font-size:12px; letter-spacing:.06em;}
+.live-mix-level{display:flex; align-items:center; gap:8px;}
+.live-mix-level input{flex:1; min-width:0;}
+.live-mix-level output{width:38px; color:var(--text-dim); font:11px var(--mono); text-align:right;}
+.live-mix-ms{display:flex; gap:6px; margin-top:10px;}
+.live-mix-ms button.on{background:var(--key-primary,var(--accent)); border-color:var(--accent-dim); color:var(--on-accent);}
 .live-instrument-tabs{display:flex; gap:3px; padding:3px; border:1px solid var(--edge); border-radius:var(--r-key,6px); background:var(--panel-3);}
 .live-instrument-tabs button{min-width:104px; border:0; box-shadow:none; background:transparent;}
 .live-instrument-tabs button.on{background:var(--key-primary,var(--accent)); color:var(--on-accent); font-weight:800;}
@@ -232,7 +265,7 @@ html[data-live="1"] #liveView{display:flex; min-height:calc(100vh - 68px); flex-
 .live-foot{display:flex; justify-content:space-between; gap:12px; color:var(--text-faint); font-size:10px;}
 @media (max-width:700px){
   html[data-live="1"] body{padding:12px;}.live-head{align-items:flex-start; flex-direction:column; gap:14px;}.live-head-actions{justify-content:flex-start;}
-  html[data-live="1"] #liveView{min-height:calc(100vh - 24px);}.live-stage{min-height:0; padding:16px 12px;}.live-toolbar{gap:8px;}.live-field select{min-width:150px;}.live-spacer{display:none;}.live-panic{margin-left:auto;}
+  html[data-live="1"] #liveView{min-height:calc(100vh - 24px);}.live-stage{min-height:0; padding:16px 12px;}.live-toolbar{gap:8px;}.live-field select{min-width:150px;}.live-spacer{display:none;}.live-panic{margin-left:auto;}.live-mix-grid{grid-template-columns:1fr;}
   .live-pads{gap:8px;}.live-pad{min-height:72px; padding:10px;}.live-keyboard{height:clamp(120px,32vh,220px);}.live-help,.live-foot{flex-direction:column;}
 }
 
@@ -1177,27 +1210,54 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     </header>
     <div class="panel live-shell">
       <div class="live-toolbar">
-        <div class="live-instrument-tabs" role="tablist" aria-label="Live instrument">
-          <button type="button" id="liveDrumsTab" class="on" role="tab" aria-selected="true">Drums</button>
-          <button type="button" id="liveSynthTab" role="tab" aria-selected="false">Synth</button>
+        <div class="live-view-tabs" role="tablist" aria-label="Live view">
+          <button type="button" id="livePlayTab" class="on" role="tab" aria-selected="true">Play</button>
+          <button type="button" id="liveSeqTab" role="tab" aria-selected="false">Sequencer</button>
+          <button type="button" id="liveMixTab" role="tab" aria-selected="false">Mixer</button>
         </div>
-        <label class="live-field" id="liveKitField">Kit <select id="liveKitSelect" aria-label="Drum kit"></select></label>
-        <label class="live-field" id="livePresetField" hidden>Preset <select id="livePresetSelect" aria-label="Synth preset"></select></label>
+        <div class="live-play-controls" id="livePlayControls">
+          <div class="live-instrument-tabs" role="tablist" aria-label="Live instrument">
+            <button type="button" id="liveDrumsTab" class="on" role="tab" aria-selected="true">Drums</button>
+            <button type="button" id="liveSynthTab" role="tab" aria-selected="false">Synth</button>
+          </div>
+          <label class="live-field" id="liveDrumSourceField">Source <select id="liveDrumSourceSelect" aria-label="Drum source"><option value="track">Traccia</option><option value="solo">Solo</option></select></label>
+          <label class="live-field" id="liveKitField">Kit <select id="liveKitSelect" aria-label="Drum kit"></select></label>
+          <label class="live-field" id="livePresetField" hidden>Preset <select id="livePresetSelect" aria-label="Synth preset"></select></label>
+        </div>
         <span class="live-spacer"></span>
         <label class="live-field" title="Master output volume">Volume <input type="range" id="liveMasterRange" min="0" max="100" value="85"><output id="liveMasterOut">85%</output></label>
         <button type="button" id="livePanic" class="live-panic" aria-label="Stop all live playing" title="Panic: release every held note and stop all currently playing sound immediately">■ Panic</button>
       </div>
       <div class="live-stage">
-        <div class="live-panel" id="liveDrumsPanel" role="tabpanel" aria-labelledby="liveDrumsTab">
-          <div class="live-stage-head"><h2 class="live-stage-title">Drum pads</h2><span class="live-stage-note" id="liveKitName">SP-1200 · 16 bit</span></div>
-          <div class="live-pads" id="livePads" aria-label="Drum pads"></div>
+        <div class="live-panel" id="livePlayPanel" role="tabpanel" aria-labelledby="livePlayTab">
+          <div class="live-panel" id="liveDrumsPanel" role="tabpanel" aria-labelledby="liveDrumsTab">
+            <div class="live-stage-head"><h2 class="live-stage-title">Drum pads</h2><span class="live-stage-note" id="liveKitName">SP-1200 · 16 bit</span></div>
+            <div class="live-pads" id="livePads" aria-label="Drum pads"></div>
+          </div>
+          <div class="live-panel" id="liveSynthPanel" role="tabpanel" aria-labelledby="liveSynthTab" hidden>
+            <div class="live-synth-wrap">
+              <div class="live-stage-head"><h2 class="live-stage-title">Synth keyboard</h2><span class="live-stage-note">Hold notes to play them</span></div>
+              <div class="live-synth-meta"><strong id="livePresetName">Acid 303</strong><span id="liveScaleName">· C Chromatic</span><span>· computer keys or touch</span></div>
+              <div class="live-keyboard" id="liveKeyboard" aria-label="Synth keyboard"></div>
+              <div class="live-help"><span><kbd>A W S E D F T G Y H U J K O L P ;</kbd> play · <kbd>Z</kbd>/<kbd>X</kbd> octave</span><span>Shift = accent</span></div>
+            </div>
+          </div>
         </div>
-        <div class="live-panel" id="liveSynthPanel" role="tabpanel" aria-labelledby="liveSynthTab" hidden>
-          <div class="live-synth-wrap">
-            <div class="live-stage-head"><h2 class="live-stage-title">Synth keyboard</h2><span class="live-stage-note">Hold notes to play them</span></div>
-            <div class="live-synth-meta"><strong id="livePresetName">Acid 303</strong><span>· computer keys or touch</span></div>
-            <div class="live-keyboard" id="liveKeyboard" aria-label="Synth keyboard"></div>
-            <div class="live-help"><span><kbd>A W S E D F T G Y H U J K O L P ;</kbd> play · <kbd>Z</kbd>/<kbd>X</kbd> octave</span><span>Shift = accent</span></div>
+        <div class="live-panel live-page-panel" id="liveSeqPanel" role="tabpanel" aria-labelledby="liveSeqTab" hidden>
+          <div class="live-page-head"><h3>Song sequencer</h3><span class="live-page-meta" id="liveSeqMeta">0 blocks</span></div>
+          <div class="live-seq-tools">
+            <div class="live-page-actions"><button type="button" class="primary" id="liveSeqPlay">▶ Play song</button><button type="button" id="liveSeqStop">■ Stop</button></div>
+            <select id="liveSeqPattern" aria-label="Pattern to add"></select><button type="button" class="live-seq-add" id="liveSeqAdd">+ Add block</button>
+          </div>
+          <div class="live-seq-lane"><div class="live-seq-lane-title"><span>Drums</span><span>click a block to select</span></div><div class="live-seq-track" id="liveSeqTrack"></div></div>
+          <div class="live-seq-lane"><div class="live-seq-lane-title"><span>Synth</span><span>instrument lane</span></div><div class="live-seq-track" id="liveSynthSeqTrack"></div></div>
+        </div>
+        <div class="live-panel live-page-panel" id="liveMixPanel" role="tabpanel" aria-labelledby="liveMixTab" hidden>
+          <div class="live-page-head"><h3>Quick mixer</h3><span class="live-page-meta">volumes and mute/solo</span></div>
+          <div class="live-mix-grid">
+            <div class="live-mix-channel"><h4>Drums</h4><div class="live-mix-level"><input type="range" id="liveMixDrumsRange" min="0" max="100" value="85"><output id="liveMixDrumsOut">85%</output></div><div class="live-mix-ms"><button type="button" id="liveMixDrumsMute" aria-pressed="false">M Mute</button><button type="button" id="liveMixDrumsSolo" aria-pressed="false">S Solo</button></div></div>
+            <div class="live-mix-channel"><h4>Synth</h4><div class="live-mix-level"><input type="range" id="liveMixSynthRange" min="0" max="100" value="85"><output id="liveMixSynthOut">85%</output></div><div class="live-mix-ms"><button type="button" id="liveMixSynthMute" aria-pressed="false">M Mute</button><button type="button" id="liveMixSynthSolo" aria-pressed="false">S Solo</button></div></div>
+            <div class="live-mix-channel"><h4>Master</h4><div class="live-mix-level"><input type="range" id="liveMixMasterRange" min="0" max="100" value="85"><output id="liveMixMasterOut">85%</output></div><div class="live-mix-ms"><span class="live-page-meta">global output</span></div></div>
           </div>
         </div>
       </div>
@@ -2258,6 +2318,7 @@ function setSampleSet(k,quiet=false){
   const moved=remapUnavailable();
   project.tracks.forEach(t=>loadBuffer(t.sampleIndex));
   renderAll();
+  window.__pmLiveRefresh?.();
   if(!quiet) setStatus(KITS[k].label+(moved?` · ${moved} ${moved===1?"row":"rows"} moved to an equivalent sound`:""));
 }
 
@@ -4933,7 +4994,7 @@ function fillKitOptions(sel){
     if(!x.remote) return;
     fetch(encodeURI(x.url(kick)),{cache:"no-cache"}).then(r=>{ if(!r.ok) throw new Error(r.status); }).catch(()=>{
       x.ok=false;
-      document.querySelectorAll(`#kitSelect option[value="${k}"], #libKitSelect option[value="${k}"]`).forEach(o=>o.remove());
+      document.querySelectorAll(`#kitSelect option[value="${k}"], #libKitSelect option[value="${k}"], #liveKitSelect option[value="${k}"]`).forEach(o=>o.remove());
       if(sampleSet===k) setSampleSet("std");
       paintKitButtons();
     });
@@ -7485,46 +7546,55 @@ loadSharedProject();
   if(!LIVE_VIEW) return;
   const root=el("liveView"), pads=el("livePads"), keyboard=el("liveKeyboard");
   root.hidden=false;
-  let instrument="drums", synthReady=false, liveOctave=3;
+  let instrument="drums", synthReady=false, liveOctave=3, liveDrumSource="track";
+  let liveScaleKey=0, liveScaleName="Chromatic", liveScaleNotes=[0,1,2,3,4,5,6,7,8,9,10,11], liveKeyboardNotes=[];
+  const liveScaleFallback={chromatic:["Chromatic",[0,1,2,3,4,5,6,7,8,9,10,11]],minor:["Minor",[0,2,3,5,7,8,10]],major:["Major",[0,2,4,5,7,9,11]],dorian:["Dorian",[0,2,3,5,7,9,10]],phrygian:["Phrygian",[0,1,3,5,7,8,10]],harmonic:["Harmonic minor",[0,2,3,5,7,8,11]],pentaMinor:["Minor pentatonic",[0,3,5,7,10]],pentaMajor:["Major pentatonic",[0,2,4,7,9]],blues:["Blues",[0,3,5,6,7,10]]};
   const held=new Set(), heldKeys=new Map(), noteButtons=new Map(), drumKeys=new Set();
   const typing={KeyA:0,KeyW:1,KeyS:2,KeyE:3,KeyD:4,KeyF:5,KeyT:6,KeyG:7,KeyY:8,KeyH:9,KeyU:10,KeyJ:11,KeyK:12,KeyO:13,KeyL:14,KeyP:15,Semicolon:16};
   const drumTyping={Digit1:0,Digit2:1,Digit3:2,Digit4:3,KeyQ:4,KeyW:5,KeyE:6,KeyR:7,KeyA:8,KeyS:9,KeyD:10,KeyF:11,KeyZ:12,KeyX:13,KeyC:14,KeyV:15};
   const noteNames=["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
-  const noteName=n=>noteNames[n%12]+(Math.floor(n/12)-1);
+  const noteName=n=>noteNames[(n%12+12)%12]+(Math.floor(n/12)-2);
   const state=(message,ready=false)=>{ const box=el("livePlayingState"); box.textContent=message; box.classList.toggle("ready",ready); };
   const audioStarted=()=>state("Live playing ready",true);
   const stopHeld=()=>{ held.forEach(n=>window.PMSynth?.liveNote?.(n,0)); held.clear(); heldKeys.clear(); noteButtons.forEach(b=>b.classList.remove("on")); };
 
+  function syncSynthSettings(){
+    const current=window.PMSynth?.liveSettings?.();
+    const fallback=project.synth||{};
+    const scale=liveScaleFallback[fallback.scale]||liveScaleFallback.chromatic;
+    liveScaleKey=clamp(Number.isFinite(+(current?.key??fallback.key))?+(current?.key??fallback.key):0,0,11);
+    liveScaleNotes=(current?.notes?.length?current.notes:scale[1]).slice();
+    liveScaleName=current?.scaleName||scale[0];
+    el("liveScaleName").textContent=`· ${noteNames[liveScaleKey]} ${liveScaleName}`;
+  }
+  function scaleKeyboardNotes(){
+    const root=(liveOctave+2)*12+liveScaleKey, notes=liveScaleNotes.length?liveScaleNotes:[0,1,2,3,4,5,6,7,8,9,10,11];
+    return Array.from({length:24},(_,i)=>root+notes[i%notes.length]+12*Math.floor(i/notes.length));
+  }
+
   function paintPads(){
     pads.innerHTML="";
-    project.tracks.slice(0,16).forEach((t,i)=>{
+    const entries=liveDrumSource==="solo" ? SAMPLES.slice(0,16).map((s,i)=>({sampleIndex:i,track:null})) : project.tracks.slice(0,16).map(t=>({sampleIndex:t.sampleIndex,track:t}));
+    entries.forEach((entry,i)=>{
       const b=document.createElement("button"); b.type="button"; b.className="live-pad"; b.dataset.livePad=i;
       b.innerHTML=`<span class="live-pad-key">${PAD_LABEL[i]||"·"}</span><span class="live-pad-name"></span>`;
-      b.querySelector(".live-pad-name").textContent=sampleLabel(t.sampleIndex);
-      b.title=`Play ${sampleLabel(t.sampleIndex)} · ${PAD_LABEL[i]||""}`;
-      b.onpointerdown=e=>{ e.preventDefault(); audioStarted(); hitPad(i); };
+      b.querySelector(".live-pad-name").textContent=sampleLabel(entry.sampleIndex);
+      b.title=`Play ${sampleLabel(entry.sampleIndex)} · ${PAD_LABEL[i]||""}`;
+      b.onpointerdown=e=>{ e.preventDefault(); hitLivePad(i); };
       pads.appendChild(b);
     });
-    if(!project.tracks.length) pads.innerHTML='<div class="tiny">No drum voices in this project.</div>';
+    if(!entries.length) pads.innerHTML='<div class="tiny">No drum voices in this project.</div>';
   }
 
   function buildKeyboard(){
     keyboard.innerHTML=""; noteButtons.clear();
-    const from=liveOctave*12+12, to=from+23;
-    const whites=[];
-    for(let n=from;n<=to;n++) if(![1,3,6,8,10].includes(n%12)) whites.push(n);
-    whites.forEach(n=>{
-      const b=document.createElement("button"); b.type="button"; b.className="live-key white"; b.dataset.note=n;
+    syncSynthSettings();
+    liveKeyboardNotes=scaleKeyboardNotes();
+    liveKeyboardNotes.forEach((n,i)=>{
+      const b=document.createElement("button"); b.type="button"; b.className="live-key white"; b.dataset.note=n; b.dataset.degree=i;
       b.innerHTML=`<span>${noteName(n)}</span>`; keyboard.appendChild(b); noteButtons.set(n,b);
     });
-    [from+1,from+3,from+6,from+8,from+10,from+13,from+15,from+18,from+20,from+22].forEach(n=>{
-      if(n>to) return;
-      const before=whites.filter(x=>x<n).length;
-      const b=document.createElement("button"); b.type="button"; b.className="live-key black"; b.dataset.note=n;
-      b.textContent=noteName(n); b.style.left=`calc(${before} * (100% / ${whites.length}) - (100% / ${whites.length} * .31))`;
-      keyboard.appendChild(b); noteButtons.set(n,b);
-    });
-    keyboard.setAttribute("aria-label",`Synth keyboard from ${noteName(from)} to ${noteName(to)}`);
+    keyboard.setAttribute("aria-label",`Synth ${liveScaleName} scale from ${noteName(liveKeyboardNotes[0])} to ${noteName(liveKeyboardNotes[liveKeyboardNotes.length-1])}`);
     wireKeyboard();
   }
   function noteOn(n,accent=false){
@@ -7532,10 +7602,19 @@ loadSharedProject();
     audioStarted(); held.add(n); noteButtons.get(n)?.classList.add("on"); window.PMSynth?.liveNote?.(n,accent?1:.8);
   }
   function noteOff(n){ if(!held.has(n)) return; held.delete(n); noteButtons.get(n)?.classList.remove("on"); window.PMSynth?.liveNote?.(n,0); }
+  const liveSoloTrack=i=>({id:`live-solo-${i}`,sampleIndex:i,vol:1,tune:0,decay:100,cutoff:100,reso:0,start:0,reverse:false,choke:0,nudge:0,pan:0});
+  function hitSoloPad(i){
+    const t=liveSoloTrack(i), ctx=actx();
+    if(ctx.state==="suspended") ctx.resume();
+    const b=bufferCache.get(cacheKey(t.sampleIndex));
+    if(!b || typeof b.then==="function") loadBuffer(t.sampleIndex).then(()=>trigger(t,actx().currentTime,.9));
+    else trigger(t,ctx.currentTime,.9);
+  }
   function hitLivePad(i){
     const b=pads.querySelector(`[data-live-pad="${i}"]`);
     if(!b) return;
-    audioStarted(); hitPad(i);
+    audioStarted();
+    if(liveDrumSource==="solo") hitSoloPad(i); else hitPad(i);
     b.classList.add("hit"); setTimeout(()=>b.classList.remove("hit"),90);
   }
   function wireKeyboard(){
@@ -7557,25 +7636,92 @@ loadSharedProject();
     loadSynth();
     const tick=()=>{
       if(!window.PMSynth){ setTimeout(tick,80); return; }
-      if(!synthReady){ synthReady=true; PMSynth.show(); syncPreset(); }
-      else syncPreset();
+      if(!synthReady){ synthReady=true; PMSynth.show(); syncSynthSettings(); syncPreset(); buildKeyboard(); }
+      else { syncSynthSettings(); syncPreset(); buildKeyboard(); }
     };
     tick();
+  }
+  let livePage="play";
+  const livePageIds=["livePlayTab","liveSeqTab","liveMixTab"];
+  const livePanelIds=["livePlayPanel","liveSeqPanel","liveMixPanel"];
+  const livePatternLabel=id=>patternById(id)?.name||"Pattern removed";
+  const liveSynthLabel=id=>synthById(id)?.name||"Synth pattern";
+  function renderLiveSequencer(){
+    const select=el("liveSeqPattern"), keep=select.value;
+    select.innerHTML="";
+    project.patterns.forEach(p=>addOption(select,p.id,p.name));
+    select.value=project.patterns.some(p=>p.id===keep)?keep:(project.patterns[0]?.id||"");
+    const track=el("liveSeqTrack"); track.innerHTML="";
+    el("liveSeqMeta").textContent=`${project.song.length} ${project.song.length===1?"block":"blocks"}`;
+    if(!project.song.length){ track.innerHTML='<div class="live-seq-empty">No blocks yet. Choose a pattern and add it to the song.</div>'; }
+    project.song.forEach((b,i)=>{
+      const card=document.createElement("div"); card.className="live-seq-block"; card.classList.toggle("selected",b.id===ui.blockId);
+      const section=SONG_SECTIONS.find(([id])=>id===b.section)?.[1]||"Verse";
+      card.innerHTML=`<small>${i+1} · ${section}</small><strong></strong><div class="live-seq-card-actions"><button type="button" data-minus aria-label="Decrease repeats">−</button><span class="live-seq-repeats"></span><button type="button" data-plus aria-label="Increase repeats">+</button></div>`;
+      card.querySelector("strong").textContent=livePatternLabel(b.patternId);
+      card.querySelector(".live-seq-repeats").textContent=`×${b.repeats||1}`;
+      card.onclick=()=>{ ui.blockId=b.id; renderLiveSequencer(); };
+      card.querySelector("[data-minus]").onclick=e=>{ e.stopPropagation(); if((b.repeats||1)<=1) return; pushUndo(); b.repeats--; renderSong(); renderLiveSequencer(); };
+      card.querySelector("[data-plus]").onclick=e=>{ e.stopPropagation(); if((b.repeats||1)>=MAX_REPEATS) return; pushUndo(); b.repeats++; renderSong(); renderLiveSequencer(); };
+      track.appendChild(card);
+    });
+    const synthTrack=el("liveSynthSeqTrack"); synthTrack.innerHTML="";
+    if(!project.synthSong?.length){ synthTrack.innerHTML='<div class="live-seq-empty">No synth blocks in the arrangement.</div>'; }
+    (project.synthSong||[]).forEach((b,i)=>{
+      const card=document.createElement("div"); card.className="live-seq-block"; card.classList.toggle("selected",b.id===ui.synthBlockId);
+      card.innerHTML=`<small>${i+1}</small><strong></strong><div class="live-seq-card-actions"><span class="live-seq-repeats">×${b.repeats||1}</span></div>`;
+      card.querySelector("strong").textContent=b.synthId?liveSynthLabel(b.synthId):"Rest";
+      card.onclick=()=>{ ui.synthBlockId=b.id; renderLiveSequencer(); };
+      synthTrack.appendChild(card);
+    });
+  }
+  function setLiveVolume(mainId,liveId,outId,value){
+    const main=el(mainId), live=el(liveId), out=el(outId);
+    if(!main||!live||!out) return;
+    live.value=value; main.value=value; main.dispatchEvent(new Event("input")); out.textContent=`${value}%`;
+  }
+  function paintLiveMixer(){
+    const values=[["drumsVol","liveMixDrumsRange","liveMixDrumsOut"],["synthVol","liveMixSynthRange","liveMixSynthOut"],["masterVol","liveMixMasterRange","liveMixMasterOut"]];
+    values.forEach(([mainId,liveId,outId])=>{ const value=el(mainId)?.value||0; const live=el(liveId); if(live) live.value=value; const out=el(outId); if(out) out.textContent=`${value}%`; });
+    [["drums","mute","liveMixDrumsMute"],["drums","solo","liveMixDrumsSolo"],["synth","mute","liveMixSynthMute"],["synth","solo","liveMixSynthSolo"]].forEach(([group,key,id])=>{ const b=el(id); if(!b) return; const on=groupFlag(group,key); b.classList.toggle("on",on); b.setAttribute("aria-pressed",String(on)); });
+  }
+  function setLivePage(next){
+    livePage=next;
+    const tabId={play:"livePlayTab",sequencer:"liveSeqTab",mixer:"liveMixTab"}[next];
+    const panelId={play:"livePlayPanel",sequencer:"liveSeqPanel",mixer:"liveMixPanel"}[next];
+    livePageIds.forEach(id=>{ const b=el(id), on=(id===tabId); b.classList.toggle("on",on); b.setAttribute("aria-selected",String(on)); });
+    el("livePlayControls").hidden=next!=="play";
+    livePanelIds.forEach(id=>el(id).hidden=id!==panelId);
+    if(next==="sequencer") renderLiveSequencer();
+    if(next==="mixer") paintLiveMixer();
+    el("liveHint").textContent=next==="play"?(instrument==="drums"?"Touch, click or use 1–V on your computer keyboard":"Hold notes with the keyboard or computer keys"):next==="sequencer"?"Compact arrangement view":"Quick channel controls";
   }
   function setInstrument(next){
     stopHeld(); instrument=next; window.__pmLiveInstrument=next;
     const drums=next==="drums";
     el("liveDrumsTab").classList.toggle("on",drums); el("liveSynthTab").classList.toggle("on",!drums);
     el("liveDrumsTab").setAttribute("aria-selected",String(drums)); el("liveSynthTab").setAttribute("aria-selected",String(!drums));
-    el("liveDrumsPanel").hidden=!drums; el("liveSynthPanel").hidden=drums; el("liveKitField").hidden=!drums; el("livePresetField").hidden=drums;
+    el("liveDrumsPanel").hidden=!drums; el("liveSynthPanel").hidden=drums; el("liveDrumSourceField").hidden=!drums; el("liveKitField").hidden=!drums; el("livePresetField").hidden=drums;
     el("liveHint").textContent=drums?"Touch, click or use 1–V on your computer keyboard":"Hold notes with the keyboard or computer keys";
     if(!drums) prepareSynth();
   }
   el("liveDrumsTab").onclick=()=>setInstrument("drums");
   el("liveSynthTab").onclick=()=>setInstrument("synth");
+  el("liveDrumSourceSelect").onchange=e=>{ liveDrumSource=e.target.value; paintPads(); };
+  el("livePlayTab").onclick=()=>setLivePage("play");
+  el("liveSeqTab").onclick=()=>setLivePage("sequencer");
+  el("liveMixTab").onclick=()=>setLivePage("mixer");
+  el("liveSeqPlay").onclick=()=>{ if(!project.song.length) return state("The song is empty"); if(playing||paused) stop(); ui.blockId=project.song[0].id; ui.songStartPos=0; setMode("song"); play(); state("Song playing",true); };
+  el("liveSeqStop").onclick=()=>{ stop(); state("Song stopped"); };
+  el("liveSeqAdd").onclick=()=>{ const chosen=el("liveSeqPattern").value, p=patternById(chosen); if(!p) return; pushUndo(); const b={id:uid(),patternId:p.id,repeats:1,section:"verse"}; const i=project.song.findIndex(x=>x.id===ui.blockId); if(i>=0) project.song.splice(i+1,0,b); else project.song.push(b); ui.blockId=b.id; renderSong(); renderLiveSequencer(); };
+  el("liveMixDrumsRange").oninput=e=>setLiveVolume("drumsVol","liveMixDrumsRange","liveMixDrumsOut",e.target.value);
+  el("liveMixSynthRange").oninput=e=>setLiveVolume("synthVol","liveMixSynthRange","liveMixSynthOut",e.target.value);
+  el("liveMixMasterRange").oninput=e=>setLiveVolume("masterVol","liveMixMasterRange","liveMixMasterOut",e.target.value);
+  [["drums","mute","liveMixDrumsMute"],["drums","solo","liveMixDrumsSolo"],["synth","mute","liveMixSynthMute"],["synth","solo","liveMixSynthSolo"]].forEach(([group,key,id])=>el(id).onclick=()=>{ toggleGroup(group,key); paintLiveMixer(); });
   el("livePanic").onclick=()=>{ stopHeld(); stopLiveAudio(); window.PMSynth?.allOff?.(); state("Live playing stopped"); };
-  el("liveMasterRange").oninput=e=>{ el("masterVol").value=e.target.value; el("masterVol").dispatchEvent(new Event("input")); el("liveMasterOut").textContent=e.target.value+"%"; };
+  el("liveMasterRange").oninput=e=>{ setLiveVolume("masterVol","liveMasterRange","liveMasterOut",e.target.value); const mix=el("liveMixMasterRange"); if(mix) mix.value=e.target.value; const out=el("liveMixMasterOut"); if(out) out.textContent=e.target.value+"%"; };
   el("livePresetSelect").onchange=e=>{ const src=el("synPreset"); if(!src) return; src.value=e.target.value; src.dispatchEvent(new Event("change")); el("livePresetName").textContent=e.target.value; };
+  ["synKey","synScale","synPreset"].forEach(id=>el(id)?.addEventListener("change",()=>{ syncSynthSettings(); syncPreset(); buildKeyboard(); }));
   window.addEventListener("keydown",e=>{
     if(e.metaKey||e.ctrlKey||e.altKey) return;
     const tag=document.activeElement?.tagName||"";
@@ -7591,7 +7737,7 @@ loadSharedProject();
       e.preventDefault(); e.stopImmediatePropagation(); if(!e.repeat){ liveOctave=clamp(liveOctave+(e.code==="KeyX"?1:-1),1,6); buildKeyboard(); } return;
     }
     if(!(e.code in typing)) return;
-    e.preventDefault(); e.stopImmediatePropagation(); if(!e.repeat){ const n=liveOctave*12+12+typing[e.code]; heldKeys.set(e.code,n); noteOn(n,e.shiftKey); }
+    e.preventDefault(); e.stopImmediatePropagation(); if(!e.repeat){ const n=liveKeyboardNotes[typing[e.code]]; if(n==null) return; heldKeys.set(e.code,n); noteOn(n,e.shiftKey); }
   },true);
   window.addEventListener("keyup",e=>{
     if(instrument==="drums"){ drumKeys.delete(e.code); return; }
@@ -7599,8 +7745,9 @@ loadSharedProject();
     const n=heldKeys.get(e.code); heldKeys.delete(e.code); if(n!==undefined) noteOff(n);
   },true);
   window.addEventListener("blur",stopHeld);
-  window.addEventListener("pm:project-loaded",paintPads);
-  paintPads(); buildKeyboard(); state("Click a control to start live playing");
+  window.__pmLiveRefresh=()=>{ paintPads(); syncSynthSettings(); syncPreset(); buildKeyboard(); renderLiveSequencer(); paintLiveMixer(); };
+  window.addEventListener("pm:project-loaded",()=>window.__pmLiveRefresh?.());
+  paintPads(); syncSynthSettings(); buildKeyboard(); renderLiveSequencer(); paintLiveMixer(); state("Click a control to start live playing");
   setTimeout(()=>syncPreset(),120);
 })();
 

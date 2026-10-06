@@ -232,12 +232,36 @@ html[data-live="1"] #liveView{display:flex; height:100%; min-height:0; flex-dire
 .live-help{display:flex; justify-content:space-between; gap:12px; color:var(--text-faint); font-size:10px; line-height:1.4;}
 .live-help kbd{padding:2px 5px; border:1px solid var(--edge); border-radius:3px; color:var(--text-dim);}
 .live-foot{display:flex; justify-content:space-between; gap:12px; color:var(--text-faint); font-size:10px;}
-@media (max-width:700px){
-  html[data-live="1"] body{padding:10px;}.live-head{align-items:flex-start; flex-direction:column; gap:8px;}.live-head-actions{justify-content:flex-start;}.live-lead{margin-top:4px;}
-  html[data-live="1"] #liveView{height:100%; min-height:0;}.live-stage{padding:10px 8px;}.live-toolbar{gap:7px;}.live-field select{min-width:140px;}.live-spacer{display:none;}.live-panic{margin-left:auto;}
-  .live-pads{grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px;}.live-pad{padding:8px;}.live-keyboard{height:clamp(100px,25vh,190px);}.live-help,.live-foot{flex-direction:column;}
+.live-field[hidden], .live-drum-controls[hidden]{display:none;}
+/* Telefono (stretto, o basso come in orizzontale): prima di tutto pad e tastiera. L'intestazione si riduce a una
+   riga, la barra delle opzioni si stringe, le scorciatoie da tastiera del computer spariscono e i pad riempiono
+   lo spazio che resta; se proprio non ci stanno, il palco scorre invece di tagliarli. */
+@media (max-width:700px), (max-height:520px){
+  html[data-live="1"] body{padding:8px;}
+  html[data-live="1"] #liveView{gap:6px;}
+  .live-head{flex-direction:row; align-items:center; gap:8px;}
+  .live-head h1, .live-lead, .live-state{display:none;}
+  .live-kicker{margin:0; font-size:9px; letter-spacing:.12em;}
+  .live-head-actions{flex:0 0 auto; margin-left:auto;}
+  .live-toolbar{gap:6px; padding:6px 8px;}
+  .live-play-controls, .live-drum-controls{gap:6px;}
+  .live-instrument-tabs button{min-width:0; padding:6px 14px;}
+  .live-field select{min-width:0; max-width:150px;}
+  .live-field input[type=range]{width:80px;}
+  .live-spacer{display:none;}
+  .live-panic{margin-left:auto;}
+  .live-stage{padding:8px; overflow-y:auto;}
+  .live-stage-head{margin-bottom:6px;}
+  .live-panel{display:flex; flex:1 1 auto; flex-direction:column; min-height:0;}
+  .live-pads{flex:1 1 auto; grid-template-columns:repeat(4,minmax(0,1fr)); grid-auto-rows:minmax(52px,1fr); gap:6px; width:100%; margin:0;}
+  .live-pad{aspect-ratio:auto; padding:8px;}
+  .live-synth-wrap{gap:8px; width:100%; margin:0;}
+  .live-keyboard{flex:1 1 auto; height:auto; min-height:110px; max-height:300px;}
+  .live-help, .live-foot{display:none;}
 }
 @media (min-width:701px) and (max-width:1000px){.live-pads{grid-template-columns:repeat(6,minmax(0,1fr));}}
+/* telefono in orizzontale: tutti i pad su due file, senza il titolo del palco */
+@media (max-height:520px) and (min-width:560px){.live-pads{grid-template-columns:repeat(8,minmax(0,1fr));}.live-stage-head{display:none;}}
 
 .topbar{display:grid; grid-template-columns:minmax(0,1fr) auto; grid-template-areas:"title account" "controls controls"; align-items:baseline; gap:10px 16px; margin-bottom:12px;}
 .topbar h1{grid-area:title;}
@@ -1810,22 +1834,22 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-10-06.12"></script>
-<script src="engine/core.js?v=2026-10-06.12"></script>
-<script src="engine/styles-punk.js?v=2026-10-06.12"></script>
-<script src="engine/styles-post.js?v=2026-10-06.12"></script>
-<script src="engine/styles-machines.js?v=2026-10-06.12"></script>
-<script src="engine/styles-alt.js?v=2026-10-06.12"></script>
-<script src="engine/styles-groove.js?v=2026-10-06.12"></script>
-<script src="engine/styles-dub.js?v=2026-10-06.12"></script>
-<script src="engine/styles-break.js?v=2026-10-06.12"></script>
-<script src="engine/styles-soul.js?v=2026-10-06.12"></script>
-<script src="engine/styles-metal.js?v=2026-10-06.12"></script>
-<script src="engine/styles-electro.js?v=2026-10-06.12"></script>
-<script src="engine/variations.js?v=2026-10-06.12"></script>
-<script src="engine/import.js?v=2026-10-06.12"></script>
-<script src="engine/rhythm.js?v=2026-10-06.12"></script>
-<script src="engine/share.js?v=2026-10-06.12"></script>
+<script src="engine/machine-art.js?v=2026-10-06.13"></script>
+<script src="engine/core.js?v=2026-10-06.13"></script>
+<script src="engine/styles-punk.js?v=2026-10-06.13"></script>
+<script src="engine/styles-post.js?v=2026-10-06.13"></script>
+<script src="engine/styles-machines.js?v=2026-10-06.13"></script>
+<script src="engine/styles-alt.js?v=2026-10-06.13"></script>
+<script src="engine/styles-groove.js?v=2026-10-06.13"></script>
+<script src="engine/styles-dub.js?v=2026-10-06.13"></script>
+<script src="engine/styles-break.js?v=2026-10-06.13"></script>
+<script src="engine/styles-soul.js?v=2026-10-06.13"></script>
+<script src="engine/styles-metal.js?v=2026-10-06.13"></script>
+<script src="engine/styles-electro.js?v=2026-10-06.13"></script>
+<script src="engine/variations.js?v=2026-10-06.13"></script>
+<script src="engine/import.js?v=2026-10-06.13"></script>
+<script src="engine/rhythm.js?v=2026-10-06.13"></script>
+<script src="engine/share.js?v=2026-10-06.13"></script>
 <script>
 // Script principale di PATTERN-MACHINE: stato del progetto, audio, trasporto e interfaccia della pagina.
 // Il motore ritmico (SPEngine), i tempi (PMRhythm), import, link e gli altri moduli stanno in engine/*.js.
@@ -4827,7 +4851,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || el("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-06.12";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-06.13";
   document.body.appendChild(s);
 }
 if(LIVE_VIEW || (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth"))) loadSynth();
@@ -7832,7 +7856,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-10-06.12";
+const SW_VERSION="2026-10-06.13";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -7856,10 +7880,10 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sample-editor.js?v=2026-10-06.12"></script>
-<script src="engine/sampler.js?v=2026-10-06.12"></script>
-<script src="engine/vocal.js?v=2026-10-06.12"></script>
+<script src="engine/sample-editor.js?v=2026-10-06.13"></script>
+<script src="engine/sampler.js?v=2026-10-06.13"></script>
+<script src="engine/vocal.js?v=2026-10-06.13"></script>
 <script>PMSampler.init(); PMVocal.init();</script>
-<script src="engine/midi.js?v=2026-10-06.12"></script>
+<script src="engine/midi.js?v=2026-10-06.13"></script>
 </body>
 </html>

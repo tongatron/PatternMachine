@@ -897,6 +897,8 @@ button.danger-fill{background:var(--danger); border-color:var(--danger); color:#
 .tabs{display:flex; flex-wrap:wrap; gap:10px; margin:22px 0;}
 .tabs button{padding:7px 14px; font-size:12px;}
 .tabs button.on{background:var(--key-on,var(--accent)); color:var(--on-accent); border-color:var(--accent-dim); font-weight:700;}
+.tabs .live-playing-tab{display:inline-flex; align-items:center; justify-content:center; padding:7px 14px; border:1px solid var(--accent-dim); border-radius:var(--r-key,6px); background:var(--key-primary,var(--accent)); color:var(--on-accent); box-shadow:var(--key-shadow,none); font-size:12px; font-weight:700; letter-spacing:.04em; text-decoration:none; text-transform:uppercase; white-space:nowrap;}
+.tabs .live-playing-tab:hover{border-color:var(--accent); filter:brightness(1.06);}
 .seq-track{
   display:flex; gap:8px; overflow-x:auto; padding:6px 2px 12px; min-height:132px; align-items:stretch;
 }
@@ -1261,6 +1263,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <button id="viewSeq" role="tab" aria-selected="false" aria-controls="panelSeq">Sequencer</button>
     <button id="viewSampler" role="tab" aria-selected="false" aria-controls="panelSampler" title="Import or record local sounds for your patterns">Sampler</button>
     <button id="viewMix" role="tab" aria-selected="false" aria-controls="panelMix" title="Levels, pan, meters and the master limiter">Mixer</button>
+    <a class="live-playing-tab" href="index.html?live=1" title="Open the Live Playing Interface">Live Playing</a>
   </div>
 
   <div class="panel" id="machinePanel">
@@ -1780,22 +1783,22 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-10-06.7"></script>
-<script src="engine/core.js?v=2026-10-06.7"></script>
-<script src="engine/styles-punk.js?v=2026-10-06.7"></script>
-<script src="engine/styles-post.js?v=2026-10-06.7"></script>
-<script src="engine/styles-machines.js?v=2026-10-06.7"></script>
-<script src="engine/styles-alt.js?v=2026-10-06.7"></script>
-<script src="engine/styles-groove.js?v=2026-10-06.7"></script>
-<script src="engine/styles-dub.js?v=2026-10-06.7"></script>
-<script src="engine/styles-break.js?v=2026-10-06.7"></script>
-<script src="engine/styles-soul.js?v=2026-10-06.7"></script>
-<script src="engine/styles-metal.js?v=2026-10-06.7"></script>
-<script src="engine/styles-electro.js?v=2026-10-06.7"></script>
-<script src="engine/variations.js?v=2026-10-06.7"></script>
-<script src="engine/import.js?v=2026-10-06.7"></script>
-<script src="engine/rhythm.js?v=2026-10-06.7"></script>
-<script src="engine/share.js?v=2026-10-06.7"></script>
+<script src="engine/machine-art.js?v=2026-10-06.8"></script>
+<script src="engine/core.js?v=2026-10-06.8"></script>
+<script src="engine/styles-punk.js?v=2026-10-06.8"></script>
+<script src="engine/styles-post.js?v=2026-10-06.8"></script>
+<script src="engine/styles-machines.js?v=2026-10-06.8"></script>
+<script src="engine/styles-alt.js?v=2026-10-06.8"></script>
+<script src="engine/styles-groove.js?v=2026-10-06.8"></script>
+<script src="engine/styles-dub.js?v=2026-10-06.8"></script>
+<script src="engine/styles-break.js?v=2026-10-06.8"></script>
+<script src="engine/styles-soul.js?v=2026-10-06.8"></script>
+<script src="engine/styles-metal.js?v=2026-10-06.8"></script>
+<script src="engine/styles-electro.js?v=2026-10-06.8"></script>
+<script src="engine/variations.js?v=2026-10-06.8"></script>
+<script src="engine/import.js?v=2026-10-06.8"></script>
+<script src="engine/rhythm.js?v=2026-10-06.8"></script>
+<script src="engine/share.js?v=2026-10-06.8"></script>
 <script>
 // Script principale di PATTERN-MACHINE: stato del progetto, audio, trasporto e interfaccia della pagina.
 // Il motore ritmico (SPEngine), i tempi (PMRhythm), import, link e gli altri moduli stanno in engine/*.js.
@@ -4644,7 +4647,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || el("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-06.7";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-06.8";
   document.body.appendChild(s);
 }
 if(LIVE_VIEW || (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth"))) loadSynth();
@@ -7610,7 +7613,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-10-06.7";
+const SW_VERSION="2026-10-06.8";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -7634,10 +7637,10 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sample-editor.js?v=2026-10-06.7"></script>
-<script src="engine/sampler.js?v=2026-10-06.7"></script>
-<script src="engine/vocal.js?v=2026-10-06.7"></script>
+<script src="engine/sample-editor.js?v=2026-10-06.8"></script>
+<script src="engine/sampler.js?v=2026-10-06.8"></script>
+<script src="engine/vocal.js?v=2026-10-06.8"></script>
 <script>PMSampler.init(); PMVocal.init();</script>
-<script src="engine/midi.js?v=2026-10-06.7"></script>
+<script src="engine/midi.js?v=2026-10-06.8"></script>
 </body>
 </html>

@@ -477,6 +477,11 @@ label.fld input[type=number]{width:54px;}
   .drum-bar .machine-side{width:100%; justify-content:flex-end;}
   .machine-art svg{width:150px;}
 }
+/* Avviso accanto all'immagine: alcune righe suonano da un kit diverso dalla macchina selezionata. */
+.machine-mixed{margin:0; max-width:230px; align-self:center; padding:7px 10px; border:1px solid var(--accent); border-left-width:4px; border-radius:4px;
+  background:color-mix(in srgb, var(--accent) 12%, transparent); color:var(--text); font-size:10.5px; line-height:1.45; letter-spacing:.02em;}
+.machine-mixed b{display:block; font-size:9.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--accent);}
+.machine-mixed[hidden]{display:none;}
 .machine-info{margin-left:auto; font-size:11px; color:var(--text-dim); letter-spacing:.02em; text-align:right;}
 .transport-extra{display:contents;}
 .vol-group{display:inline-flex; flex-wrap:wrap; align-items:center; gap:6px 14px; padding:5px 10px; border:1px solid var(--edge-soft); border-radius:8px;}
@@ -1332,6 +1337,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
         <p class="machine-info"><span id="machineInfo"></span><br><a class="text-link" id="machineMore" href="macchine.html" target="_blank" rel="noopener" title="History of the machines, with side-by-side listening (opens in a new window)">→ About the machines</a></p>
       </div>
       <div class="machine-side">
+        <p class="machine-mixed" id="machineMixed" role="status" hidden></p>
         <a class="machine-art" id="machineArt" href="macchine.html" target="_blank" rel="noopener" title="History and sounds of this machine (opens in a new window)" hidden></a>
       </div>
     </div>
@@ -1804,22 +1810,22 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-10-06.11"></script>
-<script src="engine/core.js?v=2026-10-06.11"></script>
-<script src="engine/styles-punk.js?v=2026-10-06.11"></script>
-<script src="engine/styles-post.js?v=2026-10-06.11"></script>
-<script src="engine/styles-machines.js?v=2026-10-06.11"></script>
-<script src="engine/styles-alt.js?v=2026-10-06.11"></script>
-<script src="engine/styles-groove.js?v=2026-10-06.11"></script>
-<script src="engine/styles-dub.js?v=2026-10-06.11"></script>
-<script src="engine/styles-break.js?v=2026-10-06.11"></script>
-<script src="engine/styles-soul.js?v=2026-10-06.11"></script>
-<script src="engine/styles-metal.js?v=2026-10-06.11"></script>
-<script src="engine/styles-electro.js?v=2026-10-06.11"></script>
-<script src="engine/variations.js?v=2026-10-06.11"></script>
-<script src="engine/import.js?v=2026-10-06.11"></script>
-<script src="engine/rhythm.js?v=2026-10-06.11"></script>
-<script src="engine/share.js?v=2026-10-06.11"></script>
+<script src="engine/machine-art.js?v=2026-10-06.12"></script>
+<script src="engine/core.js?v=2026-10-06.12"></script>
+<script src="engine/styles-punk.js?v=2026-10-06.12"></script>
+<script src="engine/styles-post.js?v=2026-10-06.12"></script>
+<script src="engine/styles-machines.js?v=2026-10-06.12"></script>
+<script src="engine/styles-alt.js?v=2026-10-06.12"></script>
+<script src="engine/styles-groove.js?v=2026-10-06.12"></script>
+<script src="engine/styles-dub.js?v=2026-10-06.12"></script>
+<script src="engine/styles-break.js?v=2026-10-06.12"></script>
+<script src="engine/styles-soul.js?v=2026-10-06.12"></script>
+<script src="engine/styles-metal.js?v=2026-10-06.12"></script>
+<script src="engine/styles-electro.js?v=2026-10-06.12"></script>
+<script src="engine/variations.js?v=2026-10-06.12"></script>
+<script src="engine/import.js?v=2026-10-06.12"></script>
+<script src="engine/rhythm.js?v=2026-10-06.12"></script>
+<script src="engine/share.js?v=2026-10-06.12"></script>
 <script>
 // Script principale di PATTERN-MACHINE: stato del progetto, audio, trasporto e interfaccia della pagina.
 // Il motore ritmico (SPEngine), i tempi (PMRhythm), import, link e gli altri moduli stanno in engine/*.js.
@@ -3181,6 +3187,17 @@ document.addEventListener("keydown",e=>{
 });
 
 // ---------- righe della griglia ----------
+// Accanto all'immagine della macchina: quali altri kit suonano nelle righe, se ce ne sono.
+function paintMixedKits(){
+  const box=el("machineMixed"); if(!box) return;
+  const others=[...new Set(project.tracks.filter(t=>!SAMPLES[t.sampleIndex]?.local).map(kitOf))].filter(k=>k!==sampleSet);
+  box.hidden=!others.length;
+  box.innerHTML="";
+  if(!others.length) return;
+  const rows=project.tracks.filter(t=>!SAMPLES[t.sampleIndex]?.local && kitOf(t)!==sampleSet).length;
+  const head=document.createElement("b"); head.textContent="Mixed kit";
+  box.append(head, `${rows} ${rows===1?"row uses a sound":"rows use sounds"} from ${rows===1?"another kit":"other kits"}: ${others.map(k=>KITS[k].label).join(", ")}`);
+}
 function renderTracks(){
   const keepX=window.scrollX, keepY=window.scrollY;
   const pat=curPattern();
@@ -3188,6 +3205,7 @@ function renderTracks(){
   host.innerHTML=""; stepEls=new Map(); lanePaint.clear();
   el("gridTitle").textContent = "Grid — " + pat.name;
   project.tracks.forEach((t,idx)=>host.appendChild(trackRow(t,idx,pat)));
+  paintMixedKits();
   paintPlayhead();
   renderDrumSound();
   requestAnimationFrame(()=>window.scrollTo(keepX,keepY));
@@ -4809,7 +4827,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || el("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-06.11";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-06.12";
   document.body.appendChild(s);
 }
 if(LIVE_VIEW || (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth"))) loadSynth();
@@ -7814,7 +7832,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-10-06.11";
+const SW_VERSION="2026-10-06.12";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -7838,10 +7856,10 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sample-editor.js?v=2026-10-06.11"></script>
-<script src="engine/sampler.js?v=2026-10-06.11"></script>
-<script src="engine/vocal.js?v=2026-10-06.11"></script>
+<script src="engine/sample-editor.js?v=2026-10-06.12"></script>
+<script src="engine/sampler.js?v=2026-10-06.12"></script>
+<script src="engine/vocal.js?v=2026-10-06.12"></script>
 <script>PMSampler.init(); PMVocal.init();</script>
-<script src="engine/midi.js?v=2026-10-06.11"></script>
+<script src="engine/midi.js?v=2026-10-06.12"></script>
 </body>
 </html>

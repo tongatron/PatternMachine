@@ -204,7 +204,7 @@ html[data-live="1"] #liveView{display:flex; min-height:calc(100vh - 68px); flex-
 .live-field output{min-width:35px; color:var(--text); text-align:right;}
 .live-spacer{flex:1 1 auto;}
 .live-panic{color:var(--danger); border-color:color-mix(in srgb,var(--danger) 55%,var(--edge));}
-.live-stage{display:flex; flex:1 1 auto; flex-direction:column; min-height:420px; padding:clamp(16px,3vw,34px); background:linear-gradient(145deg,color-mix(in srgb,var(--panel) 96%,var(--accent)),var(--panel));}
+.live-stage{display:flex; flex:1 1 auto; flex-direction:column; min-height:clamp(0px,55vh,420px); padding:clamp(16px,3vw,34px); background:linear-gradient(145deg,color-mix(in srgb,var(--panel) 96%,var(--accent)),var(--panel));}
 .live-stage-head{display:flex; align-items:baseline; justify-content:space-between; gap:14px; margin-bottom:18px;}
 .live-stage-title{margin:0; font-size:13px; letter-spacing:.14em; text-transform:uppercase;}
 .live-stage-note{color:var(--text-faint); font-size:10px; text-align:right;}
@@ -1788,22 +1788,22 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-10-06.4"></script>
-<script src="engine/core.js?v=2026-10-06.4"></script>
-<script src="engine/styles-punk.js?v=2026-10-06.4"></script>
-<script src="engine/styles-post.js?v=2026-10-06.4"></script>
-<script src="engine/styles-machines.js?v=2026-10-06.4"></script>
-<script src="engine/styles-alt.js?v=2026-10-06.4"></script>
-<script src="engine/styles-groove.js?v=2026-10-06.4"></script>
-<script src="engine/styles-dub.js?v=2026-10-06.4"></script>
-<script src="engine/styles-break.js?v=2026-10-06.4"></script>
-<script src="engine/styles-soul.js?v=2026-10-06.4"></script>
-<script src="engine/styles-metal.js?v=2026-10-06.4"></script>
-<script src="engine/styles-electro.js?v=2026-10-06.4"></script>
-<script src="engine/variations.js?v=2026-10-06.4"></script>
-<script src="engine/import.js?v=2026-10-06.4"></script>
-<script src="engine/rhythm.js?v=2026-10-06.4"></script>
-<script src="engine/share.js?v=2026-10-06.4"></script>
+<script src="engine/machine-art.js?v=2026-10-06.5"></script>
+<script src="engine/core.js?v=2026-10-06.5"></script>
+<script src="engine/styles-punk.js?v=2026-10-06.5"></script>
+<script src="engine/styles-post.js?v=2026-10-06.5"></script>
+<script src="engine/styles-machines.js?v=2026-10-06.5"></script>
+<script src="engine/styles-alt.js?v=2026-10-06.5"></script>
+<script src="engine/styles-groove.js?v=2026-10-06.5"></script>
+<script src="engine/styles-dub.js?v=2026-10-06.5"></script>
+<script src="engine/styles-break.js?v=2026-10-06.5"></script>
+<script src="engine/styles-soul.js?v=2026-10-06.5"></script>
+<script src="engine/styles-metal.js?v=2026-10-06.5"></script>
+<script src="engine/styles-electro.js?v=2026-10-06.5"></script>
+<script src="engine/variations.js?v=2026-10-06.5"></script>
+<script src="engine/import.js?v=2026-10-06.5"></script>
+<script src="engine/rhythm.js?v=2026-10-06.5"></script>
+<script src="engine/share.js?v=2026-10-06.5"></script>
 <script>
 // Script principale di PATTERN-MACHINE: stato del progetto, audio, trasporto e interfaccia della pagina.
 // Il motore ritmico (SPEngine), i tempi (PMRhythm), import, link e gli altri moduli stanno in engine/*.js.
@@ -4652,7 +4652,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || el("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-06.4";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-06.5";
   document.body.appendChild(s);
 }
 if(LIVE_VIEW || (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth"))) loadSynth();
@@ -7619,7 +7619,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-10-06.4";
+const SW_VERSION="2026-10-06.5";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -7643,11 +7643,11 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sample-editor.js?v=2026-10-06.4"></script>
-<script src="engine/sampler.js?v=2026-10-06.4"></script>
-<script src="engine/vocal.js?v=2026-10-06.4"></script>
+<script src="engine/sample-editor.js?v=2026-10-06.5"></script>
+<script src="engine/sampler.js?v=2026-10-06.5"></script>
+<script src="engine/vocal.js?v=2026-10-06.5"></script>
 <script>PMSampler.init(); PMVocal.init();</script>
-<script src="engine/midi.js?v=2026-10-06.4"></script>
+<script src="engine/midi.js?v=2026-10-06.5"></script>
 <script>
   (function openStrudelWindow(){
     const link=document.getElementById("liveCodingLink");

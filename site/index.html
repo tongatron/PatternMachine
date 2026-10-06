@@ -1165,7 +1165,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       </div>
       <div class="live-head-actions">
         <span class="live-state" id="livePlayingState">Click a control to start live playing</span>
-        <a class="linkbtn live-return" href="./" title="Return to the full PatternMachine studio">Return to Full studio ↗</a>
+        <a class="linkbtn live-return" id="liveReturn" href="./?view=grid" title="Return to the Drum Grid">Return to Drums ↗</a>
       </div>
     </header>
     <div class="panel live-shell">
@@ -3787,7 +3787,11 @@ function cloneSongBlock(b){
 }
 function duplicateSongBlock(i){
   pushUndo();
-  const copy=cloneSongBlock(project.song[i]);
+  const source=project.song[i], copy=cloneSongBlock(source), pattern=patternById(source.patternId);
+  if(pattern){
+    const name=copyName(pattern.name, project.patterns.map(x=>x.name));
+    copy.patternId=copyPattern(pattern, name).id;
+  }
   project.song.splice(i+1,0,copy);
   ui.blockId=copy.id; renderSong();
 }
@@ -5167,8 +5171,8 @@ el("sPlay").onclick=()=>{
   ui.songStartPos=0;
   setMode("song"); play();
 };
-// I blocchi della canzone puntano ai pattern: due blocchi con lo stesso pattern ne condividono anche il nome.
-// Se il pattern e' in piu' blocchi si sceglie: solo questo blocco (diventa una copia col nome nuovo) o tutti.
+// I blocchi della canzone puntano ai pattern. La duplicazione crea subito una copia indipendente,
+// equivalente a scegliere "Only this block" quando si lavora sul blocco appena copiato.
 el("seqRename").onclick=()=>{
   const i=blockIndex();
   if(i<0) return setStatus("select a block","err");
@@ -7456,7 +7460,12 @@ else updateMachineInfo(sampleSet);   // stessa macchina di partenza: dati e illu
 project.tracks.forEach(t=>loadBuffer(t.sampleIndex));
 renderAll();
 paintSwing(); paintHuman();
-setView("grid");
+const requestedView=new URLSearchParams(location.search).get("view");
+if(requestedView==="synth"){
+  const showRequestedView=()=>{ if(window.PMSynth) setView("synth"); };
+  if(window.PMSynth) showRequestedView();
+  else { loadSynth(); el("synthScript")?.addEventListener("load",showRequestedView,{once:true}); setView("grid"); }
+}else setView("grid");
 markSaved(false);
 if(!LESSON_ID && !PMShare.hasProject()) checkDraft();   // un progetto nel link ha la precedenza sulla bozza locale
 addEventListener("beforeunload",e=>{
@@ -7580,6 +7589,12 @@ loadSharedProject();
     };
     tick();
   }
+  function updateReturnLink(){
+    const link=el("liveReturn"), drums=instrument==="drums";
+    link.href=drums?"./?view=grid":"./?view=synth";
+    link.title=drums?"Return to the Drum Grid":"Return to the Synthesizer";
+    link.textContent=`Return to ${drums?"Drums":"Synth"} ↗`;
+  }
   function setInstrument(next){
     stopHeld(); instrument=next; window.__pmLiveInstrument=next;
     const drums=next==="drums";
@@ -7587,6 +7602,7 @@ loadSharedProject();
     el("liveDrumsTab").setAttribute("aria-selected",String(drums)); el("liveSynthTab").setAttribute("aria-selected",String(!drums));
     el("liveDrumsPanel").hidden=!drums; el("liveSynthPanel").hidden=drums; el("liveDrumControls").hidden=!drums; el("livePresetField").hidden=drums;
     el("liveHint").textContent=drums?"Touch, click or use 1–V on your computer keyboard":"Hold notes with the keyboard or computer keys";
+    updateReturnLink();
     if(!drums) prepareSynth();
   }
   el("liveDrumsTab").onclick=()=>setInstrument("drums");
@@ -7623,7 +7639,7 @@ loadSharedProject();
   window.addEventListener("blur",stopHeld);
   window.__pmLiveRefresh=()=>{ paintPads(); syncSynthSettings(); syncPreset(); buildKeyboard(); };
   window.addEventListener("pm:project-loaded",()=>window.__pmLiveRefresh?.());
-  paintPads(); syncSynthSettings(); buildKeyboard(); state("Click a control to start live playing");
+  updateReturnLink(); paintPads(); syncSynthSettings(); buildKeyboard(); state("Click a control to start live playing");
   setTimeout(focusDrumKeys,0);
   setTimeout(()=>syncPreset(),120);
 })();

@@ -634,6 +634,10 @@ body.mix-view #panelTransport .transport-secondary{min-height:44px;}
 .row-more[open]>.row-more-body{position:absolute; z-index:30; top:calc(100% + 6px); right:0; display:flex; flex-wrap:wrap; gap:6px; align-items:center; min-width:min(430px,calc(100vw - 32px)); padding:8px; background:var(--panel); border:1px solid var(--accent); border-radius:8px; box-shadow:0 12px 28px rgba(0,0,0,.35);}
 .row-more select{max-width:105px;}
 .trk select.smp{max-width:150px; font-size:10.5px; padding:4px 6px;}
+.row-kit{max-width:150px; padding:4px 7px; font-size:9.5px; letter-spacing:.04em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--text-dim);}
+.row-kit.on{background:var(--key-primary,var(--accent)); color:var(--on-accent); border-color:var(--accent-dim); font-weight:700;}
+.kit-menu{max-height:min(420px,calc(100vh - 16px)); overflow-y:auto; min-width:210px;}
+.kit-menu .export-head{margin:6px 9px 2px;}
 .chip-btn{width:24px; height:23px; padding:0; font-size:9.5px; font-weight:700;
   display:inline-flex; align-items:center; justify-content:center;}
 .chip-btn.on.m{background:var(--danger); border-color:var(--danger); color:#fff;}
@@ -1656,6 +1660,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
           <li><b>⚙</b> opens the voice parameters: <b>Decay</b> shortens the tail, <b>Filter</b>+<b>Reso</b> are the 4-pole low-pass like the VCFs on the machine's outputs, <b>Start</b> moves the sample start, <b>Rev</b> plays it reversed.</li>
           <li><b>Feel</b> (in the ⚙ panel) pushes the row's hits ahead or behind, from −30 to +30 ms: snare “laid back”, kick “pushed”.</li>
           <li>The <b>Mixer</b> tab shows every row as a strip with fader, <b>pan</b>, meter, M and S, then the drums, synth and master; the master <b>limiter</b> keeps the mix under 0 dB.</li>
+          <li><b>Kit</b> next to a row's sound takes that row from another machine (a TR-808 kick under an SP-1200 kit): the row keeps it when you change the selected machine.</li>
           <li>In the <b>Sequencer</b>, <b>Mute</b> on a block silences the rows you choose in that block only (a break without the hat, an intro without the kick).</li>
         </ul>
       </section>
@@ -1799,22 +1804,22 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-10-06.10"></script>
-<script src="engine/core.js?v=2026-10-06.10"></script>
-<script src="engine/styles-punk.js?v=2026-10-06.10"></script>
-<script src="engine/styles-post.js?v=2026-10-06.10"></script>
-<script src="engine/styles-machines.js?v=2026-10-06.10"></script>
-<script src="engine/styles-alt.js?v=2026-10-06.10"></script>
-<script src="engine/styles-groove.js?v=2026-10-06.10"></script>
-<script src="engine/styles-dub.js?v=2026-10-06.10"></script>
-<script src="engine/styles-break.js?v=2026-10-06.10"></script>
-<script src="engine/styles-soul.js?v=2026-10-06.10"></script>
-<script src="engine/styles-metal.js?v=2026-10-06.10"></script>
-<script src="engine/styles-electro.js?v=2026-10-06.10"></script>
-<script src="engine/variations.js?v=2026-10-06.10"></script>
-<script src="engine/import.js?v=2026-10-06.10"></script>
-<script src="engine/rhythm.js?v=2026-10-06.10"></script>
-<script src="engine/share.js?v=2026-10-06.10"></script>
+<script src="engine/machine-art.js?v=2026-10-06.11"></script>
+<script src="engine/core.js?v=2026-10-06.11"></script>
+<script src="engine/styles-punk.js?v=2026-10-06.11"></script>
+<script src="engine/styles-post.js?v=2026-10-06.11"></script>
+<script src="engine/styles-machines.js?v=2026-10-06.11"></script>
+<script src="engine/styles-alt.js?v=2026-10-06.11"></script>
+<script src="engine/styles-groove.js?v=2026-10-06.11"></script>
+<script src="engine/styles-dub.js?v=2026-10-06.11"></script>
+<script src="engine/styles-break.js?v=2026-10-06.11"></script>
+<script src="engine/styles-soul.js?v=2026-10-06.11"></script>
+<script src="engine/styles-metal.js?v=2026-10-06.11"></script>
+<script src="engine/styles-electro.js?v=2026-10-06.11"></script>
+<script src="engine/variations.js?v=2026-10-06.11"></script>
+<script src="engine/import.js?v=2026-10-06.11"></script>
+<script src="engine/rhythm.js?v=2026-10-06.11"></script>
+<script src="engine/share.js?v=2026-10-06.11"></script>
 <script>
 // Script principale di PATTERN-MACHINE: stato del progetto, audio, trasporto e interfaccia della pagina.
 // Il motore ritmico (SPEngine), i tempi (PMRhythm), import, link e gli altri moduli stanno in engine/*.js.
@@ -2174,22 +2179,26 @@ const sampleIdx = name => SAMPLES.findIndex(s=>s.name===name);
 // ---------- campioni: nomi, file e caricamento ----------
 let audioCtx=null;
 let sampleSet="std";
-const sampleLabel = i => {
+// Dove serve un kit vale di default la macchina selezionata (sampleSet). Una riga puo' pero' tenere un kit suo
+// (t.kit): il suo suono resta di quel kit anche cambiando macchina. kitOf() dice da quale kit suona la riga;
+// un kit che non c'e' (non pubblicato su questo server, macchina importata altrove) ripiega sulla macchina.
+const kitOf = t => t && t.kit && KITS[t.kit] && KITS[t.kit].ok!==false ? t.kit : sampleSet;
+const sampleLabel = (i,kit=sampleSet) => {
   const s=SAMPLES[i];
   if(!s) return "Missing sample";
-  return s.local ? s.name : KITS[sampleSet].name(s);
+  return s.local ? s.name : KITS[kit].name(s);
 };
-const sampleAvailable = i => {
+const sampleAvailable = (i,kit=sampleSet) => {
   const s=SAMPLES[i];
-  return !!s && (s.local ? !s.deleted && !!s.localUrl : KITS[sampleSet].has(s));
+  return !!s && (s.local ? !s.deleted && !!s.localUrl : KITS[kit].has(s));
 };
 const bufferCache=new Map();
 function actx(){ if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)(); return audioCtx; }
-const sampleFile = i => SAMPLES[i]?.local ? SAMPLES[i].localUrl : KITS[sampleSet].url(SAMPLES[i]);
-const cacheKey = i => SAMPLES[i]?.local ? "local:"+SAMPLES[i].localId : sampleSet+":"+i;
+const sampleFile = (i,kit=sampleSet) => SAMPLES[i]?.local ? SAMPLES[i].localUrl : KITS[kit].url(SAMPLES[i]);
+const cacheKey = (i,kit=sampleSet) => SAMPLES[i]?.local ? "local:"+SAMPLES[i].localId : kit+":"+i;
 // La versione autonoma della pagina porta i campioni dentro di se' (SP1200_EMBEDDED: file -> data URL).
 const embeddedOrUrl = file => (window.SP1200_EMBEDDED && window.SP1200_EMBEDDED[file]) || encodeURI(file);
-function sampleUrl(i){ return embeddedOrUrl(sampleFile(i)); }
+function sampleUrl(i,kit=sampleSet){ return embeddedOrUrl(sampleFile(i,kit)); }
 // Scarica e decodifica un campione una volta sola. In bufferCache sta la promessa finche' il buffer non arriva
 // (chi suona controlla `typeof x.then`), poi il buffer; se il download fallisce la voce sparisce e si riprova.
 function fetchBuffer(key,url){
@@ -2201,19 +2210,23 @@ function fetchBuffer(key,url){
   p.then(b=>bufferCache.set(key,b)).catch(()=>bufferCache.delete(key));
   return p;
 }
-function loadBuffer(i){ return fetchBuffer(cacheKey(i), sampleUrl(i)); }
+function loadBuffer(i,kit=sampleSet){ return fetchBuffer(cacheKey(i,kit), sampleUrl(i,kit)); }
+// Le stesse cose per una riga, col suo kit.
+const trackLabel = t => sampleLabel(t.sampleIndex,kitOf(t));
+const trackKey = t => cacheKey(t.sampleIndex,kitOf(t));
+const loadTrack = t => loadBuffer(t.sampleIndex,kitOf(t));
 // Suoni per l'oscillatore Sample del synth (engine/synth.js). Riferimento: "kit:<macchina>/<slot>" (slot come in
 // SAMPLES, vale anche se ora e' caricata un'altra macchina) oppure "local:<id>" (campione del sampler locale).
-const synthSampleRef = i => SAMPLES[i]?.local ? "local:"+SAMPLES[i].localId : "kit:"+sampleSet+"/"+SAMPLES[i].name;
+const synthSampleRef = (i,kit=sampleSet) => SAMPLES[i]?.local ? "local:"+SAMPLES[i].localId : "kit:"+kit+"/"+SAMPLES[i].name;
 // rows: i suoni delle righe della batteria, come nel menu Instrument ({ref, name, row (1..), slot}, una volta per suono);
 // sampler: i campioni del Sampler che non sono gia' su una riga ({ref, name}).
 function synthSampleList(){
   const rows=[], sampler=[], seen=new Set();
   project.tracks.forEach((t,r)=>{
-    if(!sampleAvailable(t.sampleIndex)) return;
-    const ref=synthSampleRef(t.sampleIndex);
+    if(!sampleAvailable(t.sampleIndex,kitOf(t))) return;
+    const ref=synthSampleRef(t.sampleIndex,kitOf(t));
     if(seen.has(ref)) return;
-    seen.add(ref); rows.push({ref, name:sampleLabel(t.sampleIndex), row:r+1, slot:SAMPLES[t.sampleIndex].name});
+    seen.add(ref); rows.push({ref, name:trackLabel(t), row:r+1, slot:SAMPLES[t.sampleIndex].name});
   });
   SAMPLES.forEach((s,i)=>{ if(s.local && sampleAvailable(i) && !seen.has(synthSampleRef(i))) sampler.push({ref:synthSampleRef(i), name:s.name}); });
   return {rows, sampler};
@@ -2234,18 +2247,19 @@ function synthSampleBuffer(ref){
 }
 // Lo slot su cui ripiega una riga il cui suono manca nella macchina caricata: quello indicato dal suono
 // (`fallback`) o Perc 1; un kit importato puo' non avere nemmeno quelli, e allora vale il primo suono che ha.
-function fallbackSampleIndex(sampleIndex){
+function fallbackSampleIndex(sampleIndex,kit=sampleSet){
   const fallback=sampleIdx(SAMPLES[sampleIndex]?.fallback||"Perc 1");
-  if(sampleAvailable(fallback) || !KITS[sampleSet].custom) return fallback;
-  return SAMPLES.findIndex((_s,i)=>sampleAvailable(i));
+  if(sampleAvailable(fallback,kit) || !KITS[kit].custom) return fallback;
+  return SAMPLES.findIndex((_s,i)=>sampleAvailable(i,kit));
 }
 // Sposta sullo slot di riserva le righe rimaste senza suono; risponde quante ne ha spostate.
 function remapUnavailable(){
-  const orphans=project.tracks.filter(t=>!sampleAvailable(t.sampleIndex));
-  orphans.forEach(t=>{ t.sampleIndex=fallbackSampleIndex(t.sampleIndex); });
+  const orphans=project.tracks.filter(t=>!sampleAvailable(t.sampleIndex,kitOf(t)));
+  orphans.forEach(t=>{ t.sampleIndex=fallbackSampleIndex(t.sampleIndex,kitOf(t)); });
   return orphans.length;
 }
-// Cambia macchina. Le righe che usavano un suono che l'altra macchina non ha passano allo slot di riserva.
+// Cambia macchina. Le righe che usavano un suono che l'altra macchina non ha passano allo slot di riserva;
+// quelle con un kit loro (t.kit) restano come sono.
 function setSampleSet(k,quiet=false){
   if(!KITS[k]) return;
   if(KITS[k].ok===false){
@@ -2260,7 +2274,7 @@ function setSampleSet(k,quiet=false){
   updateMachineInfo(k);
   paintKitButtons();
   const moved=remapUnavailable();
-  project.tracks.forEach(t=>loadBuffer(t.sampleIndex));
+  project.tracks.forEach(t=>loadTrack(t));
   renderAll();
   window.__pmLiveRefresh?.();
   if(!quiet) setStatus(KITS[k].label+(moved?` · ${moved} ${moved===1?"row":"rows"} moved to an equivalent sound`:""));
@@ -2578,7 +2592,7 @@ function reversedBuffer(buf){
 }
 function voiceBuffer(track, buf){
   if(!track.reverse) return buf;
-  const k=cacheKey(track.sampleIndex);
+  const k=trackKey(track);
   if(!revCache.has(k)) revCache.set(k, reversedBuffer(buf));
   return revCache.get(k);
 }
@@ -2586,8 +2600,8 @@ function voiceBuffer(track, buf){
 // ctx e chokes si passano per il render offline (export WAV); dal vivo sono il contesto e i choke globali.
 function trigger(track, time, velocity, ctx=actx(), chokes=chokeVoices){
   time=Math.max(0,time);          // un anticipo (feel negativo) sul primo colpo non puo' cadere prima dello zero
-  const raw=bufferCache.get(cacheKey(track.sampleIndex));
-  if(!raw || typeof raw.then==="function"){ loadBuffer(track.sampleIndex); return; }
+  const raw=bufferCache.get(trackKey(track));
+  if(!raw || typeof raw.then==="function"){ loadTrack(track); return; }
   const buf=voiceBuffer(track, raw);
   const src=ctx.createBufferSource();
   src.buffer=buf;
@@ -2929,7 +2943,7 @@ async function play({resume=false}={}){
     countingIn=countInTotal>0;
   }
   pauseState=null; queue=[]; resetWaveRecording();
-  project.tracks.forEach(t=>loadBuffer(t.sampleIndex));
+  project.tracks.forEach(t=>loadTrack(t));
   nextTime=ctx.currentTime+0.06;
   timer=setInterval(scheduler,25);
   paintTransport();
@@ -3008,13 +3022,13 @@ function toggleSynthPlay(){
 // ---------- griglia: menu dei suoni, righello, pannello voce ----------
 let stepEls=new Map();
 
-function fillSampleSelect(sel){
+function fillSampleSelect(sel,kit=sampleSet){
   sel.innerHTML="";
   ["A","B","C","D"].forEach(bank=>{
     const og=document.createElement("optgroup"); og.label=BANK_LABEL[bank];
     SAMPLES.forEach((s,i)=>{
-      if(s.bank!==bank || !sampleAvailable(i)) return;
-      const o=document.createElement("option"); o.value=i; o.textContent=sampleLabel(i); og.appendChild(o);
+      if(s.bank!==bank || !sampleAvailable(i,kit)) return;
+      const o=document.createElement("option"); o.value=i; o.textContent=sampleLabel(i,kit); og.appendChild(o);
     });
     if(og.children.length) sel.appendChild(og);
   });
@@ -3140,14 +3154,14 @@ function renderDrumSound(){
   }
   let t=project.tracks.find(x=>x.id===ui.soundTrackId);
   if(!t){ t=project.tracks[0]; ui.soundTrackId=t.id; }
-  const label=sampleLabel(t.sampleIndex);
+  const label=trackLabel(t);
   name.textContent=" · "+label;
   body.innerHTML=DRUM_SOUND_HTML;
   const menu=el("drumSoundMenu"), summary=el("drumSoundMenuSummary"), list=el("drumSoundList");
   summary.textContent=label+" ▾"; summary.title="Choose the instrument for this row";
   project.tracks.forEach((row,i)=>{
     const b=document.createElement("button"); b.type="button";
-    b.textContent=`${i+1}. ${sampleLabel(row.sampleIndex)}`; b.dataset.track=row.id;
+    b.textContent=`${i+1}. ${trackLabel(row)}`; b.dataset.track=row.id;
     b.setAttribute("role","option"); b.setAttribute("aria-selected",String(row.id===t.id));
     if(row.id===t.id) b.classList.add("on");
     b.onclick=()=>{ menu.open=false; ui.soundTrackId=b.dataset.track; renderDrumSound(); };
@@ -3201,7 +3215,7 @@ function chipButton(cls,label,on,{title,aria,state="aria-pressed"},onclick){
 }
 // Intestazione della riga: pad, nome, suono, M, S e volume sempre in vista; il resto nel menu ⋯.
 function trackHeader(t,idx,pat){
-  const name=sampleLabel(t.sampleIndex), expanded=ui.expanded===t.id, voiceOpen=openVoices.has(t.id);
+  const name=trackLabel(t), expanded=ui.expanded===t.id, voiceOpen=openVoices.has(t.id);
   const top=document.createElement("div"); top.className="trk-top";
 
   const pad=document.createElement("button");
@@ -3223,11 +3237,22 @@ function trackHeader(t,idx,pat){
   more.append(moreSummary,moreBody); top.appendChild(more);
 
   const smp=document.createElement("select");
-  smp.className="smp"; fillSampleSelect(smp); smp.value=t.sampleIndex;
+  smp.className="smp"; fillSampleSelect(smp,kitOf(t)); smp.value=t.sampleIndex;
   smp.setAttribute("aria-label",`Sound for ${name}`);
-  smp.onchange=()=>{ pushUndo(); t.sampleIndex=+smp.value; loadBuffer(t.sampleIndex); renderTracks(); };
+  smp.onchange=()=>{ pushUndo(); t.sampleIndex=+smp.value; loadTrack(t); renderTracks(); };
   smp.title="Change the instrument of this row";
   top.appendChild(smp);   // nella riga, accanto al nome (l'ordine visivo lo danno le regole .trk-top>...)
+  if(!SAMPLES[t.sampleIndex]?.local){   // un campione del Sampler non appartiene a nessun kit
+    const own=t.kit && kitOf(t)===t.kit;
+    const kitBtn=document.createElement("button"); kitBtn.type="button"; kitBtn.className="row-kit"+(own?" on":"");
+    kitBtn.textContent=(own?KITS[t.kit].label:"Kit")+" ▾";
+    kitBtn.title=own ? `This row plays ${KITS[t.kit].label}, whatever machine is selected. Click to change`
+      : "This row follows the selected machine. Click to take its sound from another kit";
+    kitBtn.setAttribute("aria-label",`Kit for ${name}: ${own?KITS[t.kit].label:"selected machine"}`);
+    kitBtn.setAttribute("aria-haspopup","menu");
+    kitBtn.onclick=()=>rowKitMenu(t,kitBtn);
+    top.appendChild(kitBtn);
+  }
 
   top.appendChild(chipButton("m","M",t.mute,{title:"Mute this instrument", aria:`Mute ${name}`},
     ()=>{ pushUndo(); t.mute=!t.mute; renderTracks(); }));
@@ -3303,7 +3328,7 @@ function stepKeyNav(ev,t,i,pat){
 }
 // Gli step di una riga. `els` si riempie con i pulsanti (servono alla testina, alle corsie e alla registrazione).
 function trackSteps(t,idx,pat,arr,L,els){
-  const name=sampleLabel(t.sampleIndex);
+  const name=trackLabel(t);
   const steps=document.createElement("div");
   steps.className="steps";
   steps.style.gridTemplateColumns=`repeat(${gridCols(pat.len)},1fr)`;
@@ -3341,6 +3366,55 @@ function trackSteps(t,idx,pat,arr,L,els){
   }
   stepEls.set(t.id,els);
   return steps;
+}
+
+// I kit che si possono scegliere, nell'ordine dei menu delle macchine.
+function listedKits(){
+  const rest=Object.keys(KITS).filter(k=>!KIT_MENU_FIRST.includes(k) && !KIT_MENU_HIDDEN.has(k));
+  return [...KIT_MENU_FIRST, ...rest].filter(k=>KITS[k] && KITS[k].ok!==false);
+}
+// Mette la riga su un kit suo (kit = id) o la rimanda a seguire la macchina selezionata (kit = null).
+// Se quel kit non ha lo stesso suono la riga passa allo slot di riserva, come quando si cambia macchina.
+function setTrackKit(t,kit){
+  pushUndo();
+  if(kit) t.kit=kit; else delete t.kit;
+  const k=kitOf(t);
+  if(!sampleAvailable(t.sampleIndex,k)) t.sampleIndex=fallbackSampleIndex(t.sampleIndex,k);
+  loadTrack(t).then(()=>hitPreview(t)).catch(()=>{});
+  renderAll();
+  window.__pmLiveRefresh?.();
+  setStatus(kit ? `${trackLabel(t)} · ${KITS[k].label} on this row only` : `${trackLabel(t)} · follows the selected machine`);
+}
+// Menu del kit di una riga: la macchina selezionata (la riga la segue) oppure un kit fisso.
+function rowKitMenu(t,back){
+  el("rowKitMenu")?.remove();
+  const m=document.createElement("div"); m.id="rowKitMenu"; m.className="step-menu kit-menu"; m.setAttribute("role","menu");
+  const own=t.kit && kitOf(t)===t.kit ? t.kit : null;
+  const close=()=>{ m.remove(); document.removeEventListener("pointerdown",outside,true); window.removeEventListener("scroll",scrolled,true); };
+  const outside=e=>{ if(!m.contains(e.target)) close(); };
+  const scrolled=e=>{ if(!m.contains(e.target)) close(); };   // l'elenco scorre al suo interno senza chiudersi
+  const item=(kit,label)=>{
+    const b=document.createElement("button"); b.type="button"; b.setAttribute("role","menuitemradio");
+    b.setAttribute("aria-checked",String(own===kit)); b.textContent=label;
+    b.onclick=()=>{ close(); if(own!==kit) setTrackKit(t,kit); else back?.focus(); };
+    m.appendChild(b); return b;
+  };
+  const items=[item(null,`Selected machine · ${KITS[sampleSet].label}`)];
+  const head=document.createElement("div"); head.className="export-head"; head.textContent="This row only";
+  m.appendChild(head);
+  listedKits().forEach(k=>items.push(item(k,KITS[k].label)));
+  m.onkeydown=e=>{
+    const k=items.indexOf(document.activeElement);
+    if(e.key==="Escape"){ e.preventDefault(); close(); back?.focus(); }
+    else if(e.key==="ArrowDown"||e.key==="ArrowUp"){ e.preventDefault(); items[(k+(e.key==="ArrowDown"?1:items.length-1))%items.length].focus(); }
+  };
+  document.body.appendChild(m);
+  const r=back.getBoundingClientRect();
+  m.style.left=clamp(r.left,4,innerWidth-m.offsetWidth-4)+"px";
+  m.style.top=clamp(r.bottom+4,4,Math.max(4,innerHeight-m.offsetHeight-4))+"px";
+  document.addEventListener("pointerdown",outside,true);
+  window.addEventListener("scroll",scrolled,true);
+  (items.find(b=>b.getAttribute("aria-checked")==="true")||items[0]).focus();
 }
 
 // Menu del tasto destro su uno step: normale, accento, ghost o spento. Frecce e invio per sceglierlo da tastiera.
@@ -3893,7 +3967,7 @@ function songBlockMutes(b){
   };
   project.tracks.forEach(t=>{
     const on=muted.includes(t.id);
-    button(sampleLabel(t.sampleIndex),on,true,
+    button(trackLabel(t),on,true,
       on?"muted in this block: click to bring it back":"click to mute it in this block",()=>{
         const set=new Set(muted);
         if(on) set.delete(t.id); else set.add(t.id);
@@ -4579,7 +4653,7 @@ function renderMixer(){
       return b;
     };
     btns.append(mk("m","M","mute","Mute"), mk("s","S","solo","Solo"));
-    const d=strip({num:String(i+1).padStart(2,"0"), name:sampleLabel(t.sampleIndex), route:"→ Drums",
+    const d=strip({num:String(i+1).padStart(2,"0"), name:trackLabel(t), route:"→ Drums",
       fader:{def:80, get:()=>Math.round((t.vol??0.8)*100), set:v=>{ t.vol=v/100; }},
       pan:{get:()=>t.pan||0, set:v=>{ t.pan=v; applyPan(t.id); }},
       meter:mixOut(actx(),t.id) && bus.ch.get(t.id).an, extra:btns});
@@ -4690,15 +4764,15 @@ function hitPreview(t){
   if(playing) return;
   const ctx=actx();
   if(ctx.state==="suspended") ctx.resume();
-  loadBuffer(t.sampleIndex).then(()=>trigger(t,actx().currentTime,0.9));
+  loadTrack(t).then(()=>trigger(t,actx().currentTime,0.9));
 }
 function hitPad(idx, vel=1){
   const t=project.tracks[idx];
   if(!t) return;
   const ctx=actx();
   if(ctx.state==="suspended") ctx.resume();
-  const b=bufferCache.get(cacheKey(t.sampleIndex));
-  if(!b || typeof b.then==="function"){ loadBuffer(t.sampleIndex).then(()=>trigger(t,actx().currentTime,vel)); }
+  const b=bufferCache.get(trackKey(t));
+  if(!b || typeof b.then==="function"){ loadTrack(t).then(()=>trigger(t,actx().currentTime,vel)); }
   else trigger(t, ctx.currentTime, vel);
   const padEl=el("rows").children[idx]?.querySelector(".pad");
   const livePad=el("livePads")?.querySelector(`[data-live-pad="${idx}"]`);
@@ -4735,7 +4809,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || el("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-06.10";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-06.11";
   document.body.appendChild(s);
 }
 if(LIVE_VIEW || (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth"))) loadSynth();
@@ -4996,6 +5070,7 @@ function fillKitOptions(sel){
       x.ok=false;
       document.querySelectorAll(`#kitSelect option[value="${k}"], #libKitSelect option[value="${k}"], #liveKitSelect option[value="${k}"]`).forEach(o=>o.remove());
       if(sampleSet===k) setSampleSet("std");
+      else if(project.tracks.some(t=>t.kit===k)){ remapUnavailable(); project.tracks.forEach(loadTrack); renderAll(); }
       paintKitButtons();
     });
   }),800);
@@ -5203,7 +5278,7 @@ el("pruneRowsBtn").onclick=()=>{
 el("addRowBtn").onclick=()=>{
   pushUndo();
   const t=makeTrack(+el("sampleSelect").value);
-  project.tracks.push(t); normalize(); loadBuffer(t.sampleIndex); renderTracks();
+  project.tracks.push(t); normalize(); loadTrack(t); renderTracks();
 };
 
 // ---------- song ops ----------
@@ -5475,6 +5550,7 @@ function serializeTrack(t){
   const s=SAMPLES[t.sampleIndex];
   return {id:t.id, sampleIndex:t.sampleIndex,
     ...(s?.local ? {localSampleId:s.localId, localSampleName:s.name} : {}),
+    ...(t.kit ? {kit:t.kit} : {}),
     vol:t.vol, tune:t.tune||0, choke:t.choke||0,
     decay:t.decay, cutoff:t.cutoff, reso:t.reso, start:t.start, reverse:t.reverse, nudge:t.nudge||0,
     ...(t.pan?{pan:t.pan}:{})};
@@ -5520,6 +5596,7 @@ function restoredSampleIndex(t){
 function deserializeTrack(t){
   return {id:t.id, sampleIndex:restoredSampleIndex(t),
     ...(t.localSampleId ? {localSampleId:String(t.localSampleId), localSampleName:String(t.localSampleName||"")} : {}),
+    ...(typeof t.kit==="string" && t.kit ? {kit:t.kit.slice(0,80)} : {}),   // il kit della riga resta anche se qui non c'e'
     vol:t.vol??0.8, tune:t.tune||0, choke:t.choke||0, mute:false, solo:false, ...voiceDefaults(t)};
 }
 // p.synth (qui) e b.synth (nei blocchi) sono il formato di prima dei pattern del synth: si tengono solo
@@ -5569,7 +5646,7 @@ function deserialize(d,keepSel){
   el("pLen").value=curPattern().len;
   normalize();
   renderRhythmControls();
-  project.tracks.forEach(t=>loadBuffer(t.sampleIndex));
+  project.tracks.forEach(t=>loadTrack(t));
   renderAll();
   window.dispatchEvent(new CustomEvent("pm:project-loaded"));
 }
@@ -5735,7 +5812,7 @@ function previewItem(p){
       const g=(pat.grid||{})[t.id]||[], L=(pat.lens||{})[t.id]||pat.len||16;
       for(let s=0;s<(pat.len||16);s++) arr.push(g[s%L]||0);
     });
-    return {arr, track:{sampleIndex:t.sampleIndex, vol:t.vol??0.8, tune:t.tune||0, choke:t.choke||0, nudge:t.nudge||0, ...voiceDefaults(t)}};
+    return {arr, track:{sampleIndex:t.sampleIndex, ...(t.kit?{kit:t.kit}:{}), vol:t.vol??0.8, tune:t.tune||0, choke:t.choke||0, nudge:t.nudge||0, ...voiceDefaults(t)}};
   }).filter(v=>v.arr.some(Boolean));
   return voices.length ? {voices, len, bpm:p.bpm||93, swing:p.swing||0, projectId:p.id} : null;
 }
@@ -5840,7 +5917,7 @@ el("newBtn").onclick=async()=>{
   el("swingRange").value=0; el("humanRange").value=0; paintSwing(); paintHuman();
   el("pLen").value=16;
   renderRhythmControls(); setMix(null);
-  project.tracks.forEach(t=>loadBuffer(t.sampleIndex));
+  project.tracks.forEach(t=>loadTrack(t));
   renderAll(); markSaved(); setStatus("new project");
 };
 
@@ -6026,7 +6103,7 @@ async function renderWav(which, loops=WAV_PATTERN_LOOPS, src=null){
   const {events, length, live}=wavEvents(which, loops, src);
   const synth=window.PMSynth && (!src || src.synth) && PMSynth.hasNotes(which, src);
   if(!events.length && !synth) throw new Error(EMPTY_RENDER);
-  await Promise.all(live.map(t=>loadBuffer(t.sampleIndex)));
+  await Promise.all(live.map(t=>loadTrack(t)));
   const ctx=offlineContext(length), chokes=new Map();
   events.forEach(([time,,vel,lt])=>trigger(lt,time,vel,ctx,chokes));
   if(synth) await PMSynth.renderOffline(ctx, which, loops, src);   // synth nello stesso mix
@@ -6222,7 +6299,7 @@ function buildMultiMidi(which){
   const channelFor=n=>[0,1,2,3,4,5,6,7,8,10,11,12,13,14,15,9][n%16];   // il canale 10 (batteria GM) per ultimo
   const tracks=[midiTempoTrack(tick)];
   used.forEach((trackIndex,order)=>{
-    const name=safeName(sampleLabel(project.tracks[trackIndex].sampleIndex));
+    const name=safeName(trackLabel(project.tracks[trackIndex]));
     const notes=byTrack.get(trackIndex).sort((a,b)=>(a.tick-b.tick)||(a.order-b.order));
     tracks.push(midiChunk([0,...midiText(0x03,name), ...midiNoteBytes(notes,tick,channelFor(order))]));
   });
@@ -6234,7 +6311,7 @@ function buildMultiMidi(which){
 async function renderStems(which){
   const {events, length, live}=wavEvents(which);
   if(!events.length) throw new Error(EMPTY_RENDER);
-  await Promise.all(live.map(t=>loadBuffer(t.sampleIndex)));
+  await Promise.all(live.map(t=>loadTrack(t)));
   const stems=[];
   for(const tr of live){
     if(!events.some(e=>e[1]===tr)) continue;
@@ -6400,7 +6477,7 @@ async function buildDawZip(which, daw="logic"){
   const gain=safeGain(Math.max(0,...stems.map(({buf})=>peakOf(stereoChannels(buf)))));
   const used=new Map(), stemFiles=[];
   stems.forEach(({track,buf},n)=>{
-    let nm=safeName(sampleLabel(track.sampleIndex));
+    let nm=safeName(trackLabel(track));
     const k=(used.get(nm)||0)+1; used.set(nm,k); if(k>1) nm+=" "+k;
     const path=`Stems/${String(n+1).padStart(2,"0")} ${nm}.wav`;
     stemFiles.push({label:nm, path});
@@ -6410,10 +6487,16 @@ async function buildDawZip(which, daw="logic"){
     files.push({name:dir+`${base}.rpp`, data:new TextEncoder().encode(buildReaperProject(which, stemFiles, stems[0].buf.length/WAV_RATE))});
 
   let samples=0;
-  for(const i of new Set(project.tracks.map(t=>t.sampleIndex))){
+  // un file per suono: due righe con lo stesso slot ma di kit diversi sono due suoni
+  const sounds=new Map(project.tracks.map(t=>[trackKey(t),t])), sampleNames=new Set();
+  for(const t of sounds.values()){
+    const i=t.sampleIndex, kit=kitOf(t);
     try{
-      const r=await fetch(sampleUrl(i)); if(!r.ok) continue;
-      files.push({name:dir+`Samples/${gmNoteFor(i)} ${safeName(sampleLabel(i))}.wav`, data:new Uint8Array(await r.arrayBuffer())});
+      const r=await fetch(sampleUrl(i,kit)); if(!r.ok) continue;
+      let nm=`${gmNoteFor(i)} ${safeName(sampleLabel(i,kit))}`;
+      if(sampleNames.has(nm)) nm+=" "+safeName(KITS[kit].label);
+      sampleNames.add(nm);
+      files.push({name:dir+`Samples/${nm}.wav`, data:new Uint8Array(await r.arrayBuffer())});
       samples++;
     }catch(e){}
   }
@@ -6832,7 +6915,7 @@ async function startAudition(item){
   const voices=auditionVoices(item);
   audition.item=item; paintAudition();
   paintTransport();
-  await Promise.all(voices.map(v=>loadBuffer(v.track.sampleIndex).catch(()=>null)));
+  await Promise.all(voices.map(v=>loadTrack(v.track).catch(()=>null)));
   if(audition.item!==item) return;                 // nel frattempo l'ascolto e' cambiato
   Object.assign(audition,{voices, step:0, next:ctx.currentTime+0.05});
   audition.timer=setInterval(()=>{
@@ -7506,7 +7589,7 @@ initGridVary();
 const initialKit=savedKit()||project.sampleSet;   // senza una scelta salvata, la macchina del progetto di partenza
 if(initialKit!==sampleSet) setSampleSet(initialKit,true);
 else updateMachineInfo(sampleSet);   // stessa macchina di partenza: dati e illustrazione vanno comunque disegnati
-project.tracks.forEach(t=>loadBuffer(t.sampleIndex));
+project.tracks.forEach(t=>loadTrack(t));
 renderAll();
 paintSwing(); paintHuman();
 const requestedView=new URLSearchParams(location.search).get("view");
@@ -7571,12 +7654,12 @@ loadSharedProject();
 
   function paintPads(){
     pads.innerHTML="";
-    const entries=liveDrumSource==="solo" ? SAMPLES.slice(0,16).map((s,i)=>({sampleIndex:i,track:null})) : project.tracks.slice(0,16).map(t=>({sampleIndex:t.sampleIndex,track:t}));
+    const entries=liveDrumSource==="solo" ? SAMPLES.slice(0,16).map((s,i)=>({sampleIndex:i,track:null})) : project.tracks.slice(0,16).map(t=>({sampleIndex:t.sampleIndex,kit:t.kit,track:t}));
     entries.forEach((entry,i)=>{
       const b=document.createElement("button"); b.type="button"; b.className="live-pad"; b.dataset.livePad=i;
       b.innerHTML=`<span class="live-pad-key">${PAD_LABEL[i]||"·"}</span><span class="live-pad-name"></span>`;
-      b.querySelector(".live-pad-name").textContent=sampleLabel(entry.sampleIndex);
-      b.title=`Play ${sampleLabel(entry.sampleIndex)} · ${PAD_LABEL[i]||""}`;
+      b.querySelector(".live-pad-name").textContent=trackLabel(entry);
+      b.title=`Play ${trackLabel(entry)} · ${PAD_LABEL[i]||""}`;
       b.onpointerdown=e=>{ e.preventDefault(); hitLivePad(i); };
       pads.appendChild(b);
     });
@@ -7603,8 +7686,8 @@ loadSharedProject();
   function hitSoloPad(i){
     const t=liveSoloTrack(i), ctx=actx();
     if(ctx.state==="suspended") ctx.resume();
-    const b=bufferCache.get(cacheKey(t.sampleIndex));
-    if(!b || typeof b.then==="function") loadBuffer(t.sampleIndex).then(()=>trigger(t,actx().currentTime,.9));
+    const b=bufferCache.get(trackKey(t));
+    if(!b || typeof b.then==="function") loadTrack(t).then(()=>trigger(t,actx().currentTime,.9));
     else trigger(t,ctx.currentTime,.9);
   }
   function hitLivePad(i){
@@ -7731,7 +7814,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-10-06.10";
+const SW_VERSION="2026-10-06.11";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -7755,10 +7838,10 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sample-editor.js?v=2026-10-06.10"></script>
-<script src="engine/sampler.js?v=2026-10-06.10"></script>
-<script src="engine/vocal.js?v=2026-10-06.10"></script>
+<script src="engine/sample-editor.js?v=2026-10-06.11"></script>
+<script src="engine/sampler.js?v=2026-10-06.11"></script>
+<script src="engine/vocal.js?v=2026-10-06.11"></script>
 <script>PMSampler.init(); PMVocal.init();</script>
-<script src="engine/midi.js?v=2026-10-06.10"></script>
+<script src="engine/midi.js?v=2026-10-06.11"></script>
 </body>
 </html>

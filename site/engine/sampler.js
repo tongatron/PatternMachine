@@ -455,7 +455,7 @@
     if(at>=0) project.song.splice(at+1,0,block); else project.song.push(block);
     ui.blockId=block.id;
     if(grid.bpm){ const n=$("bpmNum"); n.value=grid.bpm; n.dispatchEvent(new Event("input")); }
-    normalize(); tracks.forEach(t=>loadBuffer(t.sampleIndex));
+    normalize(); tracks.forEach(t=>loadTrack(t));
     selectPattern(p.id); setView("grid");
     const pos=project.song.indexOf(block)+1;
     setStatus(`${made.length} slices of “${name}”: ${made.length} rows, the pattern “${title}” and block ${pos} of the song`+(grid.bpm?`, tempo ${grid.bpm} BPM`:""));

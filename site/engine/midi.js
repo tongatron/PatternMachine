@@ -267,7 +267,7 @@
   function padOptions() {
     const rows = Math.max(16, project.tracks.length);
     const rowOpts = Array.from({ length: rows }, (_, r) => {
-      const t = project.tracks[r], name = t && typeof sampleLabel === "function" ? " · " + sampleLabel(t.sampleIndex) : " · (empty)";
+      const t = project.tracks[r], name = t && typeof trackLabel === "function" ? " · " + trackLabel(t) : " · (empty)";
       return `<option value="row:${r}">Row ${r + 1}${esc(name)}</option>`;
     }).join("");
     return `<option value="none">Nothing</option><optgroup label="Drums">${rowOpts}</optgroup>` +

@@ -4,20 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0a0a0b">
-<title>PATTERN-MACHINE — Live View</title>
+<meta http-equiv="refresh" content="0;url=index.html?live=1">
+<title>PATTERN-MACHINE — Live Playing</title>
 <meta name="description" content="A focused live playing surface for PATTERN-MACHINE drums and synth.">
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
-<style>
-  html,body{margin:0;min-height:100%;background:#0a0a0b;overflow:hidden}
-  iframe{display:block;width:100%;height:100vh;border:0}
-</style>
+<style>html,body{margin:0;min-height:100%;background:#0a0a0b;color:#efefed;font:14px system-ui,sans-serif}main{display:grid;min-height:100vh;place-items:center}a{color:#ff9a4d}</style>
 </head>
 <body>
-<iframe id="liveFrame" src="index.html?live=1" title="PATTERN-MACHINE Live View" allow="autoplay" allowfullscreen tabindex="0"></iframe>
+<main><p>Opening <a href="index.html?live=1">Live Playing</a>…</p></main>
 <script>
-  const liveFrame=document.getElementById("liveFrame");
-  liveFrame.addEventListener("load",()=>liveFrame.contentWindow?.focus());
-  liveFrame.addEventListener("pointerdown",()=>liveFrame.contentWindow?.focus());
+  location.replace("index.html?live=1");
 </script>
 </body>
 </html>

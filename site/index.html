@@ -220,7 +220,7 @@ html[data-live="1"] #liveView{display:flex; min-height:calc(100vh - 68px); flex-
 .live-synth-meta{display:flex; align-items:center; gap:10px; color:var(--text-dim); font-size:10px;}
 .live-synth-meta strong{color:var(--text); font-size:12px;}
 .live-synth-meta span{color:var(--text-faint);}
-.live-keyboard{position:relative; display:grid; grid-template-columns:repeat(24,minmax(0,1fr)); height:clamp(190px,30vw,310px); padding:0 1px 1px; border:1px solid var(--edge); border-radius:8px; background:var(--panel-3); overflow:hidden; box-shadow:0 12px 28px rgba(0,0,0,.24);}
+.live-keyboard{position:relative; display:grid; grid-template-columns:repeat(24,minmax(0,1fr)); height:clamp(120px,min(30vw,34vh),310px); padding:0 1px 1px; border:1px solid var(--edge); border-radius:8px; background:var(--panel-3); overflow:hidden; box-shadow:0 12px 28px rgba(0,0,0,.24);}
 .live-key{position:relative; z-index:1; display:flex; align-items:flex-end; justify-content:center; grid-row:1; min-width:0; padding:0 0 15px; border:0; border-right:1px solid var(--edge-soft); border-radius:0 0 5px 5px; background:linear-gradient(180deg,var(--text),color-mix(in srgb,var(--text-dim) 75%,var(--panel))); color:var(--panel); font-size:9px; font-weight:800;}
 .live-key:hover{filter:brightness(1.06);}.live-key.on{background:linear-gradient(180deg,#ff9a4d,var(--accent)); color:#fff;}
 .live-key.black{z-index:2; grid-row:1; height:61%; margin:0 -34%; padding-bottom:9px; border:1px solid #171717; border-top:0; border-radius:0 0 4px 4px; background:linear-gradient(180deg,#333338,#101012); color:#aaa; box-shadow:0 4px 6px rgba(0,0,0,.42);}
@@ -231,7 +231,7 @@ html[data-live="1"] #liveView{display:flex; min-height:calc(100vh - 68px); flex-
 @media (max-width:700px){
   html[data-live="1"] body{padding:12px;}.live-head{align-items:flex-start; flex-direction:column; gap:14px;}.live-head-actions{justify-content:flex-start;}
   html[data-live="1"] #liveView{min-height:calc(100vh - 24px);}.live-stage{min-height:0; padding:16px 12px;}.live-toolbar{gap:8px;}.live-field select{min-width:150px;}.live-spacer{display:none;}.live-panic{margin-left:auto;}
-  .live-pads{gap:8px;}.live-pad{min-height:72px; padding:10px;}.live-keyboard{height:220px;}.live-help,.live-foot{flex-direction:column;}
+  .live-pads{gap:8px;}.live-pad{min-height:72px; padding:10px;}.live-keyboard{height:clamp(120px,32vh,220px);}.live-help,.live-foot{flex-direction:column;}
 }
 
 .topbar{display:grid; grid-template-columns:minmax(0,1fr) auto; grid-template-areas:"title account" "controls controls"; align-items:baseline; gap:10px 16px; margin-bottom:12px;}
@@ -1158,12 +1158,12 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
   <section id="liveView" aria-labelledby="liveTitle" hidden>
     <header class="live-head">
       <div>
-        <div class="live-kicker">PATTERN-MACHINE · LIVE VIEW</div>
+        <div class="live-kicker">PATTERN-MACHINE · LIVE PLAYING</div>
         <h1 id="liveTitle">Play an instrument</h1>
         <p class="live-lead">A focused surface for playing live. Choose an instrument, touch a pad or play the keyboard.</p>
       </div>
       <div class="live-head-actions">
-        <span class="live-state" id="liveAudioState">Click a control to start audio</span>
+        <span class="live-state" id="livePlayingState">Click a control to start live playing</span>
         <button type="button" id="liveThemeBtn" class="mini" aria-label="Switch theme">Theme</button>
         <a href="./" title="Open the full PatternMachine studio">Full studio ↗</a>
       </div>
@@ -1178,7 +1178,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
         <label class="live-field" id="livePresetField" hidden>Preset <select id="livePresetSelect" aria-label="Synth preset"></select></label>
         <span class="live-spacer"></span>
         <label class="live-field" title="Master output volume">Volume <input type="range" id="liveMasterRange" min="0" max="100" value="85"><output id="liveMasterOut">85%</output></label>
-        <button type="button" id="livePanic" class="live-panic" title="Release every playing note and stop audio">■ Panic</button>
+        <button type="button" id="livePanic" class="live-panic" aria-label="Stop all live playing" title="Panic: release every held note and stop all currently playing sound immediately">■ Panic</button>
       </div>
       <div class="live-stage">
         <div class="live-panel" id="liveDrumsPanel" role="tabpanel" aria-labelledby="liveDrumsTab">
@@ -1201,7 +1201,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
     <h1>PATTERN-MACHINE</h1>
     <div class="topbar-controls">
       <span class="topbar-guides">
-        <a class="linkbtn" href="live.html" title="Open the focused live playing surface for drums and synth">Live View</a>
+        <a class="linkbtn" href="index.html?live=1" title="Open the focused live playing surface for drums and synth">Live Playing</a>
         <a class="linkbtn help-link" href="funzioni.html" title="Complete guide to every PATTERN-MACHINE feature">Complete guide</a>
         <a class="linkbtn learn-link" href="learn/index.html" title="Learn drum machine programming with hands-on lessons">Learn drum machine programming</a>
       </span>
@@ -1788,22 +1788,22 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-10-06.3"></script>
-<script src="engine/core.js?v=2026-10-06.3"></script>
-<script src="engine/styles-punk.js?v=2026-10-06.3"></script>
-<script src="engine/styles-post.js?v=2026-10-06.3"></script>
-<script src="engine/styles-machines.js?v=2026-10-06.3"></script>
-<script src="engine/styles-alt.js?v=2026-10-06.3"></script>
-<script src="engine/styles-groove.js?v=2026-10-06.3"></script>
-<script src="engine/styles-dub.js?v=2026-10-06.3"></script>
-<script src="engine/styles-break.js?v=2026-10-06.3"></script>
-<script src="engine/styles-soul.js?v=2026-10-06.3"></script>
-<script src="engine/styles-metal.js?v=2026-10-06.3"></script>
-<script src="engine/styles-electro.js?v=2026-10-06.3"></script>
-<script src="engine/variations.js?v=2026-10-06.3"></script>
-<script src="engine/import.js?v=2026-10-06.3"></script>
-<script src="engine/rhythm.js?v=2026-10-06.3"></script>
-<script src="engine/share.js?v=2026-10-06.3"></script>
+<script src="engine/machine-art.js?v=2026-10-06.4"></script>
+<script src="engine/core.js?v=2026-10-06.4"></script>
+<script src="engine/styles-punk.js?v=2026-10-06.4"></script>
+<script src="engine/styles-post.js?v=2026-10-06.4"></script>
+<script src="engine/styles-machines.js?v=2026-10-06.4"></script>
+<script src="engine/styles-alt.js?v=2026-10-06.4"></script>
+<script src="engine/styles-groove.js?v=2026-10-06.4"></script>
+<script src="engine/styles-dub.js?v=2026-10-06.4"></script>
+<script src="engine/styles-break.js?v=2026-10-06.4"></script>
+<script src="engine/styles-soul.js?v=2026-10-06.4"></script>
+<script src="engine/styles-metal.js?v=2026-10-06.4"></script>
+<script src="engine/styles-electro.js?v=2026-10-06.4"></script>
+<script src="engine/variations.js?v=2026-10-06.4"></script>
+<script src="engine/import.js?v=2026-10-06.4"></script>
+<script src="engine/rhythm.js?v=2026-10-06.4"></script>
+<script src="engine/share.js?v=2026-10-06.4"></script>
 <script>
 // Script principale di PATTERN-MACHINE: stato del progetto, audio, trasporto e interfaccia della pagina.
 // Il motore ritmico (SPEngine), i tempi (PMRhythm), import, link e gli altri moduli stanno in engine/*.js.
@@ -4652,7 +4652,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || el("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-06.3";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-06.4";
   document.body.appendChild(s);
 }
 if(LIVE_VIEW || (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth"))) loadSynth();
@@ -7467,8 +7467,8 @@ loadSharedProject();
   const drumTyping={Digit1:0,Digit2:1,Digit3:2,Digit4:3,KeyQ:4,KeyW:5,KeyE:6,KeyR:7,KeyA:8,KeyS:9,KeyD:10,KeyF:11,KeyZ:12,KeyX:13,KeyC:14,KeyV:15};
   const noteNames=["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
   const noteName=n=>noteNames[n%12]+(Math.floor(n/12)-1);
-  const state=(message,ready=false)=>{ const box=el("liveAudioState"); box.textContent=message; box.classList.toggle("ready",ready); };
-  const audioStarted=()=>state("Audio ready",true);
+  const state=(message,ready=false)=>{ const box=el("livePlayingState"); box.textContent=message; box.classList.toggle("ready",ready); };
+  const audioStarted=()=>state("Live playing ready",true);
   const stopHeld=()=>{ held.forEach(n=>window.PMSynth?.liveNote?.(n,0)); held.clear(); heldKeys.clear(); noteButtons.forEach(b=>b.classList.remove("on")); };
 
   function paintPads(){
@@ -7549,7 +7549,7 @@ loadSharedProject();
   }
   el("liveDrumsTab").onclick=()=>setInstrument("drums");
   el("liveSynthTab").onclick=()=>setInstrument("synth");
-  el("livePanic").onclick=()=>{ stopHeld(); stopLiveAudio(); window.PMSynth?.allOff?.(); state("All notes stopped"); };
+  el("livePanic").onclick=()=>{ stopHeld(); stopLiveAudio(); window.PMSynth?.allOff?.(); state("Live playing stopped"); };
   el("liveMasterRange").oninput=e=>{ el("masterVol").value=e.target.value; el("masterVol").dispatchEvent(new Event("input")); el("liveMasterOut").textContent=e.target.value+"%"; };
   el("liveThemeBtn").onclick=()=>el("themeToggle").click();
   el("livePresetSelect").onchange=e=>{ const src=el("synPreset"); if(!src) return; src.value=e.target.value; src.dispatchEvent(new Event("change")); el("livePresetName").textContent=e.target.value; };
@@ -7577,7 +7577,7 @@ loadSharedProject();
   },true);
   window.addEventListener("blur",stopHeld);
   window.addEventListener("pm:project-loaded",paintPads);
-  paintPads(); buildKeyboard(); state("Click a control to start audio");
+  paintPads(); buildKeyboard(); state("Click a control to start live playing");
   setTimeout(()=>syncPreset(),120);
 })();
 
@@ -7619,7 +7619,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-10-06.3";
+const SW_VERSION="2026-10-06.4";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -7643,11 +7643,11 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sample-editor.js?v=2026-10-06.3"></script>
-<script src="engine/sampler.js?v=2026-10-06.3"></script>
-<script src="engine/vocal.js?v=2026-10-06.3"></script>
+<script src="engine/sample-editor.js?v=2026-10-06.4"></script>
+<script src="engine/sampler.js?v=2026-10-06.4"></script>
+<script src="engine/vocal.js?v=2026-10-06.4"></script>
 <script>PMSampler.init(); PMVocal.init();</script>
-<script src="engine/midi.js?v=2026-10-06.3"></script>
+<script src="engine/midi.js?v=2026-10-06.4"></script>
 <script>
   (function openStrudelWindow(){
     const link=document.getElementById("liveCodingLink");

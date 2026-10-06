@@ -1,6 +1,6 @@
 # PATTERN-MACHINE
 
-**A step drum machine with classic vintage machines, a pattern generator, a song arranger and export to any DAW.**
+**PatternMachine is a rhythm-focused software groovebox built around classic drum machines, synth patterns and song arranging.**
 Runs in the browser, as a desktop app for macOS, Windows and Linux, and as a plug-in inside Logic Pro.
 
 **Website:** [patternmachine.tongatron.org](https://patternmachine.tongatron.org) ·

@@ -213,13 +213,13 @@ html[data-live="1"] #liveView{display:flex; height:100%; min-height:0; flex-dire
 .live-stage-title{margin:0; font-size:13px; letter-spacing:.14em; text-transform:uppercase;}
 .live-stage-note{color:var(--text-faint); font-size:10px; text-align:right;}
 .live-panel[hidden]{display:none!important;}
-.live-pads{display:grid; grid-template-columns:repeat(8,minmax(0,1fr)); gap:clamp(6px,1vw,12px); width:min(1160px,100%); margin:auto;}
-.live-pad{aspect-ratio:1.6; min-height:0; display:flex; flex-direction:column; align-items:flex-start; justify-content:flex-end; gap:5px; padding:clamp(8px,1.1vw,15px); border-radius:clamp(8px,1.2vw,14px); background:linear-gradient(145deg,var(--panel-3),var(--panel-2)); border:1px solid var(--edge); box-shadow:0 4px 0 color-mix(in srgb,var(--edge) 62%,transparent),0 8px 18px rgba(0,0,0,.18); text-align:left;}
+.live-pads{display:grid; grid-template-columns:repeat(8,minmax(0,1fr)); gap:clamp(5px,.8vw,9px); width:min(820px,100%); margin:auto;}
+.live-pad{aspect-ratio:1.8; min-height:0; display:flex; flex-direction:column; align-items:flex-start; justify-content:flex-end; gap:3px; padding:clamp(6px,.8vw,10px); border-radius:clamp(6px,.9vw,10px); background:linear-gradient(145deg,var(--panel-3),var(--panel-2)); border:1px solid var(--edge); box-shadow:0 4px 0 color-mix(in srgb,var(--edge) 62%,transparent),0 8px 18px rgba(0,0,0,.18); text-align:left;}
 .live-pad:hover{border-color:var(--text-faint); transform:translateY(-1px);}
 .live-pad:active,.live-pad.hit{background:linear-gradient(145deg,var(--accent),var(--accent-dim)); border-color:var(--accent); color:var(--on-accent); box-shadow:0 2px 0 color-mix(in srgb,var(--accent-dim) 80%,#000),0 8px 22px color-mix(in srgb,var(--accent) 28%,transparent); transform:translateY(3px);}
-.live-pad-key{font-size:11px; font-weight:800; color:var(--accent); letter-spacing:.1em; text-transform:uppercase;}
+.live-pad-key{font-size:10px; font-weight:800; color:var(--accent); letter-spacing:.1em; text-transform:uppercase;}
 .live-pad.hit .live-pad-key{color:inherit;}
-.live-pad-name{font-size:clamp(10px,1.1vw,13px); font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;}
+.live-pad-name{font-size:clamp(9px,.9vw,11px); font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;}
 .live-synth-wrap{display:flex; flex:1 1 auto; flex-direction:column; justify-content:center; gap:16px; width:min(1000px,100%); margin:auto;}
 .live-synth-meta{display:flex; align-items:center; gap:10px; color:var(--text-dim); font-size:10px;}
 .live-synth-meta strong{color:var(--text); font-size:12px;}
@@ -253,8 +253,8 @@ html[data-live="1"] #liveView{display:flex; height:100%; min-height:0; flex-dire
   .live-stage{padding:8px; overflow-y:auto;}
   .live-stage-head{margin-bottom:6px;}
   .live-panel{display:flex; flex:1 1 auto; flex-direction:column; min-height:0;}
-  .live-pads{flex:1 1 auto; grid-template-columns:repeat(4,minmax(0,1fr)); grid-auto-rows:minmax(52px,1fr); gap:6px; width:100%; margin:0;}
-  .live-pad{aspect-ratio:auto; padding:8px;}
+  .live-pads{flex:0 0 auto; grid-template-columns:repeat(4,minmax(0,1fr)); grid-auto-rows:minmax(44px,64px); gap:5px; width:100%; margin:auto 0;}
+  .live-pad{aspect-ratio:auto; padding:6px;}
   .live-synth-wrap{gap:8px; width:100%; margin:0;}
   .live-keyboard{flex:1 1 auto; height:auto; min-height:110px; max-height:300px;}
   .live-help, .live-foot{display:none;}
@@ -1834,22 +1834,22 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-10-06.13"></script>
-<script src="engine/core.js?v=2026-10-06.13"></script>
-<script src="engine/styles-punk.js?v=2026-10-06.13"></script>
-<script src="engine/styles-post.js?v=2026-10-06.13"></script>
-<script src="engine/styles-machines.js?v=2026-10-06.13"></script>
-<script src="engine/styles-alt.js?v=2026-10-06.13"></script>
-<script src="engine/styles-groove.js?v=2026-10-06.13"></script>
-<script src="engine/styles-dub.js?v=2026-10-06.13"></script>
-<script src="engine/styles-break.js?v=2026-10-06.13"></script>
-<script src="engine/styles-soul.js?v=2026-10-06.13"></script>
-<script src="engine/styles-metal.js?v=2026-10-06.13"></script>
-<script src="engine/styles-electro.js?v=2026-10-06.13"></script>
-<script src="engine/variations.js?v=2026-10-06.13"></script>
-<script src="engine/import.js?v=2026-10-06.13"></script>
-<script src="engine/rhythm.js?v=2026-10-06.13"></script>
-<script src="engine/share.js?v=2026-10-06.13"></script>
+<script src="engine/machine-art.js?v=2026-10-06.14"></script>
+<script src="engine/core.js?v=2026-10-06.14"></script>
+<script src="engine/styles-punk.js?v=2026-10-06.14"></script>
+<script src="engine/styles-post.js?v=2026-10-06.14"></script>
+<script src="engine/styles-machines.js?v=2026-10-06.14"></script>
+<script src="engine/styles-alt.js?v=2026-10-06.14"></script>
+<script src="engine/styles-groove.js?v=2026-10-06.14"></script>
+<script src="engine/styles-dub.js?v=2026-10-06.14"></script>
+<script src="engine/styles-break.js?v=2026-10-06.14"></script>
+<script src="engine/styles-soul.js?v=2026-10-06.14"></script>
+<script src="engine/styles-metal.js?v=2026-10-06.14"></script>
+<script src="engine/styles-electro.js?v=2026-10-06.14"></script>
+<script src="engine/variations.js?v=2026-10-06.14"></script>
+<script src="engine/import.js?v=2026-10-06.14"></script>
+<script src="engine/rhythm.js?v=2026-10-06.14"></script>
+<script src="engine/share.js?v=2026-10-06.14"></script>
 <script>
 // Script principale di PATTERN-MACHINE: stato del progetto, audio, trasporto e interfaccia della pagina.
 // Il motore ritmico (SPEngine), i tempi (PMRhythm), import, link e gli altri moduli stanno in engine/*.js.
@@ -4851,7 +4851,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || el("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-06.13";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-06.14";
   document.body.appendChild(s);
 }
 if(LIVE_VIEW || (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth"))) loadSynth();
@@ -7856,7 +7856,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-10-06.13";
+const SW_VERSION="2026-10-06.14";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -7880,10 +7880,10 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sample-editor.js?v=2026-10-06.13"></script>
-<script src="engine/sampler.js?v=2026-10-06.13"></script>
-<script src="engine/vocal.js?v=2026-10-06.13"></script>
+<script src="engine/sample-editor.js?v=2026-10-06.14"></script>
+<script src="engine/sampler.js?v=2026-10-06.14"></script>
+<script src="engine/vocal.js?v=2026-10-06.14"></script>
 <script>PMSampler.init(); PMVocal.init();</script>
-<script src="engine/midi.js?v=2026-10-06.13"></script>
+<script src="engine/midi.js?v=2026-10-06.14"></script>
 </body>
 </html>

@@ -916,8 +916,11 @@ button.danger-fill{background:var(--danger); border-color:var(--danger); color:#
 .seqblock.sel{border-color:var(--song); box-shadow:0 0 0 1px var(--song) inset;}
 .seqblock.playing{background:var(--panel-3); outline:2px solid var(--accent); transform:translateY(-2px);}
 .seqblock.dragging{opacity:0.35;}
-.seqblock.dropbefore{box-shadow:-3px 0 0 var(--accent);}
-.seqblock.dropafter{box-shadow:3px 0 0 var(--accent);}
+/* Spazio libero in coda alle due corsie: dove lasciare un blocco per portarlo in fondo (il righello lo ripete per scorrere uguale). */
+.seq-track::after, .seq-ruler::after{content:""; flex:0 0 72px;}
+.seq-track.dragover{background:color-mix(in srgb, var(--accent) 7%, transparent); border-radius:9px;}
+/* Dove cadra' il blocco: una barra tra due schede. Larga 4px con margini di -6px, insieme al gap di 8px non sposta niente. */
+.seq-dropmark{flex:0 0 4px; margin:0 -6px; align-self:stretch; border-radius:2px; background:var(--accent); box-shadow:0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent); pointer-events:none;}
 .seqblock-head{display:flex; align-items:center; gap:6px; font-size:9px;
   color:var(--text-faint); text-transform:uppercase; letter-spacing:0.06em;}
 .seqblock-head .dot{width:8px; height:8px; border-radius:50%; flex:0 0 auto;}
@@ -963,7 +966,7 @@ button.danger-fill{background:var(--danger); border-color:var(--danger); color:#
 .seqblock-foot button{padding:3px 5px; font-size:10px; line-height:1;}
 .seqblock-foot .sp{margin-left:auto;}
 .song-empty{font-size:10.5px; color:var(--text-faint); font-style:italic; align-self:center; padding:14px;}
-.seq-ruler{display:flex; gap:8px; padding:0 2px; font-size:8.5px; color:var(--text-faint);}
+.seq-ruler{display:flex; gap:8px; padding:0 2px; font-size:8.5px; color:var(--text-faint); overflow:hidden;}
 .seq-ruler span{flex:0 0 auto; width:178px; text-align:left;}
 .seqblock{position:relative;}
 .seqblock .prev{position:relative;}
@@ -1464,8 +1467,8 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       <button id="vocalBtn" class="mini" type="button" aria-expanded="false" aria-controls="vocalPanel" title="Record your voice over the song and keep it as a sample"><span class="rec-dot" aria-hidden="true">●</span> Record vocal</button>
       <button id="seqRename" class="mini" title="Rename the pattern used by the selected block">Rename pattern</button>
       <button id="sDup" class="mini">Duplicate</button>
-      <button id="sLeft" class="mini" title="Move left">&larr;</button>
-      <button id="sRight" class="mini" title="Move right">&rarr;</button>
+      <button id="sLeft" class="mini" title="Move the selected block one place left" aria-label="Move the selected block left">&larr;</button>
+      <button id="sRight" class="mini" title="Move the selected block one place right" aria-label="Move the selected block right">&rarr;</button>
       <button id="sDel" class="mini danger">Remove</button>
       <button id="seqClear" class="mini danger">Clear</button>
       <span class="tiny" id="songInfo" style="margin-left:auto;"></span>
@@ -1512,6 +1515,8 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       <button id="ssRest" class="mini" title="A silent block: the synth pauses (one bar, the length can be changed on the block)">+ Rest</button>
       <button id="ssDup" class="mini" title="Duplicate the selected synth block">Duplicate</button>
       <button id="ssRename" class="mini" title="Rename the selected block's synth pattern only">Rename</button>
+      <button id="ssLeft" class="mini" title="Move the selected synth block one place left" aria-label="Move the selected synth block left">&larr;</button>
+      <button id="ssRight" class="mini" title="Move the selected synth block one place right" aria-label="Move the selected synth block right">&rarr;</button>
       <button id="ssClear" class="mini danger">Clear</button>
       <span class="tiny" id="synthLaneInfo" style="margin-left:auto;"></span>
     </div>
@@ -1521,7 +1526,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       <canvas id="waveSequencerCanvas" height="124" aria-label="Waveform of the song arrangement"></canvas>
     </details>
     <p class="hint" style="margin-top:0;">
-      Drag blocks to reorder them · pick the section right on the block · double-click opens the beat in the grid (the synth block in the Synthesizer) · the synth blocks play under the drums at the same bars · click the line to choose where playback starts.
+      Drag a block to reorder it: the orange bar shows where it lands, also between two blocks or after the last one · ← → move the selected block one place · pick the section right on the block · double-click opens the beat in the grid (the synth block in the Synthesizer) · the synth blocks play under the drums at the same bars · click the line to choose where playback starts.
     </p>
   </div>
 
@@ -1794,22 +1799,22 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-10-06.9"></script>
-<script src="engine/core.js?v=2026-10-06.9"></script>
-<script src="engine/styles-punk.js?v=2026-10-06.9"></script>
-<script src="engine/styles-post.js?v=2026-10-06.9"></script>
-<script src="engine/styles-machines.js?v=2026-10-06.9"></script>
-<script src="engine/styles-alt.js?v=2026-10-06.9"></script>
-<script src="engine/styles-groove.js?v=2026-10-06.9"></script>
-<script src="engine/styles-dub.js?v=2026-10-06.9"></script>
-<script src="engine/styles-break.js?v=2026-10-06.9"></script>
-<script src="engine/styles-soul.js?v=2026-10-06.9"></script>
-<script src="engine/styles-metal.js?v=2026-10-06.9"></script>
-<script src="engine/styles-electro.js?v=2026-10-06.9"></script>
-<script src="engine/variations.js?v=2026-10-06.9"></script>
-<script src="engine/import.js?v=2026-10-06.9"></script>
-<script src="engine/rhythm.js?v=2026-10-06.9"></script>
-<script src="engine/share.js?v=2026-10-06.9"></script>
+<script src="engine/machine-art.js?v=2026-10-06.10"></script>
+<script src="engine/core.js?v=2026-10-06.10"></script>
+<script src="engine/styles-punk.js?v=2026-10-06.10"></script>
+<script src="engine/styles-post.js?v=2026-10-06.10"></script>
+<script src="engine/styles-machines.js?v=2026-10-06.10"></script>
+<script src="engine/styles-alt.js?v=2026-10-06.10"></script>
+<script src="engine/styles-groove.js?v=2026-10-06.10"></script>
+<script src="engine/styles-dub.js?v=2026-10-06.10"></script>
+<script src="engine/styles-break.js?v=2026-10-06.10"></script>
+<script src="engine/styles-soul.js?v=2026-10-06.10"></script>
+<script src="engine/styles-metal.js?v=2026-10-06.10"></script>
+<script src="engine/styles-electro.js?v=2026-10-06.10"></script>
+<script src="engine/variations.js?v=2026-10-06.10"></script>
+<script src="engine/import.js?v=2026-10-06.10"></script>
+<script src="engine/rhythm.js?v=2026-10-06.10"></script>
+<script src="engine/share.js?v=2026-10-06.10"></script>
 <script>
 // Script principale di PATTERN-MACHINE: stato del progetto, audio, trasporto e interfaccia della pagina.
 // Il motore ritmico (SPEngine), i tempi (PMRhythm), import, link e gli altri moduli stanno in engine/*.js.
@@ -3692,36 +3697,81 @@ function miniPreview(pattern, mutes=[]){
 // ---------- schede dei blocchi: pezzi comuni alla canzone e alla corsia del synth ----------
 // L'indice del blocco che si sta trascinando, uno per corsia: un blocco di batteria non cade tra quelli del synth.
 const songDrag={from:null}, synthDrag={from:null};
+const dropMark=document.createElement("div"); dropMark.className="seq-dropmark";
 function clearDropMarks(){
-  document.querySelectorAll(".seqblock").forEach(e=>e.classList.remove("dropbefore","dropafter"));
+  dropMark.remove();
+  document.querySelectorAll(".seq-track.dragover").forEach(t=>t.classList.remove("dragover"));
 }
-// Trascinare una scheda riordina i blocchi della sua corsia. list() e' l'elenco dei blocchi, onMove(blocco)
-// dice quale resta selezionato. La scheda deve gia' avere draggable=true.
-function makeReorderable(card,idx,drag,list,onMove){
-  const dropsAfter=e=>{ const r=card.getBoundingClientRect(); return e.clientX>r.left+r.width/2; };
-  card.ondragstart=e=>{ drag.from=idx; card.classList.add("dragging"); e.dataTransfer.effectAllowed="move"; };
-  card.ondragend=()=>{ drag.from=null; card.classList.remove("dragging"); clearDropMarks(); };
-  card.ondragover=e=>{
-    if(drag.from===null) return;
-    e.preventDefault();
-    const after=dropsAfter(e);
-    clearDropMarks();
-    card.classList.add(after?"dropafter":"dropbefore");
+// Porta il blocco selezionato dentro la parte visibile della corsia (dopo uno spostamento puo' finire fuori).
+function revealSelectedBlock(track){
+  const card=track.querySelector(".seqblock.sel"); if(!card) return;
+  const t=track.getBoundingClientRect(), r=card.getBoundingClientRect();
+  if(r.left<t.left) track.scrollLeft-=t.left-r.left+12;
+  else if(r.right>t.right) track.scrollLeft+=r.right-t.right+12;
+}
+// Sposta di un posto (d = -1 o +1) il blocco `id` dentro `list`: le frecce delle due corsie.
+function nudgeBlock(list,id,d,track){
+  const i=list.findIndex(b=>b.id===id), j=i+d;
+  if(i<0) return setStatus("select a block","err");
+  if(j<0 || j>=list.length) return;
+  pushUndo();
+  [list[i],list[j]]=[list[j],list[i]];
+  renderSong(); revealSelectedBlock(track);
+}
+// La scheda si trascina (deve gia' avere draggable=true); dove cade lo decide la corsia, vedi makeDropLane().
+function makeReorderable(card,idx,drag){
+  // partendo da un menu, un numero o un pulsante non si trascina: li' il mouse serve al controllo
+  card.onpointerdown=e=>{ card.draggable=!e.target.closest("button,input,select"); };
+  card.ondragstart=e=>{
+    drag.from=idx; card.classList.add("dragging");
+    e.dataTransfer.effectAllowed="move"; e.dataTransfer.setData("text/plain","");
   };
-  card.ondrop=e=>{
+  card.ondragend=()=>{ drag.from=null; card.classList.remove("dragging"); clearDropMarks(); };
+}
+// La corsia accoglie il blocco trascinato in qualunque punto: sopra una scheda, nello spazio tra due schede
+// o nel vuoto dopo l'ultima. list() e' l'elenco dei blocchi, onMove(blocco) dice quale resta selezionato.
+function makeDropLane(track,drag,list,onMove){
+  const EDGE=56, STEP=16;   // vicino ai bordi la corsia scorre da sola
+  // il posto d'inserimento (0 = prima di tutti, n = dopo l'ultimo): conta le schede col centro a sinistra del puntatore
+  const slotAt=e=>{
+    const cards=[...track.querySelectorAll(".seqblock")];
+    let i=0;
+    while(i<cards.length){ const r=cards[i].getBoundingClientRect(); if(e.clientX<r.left+r.width/2) break; i++; }
+    return {i,cards};
+  };
+  track.addEventListener("dragover",e=>{
+    if(drag.from===null) return;
+    e.preventDefault(); e.dataTransfer.dropEffect="move";
+    const t=track.getBoundingClientRect();
+    if(e.clientX<t.left+EDGE) track.scrollLeft-=STEP;
+    else if(e.clientX>t.right-EDGE) track.scrollLeft+=STEP;
+    track.classList.add("dragover");
+    const {i,cards}=slotAt(e);
+    if(i===drag.from || i===drag.from+1) return dropMark.remove();   // resterebbe dov'e': nessun segno
+    const next=cards[i]||null;
+    if(dropMark.parentNode!==track || dropMark.nextElementSibling!==next) track.insertBefore(dropMark,next);
+  });
+  track.addEventListener("dragleave",e=>{ if(!track.contains(e.relatedTarget)) clearDropMarks(); });
+  track.addEventListener("drop",e=>{
     if(drag.from===null) return;
     e.preventDefault();
-    let to=idx+(dropsAfter(e)?1:0);
+    let to=slotAt(e).i;
     if(to>drag.from) to--;
-    if(to!==drag.from){
+    const moved=to!==drag.from;
+    if(moved){
       pushUndo();
-      const [moved]=list().splice(drag.from,1);
-      list().splice(to,0,moved);
-      onMove(moved);
+      const [block]=list().splice(drag.from,1);
+      list().splice(to,0,block);
+      onMove(block);
     }
     drag.from=null; clearDropMarks(); renderSong();
-  };
+    if(moved) revealSelectedBlock(track);
+  });
 }
+makeDropLane(el("seqTrack"),songDrag,()=>project.song,moved=>{ ui.blockId=moved.id; });
+makeDropLane(el("seqSynthTrack"),synthDrag,()=>project.synthSong,moved=>{ ui.synthBlockId=moved.id; });
+// il righello delle battute scorre insieme ai blocchi
+el("seqTrack").addEventListener("scroll",()=>{ el("seqRuler").scrollLeft=el("seqTrack").scrollLeft; },{passive:true});
 // Testata della scheda: pallino col colore del pattern, battute occupate, maniglia per trascinare.
 function blockHead(color,text){
   const head=document.createElement("div"); head.className="seqblock-head";
@@ -3813,7 +3863,7 @@ function songBlockActions(b){
   const hasFill=!!b.fillPatternId, solo=ui.songSoloBlockId===b.id, nMuted=(b.mutes||[]).length;
   const actions=document.createElement("div"); actions.className="seqblock-actions";
   const vary=action("Vary",null,"create a variation for this block only",()=>varySongBlock(b));
-  const fill=action(hasFill?"Fill attivo":"Fill",hasFill,
+  const fill=action(hasFill?"Fill on":"Fill",hasFill,
     hasFill?"remove the ending fill":"create a fill on the last repeat",()=>toggleSongFill(b));
   const soloBtn=action(solo?"Solo on":"Solo",solo,solo?"turn solo off":"play this block only",()=>{
     ui.songSoloBlockId=ui.songSoloBlockId===b.id?null:b.id;
@@ -3910,7 +3960,7 @@ function songCard(b,idx,bar,bars){
     if(e.target.closest("button,input,select,.seqblock-foot")) return;
     if(p){ selectPattern(p.id); setView("grid"); }
   };
-  makeReorderable(card,idx,songDrag,()=>project.song,moved=>{ ui.blockId=moved.id; });
+  makeReorderable(card,idx,songDrag);
   return card;
 }
 function renderSong(){
@@ -3945,6 +3995,9 @@ function renderSong(){
   const seconds=bars*PMRhythm.barQuarters(rhythm())*60/bpm();
   el("songInfo").textContent = n
     ? `${n} ${n===1?"block":"blocks"} · ${bars} ${bars===1?"bar":"bars"} · ${fmtClock(Math.round(seconds))}` : "";
+  const at=project.song.findIndex(b=>b.id===ui.blockId);
+  el("sLeft").disabled=at<1; el("sRight").disabled=at<0||at>=n-1;
+  ruler.scrollLeft=host.scrollLeft;
   renderSynthLane();
   renderTimeline();
   paintPlayhead();
@@ -4099,7 +4152,7 @@ function synthCard(x,idx){
     stopSynthBlockPreview();
     if(sp){ ui.synthId=sp.id; setView("synth"); }
   };
-  makeReorderable(card,idx,synthDrag,()=>project.synthSong,moved=>{ ui.synthBlockId=moved.id; });
+  makeReorderable(card,idx,synthDrag);
   return card;
 }
 // Quanto dura la corsia rispetto alla batteria: il synth suona solo finche' c'e' la canzone.
@@ -4125,6 +4178,8 @@ function renderSynthLane(){
   }
   L.blocks.forEach((x,idx)=>host.appendChild(synthCard(x,idx)));
   el("synthLaneInfo").textContent=synthLaneSummary(L);
+  const at=project.synthSong.findIndex(b=>b.id===ui.synthBlockId);
+  el("ssLeft").disabled=at<1; el("ssRight").disabled=at<0||at>=project.synthSong.length-1;
   paintWaveforms?.();
 }
 function insertSynthBlock(block){
@@ -4165,6 +4220,8 @@ function addSynthToSong(sp){
   renderSong();
 }
 el("ssRest").onclick=()=>insertSynthBlock({id:uid(), synthId:null, repeats:1, len:16});
+el("ssLeft").onclick=()=>nudgeBlock(project.synthSong,ui.synthBlockId,-1,el("seqSynthTrack"));
+el("ssRight").onclick=()=>nudgeBlock(project.synthSong,ui.synthBlockId,1,el("seqSynthTrack"));
 el("ssDup").onclick=()=>{
   const i=project.synthSong.findIndex(b=>b.id===ui.synthBlockId);
   if(i<0) return setStatus("select a synth block","err");
@@ -4678,7 +4735,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || el("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-06.9";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-06.10";
   document.body.appendChild(s);
 }
 if(LIVE_VIEW || (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth"))) loadSynth();
@@ -5203,16 +5260,8 @@ el("sDup").onclick=()=>{
   const i=blockIndex(); if(i<0) return setStatus("select a block","err");
   duplicateSongBlock(i);
 };
-el("sLeft").onclick=()=>{
-  const i=blockIndex(); if(i<1) return;
-  pushUndo();
-  [project.song[i-1],project.song[i]]=[project.song[i],project.song[i-1]]; renderSong();
-};
-el("sRight").onclick=()=>{
-  const i=blockIndex(); if(i<0||i>=project.song.length-1) return;
-  pushUndo();
-  [project.song[i+1],project.song[i]]=[project.song[i],project.song[i+1]]; renderSong();
-};
+el("sLeft").onclick=()=>nudgeBlock(project.song,ui.blockId,-1,el("seqTrack"));
+el("sRight").onclick=()=>nudgeBlock(project.song,ui.blockId,1,el("seqTrack"));
 el("sDel").onclick=()=>{
   const i=blockIndex(); if(i<0) return setStatus("select a block","err");
   removeSongBlock(i);
@@ -7682,7 +7731,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-10-06.9";
+const SW_VERSION="2026-10-06.10";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -7706,10 +7755,10 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sample-editor.js?v=2026-10-06.9"></script>
-<script src="engine/sampler.js?v=2026-10-06.9"></script>
-<script src="engine/vocal.js?v=2026-10-06.9"></script>
+<script src="engine/sample-editor.js?v=2026-10-06.10"></script>
+<script src="engine/sampler.js?v=2026-10-06.10"></script>
+<script src="engine/vocal.js?v=2026-10-06.10"></script>
 <script>PMSampler.init(); PMVocal.init();</script>
-<script src="engine/midi.js?v=2026-10-06.9"></script>
+<script src="engine/midi.js?v=2026-10-06.10"></script>
 </body>
 </html>

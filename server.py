@@ -651,6 +651,12 @@ TONGATRON_BADGE = ('<a href="https://tongatron.org/" style="display:inline-flex;
                    '<span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:#fff;'
                    'flex-shrink:0;"></span>tongatron.org</a>')
 
+# Piede delle schede di accesso: stesso formato del piede della landing (Privacy policy, tongatron.org, GitHub).
+GITHUB_ICON = ('<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>')
+SITE_FOOTER = ('<footer class="site-footer"><a href="/privacy.html">Privacy policy</a>'
+               '<a class="site-badge" href="https://tongatron.org/"><span class="mark"></span><span>tongatron.org</span></a>'
+               '<a class="gh-link" href="https://github.com/tongatron/PatternMachine">' + GITHUB_ICON + '<span>View on GitHub</span></a></footer>')
+
 
 def mail_html(title, intro, button_text, button_url, rows=(), outro=""):
     e = html.escape
@@ -779,9 +785,14 @@ td form{display:inline;}
 .tag{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);}
 .table-wrap{overflow-x:auto;}
 .admin-bar{width:min(760px,100%);display:flex;justify-content:space-between;gap:10px;}
-.site-footer{margin-top:10px;display:flex;flex-direction:column;align-items:center;gap:12px;}
-.site-footer a{transition:transform .2s;}
-.site-footer a:hover{transform:translateY(-1px);}
+.site-footer{display:flex;flex-direction:column;align-items:center;gap:10px;margin:14px 0 6px;font:11px "SF Mono","JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;color:var(--dim);text-align:center;}
+.site-badge{display:inline-flex;align-items:center;gap:10px;text-decoration:none;font:700 14px/1.2 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  background:linear-gradient(180deg,#e0743f,#b8471f);color:#fff;padding:5px 12px;border-radius:999px;transition:.2s;}
+.site-badge .mark{width:11px;height:11px;border-radius:50%;background:#fff;flex-shrink:0;}
+.site-badge:hover{box-shadow:0 0 0 2px #8a3418;}
+.gh-link{display:inline-flex;align-items:center;gap:7px;color:inherit;text-decoration:none;font:600 12px/1.2 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;}
+.gh-link svg{width:16px;height:16px;fill:currentColor;flex-shrink:0;}
+.gh-link:hover{text-decoration:underline;}
 code{word-break:break-all;font-size:12px;background:var(--panel-2);padding:8px;border-radius:3px;display:block;margin:0 0 12px;}
 </style>
 <script defer src="https://analytics.tongatron.org/script.js" data-website-id="9daa93b6-2afb-494a-89fb-288437a030d1" data-domains="patternmachine.tongatron.org"></script>
@@ -1010,7 +1021,7 @@ class Handler(BaseHTTPRequestHandler):
 
     # ---------- accesso ----------
     def _page(self, status, title, body, badge=True):
-        footer = f'<footer class="site-footer"><a href="/privacy.html">Privacy policy</a>{TONGATRON_BADGE}</footer>' if badge else ""
+        footer = SITE_FOOTER if badge else ""
         self._send_html(status, PAGE_SHELL.replace("{title}", html.escape(title)).replace("{body}", body).replace("{footer}", footer))
 
     def _form(self):

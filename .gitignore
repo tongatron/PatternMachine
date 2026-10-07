@@ -54,3 +54,5 @@ PIANO-SUONO-SP1200.md
 PatternTXT_Song.mid
 # Trasloco una tantum sul server: mostra percorsi e servizi, resta in locale.
 scripts/migra-server-patternmachine.sh
+# Istruzioni di pubblicazione (host Tailscale, percorsi e servizio del server): restano in locale.
+PUBBLICAZIONE.md

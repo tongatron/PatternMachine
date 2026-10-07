@@ -11,8 +11,9 @@
 # Non cancella nulla sul server (data/, assets/*.zip restano dove sono).
 set -euo pipefail
 
-HOST=hp-ubuntu
 # Sovrascrivibili dall'ambiente (es. REMOTE=... per un'installazione diversa).
+# HOST=giovanni@100.81.62.48 passa da Tailscale invece che dalla rete di casa.
+HOST=${HOST:-hp-ubuntu}
 REMOTE=${REMOTE:-/srv/apps/patternmachine}
 BACKUPS=${BACKUPS:-/srv/apps/patternmachine-backups}
 SITE=${SITE:-https://patternmachine.tongatron.org}

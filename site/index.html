@@ -1834,22 +1834,22 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-10-08.1"></script>
-<script src="engine/core.js?v=2026-10-08.1"></script>
-<script src="engine/styles-punk.js?v=2026-10-08.1"></script>
-<script src="engine/styles-post.js?v=2026-10-08.1"></script>
-<script src="engine/styles-machines.js?v=2026-10-08.1"></script>
-<script src="engine/styles-alt.js?v=2026-10-08.1"></script>
-<script src="engine/styles-groove.js?v=2026-10-08.1"></script>
-<script src="engine/styles-dub.js?v=2026-10-08.1"></script>
-<script src="engine/styles-break.js?v=2026-10-08.1"></script>
-<script src="engine/styles-soul.js?v=2026-10-08.1"></script>
-<script src="engine/styles-metal.js?v=2026-10-08.1"></script>
-<script src="engine/styles-electro.js?v=2026-10-08.1"></script>
-<script src="engine/variations.js?v=2026-10-08.1"></script>
-<script src="engine/import.js?v=2026-10-08.1"></script>
-<script src="engine/rhythm.js?v=2026-10-08.1"></script>
-<script src="engine/share.js?v=2026-10-08.1"></script>
+<script src="engine/machine-art.js?v=2026-10-08.2"></script>
+<script src="engine/core.js?v=2026-10-08.2"></script>
+<script src="engine/styles-punk.js?v=2026-10-08.2"></script>
+<script src="engine/styles-post.js?v=2026-10-08.2"></script>
+<script src="engine/styles-machines.js?v=2026-10-08.2"></script>
+<script src="engine/styles-alt.js?v=2026-10-08.2"></script>
+<script src="engine/styles-groove.js?v=2026-10-08.2"></script>
+<script src="engine/styles-dub.js?v=2026-10-08.2"></script>
+<script src="engine/styles-break.js?v=2026-10-08.2"></script>
+<script src="engine/styles-soul.js?v=2026-10-08.2"></script>
+<script src="engine/styles-metal.js?v=2026-10-08.2"></script>
+<script src="engine/styles-electro.js?v=2026-10-08.2"></script>
+<script src="engine/variations.js?v=2026-10-08.2"></script>
+<script src="engine/import.js?v=2026-10-08.2"></script>
+<script src="engine/rhythm.js?v=2026-10-08.2"></script>
+<script src="engine/share.js?v=2026-10-08.2"></script>
 <script>
 // Script principale di PATTERN-MACHINE: stato del progetto, audio, trasporto e interfaccia della pagina.
 // Il motore ritmico (SPEngine), i tempi (PMRhythm), import, link e gli altri moduli stanno in engine/*.js.
@@ -3256,6 +3256,7 @@ function chipButton(cls,label,on,{title,aria,state="aria-pressed"},onclick){
   b.title=title; b.setAttribute("aria-label",aria); b.setAttribute(state,String(!!on));
   return b;
 }
+let rowClip=null;   // step di una riga copiati dal menu ⋯
 // Intestazione della riga: pad, nome, suono, M, S e volume sempre in vista; il resto nel menu ⋯.
 function trackHeader(t,idx,pat){
   const name=trackLabel(t), expanded=ui.expanded===t.id, voiceOpen=openVoices.has(t.id);
@@ -3336,6 +3337,32 @@ function trackHeader(t,idx,pat){
   for(let s=-12;s<=12;s++) addOption(tune,s,signed(s)+"st");
   tune.value=t.tune||0; tune.onchange=()=>{ pushUndo(); t.tune=+tune.value; };
   moreBody.appendChild(tune);
+
+  // Copia/incolla degli step di una riga (colpi, blocchi per step, lunghezza): anche su un altro pattern.
+  const copyBtn=document.createElement("button"); copyBtn.type="button"; copyBtn.className="mini"; copyBtn.textContent="Copy";
+  copyBtn.title="Copy this row's steps"; copyBtn.setAttribute("aria-label",`Copy the steps of ${name}`);
+  copyBtn.onclick=()=>{
+    rowClip={from:name, steps:(pat.grid[t.id]||[]).slice(), mods:cloneMods(pat.mods&&pat.mods[t.id]), len:(pat.lens&&pat.lens[t.id])||0};
+    renderTracks();
+    setStatus(`${name} steps copied`);
+  };
+  moreBody.appendChild(copyBtn);
+  const pasteBtn=document.createElement("button"); pasteBtn.type="button"; pasteBtn.className="mini"; pasteBtn.textContent="Paste";
+  pasteBtn.disabled=!rowClip;
+  pasteBtn.title=rowClip ? `Replace this row's steps with the ones copied from ${rowClip.from}` : "Copy a row's steps first";
+  pasteBtn.setAttribute("aria-label",`Paste the copied steps into ${name}`);
+  pasteBtn.onclick=()=>{
+    if(!rowClip) return;
+    pushUndo();
+    pat.grid[t.id]=rowClip.steps.slice();
+    pat.mods=pat.mods||{}; pat.lens=pat.lens||{};
+    pat.mods[t.id]=cloneMods(rowClip.mods);
+    if(rowClip.len) pat.lens[t.id]=rowClip.len; else delete pat.lens[t.id];
+    normalize();   // taglia o allunga se il pattern ha un'altra lunghezza
+    renderTracks();
+    setStatus(`${rowClip.from} steps pasted into ${name}`);
+  };
+  moreBody.appendChild(pasteBtn);
 
   moreBody.appendChild(chipButton("x",expanded?"▴":"▾",expanded,{state:"aria-expanded",
     title:"All row options: sound and, below the steps, one lane per parameter",
@@ -4852,7 +4879,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || el("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-08.1";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-08.2";
   document.body.appendChild(s);
 }
 if(LIVE_VIEW || (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth"))) loadSynth();
@@ -7862,7 +7889,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-10-08.1";
+const SW_VERSION="2026-10-08.2";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -7886,10 +7913,10 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sample-editor.js?v=2026-10-08.1"></script>
-<script src="engine/sampler.js?v=2026-10-08.1"></script>
-<script src="engine/vocal.js?v=2026-10-08.1"></script>
+<script src="engine/sample-editor.js?v=2026-10-08.2"></script>
+<script src="engine/sampler.js?v=2026-10-08.2"></script>
+<script src="engine/vocal.js?v=2026-10-08.2"></script>
 <script>PMSampler.init(); PMVocal.init();</script>
-<script src="engine/midi.js?v=2026-10-08.1"></script>
+<script src="engine/midi.js?v=2026-10-08.2"></script>
 </body>
 </html>

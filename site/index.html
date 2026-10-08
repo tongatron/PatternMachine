@@ -1834,22 +1834,22 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-10-08.2"></script>
-<script src="engine/core.js?v=2026-10-08.2"></script>
-<script src="engine/styles-punk.js?v=2026-10-08.2"></script>
-<script src="engine/styles-post.js?v=2026-10-08.2"></script>
-<script src="engine/styles-machines.js?v=2026-10-08.2"></script>
-<script src="engine/styles-alt.js?v=2026-10-08.2"></script>
-<script src="engine/styles-groove.js?v=2026-10-08.2"></script>
-<script src="engine/styles-dub.js?v=2026-10-08.2"></script>
-<script src="engine/styles-break.js?v=2026-10-08.2"></script>
-<script src="engine/styles-soul.js?v=2026-10-08.2"></script>
-<script src="engine/styles-metal.js?v=2026-10-08.2"></script>
-<script src="engine/styles-electro.js?v=2026-10-08.2"></script>
-<script src="engine/variations.js?v=2026-10-08.2"></script>
-<script src="engine/import.js?v=2026-10-08.2"></script>
-<script src="engine/rhythm.js?v=2026-10-08.2"></script>
-<script src="engine/share.js?v=2026-10-08.2"></script>
+<script src="engine/machine-art.js?v=2026-10-08.3"></script>
+<script src="engine/core.js?v=2026-10-08.3"></script>
+<script src="engine/styles-punk.js?v=2026-10-08.3"></script>
+<script src="engine/styles-post.js?v=2026-10-08.3"></script>
+<script src="engine/styles-machines.js?v=2026-10-08.3"></script>
+<script src="engine/styles-alt.js?v=2026-10-08.3"></script>
+<script src="engine/styles-groove.js?v=2026-10-08.3"></script>
+<script src="engine/styles-dub.js?v=2026-10-08.3"></script>
+<script src="engine/styles-break.js?v=2026-10-08.3"></script>
+<script src="engine/styles-soul.js?v=2026-10-08.3"></script>
+<script src="engine/styles-metal.js?v=2026-10-08.3"></script>
+<script src="engine/styles-electro.js?v=2026-10-08.3"></script>
+<script src="engine/variations.js?v=2026-10-08.3"></script>
+<script src="engine/import.js?v=2026-10-08.3"></script>
+<script src="engine/rhythm.js?v=2026-10-08.3"></script>
+<script src="engine/share.js?v=2026-10-08.3"></script>
 <script>
 // Script principale di PATTERN-MACHINE: stato del progetto, audio, trasporto e interfaccia della pagina.
 // Il motore ritmico (SPEngine), i tempi (PMRhythm), import, link e gli altri moduli stanno in engine/*.js.
@@ -3989,11 +3989,32 @@ function duplicateSongBlock(i){
   project.song.splice(i+1,0,copy);
   ui.blockId=copy.id; renderSong();
 }
+// Toglie dal progetto i pattern che nessun blocco usa piu' (ne resta sempre almeno uno): cosi' Drums mostra
+// gli stessi pattern del Sequencer. Chi chiama ha gia' fatto pushUndo(). Rende i nomi di quelli tolti.
+function dropUnusedPatterns(ids){
+  const gone=[];
+  ids.forEach(id=>{
+    const p=id && patternById(id);
+    if(!p || project.patterns.length<=1) return;
+    if(project.song.some(b=>b.patternId===id || b.fillPatternId===id)) return;
+    project.patterns=project.patterns.filter(x=>x.id!==id); gone.push(p.name);
+  });
+  if(gone.length && !patternById(ui.patternId)){
+    const b=project.song.find(x=>x.id===ui.blockId);
+    ui.patternId=((b && patternById(b.patternId)) || project.patterns[0]).id;
+  }
+  return gone;
+}
 function removeSongBlock(i){
   pushUndo();
-  if(ui.songSoloBlockId===project.song[i].id) ui.songSoloBlockId=null;
+  const block=project.song[i];
+  if(ui.songSoloBlockId===block.id) ui.songSoloBlockId=null;
   project.song.splice(i,1);
-  ui.blockId=project.song[Math.min(i,project.song.length-1)]?.id||null; renderSong();
+  ui.blockId=project.song[Math.min(i,project.song.length-1)]?.id||null;
+  const gone=dropUnusedPatterns([block.patternId, block.fillPatternId]);
+  if(!gone.length) return renderSong();
+  normalize(); renderAll();
+  setStatus(`block removed with its pattern ${gone.map(n=>`“${n}”`).join(" and ")} · cmd+Z to undo`);
 }
 // Vary, Fill, Solo e Mute del blocco.
 function songBlockActions(b){
@@ -4879,7 +4900,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || el("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-08.2";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-08.3";
   document.body.appendChild(s);
 }
 if(LIVE_VIEW || (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth"))) loadSynth();
@@ -7262,7 +7283,10 @@ function varySongBlock(b){
 
 function toggleSongFill(b){
   if(b.fillPatternId){
-    pushUndo(); b.fillPatternId=null; renderSong(); setStatus("ending fill off"); return;
+    pushUndo();
+    const fill=b.fillPatternId; b.fillPatternId=null;
+    if(dropUnusedPatterns([fill]).length){ normalize(); renderAll(); } else renderSong();
+    setStatus("ending fill off"); return;
   }
   const src=patternById(b.patternId);
   if(!src) return;
@@ -7889,7 +7913,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-10-08.2";
+const SW_VERSION="2026-10-08.3";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -7913,10 +7937,10 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sample-editor.js?v=2026-10-08.2"></script>
-<script src="engine/sampler.js?v=2026-10-08.2"></script>
-<script src="engine/vocal.js?v=2026-10-08.2"></script>
+<script src="engine/sample-editor.js?v=2026-10-08.3"></script>
+<script src="engine/sampler.js?v=2026-10-08.3"></script>
+<script src="engine/vocal.js?v=2026-10-08.3"></script>
 <script>PMSampler.init(); PMVocal.init();</script>
-<script src="engine/midi.js?v=2026-10-08.2"></script>
+<script src="engine/midi.js?v=2026-10-08.3"></script>
 </body>
 </html>

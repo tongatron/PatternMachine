@@ -1,7 +1,8 @@
 // PatternMachine per macOS: il sito di ../site dentro una finestra, piu' quello che il browser non puo' fare.
 // - app://pm/ serve i file del sito dal disco (niente server, niente password) e aggiunge a index.html
 //   bridge/bridge.js e bridge/bridge.css, che agganciano le funzioni native senza toccare il sito.
-// - porta MIDI virtuale "PatternMachine": uscita (note verso Logic) e ingresso (MIDI Clock da Logic).
+// - porta MIDI virtuale "PatternMachine": ingresso (MIDI Clock da Logic) e uscita note,
+//   selezionabile anche verso una porta hardware come Novation Circuit.
 // - progetti ed esportazioni come file veri in ~/Music/PatternMachine; i progetti si sincronizzano con
 //   l'account del sito (stessi progetti nel browser e negli altri Mac).
 // - trascinamento di MIDI/WAV dall'app alla timeline di Logic.
@@ -67,15 +68,82 @@ function registerAppProtocol() {
 }
 
 // ---------- MIDI ----------
-let midiOut = null, midiIn = null, midiError = null;
+let midiModule = null, virtualMidiOut = null, midiOut = null, midiOutName = PORT_NAME;
+let midiIn = null, midiError = null, midiOutputs = [];
 const pendingNotes = new Set();
+
+function refreshMidiOutputs() {
+  if (!midiModule) return [];
+  let probe = null;
+  try {
+    probe = new midiModule.Output();
+    midiOutputs = Array.from({ length: probe.getPortCount() }, (_, i) => probe.getPortName(i)).filter(Boolean);
+  } catch (e) {
+    midiOutputs = [];
+  } finally {
+    try { probe && probe.closePort(); } catch (e) {}
+  }
+  return midiOutputs.slice();
+}
+
+function closeMidiOutput(out) {
+  if (!out || out === virtualMidiOut) return;
+  try { out.closePort(); } catch (e) {}
+}
+
+function cancelPendingMidi() {
+  pendingNotes.forEach(clearTimeout);
+  pendingNotes.clear();
+}
+
+function panicOutput(out) {
+  try {
+    if (!out) return;
+    for (let ch = 0; ch < 16; ch++) out.sendMessage([0xB0 | ch, 123, 0]);
+  } catch (e) {}
+}
+
+function selectMidiOutput(name) {
+  if (!midiModule || !virtualMidiOut) return { ok: false, name: midiOutName, error: midiError || "MIDI unavailable" };
+  const wanted = String(name || PORT_NAME);
+  if (wanted === PORT_NAME) {
+    cancelPendingMidi();
+    panicOutput(midiOut);
+    closeMidiOutput(midiOut);
+    midiOut = virtualMidiOut;
+    midiOutName = PORT_NAME;
+    midiError = null;
+    return { ok: true, name: midiOutName, outputs: refreshMidiOutputs() };
+  }
+  const names = refreshMidiOutputs();
+  const index = names.indexOf(wanted);
+  if (index < 0) return { ok: false, name: midiOutName, outputs: names, error: `MIDI output not found: ${wanted}` };
+  let next = null;
+  try {
+    next = new midiModule.Output();
+    next.openPort(index);
+    cancelPendingMidi();
+    panicOutput(midiOut);
+    closeMidiOutput(midiOut);
+    midiOut = next;
+    midiOutName = wanted;
+    midiError = null;
+    return { ok: true, name: midiOutName, outputs: names };
+  } catch (e) {
+    try { next && next.closePort(); } catch (closeError) {}
+    return { ok: false, name: midiOutName, outputs: names, error: String((e && e.message) || e) };
+  }
+}
 
 function openMidi() {
   try {
-    const midi = require("@julusian/midi");
-    midiOut = new midi.Output();
-    midiOut.openVirtualPort(PORT_NAME);
-    midiIn = new midi.Input();
+    midiModule = require("@julusian/midi");
+    virtualMidiOut = new midiModule.Output();
+    virtualMidiOut.openVirtualPort(PORT_NAME);
+    midiOut = virtualMidiOut;
+    midiOutName = PORT_NAME;
+    refreshMidiOutputs();
+    midiIn = new midiModule.Input();
     midiIn.ignoreTypes(true, false, true); // sysex e active sensing no, il clock si'
     midiIn.on("message", (_delta, msg) => {
       // solo tempo reale e Song Position: le note in ingresso non servono
@@ -85,7 +153,8 @@ function openMidi() {
     midiIn.openVirtualPort(PORT_NAME);
   } catch (e) {
     midiError = String((e && e.message) || e);
-    midiOut = midiIn = null;
+    midiOut = virtualMidiOut = midiIn = null;
+    midiOutputs = [];
   }
 }
 
@@ -100,10 +169,12 @@ ipcMain.on("midi:notes", (_e, notes) => {
   }
 });
 ipcMain.on("midi:panic", () => {
-  pendingNotes.forEach(clearTimeout); pendingNotes.clear();
-  for (let ch = 0; ch < 16; ch++) sendMidi([0xB0 | ch, 123, 0]);
+  cancelPendingMidi();
+  panicOutput(midiOut);
 });
-ipcMain.handle("midi:status", () => ({ ok: !!midiOut, name: PORT_NAME, error: midiError }));
+ipcMain.handle("midi:status", () => ({ ok: !!midiOut, name: midiOutName, outputs: refreshMidiOutputs(), error: midiError }));
+ipcMain.handle("midi:outputs", () => refreshMidiOutputs());
+ipcMain.handle("midi:set-output", (_e, name) => selectMidiOutput(name));
 
 // ---------- progetti su file ----------
 const projectFile = id => {
@@ -701,6 +772,9 @@ app.whenReady().then(() => {
 });
 app.on("window-all-closed", () => app.quit());
 app.on("will-quit", () => {
-  pendingNotes.forEach(clearTimeout);
-  try { midiOut && midiOut.closePort(); midiIn && midiIn.closePort(); } catch (e) {}
+  cancelPendingMidi();
+  panicOutput(midiOut);
+  try { midiOut && midiOut.closePort(); } catch (e) {}
+  try { virtualMidiOut && virtualMidiOut !== midiOut && virtualMidiOut.closePort(); } catch (e) {}
+  try { midiIn && midiIn.closePort(); } catch (e) {}
 });

@@ -128,7 +128,7 @@
   }).catch(()=>{});
 
   const SETTINGS_KEY="pm.desktop";
-  const settings=Object.assign({midiOut:false, midiRouting:"drums", noteMap:"gm", internalAudio:true, follow:false, daw:"logic"},
+  const settings=Object.assign({midiOut:false, midiTarget:"PatternMachine", midiRouting:"drums", noteMap:"gm", internalAudio:true, follow:false, daw:"logic"},
     (()=>{ try{ return JSON.parse(localStorage.getItem(SETTINGS_KEY)||"{}"); }catch(e){ return {}; } })());
   const saveSettings=()=>{ try{ localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings)); }catch(e){} };
   // L'uscita MIDI parte spenta e si accende solo dal pulsante: prima era accesa di default e, con una DAW
@@ -289,15 +289,19 @@
   // Ogni colpo suonato dal vivo (Play, pad, ascolto) diventa una nota sulla porta virtuale "PatternMachine".
   // L'audio e' programmato in anticipo sul tempo di audioCtx: la nota parte con lo stesso anticipo.
   const MIDI_CH=9, NOTE_MS=90;
+  const CIRCUIT_DRUM_NOTES=[60,62,64,65];
   const MIDI_TRACK_CHANNELS=[0,1,2,3,4,5,6,7,8,10,11,12,13,14,15,9];
   let outBox=[];
-  const noteOf=i=>settings.noteMap==="sp"?midiNoteFor(i):gmNoteFor(i);
+  const noteOf=i=>settings.noteMap==="sp"?midiNoteFor(i):settings.noteMap==="circuit"?CIRCUIT_DRUM_NOTES[i]:gmNoteFor(i);
   const channelOf=track=>{
+    if(settings.noteMap==="circuit") return MIDI_CH;
     if(settings.midiRouting!=="multi") return MIDI_CH;
     const i=Math.max(0,project.tracks.indexOf(track));
     return MIDI_TRACK_CHANNELS[i%MIDI_TRACK_CHANNELS.length];
   };
   function queueNote(track,time,velocity){
+    const trackIndex=project.tracks.indexOf(track);
+    if(settings.noteMap==="circuit" && (trackIndex<0 || trackIndex>=CIRCUIT_DRUM_NOTES.length)) return;
     const vel=Math.max(1,Math.min(127,Math.round(velocity*(track.vol??0.8)*127)));
     const delay=Math.max(0,(time-audioCtx.currentTime)*1000);
     if(!outBox.length) queueMicrotask(()=>{ D.midi.notes(outBox); outBox=[]; });
@@ -462,9 +466,11 @@
         <option value="logic">Logic Pro</option><option value="ableton">Ableton Live</option><option value="reaper">REAPER</option><option value="fl">FL Studio</option><option value="cubase">Cubase</option><option value="bitwig">Bitwig</option><option value="studioone">Studio One</option><option value="garageband">GarageBand</option><option value="other">Other DAW</option>
       </select></label>
       <button class="mini pm-midi-out" id="pmMidiOut" type="button" aria-pressed="false"><span class="pm-midi-dot" aria-hidden="true">&#9679;</span> MIDI out</button>
+      <label class="fld" title="The virtual port is for a DAW; choose Circuit to send directly to the connected Novation Circuit"><span>MIDI destination</span>
+        <select data-set="midiTarget" id="pmMidiTarget"><option value="PatternMachine">PatternMachine (virtual)</option></select></label>
       <label class="fld" title="Channel 10 stays compatible with drum racks; Separate channels gives each row its own channel"><select data-set="midiRouting"><option value="drums">Channel 10</option><option value="multi">Separate channels</option></select></label>
-      <label class="fld" title="General MIDI for drum racks and compatible instruments, or the PatternMachine SP-1200 kit (36 + sample number)">Notes
-        <select data-set="noteMap"><option value="gm">General MIDI</option><option value="sp">Kit SP-1200 (36+)</option></select></label>
+      <label class="fld" title="General MIDI for drum racks, the PatternMachine SP-1200 kit, or the original Novation Circuit drum-note map (60, 62, 64, 65)">Notes
+        <select data-set="noteMap"><option value="gm">General MIDI</option><option value="sp">Kit SP-1200 (36+)</option><option value="circuit">Novation Circuit drums (60, 62, 64, 65)</option></select></label>
       <label class="fld" title="Turn off to hear only the DAW instruments"><input type="checkbox" data-set="internalAudio"> Internal sound</label>
       <label class="fld" title="Play, stop, position and tempo come from the MIDI Clock the DAW sends to PatternMachine"><input type="checkbox" data-set="follow"> Follow the DAW clock</label>
       <span class="tiny pm-clock" id="pmClock"></span>
@@ -476,8 +482,17 @@
   panel.querySelectorAll("[data-set]").forEach(inp=>{
     const k=inp.dataset.set;
     if(inp.type==="checkbox") inp.checked=!!settings[k]; else inp.value=settings[k];
-    inp.onchange=()=>{
+    inp.onchange=async()=>{
       settings[k]=inp.type==="checkbox"?inp.checked:inp.value;
+      if(k==="midiTarget"){
+        const result=await D.midi.selectOutput(settings.midiTarget);
+        if(!result.ok){ setStatus(result.error||"MIDI output unavailable","err"); settings.midiTarget=result.name||"PatternMachine"; inp.value=settings.midiTarget; }
+        else if(/circuit/i.test(settings.midiTarget)){
+          settings.noteMap="circuit";
+          const notes=panel.querySelector('[data-set="noteMap"]'); if(notes) notes.value="circuit";
+        }
+        el("pmPort").textContent=result.ok?`MIDI output: ${result.name}`:"MIDI not available";
+      }
       saveSettings();
       if(k==="follow"){ clockTimes=[]; if(!settings.follow && following) stop(); }
       paintClock();
@@ -515,8 +530,27 @@
     else c.textContent=performance.now()-lastClockAt<1000 ? `clock received: press Play in ${dawNames[settings.daw]||"DAW"}` : `waiting for the clock from ${dawNames[settings.daw]||"DAW"}`;
   }
   setInterval(()=>{ if(settings.follow && !following) paintClock(); },1000);
+  function paintMidiTargets(names){
+    const select=el("pmMidiTarget");
+    if(!select) return;
+    const wanted=settings.midiTarget||"PatternMachine";
+    select.innerHTML='<option value="PatternMachine">PatternMachine (virtual)</option>'+
+      (names||[]).filter(n=>n!=="PatternMachine").map(n=>`<option value="${String(n).replace(/&/g,"&amp;").replace(/"/g,"&quot;")}">${String(n).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}</option>`).join("");
+    select.value=[...select.options].some(o=>o.value===wanted)?wanted:"PatternMachine";
+    if(select.value!==wanted){ settings.midiTarget=select.value; saveSettings(); }
+  }
   D.midi.status().then(s=>{
-    el("pmPort").textContent=s.ok ? `MIDI port: ${s.name}` : "MIDI not available";
+    paintMidiTargets(s.outputs||[]);
+    if(settings.midiTarget && settings.midiTarget!==s.name) D.midi.selectOutput(settings.midiTarget).then(r=>{
+      if(r.ok) el("pmPort").textContent=`MIDI output: ${r.name}`;
+      else {
+        settings.midiTarget=s.name||"PatternMachine";
+        const select=el("pmMidiTarget"); if(select) select.value=settings.midiTarget;
+        saveSettings();
+        setStatus(r.error||"MIDI output unavailable","err");
+      }
+    });
+    el("pmPort").textContent=s.ok ? `MIDI output: ${s.name}` : "MIDI not available";
     if(!s.ok) el("pmPort").title=s.error||"";
   });
 

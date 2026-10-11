@@ -52,6 +52,8 @@ contextBridge.exposeInMainWorld("pmDesktop", {
   },
   midi: {
     status: () => ipcRenderer.invoke("midi:status"),
+    outputs: () => ipcRenderer.invoke("midi:outputs"),
+    selectOutput: name => ipcRenderer.invoke("midi:set-output", name),
     notes: list => ipcRenderer.send("midi:notes", list),
     panic: () => ipcRenderer.send("midi:panic"),
     onInput: cb => { ipcRenderer.on("midi:in", (_e, msg) => cb(msg)); },

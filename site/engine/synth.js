@@ -14,6 +14,7 @@
 // PMSynth.allOff() da stop(), PMSynth.show() da setView() e PMSynth.renderOffline() dall'export WAV/MP3.
 (function () {
   "use strict";
+  const localStore=window.PMRuntime?.storage?.local;
   const script = document.currentScript;
   const BASE = script ? new URL(".", script.src) : new URL("engine/", location.href);
   const QS = script ? new URL(script.src).search : "";
@@ -138,18 +139,17 @@
   const presetBank = () => engineOf() === "tone" ? TONE_PRESETS : PRESETS;
   const userPresetKey = () => USER_KEY + "." + (engineOf() === "tone" ? "tone" : "custom");
   function userPresets() {
-    try {
-      const key = userPresetKey(), old = key.endsWith(".custom") ? localStorage.getItem(USER_KEY) : null;
-      return JSON.parse(localStorage.getItem(key) || old || "{}");
-    } catch (e) { return {}; }
+    const key = userPresetKey();
+    const legacy = key.endsWith(".custom") ? localStore?.getJson(USER_KEY, {}) : {};
+    return localStore?.getJson(key, legacy) || {};
   }
   function writeUserPresets(o) {
     // per la sincronizzazione: l'ora di ogni preset cambiato e una lapide per quelli tolti
     const bank = engineOf() === "tone" ? "tone" : "custom", before = userPresets(), m = presetMeta(), now = Date.now();
     for (const n of Object.keys(o)) if (JSON.stringify(o[n]) !== JSON.stringify(before[n])) { m.t[bank][n] = now; delete m.gone[bank][n]; }
     for (const n of Object.keys(before)) if (!(n in o)) { delete m.t[bank][n]; m.gone[bank][n] = now; }
-    try { localStorage.setItem(userPresetKey(), JSON.stringify(o)); localStorage.setItem(META_KEY, JSON.stringify(m)); }
-    catch (e) { setStatus("presets can't be saved in this browser", "err"); }
+    if (!localStore?.setJson(userPresetKey(), o) || !localStore.setJson(META_KEY, m))
+      setStatus("presets can't be saved in this browser", "err");
     clearTimeout(presetSyncTimer); presetSyncTimer = setTimeout(syncPresets, 800);
   }
   // ---------- preset sincronizzati con l'account (sito e app) ----------
@@ -161,14 +161,14 @@
   const META_KEY = USER_KEY + ".sync", BANKS = ["custom", "tone"];
   let presetSyncTimer = 0, presetSyncState = "local", presetSyncing = null;
   function presetMeta() {
-    let m = {}; try { m = JSON.parse(localStorage.getItem(META_KEY) || "{}") || {}; } catch (e) {}
+    const m = localStore?.getJson(META_KEY, {}) || {};
     m.t = m.t || {}; m.gone = m.gone || {};
     for (const b of BANKS) { m.t[b] = m.t[b] || {}; m.gone[b] = m.gone[b] || {}; }
     return m;
   }
   function readBank(b) {
-    try { return JSON.parse(localStorage.getItem(USER_KEY + "." + b) || (b === "custom" ? localStorage.getItem(USER_KEY) : null) || "{}") || {}; }
-    catch (e) { return {}; }
+    const legacy = b === "custom" ? localStore?.getJson(USER_KEY, {}) : {};
+    return localStore?.getJson(USER_KEY + "." + b, legacy) || {};
   }
   const presetRemote = () => window.pmDesktop
     ? (window.pmDesktop.presets ? { get: () => window.pmDesktop.presets.get(), put: doc => window.pmDesktop.presets.put(doc) } : null)
@@ -203,7 +203,8 @@
         const remote = remoteApi ? await remoteApi.get() : null;
         if (!remote) { presetSyncState = "local"; return; }
         const before = JSON.stringify(BANKS.map(readBank)), { doc, banks, meta } = mergePresets(remote);
-        try { for (const b of BANKS) localStorage.setItem(USER_KEY + "." + b, JSON.stringify(banks[b])); localStorage.setItem(META_KEY, JSON.stringify(meta)); } catch (e) {}
+        for (const b of BANKS) localStore?.setJson(USER_KEY + "." + b, banks[b]);
+        localStore?.setJson(META_KEY, meta);
         const sameDoc = JSON.stringify(doc) === JSON.stringify({ gone: remote.gone || {}, custom: remote.custom || {}, tone: remote.tone || {} });
         presetSyncState = sameDoc || await remoteApi.put(doc) ? "synced" : "error";
         if (JSON.stringify(BANKS.map(readBank)) !== before && built) paintTop();
@@ -228,8 +229,8 @@
   // ---------- stato ----------
   let allowed = false;
   const view = { base: 36, tap: "note", kbdOct: 3, fold: false };
-  try { Object.assign(view, JSON.parse(localStorage.getItem("pm.synth.view") || "{}")); } catch (e) {}
-  const saveView = () => { try { localStorage.setItem("pm.synth.view", JSON.stringify(view)); } catch (e) {} };
+  Object.assign(view, localStore?.getJson("pm.synth.view", {}) || {});
+  const saveView = () => { localStore?.setJson("pm.synth.view", view); };
 
   // Finche' non si tocca niente il progetto resta senza "synth" (e i progetti degli altri non cambiano).
   const params = () => project.synth ? { ...presetParams(project.synth.preset), ...project.synth.params } : presetParams(DEFAULT_PRESET, PRESETS);

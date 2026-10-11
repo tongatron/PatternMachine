@@ -96,20 +96,42 @@ def now_iso():
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
+def load_json(path, fallback):
+    """Legge un JSON locale senza far propagare file mancanti o corrotti."""
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            value = json.load(f)
+    except (FileNotFoundError, OSError, ValueError, TypeError):
+        return fallback
+    return value
+
+
+def save_json(path, value, *, mode=0o600, indent=None, separators=None):
+    """Scrive JSON in modo atomico, mantenendo i file dati privati."""
+    directory = os.path.dirname(path)
+    if directory:
+        os.makedirs(directory, mode=0o700, exist_ok=True)
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(value, f, ensure_ascii=False, indent=indent, separators=separators)
+    os.chmod(tmp, mode)
+    os.replace(tmp, path)
+
+
+def delete_file(path):
+    try:
+        os.remove(path)
+    except (FileNotFoundError, OSError):
+        pass
+
+
 def load_patterns():
-    if not os.path.exists(DATA_FILE):
-        return []
-    with open(DATA_FILE, "r", encoding="utf-8") as f:
-        return json.load(f)
+    return load_json(DATA_FILE, [])
 
 
 def load_app_message():
     """Legge il messaggio breve mostrato dall'app macOS, senza esporre il file sorgente."""
-    try:
-        with open(APP_MESSAGE_FILE, "r", encoding="utf-8") as f:
-            data = json.load(f)
-    except (OSError, ValueError):
-        return {"show": False}
+    data = load_json(APP_MESSAGE_FILE, {})
     if not isinstance(data, dict):
         return {"show": False}
     msg_id = str(data.get("id") or "").strip()[:120]
@@ -136,20 +158,12 @@ def load_app_message():
 
 
 def load_app_message_admin():
-    try:
-        with open(APP_MESSAGE_FILE, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        return data if isinstance(data, dict) else {}
-    except (OSError, ValueError):
-        return {}
+    data = load_json(APP_MESSAGE_FILE, {})
+    return data if isinstance(data, dict) else {}
 
 
 def save_patterns(patterns):
-    os.makedirs(DATA_DIR, exist_ok=True)
-    tmp = DATA_FILE + ".tmp"
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(patterns, f, ensure_ascii=False, indent=2)
-    os.replace(tmp, DATA_FILE)
+    save_json(DATA_FILE, patterns, indent=2)
 
 
 # ---------- progetti degli utenti ----------
@@ -184,31 +198,21 @@ def projects_file(uid):
 
 
 def load_projects(uid):
-    try:
-        with open(projects_file(uid), "r", encoding="utf-8") as f:
-            data = json.load(f)
-    except FileNotFoundError:
-        return {}
+    data = load_json(projects_file(uid), {})
     return data if isinstance(data, dict) else {}
 
 
 def save_projects(uid, projects):
-    os.makedirs(PROJECTS_DIR, mode=0o700, exist_ok=True)
     tombs = sorted((k for k, v in projects.items() if v.get("deleted")), key=lambda k: projects[k].get("updated_at", ""))
     for k in tombs[:max(0, len(tombs) - MAX_TOMBSTONES)]:
         del projects[k]
-    path = projects_file(uid)
-    tmp = path + ".tmp"
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(projects, f, ensure_ascii=False, separators=(",", ":"))
-    os.chmod(tmp, 0o600)
-    os.replace(tmp, path)
+    save_json(projects_file(uid), projects, separators=(",", ":"))
 
 
 def delete_user_projects(uid):
     try:
-        os.remove(projects_file(uid))
-    except (FileNotFoundError, ValueError):
+        delete_file(projects_file(uid))
+    except ValueError:
         pass
 
 
@@ -226,28 +230,18 @@ def synth_presets_file(uid):
 
 
 def load_synth_presets(uid):
-    try:
-        with open(synth_presets_file(uid), "r", encoding="utf-8") as f:
-            data = json.load(f)
-    except (FileNotFoundError, ValueError):
-        return {}
+    data = load_json(synth_presets_file(uid), {})
     return data if isinstance(data, dict) else {}
 
 
 def save_synth_presets(uid, doc):
-    os.makedirs(PRESETS_DIR, mode=0o700, exist_ok=True)
-    path = synth_presets_file(uid)
-    tmp = path + ".tmp"
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(doc, f, ensure_ascii=False, separators=(",", ":"))
-    os.chmod(tmp, 0o600)
-    os.replace(tmp, path)
+    save_json(synth_presets_file(uid), doc, separators=(",", ":"))
 
 
 def delete_user_synth_presets(uid):
     try:
-        os.remove(synth_presets_file(uid))
-    except (FileNotFoundError, ValueError):
+        delete_file(synth_presets_file(uid))
+    except ValueError:
         pass
 
 
@@ -264,22 +258,12 @@ def samples_blob_dir(uid):
 
 
 def load_samples(uid):
-    try:
-        with open(samples_manifest_file(uid), "r", encoding="utf-8") as f:
-            data = json.load(f)
-    except FileNotFoundError:
-        return {}
+    data = load_json(samples_manifest_file(uid), {})
     return data if isinstance(data, dict) else {}
 
 
 def save_samples(uid, samples):
-    os.makedirs(SAMPLES_DIR, mode=0o700, exist_ok=True)
-    path = samples_manifest_file(uid)
-    tmp = path + ".tmp"
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(samples, f, ensure_ascii=False, separators=(",", ":"))
-    os.chmod(tmp, 0o600)
-    os.replace(tmp, path)
+    save_json(samples_manifest_file(uid), samples, separators=(",", ":"))
 
 
 def sample_blob_path(uid, sid):
@@ -313,6 +297,19 @@ def is_public(rel):
     return rel in STATIC_FILES or rel.startswith(STATIC_DIRS)
 
 
+def public_file_path(rel):
+    """Restituisce un file pubblico senza seguire symlink fuori dalla root del sito."""
+    if not is_public(rel):
+        return None
+    root = os.path.realpath(ROOT)
+    full_path = os.path.realpath(os.path.join(root, rel))
+    try:
+        inside_root = os.path.commonpath((root, full_path)) == root
+    except ValueError:  # volumi diversi su Windows
+        inside_root = False
+    return full_path if inside_root and os.path.isfile(full_path) else None
+
+
 # ---------- utenti e sessioni ----------
 # data/users.json (mai servito): segreto che firma i cookie, utenti con hash PBKDF2 della password e
 # token di reset (solo l'hash sha256, validi un'ora, usabili una volta). Il primo admin si crea sul
@@ -325,10 +322,8 @@ USERS_LOCK = threading.Lock()
 
 
 def load_users():
-    try:
-        with open(USERS_FILE, "r", encoding="utf-8") as f:
-            db = json.load(f)
-    except (OSError, ValueError):
+    db = load_json(USERS_FILE, {})
+    if not isinstance(db, dict):
         db = {}
     db.setdefault("users", [])
     db.setdefault("resets", [])
@@ -336,12 +331,7 @@ def load_users():
 
 
 def save_users(db):
-    os.makedirs(os.path.dirname(USERS_FILE), exist_ok=True)
-    tmp = USERS_FILE + ".tmp"
-    fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
-    with os.fdopen(fd, "w", encoding="utf-8") as f:
-        json.dump(db, f, ensure_ascii=False, indent=2)
-    os.replace(tmp, USERS_FILE)
+    save_json(USERS_FILE, db, indent=2)
 
 
 def record_download(user_id, filename):
@@ -1394,12 +1384,7 @@ class Handler(BaseHTTPRequestHandler):
         data = {"id": "admin-" + uuid.uuid4().hex, "title": title, "message": message, "url": target,
                 "expires": expires_out, "enabled": form.get("enabled") == "on"}
         try:
-            os.makedirs(os.path.dirname(APP_MESSAGE_FILE) or ".", exist_ok=True)
-            tmp = APP_MESSAGE_FILE + ".tmp"
-            fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
-            with os.fdopen(fd, "w", encoding="utf-8") as f:
-                json.dump(data, f, ensure_ascii=False, indent=2)
-            os.replace(tmp, APP_MESSAGE_FILE)
+            save_json(APP_MESSAGE_FILE, data, indent=2)
         except OSError:
             self._admin_page(500, "Couldn't save the message on the server.")
             return
@@ -1411,9 +1396,9 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/":
             path = "/index.html"
         rel = os.path.normpath(path).lstrip("/")
-        full_path = os.path.join(ROOT, rel)
-        if (not full_path.startswith(ROOT + os.sep) or not is_public(rel.replace(os.sep, "/"))
-                or not os.path.isfile(full_path)):
+        rel = rel.replace(os.sep, "/")
+        full_path = public_file_path(rel)
+        if not full_path:
             self.send_error(404, "Not found")
             return
         if rel.startswith("download/") and os.path.basename(rel) in DOWNLOAD_PLATFORMS:

@@ -22,6 +22,7 @@ SERVICE=${SERVICE:-patternmachine}
 cd "$(dirname "$0")/.."
 
 echo "== test"
+node tests/runtime.test.js | tail -1
 node tests/engine.test.js | tail -1
 node tests/synth.test.js | tail -1
 node tests/sample-editor.test.js | tail -1

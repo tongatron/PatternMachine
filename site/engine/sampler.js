@@ -12,6 +12,7 @@
   const buffers=new Map(), urls=new Map();
   let previewState=null, previewTimer=0, previewRequest=0;
   const $=id=>document.getElementById(id), desktop=!!window.pmDesktop, D=window.pmDesktop;
+  const localStore=window.PMRuntime?.storage?.local;
   let syncEnabled=false, syncBusy=false;
   const defaultSettings=()=>({start:0,tune:0,decay:100,reverse:false,vol:.8});
   function settingsOf(record){ return {...defaultSettings(),...(record.settings||{})}; }
@@ -31,8 +32,8 @@
     const node=$("samplerStatus"); if(!node) return;
     node.textContent=message; node.style.color=error?"var(--danger)":"";
   }
-  function syncChoice(){ try{return localStorage.getItem("pm.sampler-sync")==="1";}catch(e){return false;} }
-  function setSyncChoice(value){ syncEnabled=!!value; try{localStorage.setItem("pm.sampler-sync",syncEnabled?"1":"0");}catch(e){} const c=$("samplerSync"); if(c)c.checked=syncEnabled; }
+  function syncChoice(){ return localStore?.get("pm.sampler-sync")==="1"; }
+  function setSyncChoice(value){ syncEnabled=!!value; localStore?.set("pm.sampler-sync",syncEnabled?"1":"0"); const c=$("samplerSync"); if(c)c.checked=syncEnabled; }
   async function syncServer(){
     if(syncBusy) return;
     syncBusy=true;

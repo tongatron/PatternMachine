@@ -12,6 +12,7 @@
 .pm-sep{width:1px; align-self:stretch; background:var(--edge); margin:0 4px;}
 .pm-clock{color:var(--accent, var(--text-dim));}
 .pm-port{color:var(--text-dim);}
+.pm-desk [data-set="midiTarget"]{min-width:170px;}
 /* Uscita MIDI: arancione quando e' accesa, pallino rosso quando e' spenta. */
 .pm-midi-out{display:inline-flex; align-items:center; gap:6px;}
 .pm-midi-out .pm-midi-dot{color:var(--danger,#d83a2f); font-size:1.2em; line-height:0;}

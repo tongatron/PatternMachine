@@ -1603,8 +1603,8 @@
         <span class="tiny">Click:</span>
         <div class="modeswitch" id="synTap" role="group" aria-label="What a click on a note changes">
           <button type="button" data-mode="note" title="add a note; drag an existing note to move it, drag its final edge to resize, click to remove it">Notes</button>
-          <button type="button" data-mode="acc" title="accent: louder and brighter (alt+click)">Accent</button>
-          <button type="button" data-mode="slide" title="slide into the next note, like a TB-303 (shift+click)">Slide</button>
+          <button type="button" data-mode="acc" title="click a note to accent it: louder and brighter (alt+click); an empty cell still adds a note">Accent</button>
+          <button type="button" data-mode="slide" title="click a note to slide into the next one, like a TB-303 (shift+click); an empty cell still adds a note">Slide</button>
         </div>
         <button id="synDown" class="mini" type="button" title="Show lower notes">Oct −</button>
         <button id="synUp" class="mini" type="button" title="Show higher notes">Oct +</button>
@@ -2146,8 +2146,8 @@
       const pat = curSynth(), n = +cell.dataset.n, s = +cell.dataset.s;
       const hit = (pat.synth || []).find(x => x.n === n && x.s <= s && s < x.s + x.l);
       const mode = e.altKey ? "acc" : (e.shiftKey ? "slide" : view.tap);
-      if (mode !== "note") {
-        if (!hit) return;
+      // Accent e Slide cambiano la nota cliccata; su una cella vuota si scrive comunque una nota nuova.
+      if (mode !== "note" && hit) {
         forgetSynthVariation(); pushUndo();
         const f = mode === "acc" ? "a" : "g";
         if (hit[f]) delete hit[f]; else hit[f] = 1;

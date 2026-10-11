@@ -971,6 +971,7 @@ button.danger-fill{background:var(--danger); border-color:var(--danger); color:#
 .seqblock.synthblock.rest{opacity:.7; border-top-color:var(--edge);}
 .syn-prev{position:relative; height:34px; border-radius:4px; background:var(--led-off); overflow:hidden;}
 .syn-prev i{position:absolute; height:3px; border-radius:2px; background:var(--synth-color,var(--led-on));}
+.synthblock.muted .syn-prev i{opacity:.3;}
 .syn-prev .rest-label{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:9px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-faint);}
 .song-empty.synth{font-size:10px;}
 .tl-lane.tl-lane-synth{top:auto; height:20px; border-top:1px solid var(--bg); display:block;}
@@ -1834,23 +1835,23 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-10-11.2"></script>
-<script src="engine/core.js?v=2026-10-11.2"></script>
-<script src="engine/styles-punk.js?v=2026-10-11.2"></script>
-<script src="engine/styles-post.js?v=2026-10-11.2"></script>
-<script src="engine/styles-machines.js?v=2026-10-11.2"></script>
-<script src="engine/styles-alt.js?v=2026-10-11.2"></script>
-<script src="engine/styles-groove.js?v=2026-10-11.2"></script>
-<script src="engine/styles-dub.js?v=2026-10-11.2"></script>
-<script src="engine/styles-break.js?v=2026-10-11.2"></script>
-<script src="engine/styles-soul.js?v=2026-10-11.2"></script>
-<script src="engine/styles-metal.js?v=2026-10-11.2"></script>
-<script src="engine/styles-electro.js?v=2026-10-11.2"></script>
-<script src="engine/variations.js?v=2026-10-11.2"></script>
-<script src="engine/import.js?v=2026-10-11.2"></script>
-<script src="engine/rhythm.js?v=2026-10-11.2"></script>
-<script src="engine/share.js?v=2026-10-11.2"></script>
-<script src="engine/runtime.js?v=2026-10-11.2"></script>
+<script src="engine/machine-art.js?v=2026-10-11.3"></script>
+<script src="engine/core.js?v=2026-10-11.3"></script>
+<script src="engine/styles-punk.js?v=2026-10-11.3"></script>
+<script src="engine/styles-post.js?v=2026-10-11.3"></script>
+<script src="engine/styles-machines.js?v=2026-10-11.3"></script>
+<script src="engine/styles-alt.js?v=2026-10-11.3"></script>
+<script src="engine/styles-groove.js?v=2026-10-11.3"></script>
+<script src="engine/styles-dub.js?v=2026-10-11.3"></script>
+<script src="engine/styles-break.js?v=2026-10-11.3"></script>
+<script src="engine/styles-soul.js?v=2026-10-11.3"></script>
+<script src="engine/styles-metal.js?v=2026-10-11.3"></script>
+<script src="engine/styles-electro.js?v=2026-10-11.3"></script>
+<script src="engine/variations.js?v=2026-10-11.3"></script>
+<script src="engine/import.js?v=2026-10-11.3"></script>
+<script src="engine/rhythm.js?v=2026-10-11.3"></script>
+<script src="engine/share.js?v=2026-10-11.3"></script>
+<script src="engine/runtime.js?v=2026-10-11.3"></script>
 <script>
 // Script principale di PATTERN-MACHINE: stato del progetto, audio, trasporto e interfaccia della pagina.
 // Il motore ritmico (SPEngine), i tempi (PMRhythm), import, link e gli altri moduli stanno in engine/*.js.
@@ -2382,6 +2383,7 @@ let ui={
   blockId:null, synthBlockId:null,                 // blocco scelto nel Sequencer e nella corsia del synth
   soundTrackId:null, expanded:null,                // riga nel pannello del suono, riga con le corsie aperte
   muteBlockId:null, songSoloBlockId:null,          // blocco con i mute aperti, blocco in solo
+  synthSoloBlockId:null,                           // blocco del synth in solo
   mode:"pattern", songStartPos:0,                  // "pattern" o "song"; punto di partenza sulla timeline (in step)
   stepMode:"hit",                                  // cosa cambia un click su uno step (STEP_MODE_KEY)
   metronome:false,
@@ -2451,10 +2453,13 @@ function normalize(){
   // corsia del synth: un blocco che punta a un pattern sparito diventa una pausa lunga uguale
   project.synthSong.forEach(b=>{
     if(b.synthId && !synthById(b.synthId)) b.synthId=null;
+    if(b.fillSynthId && (!b.synthId || !synthById(b.fillSynthId))) delete b.fillSynthId;
+    if(!b.mute || !b.synthId) delete b.mute;
     b.repeats=clamp(b.repeats||1,1,MAX_REPEATS); b.len=SYNTH_LENS.includes(+b.len)?+b.len:16;
   });
   if(!synthById(ui.synthId)) ui.synthId=project.synthPatterns[0].id;
   if(!project.synthSong.some(b=>b.id===ui.synthBlockId)) ui.synthBlockId=project.synthSong[0]?.id||null;
+  if(!project.synthSong.some(b=>b.id===ui.synthSoloBlockId && b.synthId)) ui.synthSoloBlockId=null;
 }
 
 // ---------- metro, griglia e groove ----------
@@ -2515,7 +2520,7 @@ el("grooveSelect").onchange=()=>applyRhythmChange({groove:el("grooveSelect").val
 
 // ---------- pattern del synth ----------
 // Le linee del synth sono pattern a se' (project.synthPatterns: {id, name, len, synth:[note]}) e nella canzone
-// hanno una corsia propria sotto la batteria (project.synthSong: {id, synthId|null, repeats, len}); synthId null =
+// hanno una corsia propria sotto la batteria (project.synthSong: {id, synthId|null, repeats, len, fillSynthId?, mute?}); synthId null =
 // pausa di len step. Le note: {s:step, n:nota MIDI, l:lunghezza in step, a:accento, g:slide}.
 function makeSynthPattern(name,len=16){ return {id:uid(), name, len, synth:[]}; }
 const SYNTH_LENS=[8,16,32,64,128,256];
@@ -2553,6 +2558,14 @@ function synthLayout(){
   });
   return {blocks, total:at};
 }
+// Il pattern di un blocco della corsia alla ripetizione r: il fill sull'ultima (se e' lungo uguale), e
+// nessuna nota se il blocco e' muto (resta il pattern, cosi' la scheda e il piano roll lo seguono lo stesso).
+function synthBlockPattern(x, r){
+  if(!x.sp) return null;
+  const fill=r>=Math.max(1,x.b.repeats||1)-1 ? synthById(x.b.fillSynthId) : null;
+  const sp=fill && fill.len===x.len ? fill : x.sp;
+  return x.b.mute ? {...sp, synth:[]} : sp;
+}
 // Quello che suona davvero: con la corsia vuota il pattern del synth scelto gira sotto tutta la canzone,
 // come negli altri tab (un blocco virtuale, auto:true); appena c'e' un blocco vale la corsia.
 function synthPlayLayout(){
@@ -2566,7 +2579,7 @@ function synthPlayLayout(){
 // Cosa suona il synth a una posizione della canzone (in step dall'inizio): {sp, step} o null.
 function synthAt(pos, L=synthPlayLayout()){
   const x=L.blocks.find(x=>pos>=x.start && pos<x.start+x.steps);
-  return x && x.sp ? {sp:x.sp, step:(pos-x.start)%x.len, index:L.blocks.indexOf(x)} : null;
+  return x && x.sp ? {sp:synthBlockPattern(x,Math.floor((pos-x.start)/x.len)), step:(pos-x.start)%x.len, index:L.blocks.indexOf(x)} : null;
 }
 // Per gli export: la linea del synth come sequenza di pezzi {len, synth} lunga quanto la batteria.
 // "pattern": il pattern del synth scelto ripetuto sotto WAV_PATTERN_LOOPS giri del pattern di batteria.
@@ -2578,7 +2591,7 @@ function synthTimeline(which, loops=WAV_PATTERN_LOOPS, src=null){
       if(x.start>=total) break;
       for(let r=0;r<x.b.repeats && x.start+r*x.len<total;r++){
         const len=Math.min(x.len,total-(x.start+r*x.len));
-        out.push({len, synth:(x.sp?x.sp.synth:[]).filter(n=>n.s<len).map(n=>({...n, l:Math.min(n.l,len-n.s)}))});
+        out.push({len, synth:(synthBlockPattern(x,r)?.synth||[]).filter(n=>n.s<len).map(n=>({...n, l:Math.min(n.l,len-n.s)}))});
       }
     }
     const used=out.reduce((a,x)=>a+x.len,0);
@@ -2833,6 +2846,21 @@ function synthNow(pat){
   return sp ? {sp, step:(cursor.abs||0)%sp.len, index:-1} : null;
 }
 
+// Solo di un blocco del synth: la canzone gira solo sul suo tratto {start,end} in step (null se non c'e'
+// o se cade oltre la fine della batteria).
+function synthSoloSpan(){
+  if(ui.mode!=="song" || !ui.synthSoloBlockId) return null;
+  const x=synthLayout().blocks.find(x=>x.b.id===ui.synthSoloBlockId), total=songLayout().total;
+  return x && x.sp && x.start<total ? {start:x.start, end:Math.min(total,x.start+x.steps)} : null;
+}
+// Il cursore della canzone a una posizione in step dall'inizio.
+function songCursorAt(pos, L=songLayout()){
+  const i=Math.max(0,L.blocks.findIndex(x=>pos<x.start+x.steps)), blk=L.blocks[i];
+  if(!blk) return {step:0, blockIndex:0, rep:0};
+  const offset=Math.max(0,pos-blk.start);
+  return {step:Math.floor(offset)%blk.len, blockIndex:i, rep:Math.floor(offset/blk.len)};
+}
+
 function scheduler(){
   const ctx=actx();
   while(nextTime < ctx.currentTime+0.12){
@@ -2886,6 +2914,13 @@ function scheduler(){
       } else if(!ui.loop){
         stop(); return;
       }
+    }
+    const span=synthSoloSpan();
+    if(span){
+      const L=songLayout(), blk=L.blocks[cursor.blockIndex];
+      const pos=blk ? blk.start+(cursor.rep||0)*blk.len+cursor.step : 0;
+      if(pos>=span.end && !ui.loop){ stop(); return; }
+      if(pos<span.start || pos>=span.end) Object.assign(cursor,songCursorAt(span.start,L));
     }
   }
 }
@@ -2970,6 +3005,8 @@ async function play({resume=false}={}){
       const i=project.song.findIndex(b=>b.id===ui.songSoloBlockId);
       if(i>=0) cursor.blockIndex=i;
     }
+    const span=synthSoloSpan();
+    if(span){ Object.assign(cursor,songCursorAt(span.start)); ui.blockId=project.song[cursor.blockIndex]?.id||ui.blockId; }
     barCount=1; visible={step:-1, patternId:null, blockIndex:-1, bar:1};
     countInTotal=Math.max(0,+el("countInSelect")?.value||0)*rhythmBarSteps();
     countInLeft=countInTotal;
@@ -4020,15 +4057,17 @@ function removeSongBlock(i){
   normalize(); renderAll();
   setStatus(`block removed with its pattern ${gone.map(n=>`“${n}”`).join(" and ")} · cmd+Z to undo`);
 }
+// Un pulsante delle azioni di un blocco (on null = senza stato acceso/spento).
+function blockAction(text,on,title,fn){
+  const x=document.createElement("button"); x.type="button"; x.textContent=text;
+  if(on!==null) x.className=on?"on":"";
+  x.title=title;
+  x.onclick=e=>{ e.stopPropagation(); fn(); };
+  return x;
+}
 // Vary, Fill, Solo e Mute del blocco.
 function songBlockActions(b){
-  const action=(text,on,title,fn)=>{
-    const x=document.createElement("button"); x.type="button"; x.textContent=text;
-    if(on!==null) x.className=on?"on":"";
-    x.title=title;
-    x.onclick=e=>{ e.stopPropagation(); fn(); };
-    return x;
-  };
+  const action=blockAction;
   const hasFill=!!b.fillPatternId, solo=ui.songSoloBlockId===b.id, nMuted=(b.mutes||[]).length;
   const actions=document.createElement("div"); actions.className="seqblock-actions";
   const vary=action("Vary",null,"create a variation for this block only",()=>varySongBlock(b));
@@ -4036,6 +4075,7 @@ function songBlockActions(b){
     hasFill?"remove the ending fill":"create a fill on the last repeat",()=>toggleSongFill(b));
   const soloBtn=action(solo?"Solo on":"Solo",solo,solo?"turn solo off":"play this block only",()=>{
     ui.songSoloBlockId=ui.songSoloBlockId===b.id?null:b.id;
+    if(ui.songSoloBlockId) ui.synthSoloBlockId=null;
     renderSong();
     setStatus(ui.songSoloBlockId?"solo on: the block loops":"solo off");
   });
@@ -4174,7 +4214,94 @@ function renderSong(){
 
 // ---------- corsia del synth nel Sequencer ----------
 const synthHue = id => (PATTERN_HUES[Math.max(0,(project.synthPatterns||[]).findIndex(p=>p.id===id))%PATTERN_HUES.length]+150)%360;
-const cloneSynthBlock = b => ({id:uid(), synthId:b.synthId, repeats:b.repeats, len:b.len||16});
+const cloneSynthBlock = b => ({id:uid(), synthId:b.synthId, repeats:b.repeats, len:b.len||16,
+  ...(b.fillSynthId?{fillSynthId:b.fillSynthId}:{}), ...(b.mute?{mute:true}:{})});
+// Un pattern del synth nato da un altro (variazione, fill): stesse lunghezza e posto in elenco, note nuove.
+function forkSynthPattern(src, notes, suffix){
+  const taken=project.synthPatterns.map(x=>x.name);
+  const wanted=`${src.name.replace(/ · (variation|fill)( \d+)?$/,"")} · ${suffix}`.slice(0,37);
+  const sp=makeSynthPattern(taken.includes(wanted)?copyName(wanted,taken):wanted, src.len);
+  sp.synth=notes.map(n=>({...n}));
+  project.synthPatterns.splice(project.synthPatterns.indexOf(src)+1,0,sp);
+  return sp;
+}
+// Toglie i pattern del synth che nessun blocco usa piu' (ne resta sempre almeno uno). Chi chiama ha gia' fatto pushUndo().
+function dropUnusedSynthPatterns(ids){
+  ids.forEach(id=>{
+    const sp=id && synthById(id);
+    if(!sp || project.synthPatterns.length<=1) return;
+    if(project.synthSong.some(b=>b.synthId===id || b.fillSynthId===id)) return;
+    project.synthPatterns=project.synthPatterns.filter(x=>x.id!==id);
+  });
+}
+// Vary: una variazione a caso (quelle del Synthesizer) solo per questo blocco.
+function varySynthBlock(b){
+  const src=synthById(b.synthId);
+  if(!src) return;
+  if(!src.synth.length) return setStatus("empty synth pattern: nothing to vary","err");
+  const types=window.PMSynth?.variations||[];
+  if(!types.length) return setStatus("the synth is not ready yet","err");
+  const same=notes=>JSON.stringify(notes.map(n=>[n.s,n.n,n.l,n.a||0]))===JSON.stringify(src.synth.map(n=>[n.s,n.n,n.l,n.a||0]));
+  let pick=null, notes=null;
+  for(const t of types.slice().sort(()=>Math.random()-0.5)){
+    notes=PMSynth.variation(t.id,src.synth,src.len);
+    if(!same(notes)){ pick=t; break; }
+  }
+  if(!pick) return setStatus("no variation changes this synth pattern","err");
+  stopSynthBlockPreview(); pushUndo();
+  const fill=b.fillSynthId, sp=forkSynthPattern(src,notes,"variation");
+  b.synthId=sp.id; delete b.fillSynthId; ui.synthId=sp.id;
+  dropUnusedSynthPatterns([fill]);
+  normalize(); renderSong();
+  setStatus(`variation “${pick.label}” applied to “${src.name}” in the block`);
+}
+// Fill: l'ultima parte del pattern (un quarto, da 4 a 16 step) diventa una corsa di sedicesimi sulle sue note.
+function makeSynthFill(src){
+  if(!src.synth.length) return null;
+  const zone=clamp(Math.round(src.len/4),4,16), from=src.len-zone;
+  const pitches=[...new Set(src.synth.map(n=>n.n))].sort((a,b)=>a-b);
+  if(pitches.length<2) pitches.push(pitches[0]+12<=127?pitches[0]+12:pitches[0]-12);
+  const {a,g,k,...like}=src.synth[src.synth.length-1];
+  const notes=src.synth.filter(n=>n.s<from).map(n=>({...n, l:Math.min(n.l,from-n.s)}));
+  for(let i=0;i<zone;i++) notes.push({...like, s:from+i, l:1, n:pitches[i%pitches.length], ...(i===zone-1?{a:1}:{})});
+  return forkSynthPattern(src,notes,"fill");
+}
+function toggleSynthFill(b){
+  if(b.fillSynthId){
+    pushUndo();
+    const fill=b.fillSynthId; delete b.fillSynthId;
+    dropUnusedSynthPatterns([fill]); normalize(); renderSong();
+    setStatus("ending fill off"); return;
+  }
+  const src=synthById(b.synthId);
+  if(!src) return;
+  if(!src.synth.length) return setStatus("empty synth pattern: cannot create a fill","err");
+  pushUndo();
+  b.fillSynthId=makeSynthFill(src).id;
+  renderSong();
+  setStatus("ending fill on the last repeat");
+}
+// Vary, Fill, Solo e Mute del blocco del synth, come quelli della batteria. Il synth e' una voce sola: Mute zittisce il blocco.
+function synthBlockActions(b){
+  const hasFill=!!b.fillSynthId, solo=ui.synthSoloBlockId===b.id, muted=!!b.mute;
+  const actions=document.createElement("div"); actions.className="seqblock-actions";
+  actions.append(
+    blockAction("Vary",null,"create a variation for this block only",()=>varySynthBlock(b)),
+    blockAction(hasFill?"Fill on":"Fill",hasFill,
+      hasFill?"remove the ending fill":"create a fill on the last repeat",()=>toggleSynthFill(b)),
+    blockAction(solo?"Solo on":"Solo",solo,solo?"turn solo off":"play this block only",()=>{
+      ui.synthSoloBlockId=solo?null:b.id;
+      if(ui.synthSoloBlockId) ui.songSoloBlockId=null;
+      renderSong();
+      setStatus(ui.synthSoloBlockId?"solo on: the block loops":"solo off");
+    }),
+    blockAction(muted?"Mute on":"Mute",muted,muted?"bring the synth back in this block":"keep the synth silent in this block only",()=>{
+      pushUndo();
+      if(muted) delete b.mute; else b.mute=true;
+      renderSong();
+    }));
+  return actions;
+}
 // Come per la batteria: la copia di un blocco ha un pattern suo, con un nome nuovo ("Synth 2" -> "Synth 3").
 // La pausa non ha pattern e si copia cosi' com'e'.
 function duplicateSynthBlock(i){
@@ -4281,7 +4408,7 @@ function synthCard(x,idx){
   const color=sp?`hsl(${synthHue(sp.id)} 65% 58%)`:"var(--edge)";
   const isControl=target=>target.closest("button,input,select,.seqblock-foot");
   const card=document.createElement("div");
-  card.className="seqblock synthblock"+(sp?"":" rest")+(b.id===ui.synthBlockId?" sel":"")+(b.id===synthBlockPreview.blockId?" playing":"");
+  card.className="seqblock synthblock"+(sp?"":" rest")+(b.mute?" muted":"")+(b.id===ui.synthBlockId?" sel":"")+(b.id===synthBlockPreview.blockId?" playing":"");
   card.dataset.blockId=b.id;
   card.tabIndex=0;
   card.draggable=true;
@@ -4297,6 +4424,8 @@ function synthCard(x,idx){
     stopSynthBlockPreview(); pushUndo();
     if(sel.value) b.synthId=sel.value;
     else { b.len=x.len; b.synthId=null; }       // la pausa resta lunga quanto il pattern che c'era
+    delete b.fillSynthId;                       // il fill era fatto sul pattern di prima
+    normalize();
     renderSong();
   };
   card.appendChild(blockPatternRow(sel, sp&&sp.name, ()=>renameSynthBlock(b)));
@@ -4309,6 +4438,7 @@ function synthCard(x,idx){
     card.appendChild(lsel);
   }
   card.appendChild(blockMeta(bars,b.repeats));
+  if(sp) card.appendChild(synthBlockActions(b));
   card.appendChild(synthPreview(sp));
   const prog=blockProgress();
   card.appendChild(prog.bar);
@@ -4914,7 +5044,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || el("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-11.2";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-11.3";
   document.body.appendChild(s);
 }
 if(LIVE_VIEW || (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth"))) loadSynth();
@@ -5687,7 +5817,8 @@ function serialize(){
     patterns: project.patterns.map(p=>serializePattern(p)),
     song: project.song.map(b=>serializeSongBlock(b)),
     synthPatterns: (project.synthPatterns||[]).map(sp=>({id:sp.id, name:sp.name, len:sp.len, synth:sp.synth.map(n=>({...n}))})),
-    synthSong: (project.synthSong||[]).map(b=>({id:b.id, synthId:b.synthId||null, repeats:b.repeats, len:b.len||16})),
+    synthSong: (project.synthSong||[]).map(b=>({id:b.id, synthId:b.synthId||null, repeats:b.repeats, len:b.len||16,
+      ...(b.fillSynthId?{fillSynthId:b.fillSynthId}:{}), ...(b.mute?{mute:true}:{})})),
     ...(project.synth?{synth:deepCopy(project.synth)}:{}),   // synth: suono, tonalita', on/off
     updatedAt: Date.now(),
   };
@@ -5735,7 +5866,8 @@ function deserialize(d,keepSel){
     ...(hasSynthLane ? {
       synthPatterns:d.synthPatterns.map(sp=>({id:sp.id, name:sp.name||"Synth", len:SYNTH_LENS.includes(+sp.len)?+sp.len:16,
         synth:(Array.isArray(sp.synth)?sp.synth:[]).map(n=>({...n}))})),
-      synthSong:d.synthSong.map(b=>({id:b.id, synthId:b.synthId||null, repeats:b.repeats||1, len:b.len||16})),
+      synthSong:d.synthSong.map(b=>({id:b.id, synthId:b.synthId||null, repeats:b.repeats||1, len:b.len||16,
+        ...(b.fillSynthId?{fillSynthId:String(b.fillSynthId)}:{}), ...(b.mute?{mute:true}:{})})),
     } : {}),
     ...(d.synth&&typeof d.synth==="object"?{synth:deepCopy(d.synth)}:{}),
   };
@@ -7927,7 +8059,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-10-11.2";
+const SW_VERSION="2026-10-11.3";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -7951,10 +8083,10 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sample-editor.js?v=2026-10-11.2"></script>
-<script src="engine/sampler.js?v=2026-10-11.2"></script>
-<script src="engine/vocal.js?v=2026-10-11.2"></script>
+<script src="engine/sample-editor.js?v=2026-10-11.3"></script>
+<script src="engine/sampler.js?v=2026-10-11.3"></script>
+<script src="engine/vocal.js?v=2026-10-11.3"></script>
 <script>PMSampler.init(); PMVocal.init();</script>
-<script src="engine/midi.js?v=2026-10-11.2"></script>
+<script src="engine/midi.js?v=2026-10-11.3"></script>
 </body>
 </html>

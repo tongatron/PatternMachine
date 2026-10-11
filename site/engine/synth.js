@@ -2362,6 +2362,7 @@
     samplesSent: [...samplesSent.keys()], samplesReady: [...samplesReady] });
 
   window.PMSynth = { step, allOff, show, paint: paintTop, setAllowed, renamePattern: renameSynth, renderOffline, hasNotes, exportMidi, level, debug, midiNote, liveNote: midiNote, liveSettings, knob, knobTargets, currentPattern: () => curSynth(),
+    variations: SYNTH_VARIATIONS, variation: synthVariationNotes,
     useSample, refreshSample };
   setAllowed(true);
   window.paintGroupMS?.();   // M/S del synth nel trasporto: compaiono ora che il synth c'e'

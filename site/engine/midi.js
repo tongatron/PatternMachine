@@ -1,10 +1,11 @@
-// Tastiere MIDI collegate al computer (profili per AKAI MPK mini Play mk3 e Arturia MiniLab 3, piu' uno per le altre):
+// Controller MIDI collegati al computer (profili per AKAI MPK mini Play mk3,
+// Arturia MiniLab 3 e Novation Circuit, piu' uno per le altre tastiere):
 // i tasti suonano il synth, i pad le righe della batteria o i comandi del trasporto, le manopole volumi,
 // tempo e parametri del synth. Usa Web MIDI (Chrome, Edge, Opera, Firefox; Safari no).
 //
 // Le assegnazioni stanno nel browser (localStorage "pm.midi.maps"), non nel progetto: dipendono dalla tastiera, non dal brano.
 // Una mappa per profilo, scelto dal nome della porta MIDI: le due tastiere mandano i pad sulle stesse note del canale 10.
-//   maps = {mpk: map, minilab3: map, other: map}
+//   maps = {mpk: map, minilab3: map, circuit: map, other: map}
 //   map = {keys:{ch, to:"synth"|"off"}, pads:[{ch, n, to}], knobs:[{ch, cc, to}]}   ch 0 = qualsiasi canale, n/cc null = libero
 //   pad:      "none" | "row:<i>" (riga i della griglia) | "play" "drums" "synth" "rec" "tap" "metro" "prev" "next"
 //   manopola: "none" | "vol:drums" "vol:synth" "vol:master" | "bpm" "swing" "human" | "syn:<parametro del synth>"
@@ -28,6 +29,43 @@
     ["bpm", "BPM"], ["swing", "Swing"], ["human", "Humanize"]];
   const KNOB_RANGES = { "vol:drums": "drumsVol", "vol:synth": "synthVol", "vol:master": "masterVol", bpm: "bpmRange", swing: "swingRange", human: "humanRange" };
 
+  // Riferimento compatto dei messaggi descritti nella Programmer's Reference Guide 1.3.
+  // Il monitor qui sotto mostra anche i messaggi non presenti in questa tabella.
+  const CIRCUIT_REFERENCE = [
+    { title: "Synth 1 / Synth 2 · canale 1 / 2", rows: [
+      ["Polyphony mode", "CC 3"], ["Portamento rate", "CC 5"], ["Pre-glide", "CC 9"], ["Keyboard octave", "CC 13"],
+      ["Osc 1 wave / interpolate", "CC 19 / 20"], ["Osc 1 pulse / sync", "CC 21 / 22"], ["Osc 1 density / detune", "CC 24 / 25"],
+      ["Osc 1 semitones / cents / pitchbend", "CC 26 / 27 / 28"], ["Osc 2 wave / interpolate", "CC 29 / 30"],
+      ["Osc 2 pulse / sync", "CC 31 / 33"], ["Osc 2 density / detune", "CC 35 / 36"], ["Osc 2 semitones / cents / pitchbend", "CC 37 / 39 / 40"],
+      ["Mixer osc 1 / osc 2", "CC 51 / 52"], ["Ring mod / noise", "CC 54 / 56"], ["Pre-FX / post-FX", "CC 58 / 59"],
+      ["Filter routing / drive / type", "CC 60 / 63 / 65"], ["Filter type / frequency / tracking", "CC 68 / 74 / 69"],
+      ["Filter resonance / Q / env 2", "CC 71 / 78 / 79"], ["Env 1 velocity / attack / decay", "CC 108 / 73 / 75"],
+      ["Env 1 sustain / release", "CC 70 / 72"], ["Distortion / chorus level", "CC 91 / 93"],
+      ["Envelope 2", "NRPN 0:0–0:4"], ["Envelope 3", "NRPN 0:14–0:18"], ["LFO 1", "NRPN 0:70–0:77, 0:122–0:123"],
+      ["LFO 2", "NRPN 0:79–0:86, 0:122–0:123"], ["EQ", "NRPN 0:104–0:109"], ["Distortion / chorus", "NRPN 1:0–1:1, 1:24–1:29"],
+      ["Mod matrix 1–9", "NRPN 1:83–1:127"], ["Mod matrix 10–11", "NRPN 2:0–2:8"], ["Macro 3–8", "NRPN 3:35–3:127"]
+    ]},
+    { title: "Drums · canale 10", rows: [
+      ["Drum 1 patch / level / pitch / decay", "CC 8 / 12 / 14 / 15"], ["Drum 1 distortion / EQ / pan", "CC 16 / 17 / 77"],
+      ["Drum 2 patch / level / pitch / decay", "CC 18 / 23 / 34 / 40"], ["Drum 2 distortion / EQ / pan", "CC 42 / 43 / 78"],
+      ["Drum 3 patch / level / pitch / decay", "CC 44 / 45 / 46 / 47"], ["Drum 3 distortion / EQ / pan", "CC 48 / 49 / 79"],
+      ["Drum 4 patch / level / pitch / decay", "CC 50 / 53 / 55 / 57"], ["Drum 4 distortion / EQ / pan", "CC 61 / 76 / 80"],
+      ["Drum 1 / 2 / 3 / 4 note", "60 / 62 / 64 / 65"]
+    ]},
+    { title: "Session / mixer · canale 16", rows: [
+      ["Reverb send synth 1 / synth 2", "CC 88 / 89"], ["Reverb send drum 1–4", "CC 90 / 106 / 109 / 110"],
+      ["Reverb type / decay / damping", "NRPN 1:18 / 1:19 / 1:20"], ["Delay send synth 1 / synth 2", "CC 111 / 112"],
+      ["Delay send drum 1–4", "CC 113 / 114 / 115 / 116"], ["Delay time / sync / feedback / width", "NRPN 1:6 / 1:7 / 1:8 / 1:9"],
+      ["Master filter frequency / resonance", "CC 74 / 71"], ["Mixer synth 1 / synth 2 level", "CC 12 / 14"],
+      ["Mixer synth 1 / synth 2 pan", "CC 117 / 118"], ["FX bypass", "NRPN 1:21"]
+    ]},
+    { title: "Selezione e trasporto", rows: [
+      ["Synth 1 patch", "Program Change ch 1 · 0–63"], ["Synth 2 patch", "Program Change ch 2 · 0–63"],
+      ["Session instant / queued", "Program Change ch 16 · 0–31 / 64–95"],
+      ["Transport", "Start · Stop · Continue · MIDI Clock"], ["Posizione e song", "Song Position Pointer · Song Select"]
+    ]}
+  ];
+
   // Profili delle tastiere, con le assegnazioni di fabbrica. Pad: banco A note 36-43, banco B 44-51, canale 10.
   //   MPK mini Play mk3: manopole CC 70-77.
   //   MiniLab 3 (modo Arturia): manopole CC 74 71 76 77 93 18 19 16, fader CC 82 83 85 17.
@@ -41,6 +79,13 @@
       cc: [74, 71, 76, 77, 93, 18, 19, 16, 82, 83, 85, 17],
       to: ["syn:cutoff", "syn:reso", "syn:fEnv", "syn:eD", "syn:delay", "syn:reverb", "syn:chorus", "bpm",
         "vol:drums", "vol:synth", "vol:master", "swing"] },
+    circuit: { name: "Novation Circuit", match: /\bcircuit\b/i, padCount: 4,
+      padLabels: ["Drum 1", "Drum 2", "Drum 3", "Drum 4"],
+      controls: Array.from({ length: 8 }, (_, i) => "Macro " + (i + 1)),
+      // I macro del Circuit possono cambiare destinazione con il synth/part selezionato:
+      // si assegnano con Learn, mentre il riferimento completo resta visibile sotto.
+      cc: Array.from({ length: 8 }, () => null),
+      to: ["vol:drums", "vol:synth", "vol:master", "bpm", "swing", "human", "syn:cutoff", "syn:reso"] },
     other: { name: "Other MIDI devices", match: null,
       controls: Array.from({ length: 8 }, (_, i) => "Knob " + (i + 1)),
       cc: [70, 71, 72, 73, 74, 75, 76, 77],
@@ -48,10 +93,11 @@
   };
   const profileOf = name => Object.keys(PROFILES).find(id => PROFILES[id].match && PROFILES[id].match.test(name || "")) || "other";
   function defaults(pid) {
-    const pr = PROFILES[pid], padTo = i => i < 8 ? "row:" + i : PAD_ACTIONS[i - 8][0];
+    const pr = PROFILES[pid], count = pr.padCount || PADS, padTo = i => pid === "circuit" ? "row:" + i : i < 8 ? "row:" + i : PAD_ACTIONS[i - 8][0];
+    const notes = pid === "circuit" ? [60, 62, 64, 65] : Array.from({ length: count }, (_, i) => 36 + i);
     return {
       keys: { ch: 0, to: "synth" },
-      pads: Array.from({ length: PADS }, (_, i) => ({ ch: 10, n: 36 + i, to: padTo(i) })),
+      pads: Array.from({ length: count }, (_, i) => ({ ch: 10, n: notes[i] ?? null, to: padTo(i) })),
       knobs: pr.cc.map((cc, i) => ({ ch: 0, cc, to: pr.to[i] })),
     };
   }
@@ -81,6 +127,7 @@
     if (!persistAsked && navigator.storage && navigator.storage.persist) { persistAsked = true; navigator.storage.persist().catch(() => {}); }
   }
   let shown = null;   // profilo mostrato nella vista MIDI
+  let history = [];
 
   // ---------- collegamento ----------
   let access = null;
@@ -117,12 +164,18 @@
   let lastPid = null;
   function onMessage(e) {
     const [st, d1 = 0, d2 = 0] = e.data;
-    if (st >= 0xf0) return;                       // clock, sysex e simili: non servono qui
+    const dev = e.target && e.target.name || "";
+    if (st >= 0xf0) { recordSystemHistory(dev, st, e.data); return; }
     const type = st & 0xf0, ch = (st & 15) + 1;
     const on = type === 0x90 && d2 > 0, off = type === 0x80 || (type === 0x90 && d2 === 0), cc = type === 0xb0;
+    if (type === 0xc0) { recordHistory(dev, ch, d1, 0, "Program change", `program ${d1}`); return; }
+    if (type === 0xe0) { recordHistory(dev, ch, d1, d2, "Pitch bend", `value ${d1 + d2 * 128 - 8192}`); return; }
+    if (type === 0xd0) { recordHistory(dev, ch, d1, 0, "Channel pressure", `value ${d1}`); return; }
+    if (type === 0xa0) { recordHistory(dev, ch, d1, d2, "Poly pressure", `${noteName(d1)} (${d1}) · value ${d2}`); return; }
     if (!on && !off && !cc) return;
-    const pid = profileOf(e.target && e.target.name), map = maps[pid], dev = e.target && e.target.name || "";
+    const pid = profileOf(dev), map = maps[pid];
     lastPid = pid;
+    recordHistory(dev, ch, d1, d2, on ? "Note on" : off ? "Note off" : "CC");
     if (learn && learn.pid === pid && (learn.kind === "pad" ? on : cc)) { learned(ch, d1); return; }
     if (on || off) {
       const i = map.pads.findIndex(p => p.n === d1 && chOk(p.ch, ch));
@@ -185,6 +238,18 @@
 #panelMidi h3 span{letter-spacing:0.04em; text-transform:none; font-weight:400; margin-left:6px;}
 #panelMidi .midi-keys{display:flex; flex-wrap:wrap; gap:10px 16px; align-items:center;}
 #panelMidi .midi-grid{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px;}
+#panelMidi .midi-log-head{display:flex; align-items:center; gap:10px; margin-top:16px;}
+#panelMidi .midi-log-head h3{flex:1; margin:0;}
+#panelMidi .midi-history{list-style:none; padding:0; margin:8px 0 0; max-height:260px; overflow:auto; border:1px solid var(--edge-soft); border-radius:6px; background:var(--panel-2);}
+#panelMidi .midi-history li{padding:5px 8px; border-bottom:1px solid var(--edge-soft); font:11px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; color:var(--text-dim); overflow-wrap:anywhere;}
+#panelMidi .midi-history li:last-child{border-bottom:0;}
+#panelMidi .midi-reference{margin-top:18px;}
+#panelMidi .midi-reference h3{margin-bottom:7px;}
+#panelMidi .midi-ref-group{margin:8px 0; border:1px solid var(--edge-soft); border-radius:6px; overflow:hidden;}
+#panelMidi .midi-ref-title{padding:6px 8px; background:var(--panel-2); font-weight:700; font-size:12px;}
+#panelMidi .midi-ref-row{display:grid; grid-template-columns:minmax(0,1fr) minmax(150px,35%); gap:10px; padding:5px 8px; border-top:1px solid var(--edge-soft); font-size:11px;}
+#panelMidi .midi-ref-code{font:11px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; color:var(--text-dim);}
+#panelMidi .midi-reference a{color:var(--accent);}
 #panelMidi .midi-bank{font-size:9px; letter-spacing:0.14em; text-transform:uppercase; color:var(--text-faint); grid-column:1/-1; margin-top:4px;}
 #panelMidi .mcard{border:1px solid var(--edge); border-radius:8px; background:var(--panel-2); padding:8px; display:flex; flex-direction:column; gap:6px; min-width:0;
   transition:background .12s, border-color .12s;}
@@ -216,9 +281,9 @@
         <span class="midi-dev" id="midiDev"></span>
         <button id="midiReset" class="mini push" type="button" title="Back to the assignments of this keyboard as it leaves the factory">Factory assignments</button>
       </div>
-      <p class="midi-help">Connect a MIDI keyboard by USB and press <b>Connect</b> (Chrome, Edge or Firefox; Safari can't read MIDI devices).
+      <p class="midi-help">Connect a MIDI keyboard or a <b>Novation Circuit</b> by USB and press <b>Connect</b> (Chrome, Edge or Firefox; Safari can't read MIDI devices).
         The keys play the synth, pads and knobs do what you choose below. To assign one, press <b>Learn</b> and hit the pad or turn the knob.
-        Each keyboard (AKAI MPK mini Play mk3, Arturia MiniLab 3, any other) keeps its own assignments in this browser.</p>
+        Each controller (AKAI MPK mini Play mk3, Arturia MiniLab 3, Novation Circuit, any other) keeps its own assignments in this browser.</p>
       <div class="midi-mon" id="midiMon" aria-live="polite">No MIDI message yet</div>
       <h3>Keys</h3>
       <div class="midi-keys">
@@ -229,9 +294,13 @@
       <h3>Pads <span>velocity-sensitive on the drum rows</span></h3>
       <div class="midi-grid" id="midiPads"></div>
       <h3 id="midiKnobsTitle">Knobs</h3>
-      <div class="midi-grid" id="midiKnobs"></div>`;
+      <div class="midi-grid" id="midiKnobs"></div>
+      <div class="midi-log-head"><h3>All incoming messages</h3><button id="midiHistoryClear" class="mini" type="button">Clear</button></div>
+      <ol class="midi-history" id="midiHistory"><li>No MIDI message yet</li></ol>
+      <div class="midi-reference" id="midiCircuitReference" hidden></div>`;
     el("midiConnect").onclick = toggle;
     el("midiProfile").onchange = e => { shown = e.target.value; learn = null; renderMaps(); };
+    el("midiHistoryClear").onclick = () => { history = []; renderHistory(); };
     el("midiReset").onclick = async () => {
       const name = PROFILES[shown].name;
       const yes = await ask({ title: "Reset the MIDI assignments?", message: `Keys, pads and knobs of the ${name} go back to the factory settings.`, ok: "Reset", danger: true });
@@ -282,7 +351,8 @@
     return html;
   }
   function card(kind, i, item, opts) {
-    const learning = learn && learn.kind === kind && learn.i === i, name = kind === "pad" ? "Pad " + (i + 1) : PROFILES[shown].controls[i];
+    const learning = learn && learn.kind === kind && learn.i === i, pr = PROFILES[shown];
+    const name = kind === "pad" ? ((pr.padLabels || [])[i] || "Pad " + (i + 1)) : pr.controls[i];
     const src = kind === "pad"
       ? (item.n == null ? "not set" : `ch ${item.ch || "any"} · ${noteName(item.n)} (${item.n})`)
       : (item.cc == null ? "not set" : `ch ${item.ch || "any"} · CC ${item.cc}`);
@@ -316,6 +386,38 @@
     }
     el("midiKeysTo").value = map.keys.to; el("midiKeysCh").value = String(map.keys.ch || 0);
     paintKeysNote();
+    renderCircuitReference();
+    renderHistory();
+  }
+  function renderHistory() {
+    if (!built) return;
+    const box = el("midiHistory");
+    if (!history.length) { box.innerHTML = "<li>No MIDI message yet</li>"; return; }
+    box.innerHTML = history.map(x => `<li>${esc(x.time)} · ${esc(x.dev || "MIDI")} · ${x.what} · ch ${x.ch} · ${x.body}</li>`).join("");
+  }
+  function renderCircuitReference() {
+    if (!built) return;
+    const box = el("midiCircuitReference");
+    if (shown !== "circuit") { box.hidden = true; box.innerHTML = ""; return; }
+    box.hidden = false;
+    box.innerHTML = `<h3>Novation Circuit · command reference</h3>` +
+      CIRCUIT_REFERENCE.map(g => `<div class="midi-ref-group"><div class="midi-ref-title">${esc(g.title)}</div>` +
+        g.rows.map(([label, command]) => `<div class="midi-ref-row"><span>${esc(label)}</span><span class="midi-ref-code">${esc(command)}</span></div>`).join("") +
+        `</div>`).join("") +
+      `<p class="tiny">I messaggi SysEx e la tabella NRPN completa sono nella <a href="https://downloads.novationmusic.com/novation/circuit/circuit" target="_blank" rel="noreferrer">Novation Circuit Programmer's Reference Guide</a>. Usa <b>Learn</b> per collegare i comandi del Circuit alle funzioni di PATTERN-MACHINE.</p>`;
+  }
+  function recordHistory(dev, ch, d1, d2, what, bodyOverride) {
+    const body = bodyOverride || (what === "CC" ? `CC ${d1} · value ${d2}` : `${noteName(d1)} (${d1})` + (what === "Note on" ? ` · velocity ${d2}` : ""));
+    history.unshift({ time: new Date().toLocaleTimeString(), dev, ch, what, body });
+    history = history.slice(0, 64);
+    if (viewOpen()) renderHistory();
+  }
+  function recordSystemHistory(dev, status, data) {
+    const labels = { 0xf1: "MTC quarter frame", 0xf2: "Song Position Pointer", 0xf3: "Song Select", 0xf6: "Tune request",
+      0xf8: "MIDI Clock", 0xfa: "Start", 0xfb: "Continue", 0xfc: "Stop", 0xfe: "Active sensing", 0xff: "Reset" };
+    const label = labels[status] || (status === 0xf0 ? "SysEx" : "System message");
+    const payload = status === 0xf0 ? `${Math.max(0, data.length - 2)} data bytes` : data.slice(1).join(" ");
+    recordHistory(dev, "—", 0, 0, label, payload);
   }
   function paintKeysNote() {
     if (!built) return;

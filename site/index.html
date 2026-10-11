@@ -1834,23 +1834,23 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-10-11.1"></script>
-<script src="engine/core.js?v=2026-10-11.1"></script>
-<script src="engine/styles-punk.js?v=2026-10-11.1"></script>
-<script src="engine/styles-post.js?v=2026-10-11.1"></script>
-<script src="engine/styles-machines.js?v=2026-10-11.1"></script>
-<script src="engine/styles-alt.js?v=2026-10-11.1"></script>
-<script src="engine/styles-groove.js?v=2026-10-11.1"></script>
-<script src="engine/styles-dub.js?v=2026-10-11.1"></script>
-<script src="engine/styles-break.js?v=2026-10-11.1"></script>
-<script src="engine/styles-soul.js?v=2026-10-11.1"></script>
-<script src="engine/styles-metal.js?v=2026-10-11.1"></script>
-<script src="engine/styles-electro.js?v=2026-10-11.1"></script>
-<script src="engine/variations.js?v=2026-10-11.1"></script>
-<script src="engine/import.js?v=2026-10-11.1"></script>
-<script src="engine/rhythm.js?v=2026-10-11.1"></script>
-<script src="engine/share.js?v=2026-10-11.1"></script>
-<script src="engine/runtime.js?v=2026-10-11.1"></script>
+<script src="engine/machine-art.js?v=2026-10-11.2"></script>
+<script src="engine/core.js?v=2026-10-11.2"></script>
+<script src="engine/styles-punk.js?v=2026-10-11.2"></script>
+<script src="engine/styles-post.js?v=2026-10-11.2"></script>
+<script src="engine/styles-machines.js?v=2026-10-11.2"></script>
+<script src="engine/styles-alt.js?v=2026-10-11.2"></script>
+<script src="engine/styles-groove.js?v=2026-10-11.2"></script>
+<script src="engine/styles-dub.js?v=2026-10-11.2"></script>
+<script src="engine/styles-break.js?v=2026-10-11.2"></script>
+<script src="engine/styles-soul.js?v=2026-10-11.2"></script>
+<script src="engine/styles-metal.js?v=2026-10-11.2"></script>
+<script src="engine/styles-electro.js?v=2026-10-11.2"></script>
+<script src="engine/variations.js?v=2026-10-11.2"></script>
+<script src="engine/import.js?v=2026-10-11.2"></script>
+<script src="engine/rhythm.js?v=2026-10-11.2"></script>
+<script src="engine/share.js?v=2026-10-11.2"></script>
+<script src="engine/runtime.js?v=2026-10-11.2"></script>
 <script>
 // Script principale di PATTERN-MACHINE: stato del progetto, audio, trasporto e interfaccia della pagina.
 // Il motore ritmico (SPEngine), i tempi (PMRhythm), import, link e gli altri moduli stanno in engine/*.js.
@@ -4175,6 +4175,21 @@ function renderSong(){
 // ---------- corsia del synth nel Sequencer ----------
 const synthHue = id => (PATTERN_HUES[Math.max(0,(project.synthPatterns||[]).findIndex(p=>p.id===id))%PATTERN_HUES.length]+150)%360;
 const cloneSynthBlock = b => ({id:uid(), synthId:b.synthId, repeats:b.repeats, len:b.len||16});
+// Come per la batteria: la copia di un blocco ha un pattern suo, con un nome nuovo ("Synth 2" -> "Synth 3").
+// La pausa non ha pattern e si copia cosi' com'e'.
+function duplicateSynthBlock(i){
+  const source=project.synthSong[i]; if(!source) return;
+  pushUndo();
+  const copy=cloneSynthBlock(source), src=synthById(source.synthId);
+  if(src){
+    const sp=makeSynthPattern(copyName(src.name, project.synthPatterns.map(x=>x.name)), src.len);
+    sp.synth=(src.synth||[]).map(n=>({...n}));
+    project.synthPatterns.splice(project.synthPatterns.indexOf(src)+1,0,sp);
+    copy.synthId=sp.id; ui.synthId=sp.id;
+  }
+  project.synthSong.splice(i+1,0,copy);
+  ui.synthBlockId=copy.id; renderSong();
+}
 let synthCards=[];
 // Rinomina il pattern del synth dal Sequencer. Il pulsante del Sequencer e' locale al blocco:
 // se il pattern e' condiviso, prima crea una copia indipendente per evitare di rinominare gli altri blocchi.
@@ -4298,7 +4313,7 @@ function synthCard(x,idx){
   const prog=blockProgress();
   card.appendChild(prog.bar);
   const {foot, repNow}=blockFoot(b,
-    ()=>{ pushUndo(); const c=cloneSynthBlock(b); project.synthSong.splice(idx+1,0,c); ui.synthBlockId=c.id; renderSong(); },
+    ()=>duplicateSynthBlock(idx),
     ()=>{
       stopSynthBlockPreview(); pushUndo(); project.synthSong.splice(idx,1);
       ui.synthBlockId=project.synthSong[Math.min(idx,project.synthSong.length-1)]?.id||null; renderSong();
@@ -4394,12 +4409,7 @@ el("ssRight").onclick=()=>nudgeBlock(project.synthSong,ui.synthBlockId,1,el("seq
 el("ssDup").onclick=()=>{
   const i=project.synthSong.findIndex(b=>b.id===ui.synthBlockId);
   if(i<0) return setStatus("select a synth block","err");
-  pushUndo();
-  const copy=cloneSynthBlock(project.synthSong[i]);
-  project.synthSong.splice(i+1,0,copy);
-  ui.synthBlockId=copy.id;
-  if(copy.synthId) ui.synthId=copy.synthId;
-  renderSong();
+  duplicateSynthBlock(i);
   setStatus("synth block duplicated");
 };
 el("ssRename").onclick=()=>{
@@ -4904,7 +4914,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || el("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-11.1";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-11.2";
   document.body.appendChild(s);
 }
 if(LIVE_VIEW || (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth"))) loadSynth();
@@ -7917,7 +7927,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-10-11.1";
+const SW_VERSION="2026-10-11.2";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -7941,10 +7951,10 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sample-editor.js?v=2026-10-11.1"></script>
-<script src="engine/sampler.js?v=2026-10-11.1"></script>
-<script src="engine/vocal.js?v=2026-10-11.1"></script>
+<script src="engine/sample-editor.js?v=2026-10-11.2"></script>
+<script src="engine/sampler.js?v=2026-10-11.2"></script>
+<script src="engine/vocal.js?v=2026-10-11.2"></script>
 <script>PMSampler.init(); PMVocal.init();</script>
-<script src="engine/midi.js?v=2026-10-11.1"></script>
+<script src="engine/midi.js?v=2026-10-11.2"></script>
 </body>
 </html>

@@ -1602,9 +1602,9 @@
       <div class="flexline">
         <span class="tiny">Click:</span>
         <div class="modeswitch" id="synTap" role="group" aria-label="What a click on a note changes">
-          <button type="button" data-mode="note" title="add a note; drag an existing note to move it, drag its final edge to resize, click to remove it">Notes</button>
-          <button type="button" data-mode="acc" title="click a note to accent it: louder and brighter (alt+click); an empty cell still adds a note">Accent</button>
-          <button type="button" data-mode="slide" title="click a note to slide into the next one, like a TB-303 (shift+click); an empty cell still adds a note">Slide</button>
+          <button type="button" data-mode="note" title="add a note; drag an existing note to move it, drag its final edge to resize, click (or right-click) to remove it">Notes</button>
+          <button type="button" data-mode="acc" title="click a note to accent it: louder and brighter (alt+click); an empty cell still adds a note, double-click or right-click removes one">Accent</button>
+          <button type="button" data-mode="slide" title="click a note to slide into the next one, like a TB-303 (shift+click); an empty cell still adds a note, double-click or right-click removes one">Slide</button>
         </div>
         <button id="synDown" class="mini" type="button" title="Show lower notes">Oct −</button>
         <button id="synUp" class="mini" type="button" title="Show higher notes">Oct +</button>
@@ -2126,7 +2126,7 @@
   };
   function wireRoll() {
     const roll = el("synRoll");
-    let keyDown = null;
+    let keyDown = null, lastTap = null;
     const releaseKey = () => {
       if (keyDown?.started) liveOff(keyDown.n);
       keyDown = null;
@@ -2148,10 +2148,21 @@
       const mode = e.altKey ? "acc" : (e.shiftKey ? "slide" : view.tap);
       // Accent e Slide cambiano la nota cliccata; su una cella vuota si scrive comunque una nota nuova.
       if (mode !== "note" && hit) {
+        // Doppio click: toglie la nota. La griglia si ridisegna a ogni click e il browser non manda dblclick,
+        // quindi si riconosce qui; l'annulla del primo click ha gia' la nota com'era.
+        const now = performance.now();
+        if (lastTap && lastTap.note === hit && now - lastTap.t < 400) {
+          lastTap = null;
+          pat.synth = pat.synth.filter(x => x !== hit);
+          renderRoll(); setStatus("note removed");
+          return;
+        }
+        lastTap = { note: hit, t: now };
         forgetSynthVariation(); pushUndo();
         const f = mode === "acc" ? "a" : "g";
         if (hit[f]) delete hit[f]; else hit[f] = 1;
         renderRoll();
+        setStatus(`${mode === "acc" ? "accent" : "slide"} ${hit[f] ? "on" : "off"} · double-click or right-click removes the note`);
         return;
       }
       forgetSynthVariation();
@@ -2212,6 +2223,19 @@
       }
       renderRoll();
     };
+    // Tasto destro: toglie la nota in ogni modalita' (in Accent e Slide il click singolo la cambia invece di toglierla).
+    const removeAt = e => {
+      const cell = e.target.closest(".sr-cell");
+      if (!cell || drag) return false;
+      const pat = curSynth(), n = +cell.dataset.n, s = +cell.dataset.s;
+      const hit = (pat.synth || []).find(x => x.n === n && x.s <= s && s < x.s + x.l);
+      if (!hit) return false;
+      forgetSynthVariation(); pushUndo();
+      pat.synth = pat.synth.filter(x => x !== hit);
+      renderRoll(); setStatus("note removed");
+      return true;
+    };
+    roll.addEventListener("contextmenu", e => { if (e.target.closest(".sr-cell")) { e.preventDefault(); removeAt(e); } });
     roll.addEventListener("pointerup", end);
     roll.addEventListener("pointercancel", end);
     roll.addEventListener("lostpointercapture", e => { releaseKey(); end(e); });

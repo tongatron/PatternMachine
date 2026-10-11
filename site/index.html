@@ -974,10 +974,10 @@ button.danger-fill{background:var(--danger); border-color:var(--danger); color:#
 .synthblock.muted .syn-prev i{opacity:.3;}
 .syn-prev .rest-label{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:9px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-faint);}
 .song-empty.synth{font-size:10px;}
-.tl-lane.tl-lane-synth{top:auto; height:20px; border-top:1px solid var(--bg); display:block;}
-.timeline.has-synth .tl-lane:not(.tl-lane-synth){bottom:20px;}
-.timeline.has-synth{height:66px;}
-.tl-lane-synth .tl-seg{position:absolute; top:0; bottom:0; padding:3px 5px; justify-content:center;}
+.tl-lane.tl-lane-synth{top:auto; height:34px; border-top:1px solid var(--bg); display:block;}
+.timeline.has-synth .tl-lane:not(.tl-lane-synth){bottom:34px;}
+.timeline.has-synth{height:100px;}
+.tl-lane-synth .tl-seg{position:absolute; top:0; bottom:0; padding:3px 6px; justify-content:space-between;}
 .tl-lane-synth .tl-seg b{font-size:9px;}
 .tl-lane-synth .tl-seg.rest::before{opacity:.08;}
 .seqblock-meta{font-size:9px; color:var(--text-faint); letter-spacing:.04em;}
@@ -1013,7 +1013,7 @@ button.danger-fill{background:var(--danger); border-color:var(--danger); color:#
 .seqblock.playing .seq-rep{color:var(--ok); font-weight:700;}
 
 /* Timeline dell'arrangiamento: ogni blocco e' largo quanto dura, la testina scorre col clock audio. */
-.timeline{position:relative; height:46px; margin:2px 0 6px; border-radius:8px; overflow:hidden;
+.timeline{position:relative; height:64px; margin:2px 0 6px; border-radius:8px; overflow:hidden;
   background:var(--led-off); border:1px solid var(--edge); cursor:pointer; touch-action:manipulation;}
 .tl-lane{position:absolute; inset:0; display:flex;}
 .tl-seg{position:relative; min-width:0; border-right:1px solid var(--bg); overflow:hidden;
@@ -1027,6 +1027,19 @@ button.danger-fill{background:var(--danger); border-color:var(--danger); color:#
 .tl-seg b, .tl-seg span{position:relative; z-index:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
 .tl-seg b{font-size:10px;}
 .tl-seg span{font-size:8.5px; color:var(--text-dim);}
+/* bordo destro del segmento: si trascina per cambiare le ripetizioni del blocco */
+.tl-grip{position:absolute; top:0; bottom:0; right:0; width:10px; z-index:3; cursor:ew-resize; touch-action:none;}
+.tl-grip::after{content:""; position:absolute; top:25%; bottom:25%; right:3px; width:2px; border-radius:1px; background:var(--text); opacity:.3;}
+.tl-grip:hover::after, .timeline.dragging .tl-seg.sel .tl-grip::after{opacity:.9;}
+.timeline.dragging{cursor:ew-resize; user-select:none;}
+.tl-seg .tl-dup{position:absolute; top:3px; right:12px; z-index:3; min-height:0; padding:0 4px; font-size:10px; line-height:15px; opacity:0;}
+.tl-seg:hover .tl-dup, .tl-seg.sel .tl-dup, .tl-seg .tl-dup:focus-visible{opacity:1;}
+.timeline.dragging .tl-dup{display:none;}
+/* oltre la fine della batteria: spazio per allungare, e il synth che non suona */
+.tl-end{position:absolute; top:0; bottom:0; right:0; pointer-events:none; z-index:2;
+  background:color-mix(in srgb, var(--bg) 60%, transparent); border-left:1px dashed var(--edge);}
+.tl-guide{position:absolute; top:0; bottom:0; width:2px; margin-left:-1px; z-index:4; pointer-events:none; background:var(--accent);}
+.tl-guide.aligned{background:var(--ok); box-shadow:0 0 8px var(--ok);}
 .tl-done{position:absolute; top:0; bottom:0; left:0; width:0; pointer-events:none;
   background:color-mix(in srgb, var(--ok) 16%, transparent);}
 .tl-head{position:absolute; top:0; bottom:0; left:0; width:2px; margin-left:-1px; pointer-events:none;
@@ -1536,9 +1549,11 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       <span id="tlPos">bar 1</span>
       <span class="tl-note" id="tlNote"></span>
     </div>
-    <div class="timeline" id="timeline" title="Click: choose where the song starts">
+    <div class="timeline" id="timeline" title="Click: choose where the song starts · drag a block's right edge to stretch it">
       <div class="tl-lane" id="tlLane"></div>
       <div class="tl-lane tl-lane-synth" id="tlSynthLane"></div>
+      <div class="tl-end" id="tlEnd"></div>
+      <div class="tl-guide" id="tlGuide" hidden></div>
       <div class="tl-done" id="tlDone"></div>
       <div class="tl-start" id="tlStart"></div>
       <div class="tl-head" id="tlHead"></div>
@@ -1835,23 +1850,23 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-10-11.3"></script>
-<script src="engine/core.js?v=2026-10-11.3"></script>
-<script src="engine/styles-punk.js?v=2026-10-11.3"></script>
-<script src="engine/styles-post.js?v=2026-10-11.3"></script>
-<script src="engine/styles-machines.js?v=2026-10-11.3"></script>
-<script src="engine/styles-alt.js?v=2026-10-11.3"></script>
-<script src="engine/styles-groove.js?v=2026-10-11.3"></script>
-<script src="engine/styles-dub.js?v=2026-10-11.3"></script>
-<script src="engine/styles-break.js?v=2026-10-11.3"></script>
-<script src="engine/styles-soul.js?v=2026-10-11.3"></script>
-<script src="engine/styles-metal.js?v=2026-10-11.3"></script>
-<script src="engine/styles-electro.js?v=2026-10-11.3"></script>
-<script src="engine/variations.js?v=2026-10-11.3"></script>
-<script src="engine/import.js?v=2026-10-11.3"></script>
-<script src="engine/rhythm.js?v=2026-10-11.3"></script>
-<script src="engine/share.js?v=2026-10-11.3"></script>
-<script src="engine/runtime.js?v=2026-10-11.3"></script>
+<script src="engine/machine-art.js?v=2026-10-11.4"></script>
+<script src="engine/core.js?v=2026-10-11.4"></script>
+<script src="engine/styles-punk.js?v=2026-10-11.4"></script>
+<script src="engine/styles-post.js?v=2026-10-11.4"></script>
+<script src="engine/styles-machines.js?v=2026-10-11.4"></script>
+<script src="engine/styles-alt.js?v=2026-10-11.4"></script>
+<script src="engine/styles-groove.js?v=2026-10-11.4"></script>
+<script src="engine/styles-dub.js?v=2026-10-11.4"></script>
+<script src="engine/styles-break.js?v=2026-10-11.4"></script>
+<script src="engine/styles-soul.js?v=2026-10-11.4"></script>
+<script src="engine/styles-metal.js?v=2026-10-11.4"></script>
+<script src="engine/styles-electro.js?v=2026-10-11.4"></script>
+<script src="engine/variations.js?v=2026-10-11.4"></script>
+<script src="engine/import.js?v=2026-10-11.4"></script>
+<script src="engine/rhythm.js?v=2026-10-11.4"></script>
+<script src="engine/share.js?v=2026-10-11.4"></script>
+<script src="engine/runtime.js?v=2026-10-11.4"></script>
 <script>
 // Script principale di PATTERN-MACHINE: stato del progetto, audio, trasporto e interfaccia della pagina.
 // Il motore ritmico (SPEngine), i tempi (PMRhythm), import, link e gli altri moduli stanno in engine/*.js.
@@ -3690,39 +3705,118 @@ function songLayout(){
   return {blocks, total:at};
 }
 
+// La timeline e' larga tlView step: la canzone piu' un po' di spazio oltre la fine, per allungare l'ultimo blocco
+// e per vedere il synth che sporge. Mentre si trascina un bordo la scala resta ferma (tlDrag.view).
+let tlView=0, tlDrag=null, tlDragJust=false;
+function timelineView(){
+  if(tlDrag) return tlDrag.view;
+  const bar=rhythmBarSteps(), most=Math.max(seqLayout.total, synthLayout().total);
+  return seqLayout.total ? most+Math.max(bar, Math.ceil(most*0.06/bar)*bar) : 0;
+}
+// Dove finiscono i blocchi di una corsia (in step): i punti su cui l'altra corsia si allinea.
+const laneEdges = L => new Set(L.blocks.map(x=>x.start+x.steps));
+// Maniglia sul bordo destro e pulsante duplica di un segmento. lane: "song" o "synth".
+function timelineSegTools(seg, lane, id, idx){
+  const dup=document.createElement("button"); dup.type="button"; dup.className="tl-dup sp"; dup.textContent="⧉";
+  dup.title="duplicate this block"; dup.setAttribute("aria-label","Duplicate this block");
+  dup.onclick=e=>{
+    e.stopPropagation();
+    if(lane==="synth"){ duplicateSynthBlock(idx); setStatus("synth block duplicated"); }
+    else { duplicateSongBlock(idx); setStatus("block duplicated"); }
+  };
+  const grip=document.createElement("div"); grip.className="tl-grip"; grip.title="drag to change the repeats";
+  grip.onpointerdown=e=>startTimelineDrag(e,lane,id);
+  grip.onclick=e=>e.stopPropagation();
+  seg.append(dup,grip);
+}
+// Trascinare il bordo destro di un segmento cambia le ripetizioni del blocco, una alla volta: il bordo scatta
+// sui giri del pattern e la guida diventa verde quando combacia con la fine di un blocco dell'altra corsia.
+function startTimelineDrag(e, lane, id){
+  if(e.button) return;
+  e.preventDefault(); e.stopPropagation();
+  stopSynthBlockPreview();
+  tlDrag={lane, id, view:tlView, undone:false};
+  if(lane==="synth") ui.synthBlockId=id; else ui.blockId=id;
+  const move=ev=>{
+    const x=(lane==="synth"?synthLayout():songLayout()).blocks.find(x=>x.b.id===id);
+    if(!x) return;
+    const r=el("timeline").getBoundingClientRect();
+    const n=clamp(Math.round(((ev.clientX-r.left)/r.width*tlDrag.view-x.start)/x.len),1,MAX_REPEATS);
+    if(n===x.b.repeats) return;
+    if(!tlDrag.undone){ pushUndo(); tlDrag.undone=true; }
+    x.b.repeats=n; renderSong();
+  };
+  const end=()=>{
+    window.removeEventListener("pointermove",move);
+    window.removeEventListener("pointerup",end); window.removeEventListener("pointercancel",end);
+    tlDrag=null; tlDragJust=true; setTimeout(()=>{ tlDragJust=false; },0);   // il click che segue non sposta la partenza
+    renderSong();
+  };
+  window.addEventListener("pointermove",move);
+  window.addEventListener("pointerup",end); window.addEventListener("pointercancel",end);
+  renderSong();
+}
+// La guida sul bordo che si sta trascinando e la nota accanto al tempo.
+function paintTimelineDrag(){
+  const guide=el("tlGuide"), tl=el("timeline");
+  tl.classList.toggle("dragging",!!tlDrag);
+  const synth=tlDrag?.lane==="synth";
+  const x=tlDrag && (synth?synthLayout():seqLayout).blocks.find(x=>x.b.id===tlDrag.id);
+  guide.hidden=!x;
+  if(!x){ if(tlDrag) tlDrag.note=""; return; }
+  const edge=x.start+x.steps, aligned=laneEdges(synth?seqLayout:synthLayout()).has(edge);
+  guide.style.left=`${edge/tlView*100}%`;
+  guide.classList.toggle("aligned",aligned);
+  const bars=x.steps/rhythmBarSteps();
+  tlDrag.note=`×${x.b.repeats} · ${bars} bar${bars===1?"":"s"}`+(aligned?` · aligned with the ${synth?"drums":"synth"}`:"");
+}
+
 function renderTimeline(){
   seqLayout=songLayout();
-  const lane=el("tlLane");
+  tlView=timelineView();
+  const lane=el("tlLane"), total=seqLayout.total;
   lane.innerHTML="";
-  seqLayout.blocks.forEach(x=>{
+  seqLayout.blocks.forEach((x,idx)=>{
     const seg=document.createElement("div");
     seg.className="tl-seg"+(x.b.id===ui.blockId?" sel":"");
     // posizione e larghezza in proporzione agli step, come la corsia del synth: con flex ogni blocco aveva in
     // piu' il suo margine interno e le due corsie non combaciavano
     seg.style.position="absolute"; seg.style.top="0"; seg.style.bottom="0";
-    seg.style.left=`${x.start/seqLayout.total*100}%`; seg.style.width=`${x.steps/seqLayout.total*100}%`;
+    seg.style.left=`${x.start/tlView*100}%`; seg.style.width=`${x.steps/tlView*100}%`;
     seg.style.setProperty("--seg-color",`hsl(${songSectionColor(x.b.section||"verse")} 70% 55%)`);
     seg.style.setProperty("--bar-w",`${rhythmBarSteps()/x.steps*100}%`);
     const name=document.createElement("b"); name.textContent=x.p?x.p.name:"?";
     const bars=PMRhythm.patternBars(x.len,rhythm())*x.b.repeats;
     const info=document.createElement("span"); info.textContent=`×${x.b.repeats} · ${bars} bar${bars===1?"":"s"}`;
     seg.append(name,info);
+    timelineSegTools(seg,"song",x.b.id,idx);
     lane.appendChild(seg);
   });
-  const SL=synthPlayLayout(), slane=el("tlSynthLane"), total=seqLayout.total;
+  const SL=synthPlayLayout(), slane=el("tlSynthLane");
   slane.innerHTML="";
   el("timeline").classList.toggle("has-synth", SL.blocks.length>0);
-  if(total) SL.blocks.forEach(x=>{
-    if(x.start>=total) return;
+  if(total) SL.blocks.forEach((x,idx)=>{
+    if(x.start>=tlView) return;
     const seg=document.createElement("div");
     seg.className="tl-seg"+(x.sp?"":" rest")+(x.b.id===ui.synthBlockId?" sel":"");
-    seg.style.left=`${x.start/total*100}%`; seg.style.width=`${Math.min(x.steps,total-x.start)/total*100}%`;
+    if(x.b.id) seg.dataset.blockId=x.b.id;
+    seg.style.left=`${x.start/tlView*100}%`; seg.style.width=`${x.steps/tlView*100}%`;
     seg.style.setProperty("--seg-color", x.sp?`hsl(${synthHue(x.sp.id)} 65% 58%)`:"var(--edge)");
     seg.style.setProperty("--bar-w",`${rhythmBarSteps()/x.steps*100}%`);
     const name=document.createElement("b"); name.textContent=x.sp?"♪ "+x.sp.name+(SL.auto?" (auto)":""):"rest";
+    seg.appendChild(name);
     if(SL.auto) seg.title="the synth lane is empty: the selected synth pattern repeats under the whole song";
-    seg.appendChild(name); slane.appendChild(seg);
+    else {
+      const bars=x.steps/rhythmBarSteps();
+      const info=document.createElement("span"); info.textContent=`×${x.b.repeats} · ${bars} bar${bars===1?"":"s"}`;
+      seg.appendChild(info);
+      timelineSegTools(seg,"synth",x.b.id,idx);
+    }
+    slane.appendChild(seg);
   });
+  const end=el("tlEnd");
+  end.hidden=!total; end.style.left=tlView?`${total/tlView*100}%`:"0";
+  paintTimelineDrag();
   tlNowBlock=-1;
   paintTimeline();
 }
@@ -3778,7 +3872,7 @@ function paintTimeline(){
     c.prog.style.width=inside?`${(pos-x.start)/x.steps*100}%`:"0";
     c.rep.textContent=inside?`${Math.floor((pos-x.start)/x.len)+1}/${x.b.repeats}`:"";
   });
-  const pct=L.total?pos/L.total*100:0;
+  const pct=tlView?pos/tlView*100:0;
   el("tlHead").style.left=`${pct}%`;
   el("tlDone").style.width=songLive?`${pct}%`:"0";
   el("tlStart").style.left=`${pct}%`;
@@ -3789,14 +3883,16 @@ function paintTimeline(){
     ? `bar ${Math.floor(step/barSteps)+1} · ${Math.floor((step%barSteps)/rhythmBeatSteps())+1}`
       + (L.blocks[shown]?` · block ${shown+1}`:"")
     : "empty song";
-  el("tlNote").textContent = playing?"":"click the timeline to choose the start point";
+  el("tlNote").textContent = tlDrag ? (tlDrag.note||"") : playing ? "" : "click the timeline to choose the start point · drag a block's right edge to stretch it";
 }
 
 el("timeline").onclick=e=>{
   const L=seqLayout;
-  if(!L.total) return;
+  if(!L.total || tlDrag || tlDragJust) return;
   const r=el("timeline").getBoundingClientRect();
-  const pos=clamp((e.clientX-r.left)/r.width*L.total, 0, L.total-1);
+  const pos=clamp((e.clientX-r.left)/r.width*tlView, 0, L.total-1);
+  const synthSeg=e.target.closest?.("#tlSynthLane .tl-seg");      // click sulla corsia del synth: sceglie anche quel blocco
+  if(synthSeg?.dataset.blockId){ stopSynthBlockPreview(); ui.synthBlockId=synthSeg.dataset.blockId; }
   const idx=L.blocks.findIndex(x=>pos<x.start+x.steps);
   const blk=L.blocks[idx];
   const offset=Math.max(0,pos-blk.start);
@@ -5044,7 +5140,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || el("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-11.3";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-11.4";
   document.body.appendChild(s);
 }
 if(LIVE_VIEW || (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth"))) loadSynth();
@@ -8059,7 +8155,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-10-11.3";
+const SW_VERSION="2026-10-11.4";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -8083,10 +8179,10 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sample-editor.js?v=2026-10-11.3"></script>
-<script src="engine/sampler.js?v=2026-10-11.3"></script>
-<script src="engine/vocal.js?v=2026-10-11.3"></script>
+<script src="engine/sample-editor.js?v=2026-10-11.4"></script>
+<script src="engine/sampler.js?v=2026-10-11.4"></script>
+<script src="engine/vocal.js?v=2026-10-11.4"></script>
 <script>PMSampler.init(); PMVocal.init();</script>
-<script src="engine/midi.js?v=2026-10-11.3"></script>
+<script src="engine/midi.js?v=2026-10-11.4"></script>
 </body>
 </html>

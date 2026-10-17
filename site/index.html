@@ -87,7 +87,7 @@
   --edge:#4b4b50; --edge-soft:#323235;
   --text:#efefed; --text-dim:#bcbcbc; --text-faint:#8f8f8f;
   --accent:#c8471f; --accent-dim:#8a3418; --on-accent:#fff6ee;
-  --key:linear-gradient(180deg,#3a3a3d,#252527); --key-on:linear-gradient(180deg,#e0743f,#b8471f); --key-primary:linear-gradient(180deg,#e0743f,#b8471f);
+  --key:linear-gradient(180deg,#3a3a3d,#252527); --key-nav:linear-gradient(180deg,#566a7b,#3d4e5d); --nav-edge:#6f8495; --key-on:linear-gradient(180deg,#e0743f,#b8471f); --key-primary:linear-gradient(180deg,#e0743f,#b8471f);
   --led-off:#2a2a2d; --led-on:#e0743f; --led-accent:#d4402f; --led-head:#f4bf78;
   --danger:#d4402f; --ok:#4f9e63; --on-ok:#0e1a11; --song:#e0743f;
   --shadow:0 1px 0 rgba(255,255,255,0.04) inset, 0 4px 14px rgba(0,0,0,0.32);
@@ -104,7 +104,7 @@
     --shadow:inset 0 1px 0 rgba(255,255,255,.65), inset 0 -1px 0 rgba(0,0,0,.18), 0 2px 0 rgba(0,0,0,.25);
     /* Materiali: scocca in metallo verniciato, tasti in rilievo, pad in gomma, display a LED rosso. */
     --plate:linear-gradient(180deg,#e2dfd6,#cfccc2);
-    --key:linear-gradient(180deg,#dcd9cf,#b5b2a8); --key-shadow:inset 0 1px 0 rgba(255,255,255,.8), 0 1px 0 rgba(0,0,0,.35);
+    --key:linear-gradient(180deg,#dcd9cf,#b5b2a8); --key-nav:linear-gradient(180deg,#a7bacb,#8ea3b5); --nav-edge:#506879; --key-shadow:inset 0 1px 0 rgba(255,255,255,.8), 0 1px 0 rgba(0,0,0,.35);
     --key-on:linear-gradient(180deg,#8f8c83,#7a776e); --key-primary:linear-gradient(180deg,#e0743f,#b8471f);
     --r-panel:3px; --r-key:3px; --r-step:3px;
     --step-off:linear-gradient(180deg,#f1eee5,#dbd8ce);
@@ -126,7 +126,7 @@
     --shadow:inset 0 1px 0 rgba(255,255,255,.65), inset 0 -1px 0 rgba(0,0,0,.18), 0 2px 0 rgba(0,0,0,.25);
     /* Materiali: scocca in metallo verniciato, tasti in rilievo, pad in gomma, display a LED rosso. */
     --plate:linear-gradient(180deg,#e2dfd6,#cfccc2);
-    --key:linear-gradient(180deg,#dcd9cf,#b5b2a8); --key-shadow:inset 0 1px 0 rgba(255,255,255,.8), 0 1px 0 rgba(0,0,0,.35);
+    --key:linear-gradient(180deg,#dcd9cf,#b5b2a8); --key-nav:linear-gradient(180deg,#a7bacb,#8ea3b5); --nav-edge:#506879; --key-shadow:inset 0 1px 0 rgba(255,255,255,.8), 0 1px 0 rgba(0,0,0,.35);
     --key-on:linear-gradient(180deg,#8f8c83,#7a776e); --key-primary:linear-gradient(180deg,#e0743f,#b8471f);
     --r-panel:3px; --r-key:3px; --r-step:3px;
     --step-off:linear-gradient(180deg,#f1eee5,#dbd8ce);
@@ -1136,10 +1136,11 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 #viewGrid, #viewSeq, #viewSynth, #viewSampler, #viewMix{
   min-height:52px; padding:12px 24px; border:2px solid var(--edge);
   border-radius:9px; font-weight:800; letter-spacing:.08em;
+  background:var(--key-nav,var(--key,var(--panel-2))); border-color:var(--nav-edge,var(--edge));
   box-shadow:inset 0 2px 0 rgba(255,255,255,.16), inset 0 -3px 0 rgba(0,0,0,.22), 0 3px 0 rgba(0,0,0,.28);
   transition:transform .06s, box-shadow .06s, background .12s;
 }
-#viewGrid:hover, #viewSeq:hover, #viewSynth:hover, #viewSampler:hover, #viewMix:hover{border-color:var(--text-faint);}
+#viewGrid:hover, #viewSeq:hover, #viewSynth:hover, #viewSampler:hover, #viewMix:hover{border-color:var(--nav-edge,var(--text-faint));}
 #viewGrid:active, #viewSeq:active, #viewSynth:active, #viewSampler:active, #viewMix:active{transform:translateY(2px); box-shadow:inset 0 1px 0 rgba(255,255,255,.08), inset 0 -1px 0 rgba(0,0,0,.2);}
 #viewGrid:hover, #viewSeq:hover, #viewSynth:hover, #viewSampler:hover, #viewMix:hover{transform:translateY(2px); box-shadow:inset 0 1px 0 rgba(255,255,255,.08), inset 0 -1px 0 rgba(0,0,0,.2);}
 #viewGrid.on, #viewSeq.on, #viewSynth.on, #viewSampler.on, #viewMix.on{background:var(--key-primary,var(--accent)); border-color:var(--accent-dim); color:var(--on-accent); box-shadow:inset 0 2px 0 rgba(255,255,255,.35), inset 0 -3px 0 rgba(0,0,0,.2), 0 3px 0 rgba(0,0,0,.28);}

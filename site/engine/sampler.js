@@ -391,17 +391,28 @@
     setView("grid");
     setStatus(`added “${sampleLabel(i)}” to the grid`);
   }
+  function sampleSynthPatternLength(record){
+    const r=typeof rhythm==="function"?rhythm():{meter:"4/4",resolution:"straight"};
+    const tempo=typeof bpm==="function"?bpm():120;
+    const stepSeconds=window.PMRhythm?.secondsPerStep?.(tempo,r)||60/Math.max(1,tempo)/4;
+    const start=Math.min(99,Math.max(0,+settingsOf(record).start||0))/100;
+    // The synth keeps the first ten seconds of a sample; leave the note on for
+    // the whole available sound instead of releasing it after the first step.
+    const seconds=Math.min(10,Math.max(0,+record?.duration||0))*(1-start);
+    const needed=Math.max(16,Math.ceil(seconds/Math.max(.001,stepSeconds)));
+    return [16,32,64,128,256].find(len=>len>=needed)||256;
+  }
   function assignSampleToSequencer(id){
     const i=localIndex(id);
     if(i<0) return setNote("Sample is not available",true);
     if(!window.PMSynth?.useSample) return setNote("The synth is not available",true);
-    const ref="local:"+id, label=sampleLabel(i);
+    const record=records.find(r=>r.id===id), ref="local:"+id, label=sampleLabel(i);
     if(!PMSynth.useSample(ref)) return setNote("The synth is not available",true);
     pushUndo();
     let name=`${label} bass`, n=2;
     while(project.synthPatterns.some(p=>p.name===name)) name=`${label} bass ${n++}`;
-    const pattern=makeSynthPattern(name,curSynth().len);
-    pattern.synth=[{s:0,n:project.synth?.params?.sRoot??36,l:1,a:1}];
+    const pattern=makeSynthPattern(name,sampleSynthPatternLength(record));
+    pattern.synth=[{s:0,n:project.synth?.params?.sRoot??36,l:pattern.len,a:1,k:"sampler"}];
     project.synthPatterns.push(pattern);
     addSynthToSong(pattern);
     ui.synthId=pattern.id;

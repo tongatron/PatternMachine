@@ -45,6 +45,7 @@ public:
     {
         bool playing = false, host = false, hostPlaying = false, hostTempo = false;
         double ppq = 0, bpm = 120;
+        double frac = 0, stepSec = 0.125;
         pm::StepPos pos;
     };
     Position getPosition() const;

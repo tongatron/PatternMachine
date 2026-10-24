@@ -33,10 +33,18 @@
     return {
       mode:ui.mode, patternId:curPattern().id, soloBlockId:ui.songSoloBlockId||"",
       swing:+el("swingRange").value||0, human:+el("humanRange").value||0, master:+el("masterVol").value,
+      rhythm:project.rhythm||{},
       metronome:!!ui.metronome, bpm:bpm(),
-      tracks:project.tracks.map(t=>({id:t.id, ...voiceOf(t), nudge:t.nudge||0, on:!t.mute && (!solo || t.solo)})),
+      tracks:project.tracks.map(t=>({id:t.id, ...voiceOf(t), nudge:t.nudge||0,
+        on:!t.mute && (!solo || t.solo) && !project.synth?.solo})),
       patterns:project.patterns.map(p=>({id:p.id, len:p.len, grid:p.grid, mods:p.mods||{}, lens:p.lens||{}})),
-      song:project.song.map(b=>({id:b.id, patternId:b.patternId, repeats:b.repeats, fillPatternId:b.fillPatternId||""})),
+      song:project.song.map(b=>({id:b.id, patternId:b.patternId, repeats:b.repeats, fillPatternId:b.fillPatternId||"", mutes:b.mutes||[]})),
+      synth:{on:!!window.PMSynth && !project.synth?.mute && !project.drumsSolo,
+        solo:!!project.synth?.solo, patternId:ui.synthId||"", soloBlockId:ui.synthSoloBlockId||"",
+        volume:+el("synthVol")?.value||100, params:project.synth?.params||{}},
+      synthPatterns:(project.synthPatterns||[]).map(p=>({id:p.id, len:p.len, synth:p.synth||[]})),
+      synthSong:(project.synthSong||[]).map(b=>({id:b.id, synthId:b.synthId||"", repeats:b.repeats, len:b.len||16,
+        fillSynthId:b.fillSynthId||"", mute:!!b.mute})),
     };
   }
   function pluginState(){
@@ -57,6 +65,22 @@
     send({type:"sync", engine, state});
   }
   setInterval(pushSync,100);
+
+  // In Logic la corsia synth viene renderizzata dal motore C++ e mandata nel
+  // bus del plug-in. Il WebView continua a gestire tastiera/anteprime, ma non
+  // deve duplicare ogni nota del sequencer nell'uscita audio del browser.
+  let nativeSynthWrapped=false;
+  const useNativeSynth=()=>{
+    if(nativeSynthWrapped || !window.PMSynth?.step) return;
+    const siteSynthStep=window.PMSynth.step;
+    window.PMSynth.step=(...args)=>{
+      // Con Logic in play il synth nativo del plug-in è la sorgente audio;
+      // da fermo manteniamo invece l'anteprima del sito per tastiera/pad.
+      if(!hostPlaying) return siteSynthStep(...args);
+    };
+    nativeSynthWrapped=true;
+  };
+  setInterval(useNativeSynth,100);
 
   function restore(s){
     if(!s || !s.project) return;

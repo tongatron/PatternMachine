@@ -199,11 +199,18 @@ PatternMachineProcessor::Position PatternMachineProcessor::getPosition() const
     p.bpm = posBpm;
     if (const auto* s = latest.load(); s != nullptr && p.playing)
     {
-        // lo step che sta suonando adesso (con lo swing lo step dispari parte in ritardo)
-        auto n = (juce::int64) std::floor (p.ppq * 4.0);
+        // Lo step che sta suonando adesso, usando la stessa metrica del sito.
+        auto n = (juce::int64) std::floor (p.ppq / s->rhythm.basePpq());
         auto pos = s->locate (n);
-        if (pos.valid && s->stepPpq (pos) > p.ppq) pos = s->locate (n - 1);
+        if (pos.valid && s->stepPpq (pos, p.bpm) > p.ppq) pos = s->locate (n - 1);
         p.pos = pos;
+        if (pos.valid)
+        {
+            const auto start = s->stepPpq (pos, p.bpm);
+            const auto durPpq = s->stepDurPpq (pos);
+            p.stepSec = durPpq * 60.0 / juce::jmax (1.0, p.bpm);
+            p.frac = juce::jlimit (0.0, 1.0, (p.ppq - start) / juce::jmax (1.0e-9, durPpq));
+        }
     }
     return p;
 }

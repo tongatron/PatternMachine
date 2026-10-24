@@ -46,10 +46,58 @@ struct PatternDef
     std::vector<int> lens;                    // [traccia] lunghezza propria (0 = quella del pattern)
 };
 
+struct RhythmDef
+{
+    // Durata in quarti della battuta e numero di passi della battuta. Il sito
+    // usa 4/4 = 4 quarti e 6/8 = 1,5 quarti, con una griglia separata per le triplette.
+    double barQuarters = 4.0;
+    int stepsPerBar = 16;
+    double grooveSwing = 0.0;           // 0..0.5, come PMRhythm
+    std::array<double, 8> offsetsMs {}; // groove offset per passo, in millisecondi
+    bool triplet = false;
+
+    double basePpq() const { return barQuarters / juce::jmax (1, stepsPerBar); }
+    double stepPpq (juce::int64 n, int localStep, double userSwing, double tempo) const;
+    double stepDurPpq (int localStep, double userSwing) const;
+};
+
 struct BlockDef
 {
     int pattern = -1, fill = -1, repeats = 1, len = 16;
     juce::int64 start = 0, steps = 16;
+    std::vector<int> mutedTracks;
+};
+
+struct SynthNoteDef
+{
+    int step = 0, note = 60, length = 1;
+    bool accent = false, slide = false;
+};
+
+struct SynthPatternDef
+{
+    juce::String id;
+    int len = 16;
+    std::vector<SynthNoteDef> notes;
+};
+
+struct SynthBlockDef
+{
+    int pattern = -1, fill = -1, repeats = 1, len = 16;
+    juce::int64 start = 0, steps = 16;
+    bool muted = false;
+};
+
+struct SynthDef
+{
+    bool on = false;
+    bool solo = false;
+    int current = -1, soloBlock = -1;
+    float volume = 0.7f;
+    int wave1 = 0, wave2 = 0;
+    float level1 = 0.8f, level2 = 0.0f;
+    float attack = 0, decay = 50, sustain = 100, release = 20;
+    float cutoff = 100, resonance = 0, transpose = 0, gate = 75;
 };
 
 // Dove cade lo step numero n (sedicesimi dall'inizio del progetto di Logic).
@@ -65,8 +113,13 @@ struct Snapshot
     std::vector<TrackDef> tracks;
     std::vector<PatternDef> patterns;
     std::vector<BlockDef> song;
+    SynthDef synth;
+    std::vector<SynthPatternDef> synthPatterns;
+    std::vector<SynthBlockDef> synthSong;
+    juce::int64 synthTotal = 0;
     juce::int64 total = 0;
     bool songMode = false;
+    RhythmDef rhythm;
     int current = 0, soloBlock = -1;
     double swing = 0, human = 0, master = 0.85, bpm = 93;
     bool metronome = false;
@@ -76,8 +129,8 @@ struct Snapshot
 
     StepPos locate (juce::int64 n) const;
     // Swing alla MPC: gli step dispari arrivano in ritardo, la coppia dura sempre due sedicesimi.
-    double stepPpq (const StepPos& p) const { return (double) p.n * 0.25 + ((p.step & 1) ? 0.25 * swing : 0.0); }
-    double stepDurPpq (const StepPos& p) const { return 0.25 * ((p.step & 1) ? 1.0 - swing : 1.0 + swing); }
+    double stepPpq (const StepPos& p, double tempo = -1) const { return rhythm.stepPpq (p.n, p.step, swing, tempo > 0 ? tempo : bpm); }
+    double stepDurPpq (const StepPos& p) const { return rhythm.stepDurPpq (p.step, swing); }
     int stepIdx (const PatternDef& pat, size_t track, const StepPos& p) const;
 };
 
@@ -113,6 +166,10 @@ private:
         float gain = 0;
         int metro = 0;                  // 0 campione, 1 click normale, 2 click accentato
         bool sequenced = false;
+        bool synth = false;
+        int note = 60;
+        double noteLengthSec = 0;
+        bool slide = false;
     };
 
     struct Biquad
@@ -137,9 +194,20 @@ private:
         double phase = 0;
     };
 
+    struct SynthVoice
+    {
+        bool active = false, releasing = false;
+        double phase1 = 0, phase2 = 0, pitch = 60, target = 60;
+        float gain = 0, velocity = 0.8f;
+        juce::int64 age = 0, holdEnd = -1, releaseAge = -1;
+        float filter = 0;
+    };
+
     void emitStep (const Snapshot& s, const StepPos& p, double ppqStart, double ppqPerSample, int trackFilter);
+    void emitSynthStep (const Snapshot& s, const StepPos& p, double ppqStart, double ppqPerSample, int trackFilter);
     void schedule (const Event& e);
     void startVoice (const Event& e);
+    void startSynthVoice (const Event& e, const Snapshot& s);
     void render (juce::AudioBuffer<float>& out, int from, int to,
                  const std::array<juce::AudioBuffer<float>*, 16>& aux, int trackFilter);
 
@@ -150,6 +218,8 @@ private:
     juce::int64 nextN = 0;
     std::vector<Event> pending, due;
     std::array<Voice, maxVoices> voices;
+    std::array<SynthVoice, 16> synthVoices;
+    SynthDef activeSynth;
     juce::uint32 serials = 0;
     std::array<std::pair<int, juce::uint32>, 17> chokeOwner {};
     juce::Random rng;

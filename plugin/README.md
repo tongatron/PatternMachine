@@ -9,11 +9,11 @@ si preme Play in Logic e i pattern suonano a tempo, dalla battuta giusta, senza 
 |---|---|---|
 | Interfaccia | `../site` in un WebView (WKWebView) | Il sito così com'è: griglia, blocchi, sequencer, libreria, export. Viene copiato nel bundle, quindi il plug-in funziona offline e senza il repository |
 | Ponte | `bridge/plugin-bridge.js` | Come `desktop/bridge/bridge.js` per l'app, ma per il plug-in: sostituisce `trigger`, `play`, `stop`, `setStatus`, `db`, `downloadsCap` e manda ogni modifica del progetto al C++ entro 0,1 s |
-| Motore | `Source/Engine.cpp` | Sequencer e campionatore in C++, dentro `processBlock`: gli step si calcolano dal PPQ di Logic, al campione, con swing, probabilità, ripetizioni, flam, intonazione/decay/filtro per step, umanizza, nudge, poliritmi, choke, canzone con fill |
+| Motore | `Source/Engine.cpp` | Sequencer, campionatore e linea synth in C++, dentro `processBlock`: gli step si calcolano dal PPQ di Logic, al campione, con 4/4, 6/8, triplette, groove, swing, probabilità, ripetizioni, flam, intonazione/decay/filtro per step, umanizza, nudge, poliritmi, choke, canzone con fill e mute dei blocchi |
 | Stato | `Source/PluginProcessor.cpp` | Il progetto si salva **dentro il progetto di Logic** (e suona anche senza aprire la finestra) |
 
 Il sync è automatico perché è Logic a chiamare il plug-in a ogni blocco audio con la posizione esatta:
-- **Play/Stop/tempo/cambi di tempo** arrivano da Logic, nessuna impostazione da fare.
+- **Play/Stop/tempo/cambi di tempo** arrivano da Logic, nessuna impostazione da fare: l'AU legge il PPQ e il BPM dell'host a ogni blocco audio. Non serve inviare un MIDI Clock alla traccia del plug-in; il trasporto di Logic è il riferimento più preciso. Il MIDI Clock esterno resta disponibile per l'app desktop e per i collegamenti MIDI senza AU.
 - **Posizione**: lo step 1 cade sulla battuta 1 di Logic. In modalità *Canzone* la canzone parte dalla battuta 1 (nel pre-roll tace) e ricomincia alla fine; in modalità *Pattern* il pattern selezionato gira sempre allineato alle battute.
 - **Cicli e salti** del righello: il motore si riposiziona sullo step che cade lì.
 - **Bounce** e bounce offline funzionano, perché l'audio esce dal plug-in e non dal WebView.
@@ -21,7 +21,7 @@ Il sync è automatico perché è Logic a chiamare il plug-in a ogni blocco audio
 L'audio passa dal canale di Logic (effetti, mixer, automazione del volume), 6 dB sotto il volume del sito per lasciare margine
 (con i volumi del sito il canale di Logic andava oltre 0 dBFS). Con Logic fermo, il Play della pagina fa
 un'anteprima a tempo di Logic; i pad, l'anteprima dei blocchi e l'ascolto della libreria suonano sempre dal plug-in.
-Le **note MIDI in ingresso** sulla traccia suonano le righe: nota 36 (C1) = riga 1, 37 = riga 2... (i pad dell'MPK).
+Le **note MIDI in ingresso** sulla traccia suonano le righe: nota 36 (C1) = riga 1, 37 = riga 2... (i pad dell'MPK). La linea synth del sito, compresi **Generate**, **Vary**, Fill, Solo e Mute nella corsia del Sequencer, viene invece renderizzata dal plug-in e arriva al mixer di Logic insieme alla batteria.
 
 Progetti ed export usano le stesse cartelle dell'app per Mac:
 `~/Music/PatternMachine/Progetti` (Salva / Progetti salvati) e `~/Music/PatternMachine/Export`
@@ -52,6 +52,7 @@ quella riga e resta su un canale separato del mixer; l'assegnazione viene salvat
 ## Se cambia il sito
 
 - `scheduler()`, `trigger()`, `stepHits()`, `stepIdx()` o il formato di `mods` in `site/index.html`: vanno allineati in `Source/Engine.cpp`.
+- `PMRhythm.timing()` in `site/engine/rhythm.js` e i dati `synthPatterns`/`synthSong` vanno allineati nel ponte e in `Source/Engine.cpp`.
 - Campi nuovi di traccia o pattern che cambiano il suono: aggiungerli a `engineState()` in `bridge/plugin-bridge.js` e a `Snapshot::fromVar`.
 - Il resto del sito (grafica, libreria, export) passa da solo al prossimo `build.sh`.
 

@@ -218,7 +218,7 @@ void PatternMachineEditor::timerCallback()
 {
     if (! pageReady) return;
     const auto p = proc.getPosition();
-    const double stepSec = 60.0 / juce::jmax (1.0, p.bpm) / 4.0;
+    const double stepSec = p.stepSec;
     const auto key = juce::String ((int) p.playing) + ":" + juce::String ((int) p.hostPlaying) + juce::String ((int) p.hostTempo) + ":"
                    + juce::String (p.bpm, 3) + ":" + juce::String (p.pos.n) + ":" + juce::String (p.pos.pattern);
     if (key == lastPos && ! p.playing) return;
@@ -239,7 +239,7 @@ void PatternMachineEditor::timerCallback()
     o->setProperty ("pattern", p.pos.pattern);
     o->setProperty ("block", p.pos.block);
     // frazione dello step gia' suonata, per far scorrere la testina della timeline
-    o->setProperty ("frac", juce::jlimit (0.0, 1.0, p.ppq * 4.0 - std::floor (p.ppq * 4.0)));
+    o->setProperty ("frac", p.frac);
     o->setProperty ("stepSec", stepSec);
     send (juce::var (o.release()));
 }

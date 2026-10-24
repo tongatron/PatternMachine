@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.22)
 # L'interfaccia e' il sito (../site) in un WebView; sequencer e campionatore girano in C++
 # agganciati alla posizione del progetto di Logic (vedi README.md).
 
-project(PatternMachinePlugin VERSION 0.1.0 LANGUAGES C CXX OBJC OBJCXX)
+project(PatternMachinePlugin VERSION 0.1.1 LANGUAGES C CXX OBJC OBJCXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

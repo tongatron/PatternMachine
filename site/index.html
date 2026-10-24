@@ -4613,21 +4613,6 @@ function addPatternToSong(p){
   const b={id:uid(), patternId:p.id, repeats:1, section:"verse"};
   project.song.push(b); ui.blockId=b.id;
 }
-let patternSequencerOfferOpen=false;
-async function offerPatternToSequencer(p){
-  if(!p || patternSequencerOfferOpen) return false;
-  patternSequencerOfferOpen=true;
-  try{
-    const yes=await ask({
-      title:"Add to Sequencer?",
-      message:`Also add “${p.name}” as a new pattern block in the Sequencer?`,
-      ok:"Add to Sequencer",
-      cancel:"Only replace pattern"
-    });
-    if(!yes) return false;
-    pushUndo(); addPatternToSong(p); renderSong(); setStatus(`pattern added to Sequencer: ${p.name}`); return true;
-  }finally{ patternSequencerOfferOpen=false; }
-}
 // Con la corsia vuota il pattern del synth aperto girava sotto tutta la canzone: prima di aggiungere il nuovo
 // diventa un blocco vero, lungo quanto la canzone, cosi' continua a suonare.
 function addSynthToSong(sp){
@@ -7612,7 +7597,6 @@ async function applyLibrary(item, asNew){
   ui.patternId=pat.id; el("pLen").value=pat.len;
   renderAll(); closeLib();
   setStatus((asNew?"added: ":"loaded: ")+item.name);
-  if(!asNew) void offerPatternToSequencer(pat);
 }
 
 // Un pulsante delle righe della libreria.

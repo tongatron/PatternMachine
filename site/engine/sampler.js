@@ -165,7 +165,10 @@
   }
   function sampleTrack(id){
     const i=localIndex(id), record=records.find(r=>r.id===id);
-    return i<0 || !record ? null : makeTrack(i,settingsOf(record));
+    if(i<0 || !record) return null;
+    // Keep the stable local id on the row: sampleIndex is only the current
+    // position in SAMPLES and can change when another sample is added.
+    return {...makeTrack(i,settingsOf(record)), localSampleId:String(id), localSampleName:record.name};
   }
   function previewCard(id){ return document.querySelector(`.sample-card[data-sample-id="${CSS.escape(id)}"]`); }
   function previewPosition(){
@@ -376,8 +379,14 @@
     loadBuffer(i).then(()=>startPreview(id,0,request)).catch(()=>setNote("Could not play sample",true));
   }
   function assignSample(id){
-    const i=localIndex(id); if(i<0) return setNote("Sample is not available",true);
-    pushUndo(); project.tracks.push(sampleTrack(id)); normalize(); loadBuffer(i); renderAll(); setStatus(`added “${sampleLabel(i)}” to the grid`);
+    const i=localIndex(id), track=sampleTrack(id);
+    if(i<0 || !track) return setNote("Sample is not available",true);
+    pushUndo();
+    project.tracks.push(track);
+    ui.soundTrackId=track.id;
+    normalize(); loadBuffer(i); renderAll();
+    setView("grid");
+    setStatus(`added “${sampleLabel(i)}” to the grid`);
   }
   async function updateSettings(id,patch){
     const r=records.find(x=>x.id===id); if(!r) return;

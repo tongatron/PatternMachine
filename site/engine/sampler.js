@@ -282,6 +282,9 @@
       const assign=document.createElement("button"); assign.type="button"; assign.className="mini primary"; assign.textContent="＋ Add to grid"; assign.onclick=()=>assignSample(r.id);
       const synth=document.createElement("button"); synth.type="button"; synth.className="mini"; synth.textContent="♪ Play on synth"; synth.title="Use this sound as the synth oscillator (Multi engine → Sample) and open the Synthesizer"; synth.onclick=()=>playOnSynth(r.id);
       actions2.append(assign,synth); card.appendChild(actions2); list.appendChild(card);
+      const actions3=document.createElement("div"); actions3.className="sample-card-actions";
+      const seq=document.createElement("button"); seq.type="button"; seq.className="mini"; seq.textContent="＋ Add to Sequencer"; seq.title="Add this sample as a new pattern block in the Sequencer"; seq.onclick=()=>assignSampleToSequencer(r.id);
+      actions3.appendChild(seq); card.appendChild(actions3);
       requestAnimationFrame(()=>drawWave(canvas,buffers.get(r.id)));
     });
   }
@@ -387,6 +390,26 @@
     normalize(); loadBuffer(i); renderAll();
     setView("grid");
     setStatus(`added “${sampleLabel(i)}” to the grid`);
+  }
+  function assignSampleToSequencer(id){
+    const i=localIndex(id), track=sampleTrack(id);
+    if(i<0 || !track) return setNote("Sample is not available",true);
+    pushUndo();
+    project.tracks.push(track);
+    const label=sampleLabel(i);
+    let name=`${label} pattern`, n=2;
+    while(project.patterns.some(p=>p.name===name)) name=`${label} pattern ${n++}`;
+    const pattern=makePattern(name,curPattern().len);
+    project.patterns.push(pattern);
+    normalize();
+    pattern.grid[track.id][0]=1;
+    loadTrack(track);
+    ui.patternId=pattern.id;
+    ui.soundTrackId=track.id;
+    addPatternToSong(pattern);
+    renderAll();
+    setView("seq");
+    setStatus(`added “${label}” to the Sequencer`);
   }
   async function updateSettings(id,patch){
     const r=records.find(x=>x.id===id); if(!r) return;

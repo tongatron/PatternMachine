@@ -671,10 +671,22 @@
     if(sp && sp.mType==="sample" && sp.mSample==="local:"+id) return setNote("The synth plays this sound (Multi engine → Sample): choose another one first",true);
     const r=records.find(x=>x.id===id); if(!r) return;
     if(typeof ask!=="function" || !await ask({title:"Delete sample",message:`Delete “${r.name}” from this browser?`,ok:"Delete",cancel:"Keep",danger:true})) return;
-    await deleteRecord(id);
-    if(syncEnabled&&!desktop){ const response=await fetch(`/api/samples/${encodeURIComponent(id)}`,{method:"DELETE",credentials:"same-origin"}); if(!response.ok&&response.status!==404) setNote("Sample deleted locally; server copy remains",true); }
+    try{ await deleteRecord(id); }
+    catch(e){ setNote("The sample could not be deleted",true); return; }
+    // A local delete must not be rolled back in the UI just because the optional
+    // account copy is offline or the session expired.  Previously a rejected
+    // fetch stopped here, leaving the card visible even though IndexedDB had
+    // already removed the sample.
+    let serverWarning=false;
+    if(syncEnabled&&!desktop){
+      try{
+        const response=await fetch(`/api/samples/${encodeURIComponent(id)}`,{method:"DELETE",credentials:"same-origin"});
+        serverWarning=!response.ok&&response.status!==404;
+      }catch(e){ serverWarning=true; }
+    }
     records=records.filter(x=>x.id!==id); const s=SAMPLES.find(x=>x.local && x.localId===id); if(s) s.deleted=true;
-    if(urls.has(id)) URL.revokeObjectURL(urls.get(id)); urls.delete(id); buffers.delete(id); render(); refreshEngine(); setNote("Sample deleted");
+    if(urls.has(id)) URL.revokeObjectURL(urls.get(id)); urls.delete(id); buffers.delete(id); render(); refreshEngine();
+    setNote(serverWarning?"Sample deleted locally; server copy remains":"Sample deleted",serverWarning);
   }
   function bind(){
     $("samplerFile").addEventListener("change",e=>{ importFiles(e.target.files); e.target.value=""; });

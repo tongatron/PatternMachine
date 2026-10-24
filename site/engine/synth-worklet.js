@@ -119,6 +119,7 @@ class Voice {
     this.aSt = 0; this.aV = 0; this.fSt = 0; this.fV = 0;
     this.s1 = 0; this.s2 = 0; this.s3 = 0; this.s4 = 0;
     this.lu = null;
+    this.sampleRef = "";        // sample chosen by the sequencer note, if any
     this.sp = 0;                // posizione di lettura del campione (MULTI "sample"), in campioni del file
   }
 }
@@ -232,9 +233,10 @@ class PMSynthProcessor extends AudioWorkletProcessor {
   }
 
   // ---------- gestione delle voci ----------
-  sampleOf() {
+  sampleOf(v) {
     const P = this.P;
-    return P.mType === "sample" ? this.samples[P.mSample] || null : null;
+    const ref = v?.sampleRef || (P.mType === "sample" ? P.mSample : "");
+    return ref ? this.samples[ref] || null : null;
   }
   unitFor(v) {
     const P = this.P;
@@ -244,19 +246,21 @@ class PMSynthProcessor extends AudioWorkletProcessor {
   }
   // legato: la voce suonava gia' (mono/unison con note sovrapposte): cambia nota senza ripartire.
   // slide: nota di arrivo di uno slide del sequencer, scivola anche con GLIDE a zero (come la TB-303).
-  trigger(v, n, vel, id, legato, slide, detune = 0) {
+  trigger(v, n, vel, id, legato, slide, detune = 0, sampleRef = "") {
     const P = this.P;
     const glide = slide ? Math.max(P.glide, 0.06) : P.glide;
+    const sampleChanged = (v.sampleRef || "") !== (sampleRef || "");
+    v.sampleRef = sampleRef || "";
     if (!(v.active && glide > 0)) v.pitch = n;
     v.id = id; v.note = n; v.vel = vel; v.acc = vel >= 0.99 ? 1 : 0; v.detune = detune;
     v.target = n; v.glideTime = glide;
-    if (!legato || !v.active) {
+    if (!legato || !v.active || sampleChanged) {
       v.aSt = 1; v.fSt = 1;       // riparte dal livello attuale: niente click
       const lu = this.unitFor(v);
       if (v.lu && v.lu !== lu) v.lu.noteOff();
       if (lu) { lu.noteOff(); lu.noteOn(clamp(Math.round(n), 0, 127), clamp(Math.round(vel * 127), 1, 127)); }
       v.lu = lu;
-      const smp = this.sampleOf();
+      const smp = this.sampleOf(v);
       v.sp = smp ? Math.floor(this.P.sStart * smp.data.length) : 0;
     }
     v.gate = true; v.active = true; v.age = ++this.ageCounter;
@@ -279,22 +283,22 @@ class PMSynthProcessor extends AudioWorkletProcessor {
   group() {
     return this.P.mode === "unison" ? this.voices.slice(0, UNISON) : this.voices.slice(0, 1);
   }
-  groupTrigger(n, vel, id, legato, slide) {
+  groupTrigger(n, vel, id, legato, slide, sampleRef = "") {
     const g = this.group(), d = this.P.uDet * 0.5;
     const spread = g.length === 1 ? [0] : [-1, -1 / 3, 1 / 3, 1];
-    g.forEach((v, i) => this.trigger(v, n, vel, id, legato, slide, spread[i] * d));
+    g.forEach((v, i) => this.trigger(v, n, vel, id, legato, slide, spread[i] * d, sampleRef));
   }
   noteOn(e) {
     if (this.P.mode === "poly") {
       // la stessa nota ribattuta riusa la sua voce (niente due voci uguali sovrapposte)
       const same = this.voices.find(v => v.active && v.gate && v.note === e.n);
-      this.trigger(same || this.allocVoice(), e.n, e.v, e.id, false, !!e.sl);
+      this.trigger(same || this.allocVoice(), e.n, e.v, e.id, false, !!e.sl, 0, e.sm || "");
       return;
     }
     const held = this.stack.length > 0 && this.group()[0].gate;
     this.stack = this.stack.filter(s => s.id !== e.id);
-    this.stack.push({ n: e.n, id: e.id, v: e.v });
-    this.groupTrigger(e.n, e.v, e.id, held, !!e.sl);
+    this.stack.push({ n: e.n, id: e.id, v: e.v, sm: e.sm || "" });
+    this.groupTrigger(e.n, e.v, e.id, held, !!e.sl, e.sm || "");
   }
   noteOff(e) {
     if (this.P.mode === "poly") {
@@ -307,7 +311,7 @@ class PMSynthProcessor extends AudioWorkletProcessor {
     if (top && top.id === e.id) {
       // torna in legato all'ultima nota ancora tenuta, come un mono vero
       const back = this.stack[this.stack.length - 1];
-      this.groupTrigger(back.n, back.v, back.id, true, false);
+      this.groupTrigger(back.n, back.v, back.id, true, false, back.sm || "");
     }
   }
   apply(e) {
@@ -374,7 +378,7 @@ class PMSynthProcessor extends AudioWorkletProcessor {
     const lu = P.mType === "logue" ? v.lu : null;
     const tmp = this.tmp;
     if (lu && P.mLvl > 0) lu.render(tmp, 0, n, mtof(base), shapeMod, LU_RATE / sr);
-    const smp = this.sampleOf();
+    const smp = this.sampleOf(v);
     if (smp && P.mLvl > 0) this.renderSample(v, smp, tmp, n, base);
     // 0 sub, 1 rumore, 2 blocco gia' pronto in tmp (unita' o campione), 3 silenzio (unita' o campione non ancora arrivati)
     const mType = lu || smp ? 2 : (P.mType === "noise" ? 1 : (P.mType === "logue" || P.mType === "sample" ? 3 : 0));

@@ -503,7 +503,9 @@
       const id = "q" + (++noteSeq), n = clamp(x.n + (p.trans || 0), 0, 127);
       // lo slide tiene la nota fin dentro la successiva (legato); le altre si chiudono secondo il Gate
       const end = x.g ? time + len + Math.min(0.03, last * 0.5) : time + len - last * (1 - (p.gate ?? 75) / 100);
-      into.push({ t: "on", time, n, v: x.a ? 1 : 0.72, id, sl: slideIn }, { t: "off", time: Math.max(time + 0.004, end), id });
+      const on = { t: "on", time, n, v: x.a ? 1 : 0.72, id, sl: slideIn };
+      if (pat.sampleRef) on.sm = String(pat.sampleRef);
+      into.push(on, { t: "off", time: Math.max(time + 0.004, end), id });
       if (x.g) slideAt = time + len;
     }
   }
@@ -523,6 +525,9 @@
       return;
     }
     if (!node) { ensureAudio().catch(() => {}); return; }
+    // A sampler pattern owns its sample.  Preload it here as well as when the
+    // user creates the pattern, so saved projects work after a page reload.
+    if (pat.sampleRef) sendSample(String(pat.sampleRef));
     const b = bpm();
     if (b !== lastBpm) { lastBpm = b; node.port.postMessage({ t: "bpm", bpm: b }); chain.apply(p, b, masterVol()); }
     const list = [];

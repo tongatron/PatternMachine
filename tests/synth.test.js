@@ -124,6 +124,13 @@ for (const u of units) for (const sr of [48000, 44100]) {
   check(none.nan === 0 && none.peak < 1e-6, `campione mancante: picco ${none.peak}, nan ${none.nan}`);
   const ready = make(48000, { params: base, samples: short, events: [] });
   check(ready.msgs.some(m => m.t === "sample-ready" && m.key === "t"), "campione: manca il messaggio sample-ready");
+  const a = { data: tone(48000, 180, 1), sr: 48000 }, b = { data: tone(48000, 330, 1), sr: 48000 };
+  const two = make(48000, { params: { ...base, mSample: "a" }, samples: { a, b }, events: [
+    { ...on(0, 57, 0.8, "a1"), sm: "a" }, off(0.25, "a1"),
+    { ...on(0.3, 57, 0.8, "b1"), sm: "b" }, off(0.55, "b1")
+  ] }).render(0.7);
+  check(f0(two, 48000, Math.round(48000 * 0.05), 4096) < 220, "sequencer: il primo sample non viene scelto");
+  check(f0(two, 48000, Math.round(48000 * 0.35), 4096) > 280, "sequencer: il secondo sample non viene scelto");
 }
 
 console.log(failures ? `${failures} problemi su ${checks} verifiche` : `ok: synth, ${checks} verifiche, unita' KORG: ${units.join(", ")}`);

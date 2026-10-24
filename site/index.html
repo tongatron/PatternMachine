@@ -2463,6 +2463,7 @@ function normalize(){
   // pattern del synth: almeno uno; note dentro il pattern, lunghe almeno uno step e non oltre la fine
   if(!project.synthPatterns.length) project.synthPatterns.push(makeSynthPattern("Synth 1",16));
   project.synthPatterns.forEach(sp=>{
+    sp.len=normalizeSynthLength(sp.len);
     sp.synth=(sp.synth||[]).filter(n=>n.s>=0 && n.s<sp.len && n.n>=0 && n.n<=127);
     sp.synth.forEach(n=>{ n.l=clamp(n.l||1,1,sp.len-n.s); });
   });
@@ -2540,6 +2541,7 @@ el("grooveSelect").onchange=()=>applyRhythmChange({groove:el("grooveSelect").val
 // pausa di len step. Le note: {s:step, n:nota MIDI, l:lunghezza in step, a:accento, g:slide}.
 function makeSynthPattern(name,len=16){ return {id:uid(), name, len, synth:[]}; }
 const SYNTH_LENS=[8,16,32,64,128,256];
+const normalizeSynthLength=n=>Number.isInteger(+n)&&+n>=8&&+n<=4096?+n:16;
 const synthById = id => project.synthPatterns?.find(x=>x.id===id) || null;
 function curSynth(){ if(!synthById(ui.synthId)) ui.synthId=project.synthPatterns[0]?.id; return synthById(ui.synthId); }
 // Progetti di prima: le note stavano dentro i pattern di batteria (pattern.synth) e i blocchi della canzone
@@ -5918,7 +5920,8 @@ function serialize(){
     tracks: project.tracks.map(t=>serializeTrack(t)),
     patterns: project.patterns.map(p=>serializePattern(p)),
     song: project.song.map(b=>serializeSongBlock(b)),
-    synthPatterns: (project.synthPatterns||[]).map(sp=>({id:sp.id, name:sp.name, len:sp.len, synth:sp.synth.map(n=>({...n}))})),
+    synthPatterns: (project.synthPatterns||[]).map(sp=>({id:sp.id, name:sp.name, len:sp.len, synth:sp.synth.map(n=>({...n})),
+      ...(sp.sampleRef?{sampleRef:sp.sampleRef}: {})})),
     synthSong: (project.synthSong||[]).map(b=>({id:b.id, synthId:b.synthId||null, repeats:b.repeats, len:b.len||16,
       ...(b.fillSynthId?{fillSynthId:b.fillSynthId}:{}), ...(b.mute?{mute:true}:{})})),
     ...(project.synth?{synth:deepCopy(project.synth)}:{}),   // synth: suono, tonalita', on/off
@@ -5966,8 +5969,9 @@ function deserialize(d,keepSel){
     patterns:(d.patterns||[]).map(p=>deserializePattern(p)),
     song:(d.song||[]).map(b=>deserializeSongBlock(b)),
     ...(hasSynthLane ? {
-      synthPatterns:d.synthPatterns.map(sp=>({id:sp.id, name:sp.name||"Synth", len:SYNTH_LENS.includes(+sp.len)?+sp.len:16,
-        synth:(Array.isArray(sp.synth)?sp.synth:[]).map(n=>({...n}))})),
+      synthPatterns:d.synthPatterns.map(sp=>({id:sp.id, name:sp.name||"Synth", len:normalizeSynthLength(sp.len),
+        synth:(Array.isArray(sp.synth)?sp.synth:[]).map(n=>({...n})),
+        ...(sp.sampleRef?{sampleRef:String(sp.sampleRef)}:{})})),
       synthSong:d.synthSong.map(b=>({id:b.id, synthId:b.synthId||null, repeats:b.repeats||1, len:b.len||16,
         ...(b.fillSynthId?{fillSynthId:String(b.fillSynthId)}:{}), ...(b.mute?{mute:true}:{})})),
     } : {}),

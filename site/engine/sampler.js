@@ -394,13 +394,20 @@
   function sampleSynthPatternLength(record){
     const r=typeof rhythm==="function"?rhythm():{meter:"4/4",resolution:"straight"};
     const tempo=typeof bpm==="function"?bpm():120;
-    const stepSeconds=window.PMRhythm?.secondsPerStep?.(tempo,r)||60/Math.max(1,tempo)/4;
+    const stepsPerBar=window.PMRhythm?.stepsPerBar?.(r)||16;
+    const barSeconds=window.PMRhythm?.barQuarters?.(r)*60/Math.max(1,tempo)||60/Math.max(1,tempo)*4;
     const start=Math.min(99,Math.max(0,+settingsOf(record).start||0))/100;
-    // The synth keeps the first ten seconds of a sample; leave the note on for
-    // the whole available sound instead of releasing it after the first step.
-    const seconds=Math.min(10,Math.max(0,+record?.duration||0))*(1-start);
-    const needed=Math.max(16,Math.ceil(seconds/Math.max(.001,stepSeconds)));
-    return [16,32,64,128,256].find(len=>len>=needed)||256;
+    const seconds=Math.max(0,+record?.duration||0)*(1-start);
+    const bars=Math.max(1,Math.ceil(seconds/Math.max(.001,barSeconds)-1e-6));
+    return Math.min(4096,bars*stepsPerBar);
+  }
+  function extendDrumSongForSample(steps){
+    if(typeof songLayout!=="function" || !project.song.length || songLayout().total>=steps) return false;
+    const last=project.song[project.song.length-1], pattern=patternById(last.patternId)||curPattern();
+    if(!pattern) return false;
+    const repeats=Math.max(1,Math.ceil((steps-songLayout().total)/pattern.len));
+    project.song.push({id:uid(),patternId:pattern.id,repeats,section:last.section||"verse",mutes:project.tracks.map(t=>t.id)});
+    return true;
   }
   function assignSampleToSequencer(id){
     const i=localIndex(id);
@@ -412,12 +419,14 @@
     let name=`${label} bass`, n=2;
     while(project.synthPatterns.some(p=>p.name===name)) name=`${label} bass ${n++}`;
     const pattern=makeSynthPattern(name,sampleSynthPatternLength(record));
+    pattern.sampleRef=ref;
     pattern.synth=[{s:0,n:project.synth?.params?.sRoot??36,l:pattern.len,a:1,k:"sampler"}];
     project.synthPatterns.push(pattern);
+    const extended=extendDrumSongForSample(pattern.len);
     addSynthToSong(pattern);
     ui.synthId=pattern.id;
     setView("seq");
-    setStatus(`added “${label}” as a bass line in the Sequencer`);
+    setStatus(`added “${label}” as a bass line in the Sequencer${extended?"; the drum lane was extended with a silent tail to fit the full sample":""}`);
   }
   async function updateSettings(id,patch){
     const r=records.find(x=>x.id===id); if(!r) return;

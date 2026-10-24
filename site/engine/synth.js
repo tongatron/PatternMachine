@@ -105,7 +105,6 @@
   const DEFAULTS = Object.fromEntries(Object.values(SPEC).map(p => [p.k, p.def]));
   const FX_KEYS = new Set(["chorus", "delay", "dTime", "dFb", "reverb"]);
   const SAMPLE_KEYS = new Set(["mSample", "sRoot", "sStart", "sLoop"]);
-  const SAMPLE_MAX_SEC = 10;       // oltre, il campione si tronca: 8 voci leggono la stessa copia, ma resta in memoria
 
   const PRESETS = {
     "Acid 303": { vol: 42, mode: "mono", o1Wave: "saw", o1Lvl: 90, o2Lvl: 0, fType: "lp24", cutoff: 32, reso: 78, fEnv: 55, eD: 38, eS: 0, aD: 70, aS: 100, aR: 6, accent: 85, drive: 35, gate: 70, delay: 18, dTime: "3/16", dFb: 30 },
@@ -307,7 +306,7 @@
   function sampleData(ref) {
     if (typeof window.synthSampleBuffer !== "function") return Promise.reject(new Error("no sampler"));
     return window.synthSampleBuffer(ref).then(buf => {
-      const len = Math.min(buf.length, Math.round(buf.sampleRate * SAMPLE_MAX_SEC)), data = new Float32Array(len);
+      const len = buf.length, data = new Float32Array(len);
       for (let c = 0; c < buf.numberOfChannels; c++) {
         const ch = buf.getChannelData(c);
         for (let i = 0; i < len; i++) data[i] += ch[i] / buf.numberOfChannels;

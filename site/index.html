@@ -1649,6 +1649,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
           <select id="genTempo">
             <option value="project" id="genTempoProject">Near the project</option>
             <option value="custom">Near…</option>
+            <option value="exact">Only at…</option>
             <option value="any">Any tempo</option>
           </select>
           <input type="number" id="genBpm" min="40" max="240" value="93" aria-label="Target tempo in BPM" style="width:64px" hidden>
@@ -1723,7 +1724,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
         <ul>
           <li><b>✦ Vary</b> (Pattern panel) transforms the pattern you are editing, even one you wrote by hand; <kbd>cmd</kbd>+<kbd>Z</kbd> undoes it.</li>
           <li><b>✦ Generate</b> opens the library and generator: it shows 8 suggestions for the selected machine and style right away, from the busiest to the simplest (the ● dots show how interesting each one is).</li>
-          <li><b>Tempo</b> in the library: by default the suggestions stay within ±5 BPM of the project tempo, the closest first; <b>Near…</b> lets you type another tempo, <b>Any tempo</b> turns the search off. With <b>Random</b> only the styles that reach that tempo are used.</li>
+          <li><b>Tempo</b> in the library: by default the suggestions stay within ±5 BPM of the project tempo, the closest first; <b>Near…</b> lets you type another tempo, <b>Only at…</b> shows only patterns generated exactly at that BPM, and <b>Any tempo</b> turns the search off. At playback, every pattern follows the project's BPM and PPQ.</li>
           <li>On every pattern: <b>Similar</b> creates 4 close variants; <b>Vary</b> transforms it in 20 ways (sparse, half-time, open hat, new fill, percussion layer, stop… and five <b>hybrids</b> with voices from another style).</li>
           <li><b>Arrange</b> derives intro, chorus, break and outro; <b>Lock</b> keeps some voices and regenerates the others.</li>
           <li>Every pattern has a code: the same code regenerates the same pattern.</li>
@@ -7196,15 +7197,22 @@ function selectStyleForProjectTempo(){
 function genNearTempo(choice,len,opts){
   const t=opts.target;
   let pool=stylePool(choice);
-  const fit=pool.filter(st=>tempoGap(st,t)<=TEMPO_TOL);
-  if(fit.length) pool=fit;
-  else { const g=Math.min(...pool.map(st=>tempoGap(st,t))); pool=pool.filter(st=>tempoGap(st,t)===g); }
+  const exact=el("genTempo").value==="exact";
+  if(exact){
+    pool=pool.filter(st=>tempoGap(st,t)===0);
+    if(!pool.length) return null;
+  }else{
+    const fit=pool.filter(st=>tempoGap(st,t)<=TEMPO_TOL);
+    if(fit.length) pool=fit;
+    else { const g=Math.min(...pool.map(st=>tempoGap(st,t))); pool=pool.filter(st=>tempoGap(st,t)===g); }
+  }
   let best=null;
-  for(let i=0;i<60;i++){
+  for(let i=0;i<(exact?240:60);i++){
     const st=pool[Math.floor(Math.random()*pool.length)];
     const p=SPEngine.generate({style:st.id, len, section:opts.section, fill:opts.fill, seed:SPEngine.randomSeed()});
+    if(exact && p.bpm!==t) continue;
     if(!best || Math.abs(p.bpm-t)<Math.abs(best.bpm-t)) best=p;
-    if(Math.abs(p.bpm-t)<=2) break;
+    if(exact || Math.abs(p.bpm-t)<=2) break;
   }
   return best;
 }
@@ -7218,12 +7226,21 @@ function tempoTarget(){
 let libTarget=null;   // il tempo con cui sono state fatte le proposte in lista
 function paintTempoPick(){
   el("genTempoProject").textContent=`Near the project (${bpm()} BPM)`;
-  el("genBpm").hidden=el("genTempo").value!=="custom";
+  el("genBpm").hidden=!(["custom","exact"].includes(el("genTempo").value));
 }
 function paintTempoNote(target,choice){
   const note=el("genTempoNote");
   if(!target || choice==="any") { note.hidden=true; return; }
   const pool=stylePool(choice), gap=Math.min(...pool.map(st=>tempoGap(st,target)));
+  if(el("genTempo").value==="exact" && gap>0){
+    el("genTempoNoteText").textContent=`No ${choice==="any"?"style":"selected style"} has a pattern at exactly ${target} BPM.`;
+    el("genTempoNearby").hidden=true;
+    el("genTempoSetProject").hidden=true;
+    note.hidden=false;
+    return;
+  }
+  el("genTempoNearby").hidden=false;
+  el("genTempoSetProject").hidden=false;
   if(gap<=TEMPO_TOL || pool.length!==1){ note.hidden=true; return; }
   const [lo,hi]=styleRange(pool[0]), nearest=target<lo?lo:hi;
   const styleName=el("genStyle").selectedOptions[0]?.textContent||"This style";
@@ -7236,7 +7253,7 @@ function paintTempoNote(target,choice){
   note.hidden=false;
 }
 el("genTempo").addEventListener("change",()=>{
-  if(el("genTempo").value==="custom" && !el("genBpm").dataset.set) el("genBpm").value=bpm();
+  if(["custom","exact"].includes(el("genTempo").value) && !el("genBpm").dataset.set) el("genBpm").value=bpm();
   paintTempoPick();
 });
 el("genBpm").addEventListener("change",()=>{ el("genBpm").dataset.set="1"; });
@@ -7898,8 +7915,13 @@ function refreshProposals(){
   for(let i=0;i<PROPOSALS;i++){
     const sec=section==="both"?(i%2?"chorus":"verse"):section;
     let p=genPattern(style,len,{section:sec, fill, target});
+    if(!p) continue;
     // negli stili rigidi due seed possono dare lo stesso ritmo: si riprova qualche volta
-    for(let t=0;t<8 && made.some(q=>sig(q)===sig(p));t++) p=genPattern(style,len,{section:sec, fill, target});
+    for(let t=0;t<8 && made.some(q=>sig(q)===sig(p));t++){
+      p=genPattern(style,len,{section:sec, fill, target});
+      if(!p) break;
+    }
+    if(!p) continue;
     made.push(p);
   }
   made.forEach(p=>{ p.interest=interestScore(p); p.fresh=false; });
@@ -7911,11 +7933,13 @@ function refreshProposals(){
   let near="";
   if(target){
     const pool=stylePool(style), gap=Math.min(...pool.map(st=>tempoGap(st,target)));
-    near=` · near ${target} BPM`;
+    near=el("genTempo").value==="exact" ? ` · only ${target} BPM` : ` · near ${target} BPM`;
     if(gap>TEMPO_TOL && pool.length===1){ const [lo,hi]=styleRange(pool[0]); near+=` (this style goes from ${lo} to ${hi}: the closest ones)`; }
   }
   paintTempoNote(target,style);
-  libNote(`${PROPOSALS} suggestions · ${label}${near}`);
+  libNote(made.length
+    ? `${made.length} suggestions · ${label}${near}`
+    : `no suggestions · ${label}${near}`);
 }
 el("genStyle").addEventListener("change",()=>{ genStyleTouched=true; refreshProposals(); });
 ["genSection","genLen","genFill","genTempo","genBpm"].forEach(id=>el(id).addEventListener("change",refreshProposals));

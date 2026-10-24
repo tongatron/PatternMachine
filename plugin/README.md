@@ -7,9 +7,9 @@ si preme Play in Logic e i pattern suonano a tempo, dalla battuta giusta, senza 
 
 | Parte | Dove | Cosa fa |
 |---|---|---|
-| Interfaccia | `../site` in un WebView (WKWebView) | Il sito così com'è: griglia, blocchi, sequencer, libreria, export. Viene copiato nel bundle, quindi il plug-in funziona offline e senza il repository |
+| Interfaccia | `../site` in un WebView (WKWebView) | Il plug-in espone la sola Drum Grid, la libreria, il mixer e l'export; Synthesizer, Sequencer e Sampler restano disponibili nel sito ma sono nascosti nell'AU |
 | Ponte | `bridge/plugin-bridge.js` | Come `desktop/bridge/bridge.js` per l'app, ma per il plug-in: sostituisce `trigger`, `play`, `stop`, `setStatus`, `db`, `downloadsCap` e manda ogni modifica del progetto al C++ entro 0,1 s |
-| Motore | `Source/Engine.cpp` | Sequencer, campionatore e linea synth in C++, dentro `processBlock`: gli step si calcolano dal PPQ di Logic, al campione, con 4/4, 6/8, triplette, groove, swing, probabilità, ripetizioni, flam, intonazione/decay/filtro per step, umanizza, nudge, poliritmi, choke, canzone con fill e mute dei blocchi |
+| Motore | `Source/Engine.cpp` | Drum sequencer e campionatore in C++, dentro `processBlock`: gli step si calcolano dal PPQ di Logic, al campione, con 4/4, 6/8, triplette, groove, swing, probabilità, ripetizioni, flam, intonazione/decay/filtro per step, umanizza, nudge, poliritmi, choke, canzone con fill e mute dei blocchi |
 | Stato | `Source/PluginProcessor.cpp` | Il progetto si salva **dentro il progetto di Logic** (e suona anche senza aprire la finestra) |
 
 Il sync è automatico perché è Logic a chiamare il plug-in a ogni blocco audio con la posizione esatta:
@@ -18,10 +18,14 @@ Il sync è automatico perché è Logic a chiamare il plug-in a ogni blocco audio
 - **Cicli e salti** del righello: il motore si riposiziona sullo step che cade lì.
 - **Bounce** e bounce offline funzionano, perché l'audio esce dal plug-in e non dal WebView.
 
-L'audio passa dal canale di Logic (effetti, mixer, automazione del volume), 6 dB sotto il volume del sito per lasciare margine
+L'audio della batteria passa dal canale di Logic (effetti, mixer, automazione del volume), 6 dB sotto il volume del sito per lasciare margine
 (con i volumi del sito il canale di Logic andava oltre 0 dBFS). Con Logic fermo, il Play della pagina fa
 un'anteprima a tempo di Logic; i pad, l'anteprima dei blocchi e l'ascolto della libreria suonano sempre dal plug-in.
-Le **note MIDI in ingresso** sulla traccia suonano le righe: nota 36 (C1) = riga 1, 37 = riga 2... (i pad dell'MPK). La linea synth del sito, compresi **Generate**, **Vary**, Fill, Solo e Mute nella corsia del Sequencer, viene invece renderizzata dal plug-in e arriva al mixer di Logic insieme alla batteria.
+Le **note MIDI in ingresso** sulla traccia suonano le righe: nota 36 (C1) = riga 1, 37 = riga 2... (i pad dell'MPK).
+
+### Tempo e lunghezza dei pattern
+
+Il BPM scritto in una proposta della libreria è un riferimento musicale per scegliere lo stile. Quando il pattern viene suonato nel plug-in, la sua durata è calcolata in step e battute: Logic fornisce il BPM e il PPQ, quindi il pattern viene automaticamente adattato al tempo del progetto senza cambiare la griglia. Anche con lunghezze diverse (8, 12, 16, 24, 32 step) la partenza resta sulla battuta corretta; il nuovo filtro **Only at…** nella libreria permette di mostrare soltanto proposte generate esattamente al BPM indicato.
 
 Progetti ed export usano le stesse cartelle dell'app per Mac:
 `~/Music/PatternMachine/Progetti` (Salva / Progetti salvati) e `~/Music/PatternMachine/Export`

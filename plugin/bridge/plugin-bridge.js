@@ -12,6 +12,29 @@
   const B=window.__JUCE__ && window.__JUCE__.backend;
   if(!B) return;
   document.documentElement.classList.add("pm-plugin");
+  // L'AU è la versione drum-only per il progetto Logic. Il sito resta completo
+  // quando viene aperto nel browser, ma questa istanza non espone le corsie e
+  // gli strumenti che non appartengono alla batteria.
+  const pluginStyle=document.createElement("style");
+  pluginStyle.textContent=`
+    html.pm-plugin{overflow-x:hidden;}
+    html.pm-plugin .tabs{align-items:stretch; gap:8px; margin:14px 0;}
+    html.pm-plugin .tabs > button, html.pm-plugin .tabs > a{box-sizing:border-box; margin:0; min-height:44px;}
+    html.pm-plugin .tabs .live-playing-link{margin-left:auto; min-height:44px; padding:10px 18px;}
+    html.pm-plugin #viewSynth, html.pm-plugin #viewSeq, html.pm-plugin #viewSampler,
+    html.pm-plugin #panelSynth, html.pm-plugin #panelSeq, html.pm-plugin #panelSampler,
+    html.pm-plugin #synthEnginePanel, html.pm-plugin #synthPatternPanel,
+    html.pm-plugin #synthVol, html.pm-plugin #synthMuteBtn, html.pm-plugin #synthSoloBtn,
+    html.pm-plugin #pDup, html.pm-plugin #pRename, html.pm-plugin #pClear,
+    html.pm-plugin #patternChips .pattern-more{display:none !important;}
+    html.pm-plugin .vol-ch:has(#synthVol){display:none !important;}
+    html.pm-plugin #panelTransport .transport-primary{flex-wrap:wrap; overflow:visible;}
+    html.pm-plugin #panelTransport .transport-primary > #playBtn{flex:1 1 220px;}
+    html.pm-plugin #panelTransport .transport-primary,
+    html.pm-plugin #panelPatterns > .flexline{align-items:center;}
+    html.pm-plugin #panelPatterns > .flexline{gap:7px 9px;}
+  `;
+  (document.head||document.documentElement).appendChild(pluginStyle);
   const send=msg=>B.emitEvent("pm",msg);
 
   let reqSeq=0;
@@ -36,10 +59,12 @@
       rhythm:project.rhythm||{},
       metronome:!!ui.metronome, bpm:bpm(),
       tracks:project.tracks.map(t=>({id:t.id, ...voiceOf(t), nudge:t.nudge||0,
-        on:!t.mute && (!solo || t.solo) && !project.synth?.solo})),
+        on:!t.mute && (!solo || t.solo)})),
       patterns:project.patterns.map(p=>({id:p.id, len:p.len, grid:p.grid, mods:p.mods||{}, lens:p.lens||{}})),
       song:project.song.map(b=>({id:b.id, patternId:b.patternId, repeats:b.repeats, fillPatternId:b.fillPatternId||"", mutes:b.mutes||[]})),
-      synth:{on:!!window.PMSynth && !project.synth?.mute && !project.drumsSolo,
+      // Il plug-in è drum-only: lo stato synth resta nel progetto per non
+      // danneggiare i salvataggi, ma non viene renderizzato dall'AU.
+      synth:{on:false,
         solo:!!project.synth?.solo, patternId:ui.synthId||"", soloBlockId:ui.synthSoloBlockId||"",
         volume:+el("synthVol")?.value||100, params:project.synth?.params||{}},
       synthPatterns:(project.synthPatterns||[]).map(p=>({id:p.id, len:p.len, synth:p.synth||[]})),
@@ -81,6 +106,12 @@
     nativeSynthWrapped=true;
   };
   setInterval(useNativeSynth,100);
+
+  const drumOnlyViews=new Set(["seq","synth","sampler"]);
+  const siteSetView=setView;
+  setView=function(view){
+    return siteSetView(drumOnlyViews.has(view)?"grid":view);
+  };
 
   function restore(s){
     if(!s || !s.project) return;

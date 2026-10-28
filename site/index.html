@@ -1256,8 +1256,12 @@ html.op .topbar #accountLinks{order:3; margin-left:0; display:block;}
 html.op #panelTransport{grid-area:trans; position:static; display:flex; align-items:center; gap:10px; padding:6px 10px;}
 html.op #panelTransport .transport-primary{flex:1 1 auto; flex-wrap:nowrap; gap:7px; min-width:0;}
 html.op #panelTransport .transport-secondary{flex:0 0 auto; margin:0; padding:0; border:0;}
-html.op #panelTransport button, html.op #panelTransport select, html.op #panelTransport #bpmNum{min-height:34px; height:34px; padding-top:0; padding-bottom:0;}
-html.op #panelTransport #tapBtn{width:34px;}
+/* gli stessi pulsanti della barra in alto: 32px, testo 10.5px (:is() con gli id batte le regole per id del trasporto) */
+html.op #panelTransport :is(button, select, #bpmNum, #playBtn, #stopBtn, #loopBtn, #recBtn, #metronomeBtn, #tapBtn, #countInSelect){min-height:32px; height:32px; padding:5px 10px; font-size:10.5px; letter-spacing:.04em; border-radius:var(--r-key,6px);}
+html.op #panelTransport .transport-mode button{min-width:0; padding-inline:10px;}
+html.op #panelTransport :is(#tapBtn, #metronomeBtn){width:32px; padding:0; display:inline-flex; align-items:center; justify-content:center;}
+html.op #panelTransport .metro-ico{width:16px; height:16px;}
+html.op #panelTransport #bpmNum{padding-inline:4px;}
 
 /* schede sopra lo stage */
 html.op .tabs{grid-area:tabs; margin:0; gap:4px; flex-wrap:nowrap; align-items:flex-end;}
@@ -1308,7 +1312,8 @@ html.op #panelGrid > h2, html.op #panelSeq > h2{display:none;}
 
 /* Drum Grid: righe su una linea (intestazione + step) che si dividono l'altezza, cassetto con suono e forma d'onda */
 html.op #panelGrid:not([hidden]){flex:1 1 0; min-height:0; display:grid; grid-template-columns:minmax(0,1fr) minmax(220px,30%); column-gap:10px; row-gap:6px;
-  grid-template-rows:auto auto minmax(min-content,calc(var(--op-rows,8) * 70px)) auto minmax(0,1fr) auto;
+  grid-template-rows:auto auto auto auto minmax(0,1fr) auto;
+  container-type:inline-size; --cell:min(38px,calc((100cqw - 270px - 3px * var(--n,16)) / var(--n,16)));
   grid-template-areas:"mode head" "ruler ruler" "rows rows" "add add" ". ." "sound wave";}
 html.op #panelGrid .step-mode-line{grid-area:mode; margin:0;}
 html.op #panelGrid .grid-headline{grid-area:head; justify-self:end; margin:0;}
@@ -1318,14 +1323,17 @@ html.op #addRowLine{grid-area:add; margin:0!important;}
 html.op #drumSoundPanel{grid-area:sound; margin:0; align-self:end;}
 html.op #waveDrums{grid-area:wave; margin:0; align-self:end;}
 html.op #waveDrums canvas{height:96px; min-height:0;}
-html.op .trk{flex:1 1 0; min-height:26px; display:grid; grid-template-columns:var(--op-head) minmax(0,1fr); column-gap:8px; padding:3px 6px; align-items:stretch;}
+html.op .trk{flex:0 0 auto; display:grid; grid-template-columns:var(--op-head) minmax(0,1fr); column-gap:8px; padding:3px 6px; align-items:stretch;}
 html.op .trk.expanded, html.op .trk:has(> .voice){flex:0 0 auto; max-height:none; row-gap:6px;}
 html.op .trk.sound-sel{border-color:var(--accent); box-shadow:0 0 0 1px var(--accent) inset, var(--shadow);}
 html.op .trk > .trk-top{grid-row:1; grid-column:1; margin:0; flex-wrap:nowrap; gap:4px; min-width:0;}
-html.op .trk > .steps{grid-row:1; grid-column:2; height:100%;}
-html.op .trk > .voice, html.op .trk > .lanes{grid-column:1 / -1; margin:0;}
-html.op .trk .step{aspect-ratio:auto; min-height:0; height:100%;}
-html.op .trk.expanded .step, html.op .trk:has(> .voice) .step{height:40px;}
+html.op .trk > .steps{grid-row:1; grid-column:2; height:auto; align-self:center;}
+html.op .trk > .voice{grid-column:1 / -1; margin:0;}
+html.op .trk > .lanes{grid-column:2; margin:8px 0 0;}
+html.op .trk .lcell.g{margin-left:0;}
+/* pad quadrati: la colonna di step e il righello hanno la stessa misura, uguale alla cella */
+html.op :is(#ruler, .trk .steps, .trk .lane){grid-template-columns:repeat(var(--n,16),var(--cell))!important;}
+html.op .trk .step{aspect-ratio:1/1; width:var(--cell); height:var(--cell); min-height:0; min-width:0;}
 html.op .trk .pad{width:24px; height:22px;}
 html.op .trk .trk-name{min-width:0; flex:1 1 auto;}
 html.op .trk .trk-vol{font-size:0; gap:0;}
@@ -1349,6 +1357,10 @@ html.op .tl-seg .prev, html.op .tl-seg .syn-prev{position:relative; z-index:1; m
 html.op .tl-seg .prev{display:flex; flex-direction:column; gap:2px;}
 html.op .tl-seg .syn-prev{flex:1 1 auto; height:auto; min-height:12px; background:none;}
 html.op #seqRuler, html.op #panelSeq > .hint{display:none;}
+/* Synth e Record vocal (Sampler) sono dell'admin: spenti, il Sequencer e' solo batteria */
+html:not([data-pro="1"]) :is(#vocalBtn, #vocalPanel, #panelSeq .seq-lane-head, #seqSynthTrack, #tlSynthLane){display:none!important;}
+html.op:not([data-pro="1"]) #panelSeq:not([hidden]){grid-template-areas:"tools tools" "vocal vocal" "info info" "tl tl" "drum drum" "drum drum" "wave wave";}
+html.op:not([data-pro="1"]) #timeline.has-synth .tl-lane:not(.tl-lane-synth){bottom:0;}
 html.op #seqTrack{grid-area:drum;}
 html.op #panelSeq .seq-lane-head{grid-area:shead; margin:0; padding-top:0; border-top:0;}
 html.op #seqSynthTrack{grid-area:synth;}
@@ -1482,11 +1494,11 @@ html.op .site-footer .site-badge{font-size:10px; padding-block:2px;}
     <h1>PATTERN-MACHINE</h1>
     <div class="topbar-controls">
       <details class="export-menu op-guide" id="opGuide" hidden>
-        <summary>Guide ▾</summary>
+        <summary>More ▾</summary>
         <div class="export-list" id="opGuideList"></div>
       </details>
       <span class="topbar-guides">
-        <a class="linkbtn help-link" href="funzioni.html" title="Complete guide to every PATTERN-MACHINE feature">Complete guide</a>
+        <a class="linkbtn help-link" href="funzioni.html" title="Complete guide to every PATTERN-MACHINE feature">Guide</a>
         <a class="linkbtn learn-link" href="learn/index.html" title="Learn drum machine programming with hands-on lessons">Learn drum machine programming</a>
       </span>
       <a class="linkbtn" id="desktopAppLink" href="app.html" title="PATTERN-MACHINE as an app for macOS, Windows and Linux: MIDI, clock sync and drag and drop">App for Mac, Win, Linux</a>
@@ -2091,23 +2103,23 @@ html.op .site-footer .site-badge{font-size:10px; padding-block:2px;}
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-10-28.4"></script>
-<script src="engine/core.js?v=2026-10-28.4"></script>
-<script src="engine/styles-punk.js?v=2026-10-28.4"></script>
-<script src="engine/styles-post.js?v=2026-10-28.4"></script>
-<script src="engine/styles-machines.js?v=2026-10-28.4"></script>
-<script src="engine/styles-alt.js?v=2026-10-28.4"></script>
-<script src="engine/styles-groove.js?v=2026-10-28.4"></script>
-<script src="engine/styles-dub.js?v=2026-10-28.4"></script>
-<script src="engine/styles-break.js?v=2026-10-28.4"></script>
-<script src="engine/styles-soul.js?v=2026-10-28.4"></script>
-<script src="engine/styles-metal.js?v=2026-10-28.4"></script>
-<script src="engine/styles-electro.js?v=2026-10-28.4"></script>
-<script src="engine/variations.js?v=2026-10-28.4"></script>
-<script src="engine/import.js?v=2026-10-28.4"></script>
-<script src="engine/rhythm.js?v=2026-10-28.4"></script>
-<script src="engine/share.js?v=2026-10-28.4"></script>
-<script src="engine/runtime.js?v=2026-10-28.4"></script>
+<script src="engine/machine-art.js?v=2026-10-28.5"></script>
+<script src="engine/core.js?v=2026-10-28.5"></script>
+<script src="engine/styles-punk.js?v=2026-10-28.5"></script>
+<script src="engine/styles-post.js?v=2026-10-28.5"></script>
+<script src="engine/styles-machines.js?v=2026-10-28.5"></script>
+<script src="engine/styles-alt.js?v=2026-10-28.5"></script>
+<script src="engine/styles-groove.js?v=2026-10-28.5"></script>
+<script src="engine/styles-dub.js?v=2026-10-28.5"></script>
+<script src="engine/styles-break.js?v=2026-10-28.5"></script>
+<script src="engine/styles-soul.js?v=2026-10-28.5"></script>
+<script src="engine/styles-metal.js?v=2026-10-28.5"></script>
+<script src="engine/styles-electro.js?v=2026-10-28.5"></script>
+<script src="engine/variations.js?v=2026-10-28.5"></script>
+<script src="engine/import.js?v=2026-10-28.5"></script>
+<script src="engine/rhythm.js?v=2026-10-28.5"></script>
+<script src="engine/share.js?v=2026-10-28.5"></script>
+<script src="engine/runtime.js?v=2026-10-28.5"></script>
 <script>
 // Script principale di PATTERN-MACHINE: stato del progetto, audio, trasporto e interfaccia della pagina.
 // Il motore ritmico (SPEngine), i tempi (PMRhythm), import, link e gli altri moduli stanno in engine/*.js.
@@ -3529,7 +3541,7 @@ function renderTracks(){
   host.innerHTML=""; stepEls=new Map(); lanePaint.clear();
   el("gridTitle").textContent = "Grid — " + pat.name;
   project.tracks.forEach((t,idx)=>host.appendChild(trackRow(t,idx,pat)));
-  if(onePage()) el("panelGrid").style.setProperty("--op-rows",project.tracks.length);   // altezza massima delle righe
+  if(onePage()) el("panelGrid").style.setProperty("--n",pat.len);   // colonne di step: la cella quadrata dipende da quante sono
   paintMixedKits();
   paintPlayhead();
   renderDrumSound();
@@ -5419,7 +5431,7 @@ function paintProTools(){
 function loadSynth(){
   if(window.PMSynth || el("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-28.4";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-28.5";
   document.body.appendChild(s);
 }
 if(LIVE_VIEW || (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth"))) loadSynth();
@@ -8483,7 +8495,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-10-28.4";
+const SW_VERSION="2026-10-28.5";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -8507,10 +8519,10 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sample-editor.js?v=2026-10-28.4"></script>
-<script src="engine/sampler.js?v=2026-10-28.4"></script>
-<script src="engine/vocal.js?v=2026-10-28.4"></script>
+<script src="engine/sample-editor.js?v=2026-10-28.5"></script>
+<script src="engine/sampler.js?v=2026-10-28.5"></script>
+<script src="engine/vocal.js?v=2026-10-28.5"></script>
 <script>PMSampler.init(); PMVocal.init();</script>
-<script src="engine/midi.js?v=2026-10-28.4"></script>
+<script src="engine/midi.js?v=2026-10-28.5"></script>
 </body>
 </html>

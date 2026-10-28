@@ -1207,7 +1207,8 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 
 html:not([data-pro="1"]) #viewSynth, html:not([data-pro="1"]) #viewSampler{display:none;}
 .user-menu summary{min-height:0; padding:5px 10px; font-size:10.5px; font-weight:700;}
-.user-menu .export-list{left:auto; right:0; min-width:210px;}
+.user-menu .export-list [hidden]{display:none!important;}
+.user-menu .export-list{left:auto; right:0; min-width:290px;}
 .user-menu .export-list .linkbtn, .user-menu .export-list button{justify-content:flex-start; text-align:left; min-height:32px; font-size:10px;}
 .user-menu #proToolsBtn[aria-checked="true"]{background:var(--key-primary,var(--accent)); color:var(--on-accent); border-color:var(--accent-dim);}
 /* Avviso sotto 1100×680: copre il sito e descrive cosa fa (non in ?live ed ?embed) */
@@ -1316,15 +1317,16 @@ html.op #panelGrid > h2, html.op #panelSeq > h2{display:none;}
 html.op #panelGrid:not([hidden]){flex:1 1 0; min-height:0; display:grid; grid-template-columns:minmax(0,1fr) minmax(220px,30%); column-gap:10px; row-gap:6px;
   grid-template-rows:auto auto auto auto minmax(0,1fr) auto;
   container-type:inline-size; --cell:min(38px,calc((100cqw - 270px - 3px * var(--n,16)) / var(--n,16)));
-  grid-template-areas:"mode head" "ruler ruler" "rows rows" "add add" ". ." "sound wave";}
+  grid-template-areas:"mode head" "ruler ruler" "rows rows" "add add" ". ." "sound sound";}
 html.op #panelGrid .step-mode-line{grid-area:mode; margin:0;}
 html.op #panelGrid .grid-headline{grid-area:head; justify-self:end; margin:0;}
 html.op #ruler{grid-area:ruler; margin:0; padding:0 7px 0 calc(var(--op-head) + 15px);}
 html.op #rows{grid-area:rows; gap:4px; min-height:0;}
 html.op #addRowLine{grid-area:add; margin:0!important;}
-html.op #drumSoundPanel{grid-area:sound; margin:0; align-self:end;}
-html.op #waveDrums{grid-area:wave; margin:0; align-self:end;}
-html.op #waveDrums canvas{height:96px; min-height:0;}
+/* Drum Sound: la barra sta in fondo; aperto, il pannello si alza sopra la griglia, in primo piano e con sfondo pieno */
+html.op #drumSoundPanel{grid-area:sound; position:relative; margin:0; align-self:end;}
+html.op #drumSoundPanel[open] > .drum-sound-body{position:absolute; z-index:50; left:-1px; right:-1px; bottom:calc(100% + 6px); background:var(--plate,var(--panel)); border:1px solid var(--accent); border-radius:var(--r-panel,10px); box-shadow:0 -8px 28px rgba(0,0,0,.45);}
+html.op #drumSoundPanel[open] > summary{border-bottom:0;}
 html.op .trk{flex:0 0 auto; display:grid; grid-template-columns:var(--op-head) minmax(0,1fr); column-gap:8px; padding:3px 6px; align-items:stretch;}
 html.op .trk.expanded, html.op .trk:has(> .voice){flex:0 0 auto; max-height:none; row-gap:6px;}
 html.op .trk.sound-sel{border-color:var(--accent); box-shadow:0 0 0 1px var(--accent) inset, var(--shadow);}
@@ -1514,8 +1516,7 @@ html.op .site-footer .site-badge{font-size:10px; padding-block:2px;}
       <summary id="whoami">Account</summary>
       <div class="export-list">
         <a class="linkbtn" id="adminLink" href="/admin" title="Registered users" hidden>Users</a>
-        <a class="linkbtn" id="registerLink" href="/register" title="Create an account to save projects and favorites" hidden>Sign up</a>
-        <button type="button" id="proToolsBtn" role="switch" aria-checked="false" title="Show the Synthesizer and Sampler tabs (admin only, off by default)" hidden>Synthesizer &amp; Sampler: off</button>
+        <button type="button" id="proToolsBtn" role="switch" aria-checked="false" title="Synthesizer and Sampler are experimental: turn them on to show their tabs (off by default)">Synthesizer &amp; Sampler (experimental): off</button>
         <a class="linkbtn" href="/logout" title="Log out of your account">Log out</a>
       </div>
     </details>
@@ -1710,10 +1711,6 @@ html.op .site-footer .site-badge{font-size:10px; padding-block:2px;}
     <details class="drum-sound-panel" id="drumSoundPanel">
       <summary>Drum Sound <span class="drum-sound-name" id="drumSoundName"></span></summary>
       <div class="drum-sound-body" id="drumSoundBody"></div>
-    </details>
-    <details class="wave-panel" id="waveDrums">
-      <summary>Audio waveform <span class="wave-caption" id="waveDrumsCaption">selected drum pattern</span></summary>
-      <canvas id="waveDrumsCanvas" height="124" aria-label="Waveform of the selected drum pattern"></canvas>
     </details>
   </div>
 
@@ -2105,23 +2102,23 @@ html.op .site-footer .site-badge{font-size:10px; padding-block:2px;}
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-10-28.6"></script>
-<script src="engine/core.js?v=2026-10-28.6"></script>
-<script src="engine/styles-punk.js?v=2026-10-28.6"></script>
-<script src="engine/styles-post.js?v=2026-10-28.6"></script>
-<script src="engine/styles-machines.js?v=2026-10-28.6"></script>
-<script src="engine/styles-alt.js?v=2026-10-28.6"></script>
-<script src="engine/styles-groove.js?v=2026-10-28.6"></script>
-<script src="engine/styles-dub.js?v=2026-10-28.6"></script>
-<script src="engine/styles-break.js?v=2026-10-28.6"></script>
-<script src="engine/styles-soul.js?v=2026-10-28.6"></script>
-<script src="engine/styles-metal.js?v=2026-10-28.6"></script>
-<script src="engine/styles-electro.js?v=2026-10-28.6"></script>
-<script src="engine/variations.js?v=2026-10-28.6"></script>
-<script src="engine/import.js?v=2026-10-28.6"></script>
-<script src="engine/rhythm.js?v=2026-10-28.6"></script>
-<script src="engine/share.js?v=2026-10-28.6"></script>
-<script src="engine/runtime.js?v=2026-10-28.6"></script>
+<script src="engine/machine-art.js?v=2026-10-28.7"></script>
+<script src="engine/core.js?v=2026-10-28.7"></script>
+<script src="engine/styles-punk.js?v=2026-10-28.7"></script>
+<script src="engine/styles-post.js?v=2026-10-28.7"></script>
+<script src="engine/styles-machines.js?v=2026-10-28.7"></script>
+<script src="engine/styles-alt.js?v=2026-10-28.7"></script>
+<script src="engine/styles-groove.js?v=2026-10-28.7"></script>
+<script src="engine/styles-dub.js?v=2026-10-28.7"></script>
+<script src="engine/styles-break.js?v=2026-10-28.7"></script>
+<script src="engine/styles-soul.js?v=2026-10-28.7"></script>
+<script src="engine/styles-metal.js?v=2026-10-28.7"></script>
+<script src="engine/styles-electro.js?v=2026-10-28.7"></script>
+<script src="engine/variations.js?v=2026-10-28.7"></script>
+<script src="engine/import.js?v=2026-10-28.7"></script>
+<script src="engine/rhythm.js?v=2026-10-28.7"></script>
+<script src="engine/share.js?v=2026-10-28.7"></script>
+<script src="engine/runtime.js?v=2026-10-28.7"></script>
 <script>
 // Script principale di PATTERN-MACHINE: stato del progetto, audio, trasporto e interfaccia della pagina.
 // Il motore ritmico (SPEngine), i tempi (PMRhythm), import, link e gli altri moduli stanno in engine/*.js.
@@ -5129,7 +5126,6 @@ function paintWave(id,caption,kind){
   const cap=el(caption); if(cap) cap.textContent=waveCaption(kind);
 }
 function paintWaveforms(){
-  paintWave("waveDrumsCanvas","waveDrumsCaption","drums");
   paintWave("waveSequencerCanvas","waveSequencerCaption","sequencer");
   paintWave("waveSynthCanvas","waveSynthCaption","synth");
   paintWave("waveMixerCanvas","waveMixerCaption","mix");
@@ -5419,13 +5415,13 @@ function recordHit(track){
 // (file locale, app per Mac, offline) /api/me non risponde e resta solo "Log out".
 // L'ospite ("Accedi senza registrarti") usa il sito ma non salva: niente Salva, progetti e preferiti.
 // Per gli utenti registrati la scheda si chiama "Saved projects".
-let isGuest=false, isMember=false, isAdmin=false;
-// Synthesizer e Sampler: solo per l'admin e solo se acceso dal menu utente (di default spenti, scelta per browser).
+let isGuest=false, isMember=false;
+// Synthesizer e Sampler (sperimentali): per tutti, ma solo se accesi dal menu utente (di default spenti, scelta per browser).
 const PRO_KEY="sp1200.proTools";
-const proTools=()=>isAdmin && storeGet(PRO_KEY)==="1";
+const proTools=()=>storeGet(PRO_KEY)==="1";
 function paintProTools(){
   document.documentElement.dataset.pro=proTools()?"1":"0";
-  const b=el("proToolsBtn"); b.setAttribute("aria-checked",String(proTools())); b.textContent="Synthesizer & Sampler: "+(proTools()?"on":"off");
+  const b=el("proToolsBtn"); b.setAttribute("aria-checked",String(proTools())); b.textContent="Synthesizer & Sampler (experimental): "+(proTools()?"on":"off");
   if(!proTools() && ["synth","sampler"].includes(currentView())) setView("grid");
 }   // isMember: utente registrato (user o admin)
 // Synth in prova: lo script si carica per gli utenti del sito (in locale anche con ?synth, per svilupparlo senza server.py).
@@ -5433,7 +5429,7 @@ function paintProTools(){
 function loadSynth(){
   if(window.PMSynth || el("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-28.6";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-28.7";
   document.body.appendChild(s);
 }
 if(LIVE_VIEW || (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth"))) loadSynth();
@@ -5454,9 +5450,7 @@ fetch("/api/me",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(me=>{
   document.body.classList.toggle("guest",isGuest);
   el("whoami").textContent=me.name+" ▾";
   el("adminLink").hidden=me.role!=="admin";
-  isAdmin=me.role==="admin"; el("proToolsBtn").hidden=!isAdmin; paintProTools();
   loadSynth();
-  el("registerLink").hidden=!isGuest;
   if(isGuest && el("viewRecent").classList.contains("on")) setView("grid");
   if(isGuest && libView==="fav") setLibView("all");
   if(isGuest) showGuestPromo(); else showAppPromo(me);
@@ -8497,7 +8491,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-10-28.6";
+const SW_VERSION="2026-10-28.7";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -8521,10 +8515,10 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sample-editor.js?v=2026-10-28.6"></script>
-<script src="engine/sampler.js?v=2026-10-28.6"></script>
-<script src="engine/vocal.js?v=2026-10-28.6"></script>
+<script src="engine/sample-editor.js?v=2026-10-28.7"></script>
+<script src="engine/sampler.js?v=2026-10-28.7"></script>
+<script src="engine/vocal.js?v=2026-10-28.7"></script>
 <script>PMSampler.init(); PMVocal.init();</script>
-<script src="engine/midi.js?v=2026-10-28.6"></script>
+<script src="engine/midi.js?v=2026-10-28.7"></script>
 </body>
 </html>

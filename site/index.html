@@ -46,6 +46,11 @@
 // Tema scelto dall'utente (di default Chiaro), applicato prima del primo render per evitare il lampo del tema sbagliato.
 (function(){ let t="light"; try{ t=localStorage.getItem("sp1200.theme")==="dark"?"dark":"light"; }catch(e){}
   document.documentElement.dataset.theme=t; })();
+// Disposizione su una pagina (interruttore One page, ?layout=one|classic): letta subito, cosi' non si vede prima quella classica.
+(function(){ let l=null; try{ l=localStorage.getItem("sp1200.layout"); }catch(e){}
+  const q=new URLSearchParams(location.search).get("layout");
+  if(q==="one"||q==="classic") l=q;
+  if(l==="one") document.documentElement.dataset.layout="one"; })();
 </script>
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
@@ -1052,20 +1057,22 @@ button.danger-fill{background:var(--danger); border-color:var(--danger); color:#
 .tl-info .tl-time{font-size:13px; font-weight:700; color:var(--text); font-variant-numeric:tabular-nums; letter-spacing:0.04em;}
 .tl-info .tl-note{color:var(--text-faint);}
 
-/* Interruttore tema: Chiaro [ o ] Scuro */
-.theme-toggle{display:inline-flex; align-items:center; gap:6px; padding:4px 2px; background:none; border:none; box-shadow:none;
+/* Interruttori tema (Chiaro [ o ] Scuro) e una pagina (One page [ o ]): stesso aspetto */
+.theme-toggle, .layout-toggle{display:inline-flex; align-items:center; gap:6px; padding:4px 2px; background:none; border:none; box-shadow:none;
   font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-faint); cursor:pointer;}
-.theme-toggle:hover{border:none;}
-.theme-toggle:active{transform:none;}
-.theme-toggle .tt-track{position:relative; width:30px; height:16px; border-radius:999px; background:var(--panel-2);
+.theme-toggle:hover, .layout-toggle:hover{border:none;}
+.theme-toggle:active, .layout-toggle:active{transform:none;}
+.theme-toggle .tt-track, .layout-toggle .tt-track{position:relative; width:30px; height:16px; border-radius:999px; background:var(--panel-2);
   border:1px solid var(--edge); transition:background .15s, border-color .15s;}
-.theme-toggle .tt-knob{position:absolute; top:1px; left:1px; width:12px; height:12px; border-radius:50%;
+.theme-toggle .tt-knob, .layout-toggle .tt-knob{position:absolute; top:1px; left:1px; width:12px; height:12px; border-radius:50%;
   background:var(--text-dim); transition:transform .15s;}
-.theme-toggle[aria-checked="false"] .tt-light, .theme-toggle[aria-checked="true"] .tt-dark{color:var(--text); font-weight:700;}
-.theme-toggle[aria-checked="true"] .tt-track{background:var(--accent); border-color:var(--accent);}
-.theme-toggle[aria-checked="true"] .tt-knob{transform:translateX(14px); background:var(--on-accent);}
-.theme-toggle:focus-visible .tt-track{outline:2px solid var(--accent); outline-offset:2px;}
-@media (prefers-reduced-motion:reduce){ .theme-toggle .tt-track, .theme-toggle .tt-knob{transition:none;} }
+.theme-toggle[aria-checked="false"] .tt-light, .theme-toggle[aria-checked="true"] .tt-dark, .layout-toggle[aria-checked="true"] .tt-side{color:var(--text); font-weight:700;}
+.theme-toggle[aria-checked="true"] .tt-track, .layout-toggle[aria-checked="true"] .tt-track{background:var(--accent); border-color:var(--accent);}
+.theme-toggle[aria-checked="true"] .tt-knob, .layout-toggle[aria-checked="true"] .tt-knob{transform:translateX(14px); background:var(--on-accent);}
+.theme-toggle:focus-visible .tt-track, .layout-toggle:focus-visible .tt-track{outline:2px solid var(--accent); outline-offset:2px;}
+@media (prefers-reduced-motion:reduce){ .theme-toggle .tt-track, .theme-toggle .tt-knob, .layout-toggle .tt-track, .layout-toggle .tt-knob{transition:none;} }
+/* La disposizione su una pagina c'e' solo sugli schermi grandi: altrove l'interruttore non serve. */
+@media (max-width:1099px), (max-height:679px){ .layout-toggle{display:none;} }
 
 table.recent{width:100%; border-collapse:collapse; font-size:13px;}
 table.recent th{text-align:left; color:var(--text-faint); font-weight:700; font-size:10.5px;
@@ -1204,6 +1211,157 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 .seqblock-mutes{display:flex; flex-wrap:wrap; gap:3px;}
 .seqblock-mutes button{padding:2px 5px; font-size:9px; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-transform:none; letter-spacing:0;}
 .seqblock-mutes button.on{background:var(--danger); border-color:var(--danger); color:#fff; text-decoration:line-through;}
+
+/* ---------- Una pagina (interruttore One page) ----------
+   html.op la mette applyOnePage() solo con l'interruttore acceso e uno schermo da 1100×680 in su. Barra del progetto
+   e trasporto in alto, a sinistra macchina, pattern e feel, al centro le schede. La pagina non scorre: se una vista
+   non entra scorre solo lo stage. Le regole con display passano da :not([hidden]), che altrimenti vincerebbero su hidden. */
+@media (min-width:1100px) and (min-height:680px){
+  html[data-layout="one"]:not(.op):not([data-live]):not([data-embed]) .wrap{visibility:hidden;}
+}
+html.op{--op-rail:250px; --op-head:248px;}
+html.op body{height:100vh; height:100dvh; overflow:hidden; padding:10px 12px; box-sizing:border-box;}
+html.op .wrap{max-width:none; height:100%; display:grid; gap:8px; grid-template-columns:var(--op-rail) minmax(0,1fr);
+  grid-template-rows:auto auto auto minmax(0,1fr) auto; grid-template-areas:"head head" "trans trans" "rail tabs" "rail stage" "foot foot";}
+html.op .wrap .panel{margin:0;}
+
+/* barra in alto: titolo, progetto, guida, tema, account su una riga (va a capo sugli schermi piu' stretti) */
+html.op #opHead:not([hidden]){grid-area:head; display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; min-width:0; padding:5px 10px;
+  background:var(--plate,var(--panel)); border:1px solid var(--edge); border-radius:var(--r-panel,10px); box-shadow:var(--shadow);}
+html.op .topbar, html.op .topbar-controls{display:contents;}
+html.op .topbar h1{order:0; font-size:14px; letter-spacing:.16em; white-space:nowrap;}
+html.op .project-panel{order:1; flex:1 1 auto; min-width:0; padding:0; background:none; border:0; box-shadow:none;}
+html.op .project-panel h2{display:none;}
+html.op .project-panel .flexline{flex-wrap:nowrap; align-items:center; gap:6px;}
+html.op .project-name-wrap{flex-direction:row; align-items:center; gap:6px;}
+html.op .project-panel #projectName{width:170px!important; height:32px;}
+html.op .project-buttons, html.op .project-io{flex-wrap:nowrap; gap:5px;}
+/* :is() con gli id: deve battere le regole per id dei tasti del progetto (#viewRecent, #importBtn...) */
+html.op .project-panel :is(button, #viewRecent, #importBtn, #viewMidi), html.op .project-panel .export-menu summary, html.op .op-guide summary{min-height:32px; padding:5px 10px; font-size:10.5px;}
+html.op .op-guide:not([hidden]), html.op .theme-toggle, html.op .layout-toggle, html.op .net-badge{order:2;}
+html.op .op-guide .export-list{left:auto; right:0;}
+html.op .op-guide .topbar-guides{display:contents;}
+html.op .op-guide .export-list .linkbtn{justify-content:flex-start; min-height:32px; font-size:10px;}
+html.op .theme-toggle .tt-light{display:none;}
+html.op .topbar #accountLinks{order:3; margin-left:0;}
+@media (max-width:1360px){ html.op .topbar h1{font-size:12px; letter-spacing:.08em;} }
+
+/* trasporto su una riga: i cursori di feel e volume stanno nella colonna */
+html.op #panelTransport{grid-area:trans; position:static; display:flex; align-items:center; gap:10px; padding:6px 10px;}
+html.op #panelTransport .transport-primary{flex:1 1 auto; flex-wrap:nowrap; gap:7px; min-width:0;}
+html.op #panelTransport .transport-secondary{flex:0 0 auto; margin:0; padding:0; border:0;}
+html.op #panelTransport button, html.op #panelTransport select, html.op #panelTransport #bpmNum{min-height:34px; height:34px; padding-top:0; padding-bottom:0;}
+html.op #panelTransport #tapBtn{width:34px;}
+
+/* schede sopra lo stage */
+html.op .tabs{grid-area:tabs; margin:0; gap:4px; flex-wrap:nowrap; align-items:flex-end;}
+html.op .tabs :is(button, #viewGrid, #viewSeq, #viewSynth, #viewSampler, #viewMix){min-height:0; padding:7px 14px; font-size:11px;}
+html.op .tabs .live-playing-link{min-height:0; padding:6px 14px; font-size:11px; border-width:1px; border-radius:var(--r-key,6px); box-shadow:var(--key-shadow,none); letter-spacing:.06em;}
+
+/* colonna: macchina, pattern, feel e volumi, tasti */
+html.op #opRail:not([hidden]){grid-area:rail; display:flex; flex-direction:column; gap:6px; min-height:0; overflow-y:auto; overflow-x:hidden;}
+html.op #opRail > *{flex:0 0 auto;}
+html.op #opRail > .panel{padding:8px 10px;}
+html.op #opRail > .panel > h2{margin-bottom:7px;}
+html.op #machinePanel .machine-bar{flex-direction:column; align-items:stretch; gap:6px; margin:0; padding:0; border:0;}
+html.op #machinePanel .machine-main{gap:5px;}
+html.op #machinePanel .machine-main{flex:0 0 auto; min-width:0;}
+html.op #machinePanel .machine-select{min-width:0; width:100%; font-size:12px; padding:6px 8px;}
+html.op #machinePanel .machine-info{font-size:9.5px; line-height:1.4;}
+html.op #machinePanel .machine-side{flex:0 0 auto; margin:0; flex-direction:column; align-items:stretch;}
+html.op #machinePanel .machine-art svg{width:150px; max-width:100%; margin:0 auto;}
+html.op #machinePanel .machine-mixed{max-width:none;}
+html.op #panelPatterns .chips{flex-direction:column; align-items:stretch; gap:4px;}
+html.op #panelPatterns .pattern-item{display:flex;}
+html.op #panelPatterns .pattern-item .pattern-btn, html.op #panelPatterns .chips > .pattern-btn{flex:1 1 auto; padding:6px 9px;}
+html.op #panelPatterns .pattern-btn-name{max-width:none;}
+/* Generate, Vary, New su una riga; Duplicate, Clear, Rename, Delete due per riga; Steps, Meter, Grid, Groove due per riga */
+html.op #panelPatterns .flexline{display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:5px;}
+html.op #panelPatterns .flexline > button{grid-column:span 2; padding-inline:2px; font-size:9.5px; letter-spacing:0;}
+html.op #panelPatterns .pattern-actions{grid-column:1 / -1; display:grid; grid-template-columns:1fr 1fr; gap:5px;}
+html.op #panelPatterns label.fld{grid-column:span 3; margin-left:0!important; flex-direction:column; align-items:stretch; gap:3px; font-size:9px;}
+html.op #panelPatterns label.fld select{width:100%;}
+html.op #opFeel .feel-group, html.op #opFeel .vol-group{display:flex; flex-direction:column; align-items:stretch; gap:4px; padding:0; border:0;}
+html.op #opFeel .vol-group{margin-top:6px;}
+html.op #opFeel label.fld{display:grid; grid-template-columns:64px minmax(0,1fr) auto; align-items:center; gap:6px;}
+html.op #opFeel label.fld input[type=range]{width:100%;}
+html.op #opFeel .vol-ch{display:grid; grid-template-columns:minmax(0,1fr) auto auto; gap:3px; align-items:center;}
+html.op body.mix-view #opFeel .vol-group{display:none;}
+/* i tasti stanno nel piede: si aprono verso l'alto sopra la pagina */
+html.op .site-footer #helpKeys{margin:0; border:0; background:none;}
+html.op .site-footer #helpKeys > summary{padding:3px 6px; font-size:9.5px;}
+html.op .site-footer #helpKeys[open] > .help-body{position:absolute; z-index:40; left:50%; transform:translateX(-50%); bottom:calc(100% + 6px); width:min(900px,calc(100vw - 40px));
+  max-height:60vh; overflow:auto; padding-top:12px; background:var(--panel); border:1px solid var(--edge); border-radius:8px; box-shadow:0 12px 30px rgba(0,0,0,.35);}
+/* schermi bassi: via l'illustrazione della macchina, cosi' la colonna entra senza scorrere */
+@media (max-height:860px){ html.op #machineArt{display:none;} }
+
+/* stage: la vista scelta riempie lo spazio; se non entra scorre lo stage, non la pagina */
+html.op #opStage:not([hidden]){grid-area:stage; display:flex; flex-direction:column; gap:8px; min-height:0; overflow:auto;}
+html.op #opStage > *{flex:0 0 auto;}
+html.op #panelGrid > h2, html.op #panelSeq > h2{display:none;}
+
+/* Drum Grid: righe su una linea (intestazione + step) che si dividono l'altezza, cassetto con suono e forma d'onda */
+html.op #panelGrid:not([hidden]){flex:1 1 0; min-height:0; display:grid; grid-template-columns:minmax(0,1fr) minmax(220px,30%); column-gap:10px; row-gap:6px;
+  grid-template-rows:auto auto minmax(min-content,calc(var(--op-rows,8) * 70px)) auto minmax(0,1fr) auto;
+  grid-template-areas:"mode head" "ruler ruler" "rows rows" "add add" ". ." "sound wave";}
+html.op #panelGrid .step-mode-line{grid-area:mode; margin:0;}
+html.op #panelGrid .grid-headline{grid-area:head; justify-self:end; margin:0;}
+html.op #ruler{grid-area:ruler; margin:0; padding:0 7px 0 calc(var(--op-head) + 15px);}
+html.op #rows{grid-area:rows; gap:4px; min-height:0;}
+html.op #addRowLine{grid-area:add; margin:0!important;}
+html.op #drumSoundPanel{grid-area:sound; margin:0; align-self:end;}
+html.op #waveDrums{grid-area:wave; margin:0; align-self:end;}
+html.op #waveDrums canvas{height:96px; min-height:0;}
+html.op .trk{flex:1 1 0; min-height:26px; display:grid; grid-template-columns:var(--op-head) minmax(0,1fr); column-gap:8px; padding:3px 6px; align-items:stretch;}
+html.op .trk.expanded, html.op .trk:has(> .voice){flex:0 0 auto; max-height:none; row-gap:6px;}
+html.op .trk.sound-sel{border-color:var(--accent); box-shadow:0 0 0 1px var(--accent) inset, var(--shadow);}
+html.op .trk > .trk-top{grid-row:1; grid-column:1; margin:0; flex-wrap:nowrap; gap:4px; min-width:0;}
+html.op .trk > .steps{grid-row:1; grid-column:2; height:100%;}
+html.op .trk > .voice, html.op .trk > .lanes{grid-column:1 / -1; margin:0;}
+html.op .trk .step{aspect-ratio:auto; min-height:0; height:100%;}
+html.op .trk.expanded .step, html.op .trk:has(> .voice) .step{height:40px;}
+html.op .trk .pad{width:24px; height:22px;}
+html.op .trk .trk-name{min-width:0; flex:1 1 auto;}
+html.op .trk .trk-vol{font-size:0; gap:0;}
+html.op .trk .trk-vol input[type=range]{width:44px;}
+html.op .trk .trk-vol .trk-vol-val{display:none;}
+html.op .trk .row-more[open] > .row-more-body{left:0; right:auto;}
+
+/* Sequencer: la timeline e' l'arrangiamento, sotto l'ispettore con il blocco scelto (batteria e synth) */
+html.op #panelSeq:not([hidden]){flex:1 1 0; min-height:0; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); column-gap:12px; row-gap:6px;
+  grid-template-rows:auto auto auto minmax(140px,1fr) auto auto auto;
+  grid-template-areas:"tools tools" "vocal vocal" "info info" "tl tl" "drum shead" "drum synth" "wave wave";}
+html.op #panelSeq > .flexline:first-of-type{grid-area:tools; margin:0!important;}
+html.op #vocalPanel{grid-area:vocal; margin:0;}
+html.op #panelSeq .tl-info{grid-area:info; margin:0;}
+html.op #timeline{grid-area:tl; height:auto; margin:0;}
+html.op #timeline.has-synth .tl-lane:not(.tl-lane-synth){bottom:38%;}
+html.op #timeline .tl-lane.tl-lane-synth{height:38%;}
+html.op .tl-seg{justify-content:flex-start; gap:3px; padding:6px 7px;}
+html.op .tl-seg b{font-size:11px;}
+html.op .tl-seg .prev, html.op .tl-seg .syn-prev{position:relative; z-index:1; margin-top:auto; pointer-events:none;}
+html.op .tl-seg .prev{display:flex; flex-direction:column; gap:2px;}
+html.op .tl-seg .syn-prev{flex:1 1 auto; height:auto; min-height:12px; background:none;}
+html.op #seqRuler, html.op #panelSeq > .hint{display:none;}
+html.op #seqTrack{grid-area:drum;}
+html.op #panelSeq .seq-lane-head{grid-area:shead; margin:0; padding-top:0; border-top:0;}
+html.op #seqSynthTrack{grid-area:synth;}
+html.op #waveSequencer{grid-area:wave; margin:0;}
+html.op #waveSequencer canvas{height:80px; min-height:0;}
+html.op .seq-track{min-height:0; overflow:visible; padding:0;}
+html.op .seq-track::after{display:none;}
+html.op .seq-track .seqblock{display:none;}
+html.op .seq-track .seqblock.sel, html.op .seq-track:not(:has(.seqblock.sel)) .seqblock:first-of-type{display:flex; width:auto; flex:1 1 auto;
+  flex-direction:row; flex-wrap:wrap; align-items:center; gap:6px 8px; cursor:default;}
+html.op .seq-track .seqblock select{width:auto; max-width:180px;}
+html.op .seq-track .seqblock .seqblock-pat{flex:0 1 auto;}
+html.op .seq-track .seqblock .prev, html.op .seq-track .seqblock .syn-prev{flex:1 1 160px; min-width:120px;}
+html.op .seq-track .seqblock .seq-prog{flex:1 1 100%;}
+
+/* piede: una riga sottile */
+html.op .site-footer{grid-area:foot; position:relative; flex-direction:row; flex-wrap:wrap; gap:4px 16px; margin:0; font-size:9.5px;}
+html.op .site-footer .report-btn{min-height:0; padding:3px 9px; font-size:9.5px;}
+html.op .site-footer .site-badge{font-size:10px; padding-block:2px;}
 </style>
 
 <div class="wrap">
@@ -1255,9 +1413,15 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       <div class="live-foot"><span>Drums: <kbd>1 2 3 4 · Q W E R · A S D F · Z X C V</kbd></span><span id="liveHint">Touch, click or use your computer keyboard</span></div>
     </div>
   </section>
+  <!-- Una pagina: contenitori vuoti, li riempie applyOnePage() spostandoci gli elementi della pagina -->
+  <div class="op-head" id="opHead" hidden></div>
   <div class="topbar">
     <h1>PATTERN-MACHINE</h1>
     <div class="topbar-controls">
+      <details class="export-menu op-guide" id="opGuide" hidden>
+        <summary>Guide ▾</summary>
+        <div class="export-list" id="opGuideList"></div>
+      </details>
       <span class="topbar-guides">
         <a class="linkbtn help-link" href="funzioni.html" title="Complete guide to every PATTERN-MACHINE feature">Complete guide</a>
         <a class="linkbtn learn-link" href="learn/index.html" title="Learn drum machine programming with hands-on lessons">Learn drum machine programming</a>
@@ -1266,6 +1430,9 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       <a class="linkbtn" id="pluginLink" href="plugin.html" title="PATTERN-MACHINE as an Audio Unit plug-in inside Logic, locked to the transport">Logic plug-in</a>
       <button type="button" class="theme-toggle" id="themeToggle" role="switch" aria-checked="false" aria-label="Dark theme" title="Switch between light and dark theme">
         <span class="tt-side tt-light">Light</span><span class="tt-track" aria-hidden="true"><span class="tt-knob"></span></span><span class="tt-side tt-dark">Dark</span>
+      </button>
+      <button type="button" class="layout-toggle" id="onePageToggle" role="switch" aria-checked="false" aria-label="One page layout" title="Fit the whole machine in one screen, without scrolling (large screens only)">
+        <span class="tt-side">One page</span><span class="tt-track" aria-hidden="true"><span class="tt-knob"></span></span>
       </button>
       <span class="net-badge" id="netBadge" hidden>offline</span>
     </div>
@@ -1365,6 +1532,11 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
       </div>
     </div>
   </div>
+
+  <aside class="op-rail" id="opRail" hidden>
+    <div class="panel op-feel" id="opFeel"><h2>Feel &amp; levels</h2></div>
+  </aside>
+  <div class="op-stage" id="opStage" hidden></div>
 
   <div class="panel" id="machinePanel">
     <div class="machine-bar drum-bar">
@@ -1852,23 +2024,23 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-10-12.1"></script>
-<script src="engine/core.js?v=2026-10-12.1"></script>
-<script src="engine/styles-punk.js?v=2026-10-12.1"></script>
-<script src="engine/styles-post.js?v=2026-10-12.1"></script>
-<script src="engine/styles-machines.js?v=2026-10-12.1"></script>
-<script src="engine/styles-alt.js?v=2026-10-12.1"></script>
-<script src="engine/styles-groove.js?v=2026-10-12.1"></script>
-<script src="engine/styles-dub.js?v=2026-10-12.1"></script>
-<script src="engine/styles-break.js?v=2026-10-12.1"></script>
-<script src="engine/styles-soul.js?v=2026-10-12.1"></script>
-<script src="engine/styles-metal.js?v=2026-10-12.1"></script>
-<script src="engine/styles-electro.js?v=2026-10-12.1"></script>
-<script src="engine/variations.js?v=2026-10-12.1"></script>
-<script src="engine/import.js?v=2026-10-12.1"></script>
-<script src="engine/rhythm.js?v=2026-10-12.1"></script>
-<script src="engine/share.js?v=2026-10-12.1"></script>
-<script src="engine/runtime.js?v=2026-10-12.1"></script>
+<script src="engine/machine-art.js?v=2026-10-28.1"></script>
+<script src="engine/core.js?v=2026-10-28.1"></script>
+<script src="engine/styles-punk.js?v=2026-10-28.1"></script>
+<script src="engine/styles-post.js?v=2026-10-28.1"></script>
+<script src="engine/styles-machines.js?v=2026-10-28.1"></script>
+<script src="engine/styles-alt.js?v=2026-10-28.1"></script>
+<script src="engine/styles-groove.js?v=2026-10-28.1"></script>
+<script src="engine/styles-dub.js?v=2026-10-28.1"></script>
+<script src="engine/styles-break.js?v=2026-10-28.1"></script>
+<script src="engine/styles-soul.js?v=2026-10-28.1"></script>
+<script src="engine/styles-metal.js?v=2026-10-28.1"></script>
+<script src="engine/styles-electro.js?v=2026-10-28.1"></script>
+<script src="engine/variations.js?v=2026-10-28.1"></script>
+<script src="engine/import.js?v=2026-10-28.1"></script>
+<script src="engine/rhythm.js?v=2026-10-28.1"></script>
+<script src="engine/share.js?v=2026-10-28.1"></script>
+<script src="engine/runtime.js?v=2026-10-28.1"></script>
 <script>
 // Script principale di PATTERN-MACHINE: stato del progetto, audio, trasporto e interfaccia della pagina.
 // Il motore ritmico (SPEngine), i tempi (PMRhythm), import, link e gli altri moduli stanno in engine/*.js.
@@ -3290,6 +3462,7 @@ function renderTracks(){
   host.innerHTML=""; stepEls=new Map(); lanePaint.clear();
   el("gridTitle").textContent = "Grid — " + pat.name;
   project.tracks.forEach((t,idx)=>host.appendChild(trackRow(t,idx,pat)));
+  if(onePage()) el("panelGrid").style.setProperty("--op-rows",project.tracks.length);   // altezza massima delle righe
   paintMixedKits();
   paintPlayhead();
   renderDrumSound();
@@ -3299,7 +3472,7 @@ function renderTracks(){
 function trackRow(t,idx,pat){
   const expanded=ui.expanded===t.id;
   const wrap=document.createElement("div");
-  wrap.className="trk"+(t.mute?" muted":"")+(expanded?" expanded":"");
+  wrap.className="trk"+(t.mute?" muted":"")+(expanded?" expanded":"")+(onePage()&&ui.soundTrackId===t.id?" sound-sel":"");
   wrap.appendChild(trackHeader(t,idx,pat));
   if(openVoices.has(t.id) || expanded) wrap.appendChild(voicePanel(t));
   const arr=pat.grid[t.id]||(pat.grid[t.id]=new Array(pat.len).fill(0));
@@ -3331,6 +3504,11 @@ function trackHeader(t,idx,pat){
   const nm=document.createElement("div");
   nm.className="trk-name"; nm.textContent=name;
   nm.title="click: open or close all the row options"; nm.onclick=()=>toggleExpand(t.id);
+  // su una pagina il nome sceglie la riga per Drum Sound, nel cassetto sotto la griglia; le opzioni sono nel menu ⋯
+  if(onePage()){
+    nm.title="click: show this row in Drum Sound";
+    nm.onclick=()=>{ ui.soundTrackId=t.id; el("drumSoundPanel").open=true; renderTracks(); };
+  }
   top.appendChild(nm);
 
   const more=document.createElement("details"); more.className="row-more";
@@ -3345,7 +3523,7 @@ function trackHeader(t,idx,pat){
   smp.setAttribute("aria-label",`Sound for ${name}`);
   smp.onchange=()=>{ pushUndo(); t.sampleIndex=+smp.value; loadTrack(t); renderTracks(); };
   smp.title="Change the instrument of this row";
-  top.appendChild(smp);   // nella riga, accanto al nome (l'ordine visivo lo danno le regole .trk-top>...)
+  (onePage()?moreBody:top).appendChild(smp);   // nella riga, accanto al nome (l'ordine visivo lo danno le regole .trk-top>...); su una pagina nel menu ⋯
   if(!SAMPLES[t.sampleIndex]?.local){   // un campione del Sampler non appartiene a nessun kit
     const own=t.kit && kitOf(t)===t.kit;
     const kitBtn=document.createElement("button"); kitBtn.type="button"; kitBtn.className="row-kit"+(own?" on":"");
@@ -3355,7 +3533,7 @@ function trackHeader(t,idx,pat){
     kitBtn.setAttribute("aria-label",`Kit for ${name}: ${own?KITS[t.kit].label:"selected machine"}`);
     kitBtn.setAttribute("aria-haspopup","menu");
     kitBtn.onclick=()=>rowKitMenu(t,kitBtn);
-    top.appendChild(kitBtn);
+    (onePage()?moreBody:top).appendChild(kitBtn);
   }
 
   top.appendChild(chipButton("m","M",t.mute,{title:"Mute this instrument", aria:`Mute ${name}`},
@@ -3793,6 +3971,7 @@ function renderTimeline(){
     const bars=PMRhythm.patternBars(x.len,rhythm())*x.b.repeats;
     const info=document.createElement("span"); info.textContent=`×${x.b.repeats} · ${bars} bar${bars===1?"":"s"}`;
     seg.append(name,info);
+    if(onePage()) seg.appendChild(miniPreview(x.p, x.b.mutes||[]));   // su una pagina la timeline e' l'arrangiamento: i colpi in vista
     timelineSegTools(seg,"song",x.b.id,idx);
     lane.appendChild(seg);
   });
@@ -3816,6 +3995,7 @@ function renderTimeline(){
       seg.appendChild(info);
       timelineSegTools(seg,"synth",x.b.id,idx);
     }
+    if(onePage()) seg.appendChild(synthPreview(x.sp));
     slane.appendChild(seg);
   });
   const end=el("tlEnd");
@@ -4659,7 +4839,8 @@ function setView(v){
   });
   document.body.classList.toggle("mix-view",v==="mix");
   el("machinePanel").hidden = v==="synth" || v==="midi" || v==="mix" || v==="sampler";
-  el("panelPatterns").hidden = v!=="grid";
+  // su una pagina i pattern restano nella colonna anche nel Sequencer: servono per scegliere cosa inserire
+  el("panelPatterns").hidden = v!=="grid" && !(v==="seq" && onePage());
   el("panelGrid").hidden = v!=="grid";
   el("panelSeq").hidden = v!=="seq";
   el("panelSynth").hidden = v!=="synth";
@@ -4680,6 +4861,40 @@ function setView(v){
   if(v==="seq") renderSong();
   if(v==="synth" && window.PMSynth) PMSynth.show();
   if(v==="midi" && window.PMMidi) PMMidi.show();
+}
+
+// ---------- una pagina (interruttore One page) ----------
+// Sugli schermi grandi la macchina sta in una schermata: barra in alto, colonna a sinistra, schede al centro.
+// Gli elementi non si rifanno: si spostano nei contenitori op* e, spegnendo, tornano dov'erano (id e gestori restano).
+const ONE_PAGE_KEY="sp1200.layout", ONE_PAGE_MQ=matchMedia("(min-width:1100px) and (min-height:680px)");
+const onePageMoves=[];   // [nodo, genitore, fratello successivo], per rimettere tutto com'era
+function onePage(){ return document.documentElement.classList.contains("op"); }
+function currentView(){ return Object.keys(VIEW_TABS).find(v=>el(VIEW_TABS[v]).classList.contains("on"))||"grid"; }
+function applyOnePage(){
+  const root=document.documentElement;
+  const on=root.dataset.layout==="one" && ONE_PAGE_MQ.matches && !root.dataset.live && !root.dataset.embed;
+  if(on===onePage()) return;
+  if(on){
+    const move=(node,host,before=null)=>{ onePageMoves.push([node,node.parentNode,node.nextSibling]); host.insertBefore(node,before); };
+    const head=el("opHead"), rail=el("opRail"), feel=el("opFeel"), stage=el("opStage");
+    move(document.querySelector(".topbar"),head);
+    move(document.querySelector(".project-panel"),head);
+    [document.querySelector(".topbar-guides"),el("desktopAppLink"),el("pluginLink")].forEach(n=>move(n,el("opGuideList")));
+    move(el("machinePanel"),rail,feel);
+    move(el("panelPatterns"),rail,feel);
+    move(document.querySelector(".feel-group"),feel);
+    move(document.querySelector(".vol-group"),feel);
+    move(el("helpKeys"),document.querySelector(".site-footer"),document.querySelector(".site-footer").firstChild);
+    ["synthEnginePanel","synthPatternPanel","panelGrid","panelSynth","panelSampler","panelSeq","panelMix","panelRecent","panelMidi"]
+      .forEach(id=>move(el(id),stage));
+  }else{
+    while(onePageMoves.length){ const [node,parent,next]=onePageMoves.pop(); parent.insertBefore(node,next); }
+  }
+  root.classList.toggle("op",on);
+  ["opHead","opRail","opStage","opGuide"].forEach(id=>{ el(id).hidden=!on; });
+  if(!on) el("opGuide").open=false;
+  setView(currentView());
+  renderTracks(); renderSong();
 }
 
 // ---------- forme d'onda (Drums, Sequencer, Synth, Mixer) ----------
@@ -5134,7 +5349,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || el("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-12.1";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-28.1";
   document.body.appendChild(s);
 }
 if(LIVE_VIEW || (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth"))) loadSynth();
@@ -8171,9 +8386,29 @@ window.addEventListener("resize",()=>{
   });
 })();
 
+// ---------- una pagina: interruttore e menu Guide ----------
+// La scelta (o ?layout=one|classic) resta nel browser; la disposizione segue anche i cambi di dimensione della finestra.
+(function onePageSwitch(){
+  const root=document.documentElement, toggle=el("onePageToggle"), guide=el("opGuide");
+  const asked=pmQuery.get("layout");
+  if(asked==="one"||asked==="classic") storeSet(ONE_PAGE_KEY,asked);
+  const paint=()=>toggle.setAttribute("aria-checked",String(root.dataset.layout==="one"));
+  toggle.onclick=()=>{
+    if(root.dataset.layout==="one") delete root.dataset.layout; else root.dataset.layout="one";
+    storeSet(ONE_PAGE_KEY,root.dataset.layout==="one"?"one":"classic");
+    paint(); applyOnePage();
+  };
+  ONE_PAGE_MQ.addEventListener("change",applyOnePage);
+  // il menu Guide (i collegamenti della barra) si chiude dopo una scelta, al click fuori e con Esc, come Export
+  guide.addEventListener("click",e=>{ if(e.target.closest(".export-list a")) guide.open=false; });
+  document.addEventListener("click",e=>{ if(guide.open && !guide.contains(e.target)) guide.open=false; });
+  guide.addEventListener("keydown",e=>{ if(e.key==="Escape"){ guide.open=false; guide.querySelector("summary").focus(); } });
+  paint(); applyOnePage();
+})();
+
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-10-12.1";
+const SW_VERSION="2026-10-28.1";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -8197,10 +8432,10 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sample-editor.js?v=2026-10-12.1"></script>
-<script src="engine/sampler.js?v=2026-10-12.1"></script>
-<script src="engine/vocal.js?v=2026-10-12.1"></script>
+<script src="engine/sample-editor.js?v=2026-10-28.1"></script>
+<script src="engine/sampler.js?v=2026-10-28.1"></script>
+<script src="engine/vocal.js?v=2026-10-28.1"></script>
 <script>PMSampler.init(); PMVocal.init();</script>
-<script src="engine/midi.js?v=2026-10-12.1"></script>
+<script src="engine/midi.js?v=2026-10-28.1"></script>
 </body>
 </html>

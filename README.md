@@ -1,6 +1,6 @@
 # PATTERN-MACHINE
 
-**PatternMachine is a rhythm-focused software groovebox built around classic drum machines, synth patterns and song arranging.**
+**PatternMachine is a rhythm-focused software groovebox built around classic drum machines, generated patterns and song arranging.**
 Runs in the browser, as a desktop app for macOS, Windows and Linux, and as a plug-in inside Logic Pro.
 
 **Website:** [patternmachine.tongatron.org](https://patternmachine.tongatron.org) ·
@@ -9,7 +9,7 @@ Runs in the browser, as a desktop app for macOS, Windows and Linux, and as a plu
 [Guide](https://patternmachine.tongatron.org/funzioni.html) ·
 [The machines](https://patternmachine.tongatron.org/macchine.html)
 
-![Web](https://img.shields.io/badge/web-PWA-c8471f)
+![Web](https://img.shields.io/badge/web-browser-c8471f)
 ![macOS](https://img.shields.io/badge/macOS-Apple%20Silicon-1c1b19)
 ![Windows](https://img.shields.io/badge/Windows-x64-1c1b19)
 ![Linux](https://img.shields.io/badge/Linux-AppImage-1c1b19)
@@ -39,7 +39,7 @@ It comes in three forms that share the same interface:
 
 | | Runs on | Adds |
 |---|---|---|
-| 🌐 **Website / PWA** | any modern browser, including phones | nothing to install; can be installed as a web app |
+| 🌐 **Website** | any modern browser | nothing to install |
 | 🖥️ **Desktop app** | macOS, Windows, Linux | virtual MIDI port, sync to the DAW's MIDI Clock, drag-and-drop into the DAW timeline, projects as files, offline use, custom sample kits |
 | 🎛️ **Logic plug-in** | Logic Pro (AU) and other hosts (VST3) | plays inside an instrument track, sample-accurate with the host transport, state saved with the Logic project |
 
@@ -76,6 +76,10 @@ from any point on the timeline or solo a single block.
 | **MP3** | for listening and sharing, works in every browser |
 | **DAW package** | a folder ready for Logic Pro, Ableton Live, REAPER and other DAWs |
 | **Project / link** | project JSON and a shareable link |
+
+### Experimental
+A **Synthesizer** and a **Sampler** are still in testing. They are off by default (switch them on from the account menu,
+under *Synth & Sampler*) and may change, so nothing else in this project depends on them.
 
 ## Desktop app (macOS, Windows, Linux)
 
@@ -155,7 +159,7 @@ Step-by-step instructions are in the [guide](https://patternmachine.tongatron.or
 
 | Path | Contents |
 |---|---|
-| [`site/`](site) | the website: drum machine, pattern engine, guide, machines page, PWA, samples |
+| [`site/`](site) | the website: drum machine, pattern engine, guide, machines page, samples |
 | [`desktop/`](desktop) | desktop app for macOS, Windows and Linux ([notes](desktop/README.md)) |
 | [`plugin/`](plugin) | Logic Pro plug-in, AU / VST3 ([notes](plugin/README.md)) |
 | [`SP 1200/`](<SP 1200>) | original SP-1200 samples and pad mappings |

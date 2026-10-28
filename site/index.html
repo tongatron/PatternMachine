@@ -1220,7 +1220,9 @@ html:not([data-pro="1"]) #viewSynth, html:not([data-pro="1"]) #viewSampler{displ
 .pro-switch[aria-checked="true"] .tt-knob{transform:translateX(14px); background:var(--on-accent);}
 .user-menu .export-list .pro-switch[aria-checked="true"]{background:var(--key,var(--panel-2)); color:var(--text); border-color:var(--edge);}
 .user-menu .export-list .theme-toggle .tt-name{margin-right:auto; color:var(--text); font-weight:700;}
-.user-menu .export-list .theme-toggle{padding:6px 10px; min-height:32px; justify-content:space-between; font-size:10px; color:var(--text);}
+.user-menu .export-list .theme-toggle{width:100%; padding:6px 10px; min-height:32px; justify-content:space-between; font-size:10px; color:var(--text-faint); background:var(--key,var(--panel-2)); border:1px solid var(--edge); border-radius:var(--r-key,6px); box-shadow:var(--key-shadow,none);}
+.user-menu .export-list .theme-toggle:hover{border:1px solid var(--text-faint);}
+.user-menu .export-list .tt-name{text-transform:none; letter-spacing:.02em; font-size:11px;}
 .user-menu .export-list .linkbtn, .user-menu .export-list button:not(.theme-toggle){justify-content:flex-start; text-align:left; min-height:32px; font-size:10px;}
 /* Avviso sotto 1100×680: copre il sito e descrive cosa fa (non in ?live ed ?embed) */
 .small-notice{display:none; position:fixed; inset:0; z-index:500; overflow:auto; padding:20px 16px; background:var(--body-bg,var(--bg)); color:var(--text);}
@@ -1542,10 +1544,11 @@ html.op .site-footer .report-btn{order:5; min-height:0; padding:5px 10px; font-s
       <summary id="whoami">Account</summary>
       <div class="export-list">
         <a class="linkbtn" id="adminLink" href="/admin" title="Registered users" hidden>Users</a>
+      <button type="button" class="pro-switch" id="proToolsBtn" role="switch" aria-checked="false" title="Synthesizer and Sampler are experimental: turn them on to show their tabs (off by default)"><span class="tt-name">Synth &amp; Sampler</span><span class="tt-side tt-off">Off</span><span class="tt-track" aria-hidden="true"><span class="tt-knob"></span></span><span class="tt-side tt-on">On</span></button>
       <button type="button" class="theme-toggle" id="themeToggle" role="switch" aria-checked="false" aria-label="Dark theme" title="Switch between light and dark theme">
         <span class="tt-name">Theme</span><span class="tt-side tt-light">Light</span><span class="tt-track" aria-hidden="true"><span class="tt-knob"></span></span><span class="tt-side tt-dark">Dark</span>
       </button>
-        <button type="button" class="pro-switch" id="proToolsBtn" role="switch" aria-checked="false" title="Synthesizer and Sampler are experimental: turn them on to show their tabs (off by default)"><span class="tt-name">Synth &amp; Sampler</span><span class="tt-side tt-off">Off</span><span class="tt-track" aria-hidden="true"><span class="tt-knob"></span></span><span class="tt-side tt-on">On</span></button>
+        
         <a class="linkbtn" href="/logout" title="Log out of your account">Log out</a>
       </div>
     </details>
@@ -2130,23 +2133,23 @@ html.op .site-footer .report-btn{order:5; min-height:0; padding:5px 10px; font-s
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-10-28.14"></script>
-<script src="engine/core.js?v=2026-10-28.14"></script>
-<script src="engine/styles-punk.js?v=2026-10-28.14"></script>
-<script src="engine/styles-post.js?v=2026-10-28.14"></script>
-<script src="engine/styles-machines.js?v=2026-10-28.14"></script>
-<script src="engine/styles-alt.js?v=2026-10-28.14"></script>
-<script src="engine/styles-groove.js?v=2026-10-28.14"></script>
-<script src="engine/styles-dub.js?v=2026-10-28.14"></script>
-<script src="engine/styles-break.js?v=2026-10-28.14"></script>
-<script src="engine/styles-soul.js?v=2026-10-28.14"></script>
-<script src="engine/styles-metal.js?v=2026-10-28.14"></script>
-<script src="engine/styles-electro.js?v=2026-10-28.14"></script>
-<script src="engine/variations.js?v=2026-10-28.14"></script>
-<script src="engine/import.js?v=2026-10-28.14"></script>
-<script src="engine/rhythm.js?v=2026-10-28.14"></script>
-<script src="engine/share.js?v=2026-10-28.14"></script>
-<script src="engine/runtime.js?v=2026-10-28.14"></script>
+<script src="engine/machine-art.js?v=2026-10-28.15"></script>
+<script src="engine/core.js?v=2026-10-28.15"></script>
+<script src="engine/styles-punk.js?v=2026-10-28.15"></script>
+<script src="engine/styles-post.js?v=2026-10-28.15"></script>
+<script src="engine/styles-machines.js?v=2026-10-28.15"></script>
+<script src="engine/styles-alt.js?v=2026-10-28.15"></script>
+<script src="engine/styles-groove.js?v=2026-10-28.15"></script>
+<script src="engine/styles-dub.js?v=2026-10-28.15"></script>
+<script src="engine/styles-break.js?v=2026-10-28.15"></script>
+<script src="engine/styles-soul.js?v=2026-10-28.15"></script>
+<script src="engine/styles-metal.js?v=2026-10-28.15"></script>
+<script src="engine/styles-electro.js?v=2026-10-28.15"></script>
+<script src="engine/variations.js?v=2026-10-28.15"></script>
+<script src="engine/import.js?v=2026-10-28.15"></script>
+<script src="engine/rhythm.js?v=2026-10-28.15"></script>
+<script src="engine/share.js?v=2026-10-28.15"></script>
+<script src="engine/runtime.js?v=2026-10-28.15"></script>
 <script>
 // Script principale di PATTERN-MACHINE: stato del progetto, audio, trasporto e interfaccia della pagina.
 // Il motore ritmico (SPEngine), i tempi (PMRhythm), import, link e gli altri moduli stanno in engine/*.js.
@@ -5458,7 +5461,7 @@ function paintProTools(){
 function loadSynth(){
   if(window.PMSynth || el("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-28.14";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-28.15";
   document.body.appendChild(s);
 }
 if(LIVE_VIEW || (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth"))) loadSynth();
@@ -8530,7 +8533,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-10-28.14";
+const SW_VERSION="2026-10-28.15";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -8554,10 +8557,10 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sample-editor.js?v=2026-10-28.14"></script>
-<script src="engine/sampler.js?v=2026-10-28.14"></script>
-<script src="engine/vocal.js?v=2026-10-28.14"></script>
+<script src="engine/sample-editor.js?v=2026-10-28.15"></script>
+<script src="engine/sampler.js?v=2026-10-28.15"></script>
+<script src="engine/vocal.js?v=2026-10-28.15"></script>
 <script>PMSampler.init(); PMVocal.init();</script>
-<script src="engine/midi.js?v=2026-10-28.14"></script>
+<script src="engine/midi.js?v=2026-10-28.15"></script>
 </body>
 </html>

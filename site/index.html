@@ -1209,7 +1209,8 @@ html:not([data-pro="1"]) #viewSynth, html:not([data-pro="1"]) #viewSampler{displ
 .user-menu summary{min-height:0; padding:5px 10px; font-size:10.5px; font-weight:700;}
 .user-menu .export-list [hidden]{display:none!important;}
 .user-menu .export-list{left:auto; right:0; min-width:290px;}
-.user-menu .export-list .linkbtn, .user-menu .export-list button{justify-content:flex-start; text-align:left; min-height:32px; font-size:10px;}
+.user-menu .export-list .theme-toggle{padding:6px 10px; min-height:32px; justify-content:space-between; font-size:10px; color:var(--text);}
+.user-menu .export-list .linkbtn, .user-menu .export-list button:not(.theme-toggle){justify-content:flex-start; text-align:left; min-height:32px; font-size:10px;}
 .user-menu #proToolsBtn[aria-checked="true"]{background:var(--key-primary,var(--accent)); color:var(--on-accent); border-color:var(--accent-dim);}
 /* Avviso sotto 1100×680: copre il sito e descrive cosa fa (non in ?live ed ?embed) */
 .small-notice{display:none; position:fixed; inset:0; z-index:500; overflow:auto; padding:20px 16px; background:var(--body-bg,var(--bg)); color:var(--text);}
@@ -1244,12 +1245,10 @@ html.op .project-name-wrap{flex-direction:row; align-items:center; gap:6px;}
 html.op .project-panel #projectName{width:170px!important; height:32px;}
 html.op .project-buttons, html.op .project-io{flex-wrap:nowrap; gap:5px;}
 /* :is() con gli id: deve battere le regole per id dei tasti del progetto (#viewRecent, #importBtn...) */
-html.op .project-panel :is(button, #viewRecent, #importBtn, #viewMidi), html.op .project-panel .export-menu summary, html.op .op-guide summary{min-height:32px; padding:5px 10px; font-size:10.5px;}
-html.op .op-guide:not([hidden]), html.op .theme-toggle, html.op .net-badge{order:2;}
-html.op .op-guide .export-list{left:auto; right:0;}
-html.op .op-guide .topbar-guides{display:contents;}
-html.op .op-guide .export-list .linkbtn{justify-content:flex-start; min-height:32px; font-size:10px;}
-html.op .theme-toggle .tt-light{display:none;}
+html.op .project-panel :is(button, #viewRecent, #importBtn, #viewMidi), html.op .project-panel .export-menu summary, html.op .op-menu summary{min-height:32px; padding:5px 10px; font-size:10.5px;}
+html.op .op-menu:not([hidden]), html.op .net-badge{order:2;}
+html.op .op-menu .export-list{left:auto; right:0; min-width:230px;}
+html.op .op-menu .export-list .linkbtn{justify-content:flex-start; min-height:32px; font-size:10px;}
 html.op .topbar #accountLinks{order:3; margin-left:0; display:block;}
 @media (max-width:1360px){ html.op .topbar h1{font-size:12px; letter-spacing:.08em;} }
 
@@ -1380,6 +1379,7 @@ html.op .seq-track .seqblock .seqblock-pat{flex:0 1 auto;}
 html.op .seq-track .seqblock .prev, html.op .seq-track .seqblock .syn-prev{flex:1 1 160px; min-width:120px;}
 html.op .seq-track .seqblock .seq-prog{flex:1 1 100%;}
 
+html.op:not([data-view="grid"]) #opFeel{display:none;}
 /* colonna nel Synth: motore e pattern del synth con le stesse regole di macchina e pattern della batteria */
 /* etichette, menu e collegamenti su tutta la riga; i tre tasti dei preset affiancati */
 html.op #synthEnginePanel .machine-bar{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:5px; margin:0; padding:0; border:0;}
@@ -1415,7 +1415,8 @@ html.op #panelSampler > *{flex:0 0 auto;}
 html.op #panelSampler > .sampler-list{flex:1 1 0; min-height:0; overflow:auto;}
 
 /* Mixer: le strisce riempiono la larghezza e, se sono tante, scorrono di lato */
-html.op #panelMix:not([hidden]){flex:1 1 0; min-height:0; display:flex; flex-direction:column;}
+html.op #panelMix:not([hidden]){flex:1 0 auto; display:flex; flex-direction:column;}   /* cresce col contenuto (waveform aperta): se serve scorre lo stage */
+html.op #waveMixer canvas{height:96px; min-height:0;}
 html.op #panelMix > *{flex:0 0 auto;}
 html.op #panelMix > .hint{display:none;}
 
@@ -1497,25 +1498,29 @@ html.op .site-footer .site-badge{font-size:10px; padding-block:2px;}
   <div class="topbar">
     <h1>PATTERN-MACHINE</h1>
     <div class="topbar-controls">
-      <details class="export-menu op-guide" id="opGuide" hidden>
-        <summary>More ▾</summary>
+      <details class="export-menu op-menu" id="opPrograms" hidden>
+        <summary>Programs ▾</summary>
+        <div class="export-list" id="opProgramsList"></div>
+      </details>
+      <details class="export-menu op-menu" id="opGuide" hidden>
+        <summary>Learn ▾</summary>
         <div class="export-list" id="opGuideList"></div>
       </details>
       <span class="topbar-guides">
         <a class="linkbtn help-link" href="funzioni.html" title="Complete guide to every PATTERN-MACHINE feature">Guide</a>
-        <a class="linkbtn learn-link" href="learn/index.html" title="Learn drum machine programming with hands-on lessons">Learn drum machine programming</a>
+        <a class="linkbtn learn-link" href="learn/index.html" title="Learn drum machine programming with hands-on lessons">Learn about drum machine programming</a>
       </span>
       <a class="linkbtn" id="desktopAppLink" href="app.html" title="PATTERN-MACHINE as an app for macOS, Windows and Linux: MIDI, clock sync and drag and drop">App for Mac, Win, Linux</a>
       <a class="linkbtn" id="pluginLink" href="plugin.html" title="PATTERN-MACHINE as an Audio Unit plug-in inside Logic, locked to the transport">Logic plug-in</a>
-      <button type="button" class="theme-toggle" id="themeToggle" role="switch" aria-checked="false" aria-label="Dark theme" title="Switch between light and dark theme">
-        <span class="tt-side tt-light">Light</span><span class="tt-track" aria-hidden="true"><span class="tt-knob"></span></span><span class="tt-side tt-dark">Dark</span>
-      </button>
       <span class="net-badge" id="netBadge" hidden>offline</span>
     </div>
     <details class="export-menu user-menu" id="accountLinks">
       <summary id="whoami">Account</summary>
       <div class="export-list">
         <a class="linkbtn" id="adminLink" href="/admin" title="Registered users" hidden>Users</a>
+      <button type="button" class="theme-toggle" id="themeToggle" role="switch" aria-checked="false" aria-label="Dark theme" title="Switch between light and dark theme">
+        <span class="tt-side tt-light">Light</span><span class="tt-track" aria-hidden="true"><span class="tt-knob"></span></span><span class="tt-side tt-dark">Dark</span>
+      </button>
         <button type="button" id="proToolsBtn" role="switch" aria-checked="false" title="Synthesizer and Sampler are experimental: turn them on to show their tabs (off by default)">Synthesizer &amp; Sampler (experimental): off</button>
         <a class="linkbtn" href="/logout" title="Log out of your account">Log out</a>
       </div>
@@ -1531,7 +1536,7 @@ html.op .site-footer .site-badge{font-size:10px; padding-block:2px;}
         <button id="newBtn">New</button>
         <button id="undoBtn" title="Undo the last change (⌘Z)" aria-label="Undo" disabled>↶ Undo</button>
         <button id="redoBtn" title="Redo what you undid (⌘⇧Z)" aria-label="Redo" disabled>↷ Redo</button>
-        <button id="viewRecent" title="Open projects" aria-label="Open projects"><span id="recentLabel">Open projects</span></button>
+        <button id="viewRecent" title="Open a saved project" aria-label="Open a saved project"><span id="recentLabel">Open</span></button>
       </div>
       <div class="project-io">
         <button id="viewMidi" hidden title="MIDI keyboard: connect it and choose what keys, pads and knobs do" aria-label="Open MIDI controller">MIDI</button>
@@ -2102,23 +2107,23 @@ html.op .site-footer .site-badge{font-size:10px; padding-block:2px;}
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-10-28.7"></script>
-<script src="engine/core.js?v=2026-10-28.7"></script>
-<script src="engine/styles-punk.js?v=2026-10-28.7"></script>
-<script src="engine/styles-post.js?v=2026-10-28.7"></script>
-<script src="engine/styles-machines.js?v=2026-10-28.7"></script>
-<script src="engine/styles-alt.js?v=2026-10-28.7"></script>
-<script src="engine/styles-groove.js?v=2026-10-28.7"></script>
-<script src="engine/styles-dub.js?v=2026-10-28.7"></script>
-<script src="engine/styles-break.js?v=2026-10-28.7"></script>
-<script src="engine/styles-soul.js?v=2026-10-28.7"></script>
-<script src="engine/styles-metal.js?v=2026-10-28.7"></script>
-<script src="engine/styles-electro.js?v=2026-10-28.7"></script>
-<script src="engine/variations.js?v=2026-10-28.7"></script>
-<script src="engine/import.js?v=2026-10-28.7"></script>
-<script src="engine/rhythm.js?v=2026-10-28.7"></script>
-<script src="engine/share.js?v=2026-10-28.7"></script>
-<script src="engine/runtime.js?v=2026-10-28.7"></script>
+<script src="engine/machine-art.js?v=2026-10-28.8"></script>
+<script src="engine/core.js?v=2026-10-28.8"></script>
+<script src="engine/styles-punk.js?v=2026-10-28.8"></script>
+<script src="engine/styles-post.js?v=2026-10-28.8"></script>
+<script src="engine/styles-machines.js?v=2026-10-28.8"></script>
+<script src="engine/styles-alt.js?v=2026-10-28.8"></script>
+<script src="engine/styles-groove.js?v=2026-10-28.8"></script>
+<script src="engine/styles-dub.js?v=2026-10-28.8"></script>
+<script src="engine/styles-break.js?v=2026-10-28.8"></script>
+<script src="engine/styles-soul.js?v=2026-10-28.8"></script>
+<script src="engine/styles-metal.js?v=2026-10-28.8"></script>
+<script src="engine/styles-electro.js?v=2026-10-28.8"></script>
+<script src="engine/variations.js?v=2026-10-28.8"></script>
+<script src="engine/import.js?v=2026-10-28.8"></script>
+<script src="engine/rhythm.js?v=2026-10-28.8"></script>
+<script src="engine/share.js?v=2026-10-28.8"></script>
+<script src="engine/runtime.js?v=2026-10-28.8"></script>
 <script>
 // Script principale di PATTERN-MACHINE: stato del progetto, audio, trasporto e interfaccia della pagina.
 // Il motore ritmico (SPEngine), i tempi (PMRhythm), import, link e gli altri moduli stanno in engine/*.js.
@@ -4955,7 +4960,8 @@ function applyOnePage(){
   const head=el("opHead"), rail=el("opRail"), feel=el("opFeel"), stage=el("opStage");
   move(document.querySelector(".topbar"),head);
   move(document.querySelector(".project-panel"),head);
-  [document.querySelector(".topbar-guides"),el("desktopAppLink"),el("pluginLink")].forEach(n=>move(n,el("opGuideList")));
+  document.querySelectorAll(".topbar-guides > a").forEach(n=>move(n,el("opGuideList")));
+  [el("desktopAppLink"),el("pluginLink")].forEach(n=>move(n,el("opProgramsList")));
   move(el("machinePanel"),rail,feel);
   move(el("panelPatterns"),rail,feel);
   move(el("synthEnginePanel"),rail,feel);
@@ -4965,7 +4971,7 @@ function applyOnePage(){
   move(el("helpKeys"),document.querySelector(".site-footer"),document.querySelector(".site-footer").firstChild);
   ["panelGrid","panelSynth","panelSampler","panelSeq","panelMix","panelRecent","panelMidi"].forEach(id=>move(el(id),stage));
   root.classList.add("op");
-  ["opHead","opRail","opStage","opGuide"].forEach(id=>{ el(id).hidden=false; });
+  ["opHead","opRail","opStage","opGuide","opPrograms"].forEach(id=>{ el(id).hidden=false; });
   setView(currentView());
   renderTracks(); renderSong();
 }
@@ -5429,7 +5435,7 @@ function paintProTools(){
 function loadSynth(){
   if(window.PMSynth || el("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-28.7";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-28.8";
   document.body.appendChild(s);
 }
 if(LIVE_VIEW || (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth"))) loadSynth();
@@ -8473,7 +8479,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- una pagina: selettore del Synth e menu Guide ----------
 (function onePageInit(){
-  const root=document.documentElement, guide=el("opGuide");
+  const root=document.documentElement;
   // Synth su una pagina: Notes (piano roll e tastiera) o Sound (i parametri del suono), uno alla volta
   const synthMode=el("opSynthMode");
   const paintSynthMode=mode=>{
@@ -8482,16 +8488,18 @@ window.addEventListener("resize",()=>{
   };
   synthMode.querySelectorAll("button").forEach(b=>b.onclick=()=>paintSynthMode(b.dataset.mode));
   paintSynthMode("notes");
-  // il menu Guide (i collegamenti della barra) si chiude dopo una scelta, al click fuori e con Esc, come Export
-  guide.addEventListener("click",e=>{ if(e.target.closest(".export-list a")) guide.open=false; });
-  document.addEventListener("click",e=>{ if(guide.open && !guide.contains(e.target)) guide.open=false; });
-  guide.addEventListener("keydown",e=>{ if(e.key==="Escape"){ guide.open=false; guide.querySelector("summary").focus(); } });
+  // i menu Programs e Learn si chiudono dopo una scelta, al click fuori e con Esc, come Export
+  document.querySelectorAll(".op-menu").forEach(m=>{
+    m.addEventListener("click",e=>{ if(e.target.closest(".export-list a")) m.open=false; });
+    document.addEventListener("click",e=>{ if(m.open && !m.contains(e.target)) m.open=false; });
+    m.addEventListener("keydown",e=>{ if(e.key==="Escape"){ m.open=false; m.querySelector("summary").focus(); } });
+  });
   applyOnePage();
 })();
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-10-28.7";
+const SW_VERSION="2026-10-28.8";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -8515,10 +8523,10 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sample-editor.js?v=2026-10-28.7"></script>
-<script src="engine/sampler.js?v=2026-10-28.7"></script>
-<script src="engine/vocal.js?v=2026-10-28.7"></script>
+<script src="engine/sample-editor.js?v=2026-10-28.8"></script>
+<script src="engine/sampler.js?v=2026-10-28.8"></script>
+<script src="engine/vocal.js?v=2026-10-28.8"></script>
 <script>PMSampler.init(); PMVocal.init();</script>
-<script src="engine/midi.js?v=2026-10-28.7"></script>
+<script src="engine/midi.js?v=2026-10-28.8"></script>
 </body>
 </html>

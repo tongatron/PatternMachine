@@ -1206,6 +1206,8 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 .seqblock-mutes button.on{background:var(--danger); border-color:var(--danger); color:#fff; text-decoration:line-through;}
 
 html:not([data-pro="1"]) #viewSynth, html:not([data-pro="1"]) #viewSampler{display:none;}
+.topbar h1 .logo{width:22px; height:22px; margin-right:9px; vertical-align:-5px; fill:var(--text);}
+.topbar h1 .logo .hit{fill:var(--accent);}
 .user-menu summary{min-height:0; padding:5px 10px; font-size:10.5px; font-weight:700;}
 .user-menu .export-list [hidden]{display:none!important;}
 .user-menu .export-list{left:auto; right:0; min-width:290px;}
@@ -1245,7 +1247,7 @@ html.op .project-name-wrap{flex-direction:row; align-items:center; gap:6px;}
 html.op .project-panel #projectName{width:170px!important; height:32px;}
 html.op .project-buttons, html.op .project-io{flex-wrap:nowrap; gap:5px;}
 /* :is() con gli id: deve battere le regole per id dei tasti del progetto (#viewRecent, #importBtn...) */
-html.op .project-panel :is(button, #viewRecent, #importBtn, #viewMidi), html.op .project-panel .export-menu summary, html.op .op-menu summary{min-height:32px; padding:5px 10px; font-size:10.5px;}
+html.op .project-panel :is(button, #viewRecent, #importBtn, #viewMidi), html.op .project-panel .export-menu summary, html.op .op-menu summary, html.op .user-menu summary{min-height:32px; padding:5px 10px; font-size:10.5px;}
 html.op .op-menu:not([hidden]), html.op .net-badge{order:2;}
 html.op .op-menu .export-list{left:auto; right:0; min-width:230px;}
 html.op .op-menu .export-list .linkbtn{justify-content:flex-start; min-height:32px; font-size:10px;}
@@ -1512,7 +1514,7 @@ html.op .site-footer .report-btn{order:5; min-height:0; padding:5px 10px; font-s
   <!-- Una pagina: contenitori vuoti, li riempie applyOnePage() spostandoci gli elementi della pagina -->
   <div class="op-head" id="opHead" hidden></div>
   <div class="topbar">
-    <h1>PATTERN-MACHINE</h1>
+    <h1><svg class="logo" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="2" width="9" height="9" rx="2.2"/><rect class="hit" x="13" y="2" width="9" height="9" rx="2.2"/><rect x="2" y="13" width="9" height="9" rx="2.2"/><rect class="hit" x="13" y="13" width="9" height="9" rx="2.2"/></svg>PATTERN-MACHINE</h1>
     <div class="topbar-controls">
       <details class="export-menu op-menu" id="opPrograms" hidden>
         <summary>Programs ▾</summary>
@@ -1534,6 +1536,7 @@ html.op .site-footer .report-btn{order:5; min-height:0; padding:5px 10px; font-s
       <summary id="whoami">Account</summary>
       <div class="export-list">
         <a class="linkbtn" id="adminLink" href="/admin" title="Registered users" hidden>Users</a>
+      <div class="export-head">Theme</div>
       <button type="button" class="theme-toggle" id="themeToggle" role="switch" aria-checked="false" aria-label="Dark theme" title="Switch between light and dark theme">
         <span class="tt-side tt-light">Light</span><span class="tt-track" aria-hidden="true"><span class="tt-knob"></span></span><span class="tt-side tt-dark">Dark</span>
       </button>
@@ -1550,9 +1553,9 @@ html.op .site-footer .report-btn{order:5; min-height:0; padding:5px 10px; font-s
       <div class="project-buttons">
         <button id="saveBtn" class="primary">Save</button>
         <button id="newBtn">New</button>
+        <button id="viewRecent" title="Open a saved project" aria-label="Open a saved project"><span id="recentLabel">Open</span></button>
         <button id="undoBtn" title="Undo the last change (⌘Z)" aria-label="Undo" disabled>↶ Undo</button>
         <button id="redoBtn" title="Redo what you undid (⌘⇧Z)" aria-label="Redo" disabled>↷ Redo</button>
-        <button id="viewRecent" title="Open a saved project" aria-label="Open a saved project"><span id="recentLabel">Open</span></button>
       </div>
       <div class="project-io">
         <button id="viewMidi" hidden title="MIDI keyboard: connect it and choose what keys, pads and knobs do" aria-label="Open MIDI controller">MIDI</button>
@@ -2122,23 +2125,23 @@ html.op .site-footer .report-btn{order:5; min-height:0; padding:5px 10px; font-s
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-10-28.11"></script>
-<script src="engine/core.js?v=2026-10-28.11"></script>
-<script src="engine/styles-punk.js?v=2026-10-28.11"></script>
-<script src="engine/styles-post.js?v=2026-10-28.11"></script>
-<script src="engine/styles-machines.js?v=2026-10-28.11"></script>
-<script src="engine/styles-alt.js?v=2026-10-28.11"></script>
-<script src="engine/styles-groove.js?v=2026-10-28.11"></script>
-<script src="engine/styles-dub.js?v=2026-10-28.11"></script>
-<script src="engine/styles-break.js?v=2026-10-28.11"></script>
-<script src="engine/styles-soul.js?v=2026-10-28.11"></script>
-<script src="engine/styles-metal.js?v=2026-10-28.11"></script>
-<script src="engine/styles-electro.js?v=2026-10-28.11"></script>
-<script src="engine/variations.js?v=2026-10-28.11"></script>
-<script src="engine/import.js?v=2026-10-28.11"></script>
-<script src="engine/rhythm.js?v=2026-10-28.11"></script>
-<script src="engine/share.js?v=2026-10-28.11"></script>
-<script src="engine/runtime.js?v=2026-10-28.11"></script>
+<script src="engine/machine-art.js?v=2026-10-28.12"></script>
+<script src="engine/core.js?v=2026-10-28.12"></script>
+<script src="engine/styles-punk.js?v=2026-10-28.12"></script>
+<script src="engine/styles-post.js?v=2026-10-28.12"></script>
+<script src="engine/styles-machines.js?v=2026-10-28.12"></script>
+<script src="engine/styles-alt.js?v=2026-10-28.12"></script>
+<script src="engine/styles-groove.js?v=2026-10-28.12"></script>
+<script src="engine/styles-dub.js?v=2026-10-28.12"></script>
+<script src="engine/styles-break.js?v=2026-10-28.12"></script>
+<script src="engine/styles-soul.js?v=2026-10-28.12"></script>
+<script src="engine/styles-metal.js?v=2026-10-28.12"></script>
+<script src="engine/styles-electro.js?v=2026-10-28.12"></script>
+<script src="engine/variations.js?v=2026-10-28.12"></script>
+<script src="engine/import.js?v=2026-10-28.12"></script>
+<script src="engine/rhythm.js?v=2026-10-28.12"></script>
+<script src="engine/share.js?v=2026-10-28.12"></script>
+<script src="engine/runtime.js?v=2026-10-28.12"></script>
 <script>
 // Script principale di PATTERN-MACHINE: stato del progetto, audio, trasporto e interfaccia della pagina.
 // Il motore ritmico (SPEngine), i tempi (PMRhythm), import, link e gli altri moduli stanno in engine/*.js.
@@ -5450,7 +5453,7 @@ function paintProTools(){
 function loadSynth(){
   if(window.PMSynth || el("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-28.11";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-28.12";
   document.body.appendChild(s);
 }
 if(LIVE_VIEW || (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth"))) loadSynth();
@@ -8522,7 +8525,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-10-28.11";
+const SW_VERSION="2026-10-28.12";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -8546,10 +8549,10 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sample-editor.js?v=2026-10-28.11"></script>
-<script src="engine/sampler.js?v=2026-10-28.11"></script>
-<script src="engine/vocal.js?v=2026-10-28.11"></script>
+<script src="engine/sample-editor.js?v=2026-10-28.12"></script>
+<script src="engine/sampler.js?v=2026-10-28.12"></script>
+<script src="engine/vocal.js?v=2026-10-28.12"></script>
 <script>PMSampler.init(); PMVocal.init();</script>
-<script src="engine/midi.js?v=2026-10-28.11"></script>
+<script src="engine/midi.js?v=2026-10-28.12"></script>
 </body>
 </html>

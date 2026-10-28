@@ -141,11 +141,9 @@ Step-by-step instructions are in the [guide](https://patternmachine.tongatron.or
 
 ## Screenshots
 
-| Song arranger | Dark theme |
+| Song arranger | Mixer |
 |---|---|
-| ![Song arranger](docs/screenshots/sequencer.jpg) | ![Dark theme](docs/screenshots/tema-scuro.jpg) |
-
-<img src="docs/screenshots/mobile.jpg" alt="Mobile" width="260">
+| ![Song arranger](docs/screenshots/sequencer.jpg) | ![Mixer](docs/screenshots/mixer.jpg) |
 
 | The machines | Desktop app downloads |
 |---|---|

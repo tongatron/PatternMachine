@@ -145,15 +145,7 @@ Step-by-step instructions are in the [guide](https://patternmachine.tongatron.or
 
 ## Screenshots
 
-| Song arranger | Mixer |
-|---|---|
-| ![Song arranger](docs/screenshots/sequencer.jpg) | ![Mixer](docs/screenshots/mixer.jpg) |
-
-| The machines | Desktop app downloads |
-|---|---|
-| ![The machines page](docs/screenshots/macchine.jpg) | ![Desktop app page](docs/screenshots/app.jpg) |
-
-![Logic plug-in page](docs/screenshots/plugin-logic.jpg)
+![Drum Grid · deep per-step editing](docs/screenshots/griglia.jpg)
 
 ## Repository layout
 

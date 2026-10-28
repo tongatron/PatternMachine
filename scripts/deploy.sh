@@ -53,10 +53,11 @@ rsync -a --exclude .DS_Store ${EXCLUDE_KITS[@]+"${EXCLUDE_KITS[@]}"} site/ "$STA
 # non cambia niente il confronto con il server resta vuoto).
 build=$(python3 - <<'PY'
 import glob, os, time
+os.environ["TZ"] = "Europe/Rome"; time.tzset()   # orario italiano, qualunque sia il fuso della macchina
 files = glob.glob("site/*.html") + glob.glob("site/*.js") + glob.glob("site/engine/*.js") + glob.glob("site/learn/*")
 t = time.localtime(max(os.path.getmtime(f) for f in files))
-mesi = "gennaio febbraio marzo aprile maggio giugno luglio agosto settembre ottobre novembre dicembre".split()
-print(f"versione del {t.tm_mday} {mesi[t.tm_mon - 1]} {t.tm_year} {t.tm_hour:02d}:{t.tm_min:02d}")
+months = "January February March April May June July August September October November December".split()
+print(f"version of {t.tm_mday} {months[t.tm_mon - 1]} {t.tm_year} {t.tm_hour:02d}:{t.tm_min:02d}")
 PY
 )
 for f in "$STAGE/index.html" "$STAGE/funzioni.html" "$STAGE/macchine.html" "$STAGE/synth.html" "$STAGE"/learn/*.html; do

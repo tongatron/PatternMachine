@@ -1299,11 +1299,10 @@ html.op #opFeel label.fld{display:grid; grid-template-columns:64px minmax(0,1fr)
 html.op #opFeel label.fld input[type=range]{width:100%;}
 html.op #opFeel .vol-ch{display:grid; grid-template-columns:minmax(0,1fr) auto auto; gap:3px; align-items:center;}
 html.op body.mix-view #opFeel .vol-group{display:none;}
-/* i tasti stanno nel piede: si aprono verso l'alto sopra la pagina */
-html.op .site-footer #helpKeys{margin:0; border:0; background:none;}
-html.op .site-footer #helpKeys > summary{padding:3px 6px; font-size:9.5px;}
-html.op .site-footer #helpKeys[open] > .help-body{position:absolute; z-index:40; left:50%; transform:translateX(-50%); bottom:calc(100% + 6px); width:min(900px,calc(100vw - 40px));
-  max-height:60vh; overflow:auto; padding-top:12px; background:var(--panel); border:1px solid var(--edge); border-radius:8px; box-shadow:0 12px 30px rgba(0,0,0,.35);}
+/* "Playing: keys and controls": solo nella Drum Grid, sotto Drum Sound, chiuso; aperto si alza sopra la griglia */
+html.op #panelGrid > #helpKeys{grid-area:keys; position:relative; margin:0;}
+html.op #panelGrid > #helpKeys > summary{padding:8px 11px; font-size:10px;}
+html.op #panelGrid > #helpKeys[open] > .help-body{position:absolute; z-index:50; left:-1px; right:-1px; bottom:calc(100% + 6px); max-height:60vh; overflow:auto; padding-top:12px; background:var(--plate,var(--panel)); border:1px solid var(--accent); border-radius:var(--r-panel,10px); box-shadow:0 -8px 28px rgba(0,0,0,.45);}
 /* schermi bassi: via l'illustrazione della macchina, cosi' la colonna entra senza scorrere */
 @media (max-height:860px){ html.op #machineArt, html.op #synthEnginePanel .syn-links svg{display:none;} }
 
@@ -1314,9 +1313,9 @@ html.op #panelGrid > h2, html.op #panelSeq > h2{display:none;}
 
 /* Drum Grid: righe su una linea (intestazione + step) che si dividono l'altezza, cassetto con suono e forma d'onda */
 html.op #panelGrid:not([hidden]){flex:1 1 0; min-height:0; display:grid; grid-template-columns:minmax(0,1fr) minmax(220px,30%); column-gap:10px; row-gap:6px;
-  grid-template-rows:auto auto auto auto minmax(0,1fr) auto;
+  grid-template-rows:auto auto auto auto minmax(0,1fr) auto auto;
   container-type:inline-size; --cell:min(38px,calc((100cqw - 270px - 3px * var(--n,16)) / var(--n,16)));
-  grid-template-areas:"mode head" "ruler ruler" "rows rows" "add add" ". ." "sound sound";}
+  grid-template-areas:"mode head" "ruler ruler" "rows rows" "add add" ". ." "sound sound" "keys keys";}
 html.op #panelGrid .step-mode-line{grid-area:mode; margin:0;}
 html.op #panelGrid .grid-headline{grid-area:head; justify-self:end; margin:0;}
 html.op #ruler{grid-area:ruler; margin:0; padding:0 7px 0 calc(var(--op-head) + 15px);}
@@ -1421,9 +1420,16 @@ html.op #panelMix > *{flex:0 0 auto;}
 html.op #panelMix > .hint{display:none;}
 
 /* piede: una riga sottile */
-html.op .site-footer{grid-area:foot; position:relative; flex-direction:row; flex-wrap:wrap; gap:4px 16px; margin:0; font-size:9.5px;}
-html.op .site-footer .report-btn{min-height:0; padding:3px 9px; font-size:9.5px;}
-html.op .site-footer .site-badge{font-size:10px; padding-block:2px;}
+/* piede: a sinistra i loghi (Tongatron, GitHub), a destra versione, Policy, Report a problem */
+html.op .site-footer{grid-area:foot; position:relative; flex-direction:row; flex-wrap:nowrap; align-items:center; justify-content:flex-start; gap:10px; margin:0; font-size:9.5px;}
+html.op .site-footer .site-badge{order:1; height:28px; padding:0 12px; font-size:10px;}
+html.op .site-footer .gh-link{order:2; width:28px; height:28px; justify-content:center; border:1px solid var(--edge); border-radius:999px; background:var(--key,var(--panel-2)); box-shadow:var(--key-shadow,none);}
+html.op .site-footer .gh-link svg{width:18px; height:18px;}
+html.op .site-footer .gh-link span{display:none;}
+html.op .site-footer .gh-link:hover{text-decoration:none; border-color:var(--accent);}
+html.op .site-footer .site-version{order:3; margin-left:auto;}
+html.op .site-footer > a[href="privacy.html"]{order:4;}
+html.op .site-footer .report-btn{order:5; min-height:0; padding:5px 10px; font-size:9.5px;}
 </style>
 
 <div class="small-notice" id="smallNotice" role="alert">
@@ -2103,27 +2109,27 @@ html.op .site-footer .site-badge{font-size:10px; padding-block:2px;}
       </div>
     </form>
   </dialog>
-  <footer class="site-footer"><button type="button" class="report-btn" id="reportBtn">Report a problem</button><a href="privacy.html">Privacy policy</a><span class="site-version"><!--build-->version of day month year HH:MM<!--/build--></span><a class="site-badge" href="https://tongatron.org/"><span class="mark"></span><span>tongatron.org</span></a><a class="gh-link" href="https://github.com/tongatron/PatternMachine"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg><span>View on GitHub</span></a></footer>
+  <footer class="site-footer"><button type="button" class="report-btn" id="reportBtn">Report a problem</button><a href="privacy.html" title="Privacy policy">Policy</a><span class="site-version"><!--build-->version of day month year HH:MM<!--/build--></span><a class="site-badge" href="https://tongatron.org/"><span class="mark"></span><span>tongatron.org</span></a><a class="gh-link" href="https://github.com/tongatron/PatternMachine" title="View on GitHub" aria-label="View on GitHub"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg><span>View on GitHub</span></a></footer>
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-10-28.8"></script>
-<script src="engine/core.js?v=2026-10-28.8"></script>
-<script src="engine/styles-punk.js?v=2026-10-28.8"></script>
-<script src="engine/styles-post.js?v=2026-10-28.8"></script>
-<script src="engine/styles-machines.js?v=2026-10-28.8"></script>
-<script src="engine/styles-alt.js?v=2026-10-28.8"></script>
-<script src="engine/styles-groove.js?v=2026-10-28.8"></script>
-<script src="engine/styles-dub.js?v=2026-10-28.8"></script>
-<script src="engine/styles-break.js?v=2026-10-28.8"></script>
-<script src="engine/styles-soul.js?v=2026-10-28.8"></script>
-<script src="engine/styles-metal.js?v=2026-10-28.8"></script>
-<script src="engine/styles-electro.js?v=2026-10-28.8"></script>
-<script src="engine/variations.js?v=2026-10-28.8"></script>
-<script src="engine/import.js?v=2026-10-28.8"></script>
-<script src="engine/rhythm.js?v=2026-10-28.8"></script>
-<script src="engine/share.js?v=2026-10-28.8"></script>
-<script src="engine/runtime.js?v=2026-10-28.8"></script>
+<script src="engine/machine-art.js?v=2026-10-28.9"></script>
+<script src="engine/core.js?v=2026-10-28.9"></script>
+<script src="engine/styles-punk.js?v=2026-10-28.9"></script>
+<script src="engine/styles-post.js?v=2026-10-28.9"></script>
+<script src="engine/styles-machines.js?v=2026-10-28.9"></script>
+<script src="engine/styles-alt.js?v=2026-10-28.9"></script>
+<script src="engine/styles-groove.js?v=2026-10-28.9"></script>
+<script src="engine/styles-dub.js?v=2026-10-28.9"></script>
+<script src="engine/styles-break.js?v=2026-10-28.9"></script>
+<script src="engine/styles-soul.js?v=2026-10-28.9"></script>
+<script src="engine/styles-metal.js?v=2026-10-28.9"></script>
+<script src="engine/styles-electro.js?v=2026-10-28.9"></script>
+<script src="engine/variations.js?v=2026-10-28.9"></script>
+<script src="engine/import.js?v=2026-10-28.9"></script>
+<script src="engine/rhythm.js?v=2026-10-28.9"></script>
+<script src="engine/share.js?v=2026-10-28.9"></script>
+<script src="engine/runtime.js?v=2026-10-28.9"></script>
 <script>
 // Script principale di PATTERN-MACHINE: stato del progetto, audio, trasporto e interfaccia della pagina.
 // Il motore ritmico (SPEngine), i tempi (PMRhythm), import, link e gli altri moduli stanno in engine/*.js.
@@ -4968,7 +4974,7 @@ function applyOnePage(){
   move(el("synthPatternPanel"),rail,feel);
   move(document.querySelector(".feel-group"),feel);
   move(document.querySelector(".vol-group"),feel);
-  move(el("helpKeys"),document.querySelector(".site-footer"),document.querySelector(".site-footer").firstChild);
+  move(el("helpKeys"),el("panelGrid"));   // sotto Drum Sound, chiuso di default
   ["panelGrid","panelSynth","panelSampler","panelSeq","panelMix","panelRecent","panelMidi"].forEach(id=>move(el(id),stage));
   root.classList.add("op");
   ["opHead","opRail","opStage","opGuide","opPrograms"].forEach(id=>{ el(id).hidden=false; });
@@ -5435,7 +5441,7 @@ function paintProTools(){
 function loadSynth(){
   if(window.PMSynth || el("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-28.8";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-28.9";
   document.body.appendChild(s);
 }
 if(LIVE_VIEW || (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth"))) loadSynth();
@@ -8499,7 +8505,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-10-28.8";
+const SW_VERSION="2026-10-28.9";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -8523,10 +8529,10 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sample-editor.js?v=2026-10-28.8"></script>
-<script src="engine/sampler.js?v=2026-10-28.8"></script>
-<script src="engine/vocal.js?v=2026-10-28.8"></script>
+<script src="engine/sample-editor.js?v=2026-10-28.9"></script>
+<script src="engine/sampler.js?v=2026-10-28.9"></script>
+<script src="engine/vocal.js?v=2026-10-28.9"></script>
 <script>PMSampler.init(); PMVocal.init();</script>
-<script src="engine/midi.js?v=2026-10-28.8"></script>
+<script src="engine/midi.js?v=2026-10-28.9"></script>
 </body>
 </html>

@@ -318,7 +318,7 @@
   // ---------- segui il clock della DAW ----------
   // La DAW invia MIDI Clock e Song Position alla porta virtuale "PatternMachine".
   // Start/Continue/Stop comandano il trasporto, la Song Position sposta il punto di partenza e
-  // ogni 6 clock (un sedicesimo) si suona uno step: il passo lo detta Logic, non il timer del sito.
+  // ogni 6 clock (un sedicesimo; 8 con le terzine, 3 o 2 in 6/8) si suona uno step: il passo lo detta Logic, non il timer del sito.
   const CLOCK_LEAD=0.010;          // s di margine per programmare l'audio
   let following=false, clockCount=0, sppSteps=0, clockTimes=[], lastClockAt=0, bpmShown=0;
 
@@ -326,20 +326,29 @@
     if(clockTimes.length<2) return 60/bpm()/24;
     return (clockTimes[clockTimes.length-1]-clockTimes[0])/(clockTimes.length-1)/1000;
   }
-  function seek(steps){
+  // Clock MIDI (24 per quarto) che dura uno step della griglia: 6 con i sedicesimi, 8 con le terzine, 3 e 2 in 6/8.
+  const clocksPerStep=()=>24*PMRhythm.barQuarters(rhythm())/PMRhythm.stepsPerBar(rhythm());
+  // Come in fondo a scheduler(): con un blocco synth in solo il cursore resta nel suo tratto della canzone.
+  // A fine tratto non si ferma (Stop lo decide la DAW): riparte dall'inizio del tratto.
+  function keepInSoloSpan(){
+    const span=synthSoloSpan();
+    if(!span) return;
+    const L=songLayout(), blk=L.blocks[cursor.blockIndex];
+    const pos=blk ? blk.start+(cursor.rep||0)*blk.len+cursor.step : 0;
+    if(pos<span.start || pos>=span.end) Object.assign(cursor,songCursorAt(span.start,L));
+  }
+  // La Song Position della DAW e' in sedicesimi (6 clock): si porta negli step della griglia attuale.
+  function seek(sixteenths){
+    const steps=Math.floor(sixteenths*6/clocksPerStep());
     if(ui.mode==="song"){
-      const lens=project.song.map(b=>{ const p=patternById(b.patternId); return p?p.len*Math.max(1,b.repeats||1):0; });
-      const total=lens.reduce((a,b)=>a+b,0);
-      let s=total?steps%total:0;
-      for(let i=0;i<lens.length;i++){
-        if(s<lens[i]){ const p=patternById(project.song[i].patternId); cursor={step:s%p.len, blockIndex:i, rep:Math.floor(s/p.len), loops:0}; break; }
-        s-=lens[i];
-      }
+      const L=songLayout();
+      cursor={...songCursorAt(L.total?steps%L.total:0,L), loops:0};
     } else {
       const len=curPattern().len;
       cursor={step:steps%len, blockIndex:0, rep:0, loops:Math.floor(steps/len)};
     }
-    barCount=Math.floor(steps/16)+1;
+    keepInSoloSpan();
+    barCount=Math.floor(steps/rhythmBarSteps())+1;
   }
   function startFollowing(steps){
     if(playing) stop();
@@ -347,17 +356,22 @@
     if(!playing) return;
     clearInterval(timer); timer=null;      // niente timer del sito: gli step arrivano dal clock
     following=true; clockCount=0;
+    countInLeft=0; countInTotal=0; countInStep=-1; countingIn=false;   // il pre-roll lo fa la DAW, non il count-in del sito
     seek(steps);
+    paintTransport();
     paintClock();
   }
-  // Uno step, come fa scheduler() nel sito, ma al tempo dettato dal clock.
+  // Uno step, come fa scheduler() nel sito, ma al tempo dettato dal clock. Il count-in non c'e' (il pre-roll e'
+  // della DAW) e a fine pattern o canzone si riparte da capo senza fermarsi: Play e Stop li decide la DAW.
   function clockStep(){
     const ctx=actx(), pat=playingPattern();
     if(!pat){ stop(); return; }
-    const base=clockPeriod()*6, sw=swing(), even=cursor.step%2===0;
-    const at=ctx.currentTime+CLOCK_LEAD+(even?0:sw*base);
-    const dur=base*(even?1+sw:1-sw);
-    if(!synthOnly && ui.metronome && cursor.step%4===0) metronomeHit(at,cursor.step===0);
+    // swing, groove e terzine come nello scheduler (PMRhythm.timing): la durata dello step la scala il tempo del clock
+    const r=rhythm(), base=clockPeriod()*clocksPerStep();
+    const t=PMRhythm.timing(bpm(),r,+el("swingRange").value||0,cursor.step);
+    const dur=t.dur*base/PMRhythm.secondsPerStep(bpm(),r), even=cursor.step%2===0;
+    const at=ctx.currentTime+CLOCK_LEAD+t.offset+(even?0:base-dur);
+    if(!synthOnly && ui.metronome && cursor.step%rhythmBeatSteps()===0) metronomeHit(at,cursor.step===0);
     const cycle=ui.mode==="song" ? (cursor.rep||0) : (cursor.loops||0);
     const blockMutes=ui.mode==="song" ? (project.song[cursor.blockIndex]?.mutes||[]) : [];
     if(!synthOnly && !drumsSilent()) audibleTracks().forEach(t=>{
@@ -387,6 +401,7 @@
         }
       }
     }
+    keepInSoloSpan();
   }
   // Il campo BPM segue la DAW (arrotondato: il sito lavora a BPM interi; il passo resta quello del clock).
   function showTempo(){
@@ -405,7 +420,7 @@
       lastClockAt=now;
       clockTimes.push(now); if(clockTimes.length>25) clockTimes.shift();
       if(following && playing){
-        if(clockCount%6===0) clockStep();
+        if(clockCount%clocksPerStep()===0) clockStep();
         clockCount++;
       }
       if(clockTimes.length>=25 && clockCount%24===0) showTempo();

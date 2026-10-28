@@ -46,11 +46,6 @@
 // Tema scelto dall'utente (di default Chiaro), applicato prima del primo render per evitare il lampo del tema sbagliato.
 (function(){ let t="light"; try{ t=localStorage.getItem("sp1200.theme")==="dark"?"dark":"light"; }catch(e){}
   document.documentElement.dataset.theme=t; })();
-// Disposizione su una pagina (interruttore One page, ?layout=one|classic): letta subito, cosi' non si vede prima quella classica.
-(function(){ let l=null; try{ l=localStorage.getItem("sp1200.layout"); }catch(e){}
-  const q=new URLSearchParams(location.search).get("layout");
-  if(q==="one"||q==="classic") l=q;
-  if(l==="one") document.documentElement.dataset.layout="one"; })();
 </script>
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
@@ -331,7 +326,7 @@ h1{font-size:26px; letter-spacing:0.18em; text-transform:uppercase; margin:0; li
 .export-head{font-size:9px; letter-spacing:0.14em; text-transform:uppercase; color:var(--text-faint); margin:6px 2px 0;}
 .export-head:first-child{margin-top:0;}
 .export-head span{display:block; margin-top:2px; letter-spacing:0.04em; text-transform:none;}
-#accountLinks{display:flex; align-items:center; gap:10px;}
+#accountLinks{display:block;}
 .topbar #accountLinks{grid-area:account;}
 
 button{
@@ -1058,21 +1053,19 @@ button.danger-fill{background:var(--danger); border-color:var(--danger); color:#
 .tl-info .tl-note{color:var(--text-faint);}
 
 /* Interruttori tema (Chiaro [ o ] Scuro) e una pagina (One page [ o ]): stesso aspetto */
-.theme-toggle, .layout-toggle{display:inline-flex; align-items:center; gap:6px; padding:4px 2px; background:none; border:none; box-shadow:none;
+.theme-toggle{display:inline-flex; align-items:center; gap:6px; padding:4px 2px; background:none; border:none; box-shadow:none;
   font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-faint); cursor:pointer;}
-.theme-toggle:hover, .layout-toggle:hover{border:none;}
-.theme-toggle:active, .layout-toggle:active{transform:none;}
-.theme-toggle .tt-track, .layout-toggle .tt-track{position:relative; width:30px; height:16px; border-radius:999px; background:var(--panel-2);
+.theme-toggle:hover{border:none;}
+.theme-toggle:active{transform:none;}
+.theme-toggle .tt-track{position:relative; width:30px; height:16px; border-radius:999px; background:var(--panel-2);
   border:1px solid var(--edge); transition:background .15s, border-color .15s;}
-.theme-toggle .tt-knob, .layout-toggle .tt-knob{position:absolute; top:1px; left:1px; width:12px; height:12px; border-radius:50%;
+.theme-toggle .tt-knob{position:absolute; top:1px; left:1px; width:12px; height:12px; border-radius:50%;
   background:var(--text-dim); transition:transform .15s;}
-.theme-toggle[aria-checked="false"] .tt-light, .theme-toggle[aria-checked="true"] .tt-dark, .layout-toggle[aria-checked="true"] .tt-side{color:var(--text); font-weight:700;}
-.theme-toggle[aria-checked="true"] .tt-track, .layout-toggle[aria-checked="true"] .tt-track{background:var(--accent); border-color:var(--accent);}
-.theme-toggle[aria-checked="true"] .tt-knob, .layout-toggle[aria-checked="true"] .tt-knob{transform:translateX(14px); background:var(--on-accent);}
-.theme-toggle:focus-visible .tt-track, .layout-toggle:focus-visible .tt-track{outline:2px solid var(--accent); outline-offset:2px;}
-@media (prefers-reduced-motion:reduce){ .theme-toggle .tt-track, .theme-toggle .tt-knob, .layout-toggle .tt-track, .layout-toggle .tt-knob{transition:none;} }
-/* La disposizione su una pagina c'e' solo sugli schermi grandi: altrove l'interruttore non serve. */
-@media (max-width:1099px), (max-height:679px){ .layout-toggle{display:none;} }
+.theme-toggle[aria-checked="false"] .tt-light, .theme-toggle[aria-checked="true"] .tt-dark {color:var(--text); font-weight:700;}
+.theme-toggle[aria-checked="true"] .tt-track {background:var(--accent); border-color:var(--accent);}
+.theme-toggle[aria-checked="true"] .tt-knob {transform:translateX(14px); background:var(--on-accent);}
+.theme-toggle:focus-visible .tt-track {outline:2px solid var(--accent); outline-offset:2px;}
+@media (prefers-reduced-motion:reduce){ .theme-toggle .tt-track, .theme-toggle .tt-knob{transition:none;} }
 
 table.recent{width:100%; border-collapse:collapse; font-size:13px;}
 table.recent th{text-align:left; color:var(--text-faint); font-weight:700; font-size:10.5px;
@@ -1157,7 +1150,7 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 #tapBtn, #loopBtn{min-height:44px; padding:11px 18px; font-size:13.5px;}
 #countInSelect{height:44px; padding:0 12px; font-size:13.5px;}
 #tapBtn{width:44px; height:44px; padding:0; border-radius:50%; display:inline-flex; align-items:center; justify-content:center;}
-.topbar #accountLinks{display:inline-flex; align-items:baseline; gap:10px; margin-left:auto;}
+.topbar #accountLinks{display:block; margin-left:auto;}
 @media (max-width:560px){
   .topbar #accountLinks{margin-left:0;}
   #viewGrid, #viewSeq, #viewSynth, #viewSampler, #viewMix, #viewRecent{padding:10px 14px;}
@@ -1212,13 +1205,26 @@ kbd{background:var(--panel-2); border:1px solid var(--edge); border-radius:3px; 
 .seqblock-mutes button{padding:2px 5px; font-size:9px; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-transform:none; letter-spacing:0;}
 .seqblock-mutes button.on{background:var(--danger); border-color:var(--danger); color:#fff; text-decoration:line-through;}
 
-/* ---------- Una pagina (interruttore One page) ----------
-   html.op la mette applyOnePage() solo con l'interruttore acceso e uno schermo da 1100×680 in su. Barra del progetto
+html:not([data-pro="1"]) #viewSynth, html:not([data-pro="1"]) #viewSampler{display:none;}
+.user-menu summary{min-height:0; padding:5px 10px; font-size:10.5px; font-weight:700;}
+.user-menu .export-list{left:auto; right:0; min-width:210px;}
+.user-menu .export-list .linkbtn, .user-menu .export-list button{justify-content:flex-start; text-align:left; min-height:32px; font-size:10px;}
+.user-menu #proToolsBtn[aria-checked="true"]{background:var(--key-primary,var(--accent)); color:var(--on-accent); border-color:var(--accent-dim);}
+/* Avviso sotto 1100×680: copre il sito e descrive cosa fa (non in ?live ed ?embed) */
+.small-notice{display:none; position:fixed; inset:0; z-index:500; overflow:auto; padding:20px 16px; background:var(--body-bg,var(--bg)); color:var(--text);}
+.small-notice-box{max-width:520px; margin:0 auto; padding:16px 18px; background:var(--plate,var(--panel)); border:1px solid var(--edge); border-radius:var(--r-panel,10px); box-shadow:var(--shadow);}
+.small-notice h2{margin:0 0 8px; font-size:16px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent);}
+.small-notice h3{margin:14px 0 6px; font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--text-dim);}
+.small-notice p, .small-notice li{font-size:12px; line-height:1.55;}
+.small-notice ul{margin:0 0 14px; padding-left:18px;}
+.small-notice .linkbtn{margin:0 8px 8px 0;}
+@media (max-width:1099px), (max-height:679px){ html:not([data-live]):not([data-embed]) .small-notice{display:block;} }
+
+/* ---------- Una pagina ----------
+   html.op la mette applyOnePage() all'avvio (non in ?live e ?embed); sotto 1100×680 un avviso copre la pagina. Barra del progetto
    e trasporto in alto, a sinistra macchina, pattern e feel, al centro le schede. La pagina non scorre: se una vista
    non entra scorre solo lo stage. Le regole con display passano da :not([hidden]), che altrimenti vincerebbero su hidden. */
-@media (min-width:1100px) and (min-height:680px){
-  html[data-layout="one"]:not(.op):not([data-live]):not([data-embed]) .wrap{visibility:hidden;}
-}
+html:not(.op):not([data-live]):not([data-embed]) .wrap{visibility:hidden;}   /* finche' applyOnePage() non ha disposto la pagina */
 html.op{--op-rail:250px; --op-head:248px;}
 html.op body{height:100vh; height:100dvh; overflow:hidden; padding:10px 12px; box-sizing:border-box;}
 html.op .wrap{max-width:none; height:100%; display:grid; gap:8px; grid-template-columns:var(--op-rail) minmax(0,1fr);
@@ -1238,12 +1244,12 @@ html.op .project-panel #projectName{width:170px!important; height:32px;}
 html.op .project-buttons, html.op .project-io{flex-wrap:nowrap; gap:5px;}
 /* :is() con gli id: deve battere le regole per id dei tasti del progetto (#viewRecent, #importBtn...) */
 html.op .project-panel :is(button, #viewRecent, #importBtn, #viewMidi), html.op .project-panel .export-menu summary, html.op .op-guide summary{min-height:32px; padding:5px 10px; font-size:10.5px;}
-html.op .op-guide:not([hidden]), html.op .theme-toggle, html.op .layout-toggle, html.op .net-badge{order:2;}
+html.op .op-guide:not([hidden]), html.op .theme-toggle, html.op .net-badge{order:2;}
 html.op .op-guide .export-list{left:auto; right:0;}
 html.op .op-guide .topbar-guides{display:contents;}
 html.op .op-guide .export-list .linkbtn{justify-content:flex-start; min-height:32px; font-size:10px;}
 html.op .theme-toggle .tt-light{display:none;}
-html.op .topbar #accountLinks{order:3; margin-left:0;}
+html.op .topbar #accountLinks{order:3; margin-left:0; display:block;}
 @media (max-width:1360px){ html.op .topbar h1{font-size:12px; letter-spacing:.08em;} }
 
 /* trasporto su una riga: i cursori di feel e volume stanno nella colonna */
@@ -1403,6 +1409,24 @@ html.op .site-footer .report-btn{min-height:0; padding:3px 9px; font-size:9.5px;
 html.op .site-footer .site-badge{font-size:10px; padding-block:2px;}
 </style>
 
+<div class="small-notice" id="smallNotice" role="alert">
+  <div class="small-notice-box">
+    <h2>This screen is too small</h2>
+    <p>PATTERN-MACHINE is built for computers and large tablets: the whole machine fits in one screen, at least <b>1100 × 680</b> pixels. Open it on a larger screen, or enlarge the window.</p>
+    <h3>What it does</h3>
+    <ul>
+      <li><b>14 classic drum machines</b>: SP-1200, TR-808, TR-909, RX-5, LinnDrum and more.</li>
+      <li><b>Drum Grid</b>: step sequencer with accents, ghost notes, probability, ratchets, flams and per-step tuning, decay and filter.</li>
+      <li><b>Patterns and generator</b>: styles, variations, swing, humanize and a library of ready beats.</li>
+      <li><b>Sequencer</b>: build a song from blocks, with sections, fills, per-block mutes and vocal recording.</li>
+      <li><b>Mixer</b>: levels, pan, meters and a master limiter.</li>
+      <li><b>Export</b>: MIDI, WAV, MP3 and packages for Logic, Ableton Live, REAPER and other DAWs.</li>
+      <li><b>MIDI controller</b> support and a Logic Pro plug-in.</li>
+    </ul>
+    <a class="linkbtn" href="index.html?live=1">Open Live Playing (works on phones)</a>
+    <a class="linkbtn" href="funzioni.html">Read the complete guide</a>
+  </div>
+</div>
 <div class="wrap">
   <section id="liveView" aria-labelledby="liveTitle" hidden>
     <header class="live-head">
@@ -1470,17 +1494,17 @@ html.op .site-footer .site-badge{font-size:10px; padding-block:2px;}
       <button type="button" class="theme-toggle" id="themeToggle" role="switch" aria-checked="false" aria-label="Dark theme" title="Switch between light and dark theme">
         <span class="tt-side tt-light">Light</span><span class="tt-track" aria-hidden="true"><span class="tt-knob"></span></span><span class="tt-side tt-dark">Dark</span>
       </button>
-      <button type="button" class="layout-toggle" id="onePageToggle" role="switch" aria-checked="false" aria-label="One page layout" title="Fit the whole machine in one screen, without scrolling (large screens only)">
-        <span class="tt-side">One page</span><span class="tt-track" aria-hidden="true"><span class="tt-knob"></span></span>
-      </button>
       <span class="net-badge" id="netBadge" hidden>offline</span>
     </div>
-    <span id="accountLinks">
-      <span class="whoami" id="whoami" hidden></span>
-      <a class="logout" id="adminLink" href="/admin" title="Registered users" hidden>Users</a>
-      <a class="logout" id="registerLink" href="/register" title="Create an account to save projects and favorites" hidden>Sign up</a>
-      <a class="logout" href="/logout" title="Log out of your account">Log out</a>
-    </span>
+    <details class="export-menu user-menu" id="accountLinks">
+      <summary id="whoami">Account</summary>
+      <div class="export-list">
+        <a class="linkbtn" id="adminLink" href="/admin" title="Registered users" hidden>Users</a>
+        <a class="linkbtn" id="registerLink" href="/register" title="Create an account to save projects and favorites" hidden>Sign up</a>
+        <button type="button" id="proToolsBtn" role="switch" aria-checked="false" title="Show the Synthesizer and Sampler tabs (admin only, off by default)" hidden>Synthesizer &amp; Sampler: off</button>
+        <a class="linkbtn" href="/logout" title="Log out of your account">Log out</a>
+      </div>
+    </details>
   </div>
 
   <div class="panel project-panel">
@@ -2067,23 +2091,23 @@ html.op .site-footer .site-badge{font-size:10px; padding-block:2px;}
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-10-28.3"></script>
-<script src="engine/core.js?v=2026-10-28.3"></script>
-<script src="engine/styles-punk.js?v=2026-10-28.3"></script>
-<script src="engine/styles-post.js?v=2026-10-28.3"></script>
-<script src="engine/styles-machines.js?v=2026-10-28.3"></script>
-<script src="engine/styles-alt.js?v=2026-10-28.3"></script>
-<script src="engine/styles-groove.js?v=2026-10-28.3"></script>
-<script src="engine/styles-dub.js?v=2026-10-28.3"></script>
-<script src="engine/styles-break.js?v=2026-10-28.3"></script>
-<script src="engine/styles-soul.js?v=2026-10-28.3"></script>
-<script src="engine/styles-metal.js?v=2026-10-28.3"></script>
-<script src="engine/styles-electro.js?v=2026-10-28.3"></script>
-<script src="engine/variations.js?v=2026-10-28.3"></script>
-<script src="engine/import.js?v=2026-10-28.3"></script>
-<script src="engine/rhythm.js?v=2026-10-28.3"></script>
-<script src="engine/share.js?v=2026-10-28.3"></script>
-<script src="engine/runtime.js?v=2026-10-28.3"></script>
+<script src="engine/machine-art.js?v=2026-10-28.4"></script>
+<script src="engine/core.js?v=2026-10-28.4"></script>
+<script src="engine/styles-punk.js?v=2026-10-28.4"></script>
+<script src="engine/styles-post.js?v=2026-10-28.4"></script>
+<script src="engine/styles-machines.js?v=2026-10-28.4"></script>
+<script src="engine/styles-alt.js?v=2026-10-28.4"></script>
+<script src="engine/styles-groove.js?v=2026-10-28.4"></script>
+<script src="engine/styles-dub.js?v=2026-10-28.4"></script>
+<script src="engine/styles-break.js?v=2026-10-28.4"></script>
+<script src="engine/styles-soul.js?v=2026-10-28.4"></script>
+<script src="engine/styles-metal.js?v=2026-10-28.4"></script>
+<script src="engine/styles-electro.js?v=2026-10-28.4"></script>
+<script src="engine/variations.js?v=2026-10-28.4"></script>
+<script src="engine/import.js?v=2026-10-28.4"></script>
+<script src="engine/rhythm.js?v=2026-10-28.4"></script>
+<script src="engine/share.js?v=2026-10-28.4"></script>
+<script src="engine/runtime.js?v=2026-10-28.4"></script>
 <script>
 // Script principale di PATTERN-MACHINE: stato del progetto, audio, trasporto e interfaccia della pagina.
 // Il motore ritmico (SPEngine), i tempi (PMRhythm), import, link e gli altri moduli stanno in engine/*.js.
@@ -4876,6 +4900,7 @@ el("ssClear").onclick=async()=>{
 const VIEW_TABS={grid:"viewGrid", seq:"viewSeq", synth:"viewSynth", sampler:"viewSampler", mix:"viewMix",
   recent:"viewRecent", midi:"viewMidi"};
 function setView(v){
+  if((v==="synth"||v==="sampler") && !proTools()) v="grid";   // Synthesizer e Sampler: solo admin, con l'opzione del menu utente
   Object.entries(VIEW_TABS).forEach(([view,id])=>{
     el(id).classList.toggle("on",v===view);
     el(id).setAttribute("aria-selected",String(v===view));
@@ -4907,38 +4932,29 @@ function setView(v){
   if(v==="midi" && window.PMMidi) PMMidi.show();
 }
 
-// ---------- una pagina (interruttore One page) ----------
+// ---------- una pagina (la disposizione del sito) ----------
 // Sugli schermi grandi la macchina sta in una schermata: barra in alto, colonna a sinistra, schede al centro.
-// Gli elementi non si rifanno: si spostano nei contenitori op* e, spegnendo, tornano dov'erano (id e gestori restano).
-const ONE_PAGE_KEY="sp1200.layout", ONE_PAGE_MQ=matchMedia("(min-width:1100px) and (min-height:680px)");
-const onePageMoves=[];   // [nodo, genitore, fratello successivo], per rimettere tutto com'era
+// Gli elementi non si rifanno: si spostano una volta nei contenitori op* (id e gestori restano).
 function onePage(){ return document.documentElement.classList.contains("op"); }
 function currentView(){ return Object.keys(VIEW_TABS).find(v=>el(VIEW_TABS[v]).classList.contains("on"))||"grid"; }
 function applyOnePage(){
   const root=document.documentElement;
-  const on=root.dataset.layout==="one" && ONE_PAGE_MQ.matches && !root.dataset.live && !root.dataset.embed;
-  if(on===onePage()) return;
-  if(on){
-    const move=(node,host,before=null)=>{ onePageMoves.push([node,node.parentNode,node.nextSibling]); host.insertBefore(node,before); };
-    const head=el("opHead"), rail=el("opRail"), feel=el("opFeel"), stage=el("opStage");
-    move(document.querySelector(".topbar"),head);
-    move(document.querySelector(".project-panel"),head);
-    [document.querySelector(".topbar-guides"),el("desktopAppLink"),el("pluginLink")].forEach(n=>move(n,el("opGuideList")));
-    move(el("machinePanel"),rail,feel);
-    move(el("panelPatterns"),rail,feel);
-    move(el("synthEnginePanel"),rail,feel);
-    move(el("synthPatternPanel"),rail,feel);
-    move(document.querySelector(".feel-group"),feel);
-    move(document.querySelector(".vol-group"),feel);
-    move(el("helpKeys"),document.querySelector(".site-footer"),document.querySelector(".site-footer").firstChild);
-    ["panelGrid","panelSynth","panelSampler","panelSeq","panelMix","panelRecent","panelMidi"]
-      .forEach(id=>move(el(id),stage));
-  }else{
-    while(onePageMoves.length){ const [node,parent,next]=onePageMoves.pop(); parent.insertBefore(node,next); }
-  }
-  root.classList.toggle("op",on);
-  ["opHead","opRail","opStage","opGuide"].forEach(id=>{ el(id).hidden=!on; });
-  if(!on) el("opGuide").open=false;
+  if(onePage() || root.dataset.live || root.dataset.embed) return;
+  const move=(node,host,before=null)=>host.insertBefore(node,before);
+  const head=el("opHead"), rail=el("opRail"), feel=el("opFeel"), stage=el("opStage");
+  move(document.querySelector(".topbar"),head);
+  move(document.querySelector(".project-panel"),head);
+  [document.querySelector(".topbar-guides"),el("desktopAppLink"),el("pluginLink")].forEach(n=>move(n,el("opGuideList")));
+  move(el("machinePanel"),rail,feel);
+  move(el("panelPatterns"),rail,feel);
+  move(el("synthEnginePanel"),rail,feel);
+  move(el("synthPatternPanel"),rail,feel);
+  move(document.querySelector(".feel-group"),feel);
+  move(document.querySelector(".vol-group"),feel);
+  move(el("helpKeys"),document.querySelector(".site-footer"),document.querySelector(".site-footer").firstChild);
+  ["panelGrid","panelSynth","panelSampler","panelSeq","panelMix","panelRecent","panelMidi"].forEach(id=>move(el(id),stage));
+  root.classList.add("op");
+  ["opHead","opRail","opStage","opGuide"].forEach(id=>{ el(id).hidden=false; });
   setView(currentView());
   renderTracks(); renderSong();
 }
@@ -5389,13 +5405,21 @@ function recordHit(track){
 // (file locale, app per Mac, offline) /api/me non risponde e resta solo "Log out".
 // L'ospite ("Accedi senza registrarti") usa il sito ma non salva: niente Salva, progetti e preferiti.
 // Per gli utenti registrati la scheda si chiama "Saved projects".
-let isGuest=false, isMember=false;   // isMember: utente registrato (user o admin)
+let isGuest=false, isMember=false, isAdmin=false;
+// Synthesizer e Sampler: solo per l'admin e solo se acceso dal menu utente (di default spenti, scelta per browser).
+const PRO_KEY="sp1200.proTools";
+const proTools=()=>isAdmin && storeGet(PRO_KEY)==="1";
+function paintProTools(){
+  document.documentElement.dataset.pro=proTools()?"1":"0";
+  const b=el("proToolsBtn"); b.setAttribute("aria-checked",String(proTools())); b.textContent="Synthesizer & Sampler: "+(proTools()?"on":"off");
+  if(!proTools() && ["synth","sampler"].includes(currentView())) setView("grid");
+}   // isMember: utente registrato (user o admin)
 // Synth in prova: lo script si carica per gli utenti del sito (in locale anche con ?synth, per svilupparlo senza server.py).
 // Il pulsante "Synth" compare quando lo script e' pronto.
 function loadSynth(){
   if(window.PMSynth || el("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-28.3";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-28.4";
   document.body.appendChild(s);
 }
 if(LIVE_VIEW || (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth"))) loadSynth();
@@ -5414,8 +5438,9 @@ fetch("/api/me",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(me=>{
     if(syncNow) syncNow.onclick=syncProjectsNow;
   }
   document.body.classList.toggle("guest",isGuest);
-  el("whoami").textContent=me.name; el("whoami").hidden=false;
+  el("whoami").textContent=me.name+" ▾";
   el("adminLink").hidden=me.role!=="admin";
+  isAdmin=me.role==="admin"; el("proToolsBtn").hidden=!isAdmin; paintProTools();
   loadSynth();
   el("registerLink").hidden=!isGuest;
   if(isGuest && el("viewRecent").classList.contains("on")) setView("grid");
@@ -5583,6 +5608,12 @@ el("metronomeBtn").onclick=()=>{
     }
   },25);
 })();
+el("proToolsBtn").onclick=()=>{ storeSet(PRO_KEY,proTools()?"0":"1"); paintProTools(); };
+// il menu utente si chiude dopo una scelta, al click fuori e con Esc
+(()=>{ const m=el("accountLinks");
+  m.addEventListener("click",e=>{ if(e.target.closest(".export-list a")) m.open=false; });
+  document.addEventListener("click",e=>{ if(m.open && !m.contains(e.target)) m.open=false; });
+  m.addEventListener("keydown",e=>{ if(e.key==="Escape"){ m.open=false; m.querySelector("summary").focus(); } }); })();
 el("viewRecent").onclick=()=>setView("recent");
 el("viewGrid").onclick=()=>setView("grid");
 el("viewSeq").onclick=()=>setView("seq");
@@ -5596,7 +5627,7 @@ el("viewSynth").onclick=()=>{
 };
 el("viewGrid").parentElement.addEventListener("keydown",e=>{
   if(!["ArrowLeft","ArrowRight","Home","End"].includes(e.key)) return;
-  const tabs=[...el("viewGrid").parentElement.querySelectorAll('[role="tab"]')];
+  const tabs=[...el("viewGrid").parentElement.querySelectorAll('[role="tab"]')].filter(t=>t.offsetParent);
   const i=tabs.indexOf(document.activeElement); if(i<0) return;
   e.preventDefault();
   const n=e.key==="Home"?0:e.key==="End"?tabs.length-1:(i+(e.key==="ArrowRight"?1:-1)+tabs.length)%tabs.length;
@@ -8432,19 +8463,9 @@ window.addEventListener("resize",()=>{
   });
 })();
 
-// ---------- una pagina: interruttore e menu Guide ----------
-// La scelta (o ?layout=one|classic) resta nel browser; la disposizione segue anche i cambi di dimensione della finestra.
-(function onePageSwitch(){
-  const root=document.documentElement, toggle=el("onePageToggle"), guide=el("opGuide");
-  const asked=pmQuery.get("layout");
-  if(asked==="one"||asked==="classic") storeSet(ONE_PAGE_KEY,asked);
-  const paint=()=>toggle.setAttribute("aria-checked",String(root.dataset.layout==="one"));
-  toggle.onclick=()=>{
-    if(root.dataset.layout==="one") delete root.dataset.layout; else root.dataset.layout="one";
-    storeSet(ONE_PAGE_KEY,root.dataset.layout==="one"?"one":"classic");
-    paint(); applyOnePage();
-  };
-  ONE_PAGE_MQ.addEventListener("change",applyOnePage);
+// ---------- una pagina: selettore del Synth e menu Guide ----------
+(function onePageInit(){
+  const root=document.documentElement, guide=el("opGuide");
   // Synth su una pagina: Notes (piano roll e tastiera) o Sound (i parametri del suono), uno alla volta
   const synthMode=el("opSynthMode");
   const paintSynthMode=mode=>{
@@ -8457,12 +8478,12 @@ window.addEventListener("resize",()=>{
   guide.addEventListener("click",e=>{ if(e.target.closest(".export-list a")) guide.open=false; });
   document.addEventListener("click",e=>{ if(guide.open && !guide.contains(e.target)) guide.open=false; });
   guide.addEventListener("keydown",e=>{ if(e.key==="Escape"){ guide.open=false; guide.querySelector("summary").focus(); } });
-  paint(); applyOnePage();
+  applyOnePage();
 })();
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-10-28.3";
+const SW_VERSION="2026-10-28.4";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -8486,10 +8507,10 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sample-editor.js?v=2026-10-28.3"></script>
-<script src="engine/sampler.js?v=2026-10-28.3"></script>
-<script src="engine/vocal.js?v=2026-10-28.3"></script>
+<script src="engine/sample-editor.js?v=2026-10-28.4"></script>
+<script src="engine/sampler.js?v=2026-10-28.4"></script>
+<script src="engine/vocal.js?v=2026-10-28.4"></script>
 <script>PMSampler.init(); PMVocal.init();</script>
-<script src="engine/midi.js?v=2026-10-28.3"></script>
+<script src="engine/midi.js?v=2026-10-28.4"></script>
 </body>
 </html>

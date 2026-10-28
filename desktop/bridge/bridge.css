@@ -1,25 +1,34 @@
-/* Solo nell'app: via le cose del sito web (logout, installa), e il pannello Logic. */
+/* Solo nell'app: via le cose del sito web (logout, installa, pagine da scaricare), e il menu DAW. */
 .pm-desktop .logout,
+.pm-desktop a[href="/logout"],
 .pm-desktop #installBtn,
 .pm-desktop #netBadge,
+.pm-desktop #opPrograms,   /* Programs porta alle pagine per scaricare l'app e il plug-in: dentro l'app non servono */
 .pm-desktop .topbar a[href="app.html"]{display:none !important;}
 
-.pm-desk .flexline{gap:10px; align-items:center;}
-.pm-desk-title{font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-dim);}
+/* Menu DAW nella barra in alto: stesso stile di Programs e Learn, elenco in verticale (la pagina non scorre). */
+html.op .pm-daw .export-list.pm-desk{min-width:330px; gap:6px; padding:10px; max-height:calc(100vh - 90px); overflow-y:auto;}
+.pm-daw-dot{display:inline-block; width:7px; height:7px; margin:0 7px 0 6px; border-radius:50%; background:var(--edge);}
+.pm-daw-dot.on{background:var(--ok,#3a9d4f);}
+.pm-desk .pm-row{display:flex; align-items:center; gap:8px;}
+.pm-desk label.fld{display:grid; grid-template-columns:84px minmax(0,1fr); align-items:center; gap:8px; margin:0;
+  font-size:10px; letter-spacing:.06em; text-transform:uppercase; color:var(--text-dim);}
+.pm-desk label.fld.chk{display:flex; gap:8px; font-size:11px; letter-spacing:.02em; text-transform:none; color:var(--text);}
+.pm-desk label.fld select{width:100%; min-width:0;}
+.pm-desk .pm-midi-out{align-self:flex-start;}
+.pm-desk-foot{justify-content:space-between; margin-top:2px;}
+.pm-desk-foot .pm-port{min-width:0; text-align:right;}
 .pm-drag{display:inline-flex; align-items:center; gap:4px; padding:6px 12px; border:1px dashed var(--accent-dim, var(--edge));
   border-radius:6px; color:var(--accent, var(--text)); cursor:grab; user-select:none; -webkit-user-select:none; font-size:13px;}
 .pm-drag:active{cursor:grabbing;}
-.pm-sep{width:1px; align-self:stretch; background:var(--edge); margin:0 4px;}
 .pm-clock{color:var(--accent, var(--text-dim));}
 .pm-port{color:var(--text-dim);}
-.pm-desk [data-set="midiTarget"]{min-width:170px;}
 /* Uscita MIDI: arancione quando e' accesa, pallino rosso quando e' spenta. */
 .pm-midi-out{display:inline-flex; align-items:center; gap:6px;}
 .pm-midi-out .pm-midi-dot{color:var(--danger,#d83a2f); font-size:1.2em; line-height:0;}
 .pm-midi-out.on{background:var(--key-primary,var(--accent)); color:var(--on-accent); border-color:var(--accent-dim); font-weight:700;}
 .pm-midi-out.on .pm-midi-dot{display:none;}
-.pm-machine-tools{display:flex; flex-wrap:wrap; gap:6px; align-items:center; width:100%; margin-top:8px;}
-.pm-machine-tools .pm-machine-note{font-size:10px; color:var(--text-dim);}
+.pm-machine-tools{display:flex; flex-wrap:wrap; gap:6px; align-items:center; width:100%;}
 .pm-kit-dialog{width:min(620px,calc(100% - 32px)); max-height:min(760px,calc(100% - 32px)); box-sizing:border-box; padding:0;
   border:1px solid var(--edge); border-radius:var(--r-panel,10px); background:var(--plate,var(--panel)); color:var(--text); box-shadow:var(--shadow),0 18px 50px rgba(0,0,0,.45);}
 .pm-kit-dialog::backdrop{background:rgba(0,0,0,.58);}

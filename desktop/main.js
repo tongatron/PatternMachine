@@ -59,8 +59,10 @@ function registerAppProtocol() {
     if (!file || !fs.existsSync(file) || fs.statSync(file).isDirectory()) return new Response("not found", { status: 404 });
     if (file === path.join(SITE_DIR, "index.html")) {
       // niente statistiche Umami nell'app (lo script conta solo sul dominio del sito, ma non serve caricarlo)
-      const html = fs.readFileSync(file, "utf8").replace(/<script[^>]*analytics\.tongatron\.org[^>]*><\/script>\n?/g, "").replace("</body>",
-        '<link rel="stylesheet" href="/__desktop/bridge.css">\n<script src="/__desktop/bridge.js"></script>\n</body>');
+      // il segnaposto della data nel piede lo riempie scripts/deploy.sh sul sito: nell'app c'e' la versione dell'app
+      const html = fs.readFileSync(file, "utf8").replace(/<script[^>]*analytics\.tongatron\.org[^>]*><\/script>\n?/g, "")
+        .replace(/<!--build-->[^<]*<!--\/build-->/, `<!--build-->app version ${app.getVersion()}<!--/build-->`)
+        .replace("</body>", '<link rel="stylesheet" href="/__desktop/bridge.css">\n<script src="/__desktop/bridge.js"></script>\n</body>');
       return new Response(html, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
     }
     return net.fetch(pathToFileURL(file).toString());
@@ -720,7 +722,8 @@ async function checkAppMessage() {
 
 function createWindow() {
   win = new BrowserWindow({
-    width: 1380, height: 900, minWidth: 900, minHeight: 600,
+    // il sito sta in una schermata e sotto 1100x680 di contenuto la copre con un avviso: la finestra non scende sotto
+    width: 1380, height: 860, minWidth: 1100, minHeight: 680, useContentSize: true,
     title: "PatternMachine",
     webPreferences: { preload: path.join(__dirname, "preload.js"), contextIsolation: true, sandbox: true, nodeIntegration: false },
   });

@@ -104,7 +104,7 @@
   const machineBar=el("machinePanel")?.querySelector(".machine-bar");
   if(machineBar){
     const tools=document.createElement("div"); tools.className="pm-machine-tools";
-    tools.innerHTML=`<button type="button" id="pmImportMachine" class="mini">Import Drum Machine</button><button type="button" id="pmEditMachine" class="mini" hidden>Edit machine</button><button type="button" id="pmDeleteMachine" class="mini danger" hidden>Delete machine</button><span class="pm-machine-note">folder or ZIP of audio samples</span>`;
+    tools.innerHTML=`<button type="button" id="pmImportMachine" class="mini" title="Import a folder or ZIP of audio samples as a drum machine">Import Drum Machine</button><button type="button" id="pmEditMachine" class="mini" hidden>Edit machine</button><button type="button" id="pmDeleteMachine" class="mini danger" hidden>Delete machine</button>`;
     machineBar.appendChild(tools);
     el("pmImportMachine").onclick=importCustomKit;
     el("pmEditMachine").onclick=()=>{ const m=KITS[sampleSet]; D.kits.list().then(list=>{ const meta=list.find(x=>x.id===sampleSet); if(meta) showKitEditor({meta}); }); };
@@ -454,30 +454,46 @@
 
   // ---------- pannello ----------
   const dawNames={logic:"Logic Pro", ableton:"Ableton Live", reaper:"REAPER", fl:"FL Studio", cubase:"Cubase", bitwig:"Bitwig", studioone:"Studio One", garageband:"GarageBand", other:"your DAW"};
-  const panel=document.createElement("div");
-  panel.className="panel pm-desk";
-  panel.innerHTML=`
-    <div class="flexline">
-      <span class="pm-desk-title">DAW</span>
-      <span class="pm-drag" draggable="true" data-kind="midi" title="Drag onto the DAW timeline: a MIDI region">&#10303; MIDI</span>
-      <span class="pm-drag" draggable="true" data-kind="wav" title="Drag onto the DAW timeline: an audio region with mixer and effects">&#10303; WAV</span>
-      <span class="pm-sep"></span>
-      <label class="fld" title="Choose the DAW that sends MIDI Clock; it is used to name the source in the connection status"><select data-set="daw">
-        <option value="logic">Logic Pro</option><option value="ableton">Ableton Live</option><option value="reaper">REAPER</option><option value="fl">FL Studio</option><option value="cubase">Cubase</option><option value="bitwig">Bitwig</option><option value="studioone">Studio One</option><option value="garageband">GarageBand</option><option value="other">Other DAW</option>
-      </select></label>
+  // Nella pagina One page non c'e' posto per un pannello in piu': le funzioni MIDI e DAW stanno in un pulsante
+  // della barra in alto, un menu come Programs e Learn (il punto verde dice che uscita MIDI o clock sono attivi).
+  const menu=document.createElement("details");
+  menu.className="export-menu op-menu pm-daw"; menu.id="pmDaw";
+  menu.innerHTML=`<summary title="MIDI output, DAW clock and drag to the DAW">DAW<span class="pm-daw-dot" aria-hidden="true"></span>&#9662;</summary>
+    <div class="export-list pm-desk">
+      <span class="export-head">Drag to the DAW</span>
+      <div class="pm-row">
+        <span class="pm-drag" draggable="true" data-kind="midi" title="Drag onto the DAW timeline: a MIDI region">&#10303; MIDI</span>
+        <span class="pm-drag" draggable="true" data-kind="wav" title="Drag onto the DAW timeline: an audio region with mixer and effects">&#10303; WAV</span>
+      </div>
+      <span class="export-head">MIDI output</span>
       <button class="mini pm-midi-out" id="pmMidiOut" type="button" aria-pressed="false"><span class="pm-midi-dot" aria-hidden="true">&#9679;</span> MIDI out</button>
-      <label class="fld" title="The virtual port is for a DAW; choose Circuit to send directly to the connected Novation Circuit"><span>MIDI destination</span>
+      <label class="fld" title="The virtual port is for a DAW; choose Circuit to send directly to the connected Novation Circuit"><span>Destination</span>
         <select data-set="midiTarget" id="pmMidiTarget"><option value="PatternMachine">PatternMachine (virtual)</option></select></label>
-      <label class="fld" title="Channel 10 stays compatible with drum racks; Separate channels gives each row its own channel"><select data-set="midiRouting"><option value="drums">Channel 10</option><option value="multi">Separate channels</option></select></label>
-      <label class="fld" title="General MIDI for drum racks, the PatternMachine SP-1200 kit, or the original Novation Circuit drum-note map (60, 62, 64, 65)">Notes
+      <label class="fld" title="Channel 10 stays compatible with drum racks; Separate channels gives each row its own channel"><span>Channels</span>
+        <select data-set="midiRouting"><option value="drums">Channel 10</option><option value="multi">Separate channels</option></select></label>
+      <label class="fld" title="General MIDI for drum racks, the PatternMachine SP-1200 kit, or the original Novation Circuit drum-note map (60, 62, 64, 65)"><span>Notes</span>
         <select data-set="noteMap"><option value="gm">General MIDI</option><option value="sp">Kit SP-1200 (36+)</option><option value="circuit">Novation Circuit drums (60, 62, 64, 65)</option></select></label>
-      <label class="fld" title="Turn off to hear only the DAW instruments"><input type="checkbox" data-set="internalAudio"> Internal sound</label>
-      <label class="fld" title="Play, stop, position and tempo come from the MIDI Clock the DAW sends to PatternMachine"><input type="checkbox" data-set="follow"> Follow the DAW clock</label>
+      <label class="fld chk" title="Turn off to hear only the DAW instruments"><input type="checkbox" data-set="internalAudio"> Internal sound</label>
+      <span class="export-head">DAW clock</span>
+      <label class="fld" title="Choose the DAW that sends MIDI Clock; it is used to name the source in the connection status"><span>DAW</span>
+        <select data-set="daw">
+          <option value="logic">Logic Pro</option><option value="ableton">Ableton Live</option><option value="reaper">REAPER</option><option value="fl">FL Studio</option><option value="cubase">Cubase</option><option value="bitwig">Bitwig</option><option value="studioone">Studio One</option><option value="garageband">GarageBand</option><option value="other">Other DAW</option>
+        </select></label>
+      <label class="fld chk" title="Play, stop, position and tempo come from the MIDI Clock the DAW sends to PatternMachine"><input type="checkbox" data-set="follow"> Follow the DAW clock</label>
       <span class="tiny pm-clock" id="pmClock"></span>
-      <button class="mini" id="pmReveal" style="margin-left:auto" disabled>Show last export</button>
-      <span class="tiny pm-port" id="pmPort"></span>
+      <div class="pm-row pm-desk-foot">
+        <button class="mini" id="pmReveal" disabled>Show last export</button>
+        <span class="tiny pm-port" id="pmPort"></span>
+      </div>
     </div>`;
-  document.querySelector(".wrap > .panel").after(panel);
+  const panel=menu.querySelector(".pm-desk");
+  const dawDot=menu.querySelector(".pm-daw-dot");
+  const paintDawDot=()=>dawDot.classList.toggle("on",!!(settings.midiOut||settings.follow));
+  const menuAnchor=el("opPrograms");
+  if(menuAnchor) menuAnchor.before(menu); else document.querySelector(".topbar-controls").prepend(menu);
+  // si chiude come gli altri menu della barra: clic fuori ed Esc (le scelte dentro lo lasciano aperto)
+  document.addEventListener("click",e=>{ if(menu.open && !menu.contains(e.target)) menu.open=false; });
+  menu.addEventListener("keydown",e=>{ if(e.key==="Escape"){ menu.open=false; menu.querySelector("summary").focus(); } });
 
   panel.querySelectorAll("[data-set]").forEach(inp=>{
     const k=inp.dataset.set;
@@ -500,6 +516,7 @@
   });
   const midiBtn=el("pmMidiOut");
   function paintMidiOut(){
+    paintDawDot();
     midiBtn.classList.toggle("on",!!settings.midiOut);
     midiBtn.setAttribute("aria-pressed",String(!!settings.midiOut));
     midiBtn.title=settings.midiOut
@@ -524,6 +541,7 @@
     revealBtn.title=lastExport||"";
   }
   function paintClock(){
+    paintDawDot();
     const c=el("pmClock");
     if(!settings.follow) c.textContent="";
     else if(following && playing) c.textContent=`▶ locked to ${dawNames[settings.daw]||"DAW"}`;

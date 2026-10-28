@@ -1293,7 +1293,7 @@ html.op .site-footer #helpKeys > summary{padding:3px 6px; font-size:9.5px;}
 html.op .site-footer #helpKeys[open] > .help-body{position:absolute; z-index:40; left:50%; transform:translateX(-50%); bottom:calc(100% + 6px); width:min(900px,calc(100vw - 40px));
   max-height:60vh; overflow:auto; padding-top:12px; background:var(--panel); border:1px solid var(--edge); border-radius:8px; box-shadow:0 12px 30px rgba(0,0,0,.35);}
 /* schermi bassi: via l'illustrazione della macchina, cosi' la colonna entra senza scorrere */
-@media (max-height:860px){ html.op #machineArt{display:none;} }
+@media (max-height:860px){ html.op #machineArt, html.op #synthEnginePanel .syn-links svg{display:none;} }
 
 /* stage: la vista scelta riempie lo spazio; se non entra scorre lo stage, non la pagina */
 html.op #opStage:not([hidden]){grid-area:stage; display:flex; flex-direction:column; gap:8px; min-height:0; overflow:auto;}
@@ -1357,6 +1357,45 @@ html.op .seq-track .seqblock select{width:auto; max-width:180px;}
 html.op .seq-track .seqblock .seqblock-pat{flex:0 1 auto;}
 html.op .seq-track .seqblock .prev, html.op .seq-track .seqblock .syn-prev{flex:1 1 160px; min-width:120px;}
 html.op .seq-track .seqblock .seq-prog{flex:1 1 100%;}
+
+/* colonna nel Synth: motore e pattern del synth con le stesse regole di macchina e pattern della batteria */
+/* etichette, menu e collegamenti su tutta la riga; i tre tasti dei preset affiancati */
+html.op #synthEnginePanel .machine-bar{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:5px; margin:0; padding:0; border:0;}
+html.op #synthEnginePanel .machine-bar > :not(button){grid-column:1 / -1;}
+html.op #synthEnginePanel .machine-select{min-width:0; width:100%; font-size:12px; padding:6px 8px;}
+html.op #synthEnginePanel .machine-bar > button{min-height:0; padding:4px 2px; font-size:9px; letter-spacing:0; white-space:normal;}
+html.op #synthEnginePanel .syn-links{margin:0; justify-content:flex-start;}
+html.op #synthEnginePanel .syn-links svg{max-height:22px;}
+html.op #synthPatternPanel .chips{flex-direction:column; align-items:stretch; gap:4px;}
+html.op #synthPatternPanel .pattern-item{display:flex;}
+html.op #synthPatternPanel .pattern-item .pattern-btn{flex:1 1 auto; padding:6px 9px;}
+html.op #synthPatternPanel .pattern-btn-name{max-width:none;}
+html.op #synthPatternPanel .flexline{display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:5px;}
+html.op #synthPatternPanel .flexline > button{grid-column:span 2; min-height:30px; padding-inline:2px; font-size:9.5px; letter-spacing:0;}
+html.op #synthPatternPanel .syn-pattern-actions{grid-column:1 / -1; display:grid; grid-template-columns:1fr 1fr; gap:5px;}
+html.op #synthPatternPanel .syn-steps-field{grid-column:1 / -1; margin:0!important;}
+
+/* Synth: Notes o Sound, scelti dal selettore in cima allo stage; il piano roll prende tutta l'altezza */
+html.op #opSynthMode{align-self:flex-start;}
+html.op:not([data-view="synth"]) #opSynthMode{display:none;}
+html.op #panelSynth:not([hidden]){flex:1 1 0; min-height:0; display:flex; flex-direction:column; gap:7px;}
+html.op #panelSynth > *{flex:0 0 auto; margin-top:0; margin-bottom:0;}
+html.op #panelSynth > .synth-roll-wrap{flex:1 1 0; min-height:120px; height:auto; max-height:none;}
+html.op #panelSynth > .synth-credits{display:none;}
+html.op #panelSynth #synParams{display:none;}
+html.op #waveSynth canvas{height:80px; min-height:0;}
+html.op[data-op-synth="sound"] #panelSynth > :is(.flexline, .synth-roll-wrap, .synth-kbd, .synth-under){display:none;}
+html.op[data-op-synth="sound"] #panelSynth #synParams{display:grid; flex:1 1 0; min-height:0; overflow:auto; align-content:start;}
+
+/* Sampler: lo scaffale dei suoni scorre al suo interno */
+html.op #panelSampler:not([hidden]){flex:1 1 0; min-height:0; display:flex; flex-direction:column;}
+html.op #panelSampler > *{flex:0 0 auto;}
+html.op #panelSampler > .sampler-list{flex:1 1 0; min-height:0; overflow:auto;}
+
+/* Mixer: le strisce riempiono la larghezza e, se sono tante, scorrono di lato */
+html.op #panelMix:not([hidden]){flex:1 1 0; min-height:0; display:flex; flex-direction:column;}
+html.op #panelMix > *{flex:0 0 auto;}
+html.op #panelMix > .hint{display:none;}
 
 /* piede: una riga sottile */
 html.op .site-footer{grid-area:foot; position:relative; flex-direction:row; flex-wrap:wrap; gap:4px 16px; margin:0; font-size:9.5px;}
@@ -1536,7 +1575,11 @@ html.op .site-footer .site-badge{font-size:10px; padding-block:2px;}
   <aside class="op-rail" id="opRail" hidden>
     <div class="panel op-feel" id="opFeel"><h2>Feel &amp; levels</h2></div>
   </aside>
-  <div class="op-stage" id="opStage" hidden></div>
+  <div class="op-stage" id="opStage" hidden>
+    <div class="modeswitch op-synth-mode" id="opSynthMode" role="group" aria-label="Synthesizer view">
+      <button type="button" data-mode="notes" class="on" aria-pressed="true">Notes</button><button type="button" data-mode="sound" aria-pressed="false">Sound</button>
+    </div>
+  </div>
 
   <div class="panel" id="machinePanel">
     <div class="machine-bar drum-bar">
@@ -2024,23 +2067,23 @@ html.op .site-footer .site-badge{font-size:10px; padding-block:2px;}
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-10-28.2"></script>
-<script src="engine/core.js?v=2026-10-28.2"></script>
-<script src="engine/styles-punk.js?v=2026-10-28.2"></script>
-<script src="engine/styles-post.js?v=2026-10-28.2"></script>
-<script src="engine/styles-machines.js?v=2026-10-28.2"></script>
-<script src="engine/styles-alt.js?v=2026-10-28.2"></script>
-<script src="engine/styles-groove.js?v=2026-10-28.2"></script>
-<script src="engine/styles-dub.js?v=2026-10-28.2"></script>
-<script src="engine/styles-break.js?v=2026-10-28.2"></script>
-<script src="engine/styles-soul.js?v=2026-10-28.2"></script>
-<script src="engine/styles-metal.js?v=2026-10-28.2"></script>
-<script src="engine/styles-electro.js?v=2026-10-28.2"></script>
-<script src="engine/variations.js?v=2026-10-28.2"></script>
-<script src="engine/import.js?v=2026-10-28.2"></script>
-<script src="engine/rhythm.js?v=2026-10-28.2"></script>
-<script src="engine/share.js?v=2026-10-28.2"></script>
-<script src="engine/runtime.js?v=2026-10-28.2"></script>
+<script src="engine/machine-art.js?v=2026-10-28.3"></script>
+<script src="engine/core.js?v=2026-10-28.3"></script>
+<script src="engine/styles-punk.js?v=2026-10-28.3"></script>
+<script src="engine/styles-post.js?v=2026-10-28.3"></script>
+<script src="engine/styles-machines.js?v=2026-10-28.3"></script>
+<script src="engine/styles-alt.js?v=2026-10-28.3"></script>
+<script src="engine/styles-groove.js?v=2026-10-28.3"></script>
+<script src="engine/styles-dub.js?v=2026-10-28.3"></script>
+<script src="engine/styles-break.js?v=2026-10-28.3"></script>
+<script src="engine/styles-soul.js?v=2026-10-28.3"></script>
+<script src="engine/styles-metal.js?v=2026-10-28.3"></script>
+<script src="engine/styles-electro.js?v=2026-10-28.3"></script>
+<script src="engine/variations.js?v=2026-10-28.3"></script>
+<script src="engine/import.js?v=2026-10-28.3"></script>
+<script src="engine/rhythm.js?v=2026-10-28.3"></script>
+<script src="engine/share.js?v=2026-10-28.3"></script>
+<script src="engine/runtime.js?v=2026-10-28.3"></script>
 <script>
 // Script principale di PATTERN-MACHINE: stato del progetto, audio, trasporto e interfaccia della pagina.
 // Il motore ritmico (SPEngine), i tempi (PMRhythm), import, link e gli altri moduli stanno in engine/*.js.
@@ -4838,6 +4881,7 @@ function setView(v){
     el(id).setAttribute("aria-selected",String(v===view));
   });
   document.body.classList.toggle("mix-view",v==="mix");
+  document.documentElement.dataset.view=v;   // su una pagina il CSS adatta colonna e stage alla vista
   el("machinePanel").hidden = v==="synth" || v==="midi" || v==="mix" || v==="sampler";
   // su una pagina i pattern restano nella colonna anche nel Sequencer: servono per scegliere cosa inserire
   el("panelPatterns").hidden = v!=="grid" && !(v==="seq" && onePage());
@@ -4882,10 +4926,12 @@ function applyOnePage(){
     [document.querySelector(".topbar-guides"),el("desktopAppLink"),el("pluginLink")].forEach(n=>move(n,el("opGuideList")));
     move(el("machinePanel"),rail,feel);
     move(el("panelPatterns"),rail,feel);
+    move(el("synthEnginePanel"),rail,feel);
+    move(el("synthPatternPanel"),rail,feel);
     move(document.querySelector(".feel-group"),feel);
     move(document.querySelector(".vol-group"),feel);
     move(el("helpKeys"),document.querySelector(".site-footer"),document.querySelector(".site-footer").firstChild);
-    ["synthEnginePanel","synthPatternPanel","panelGrid","panelSynth","panelSampler","panelSeq","panelMix","panelRecent","panelMidi"]
+    ["panelGrid","panelSynth","panelSampler","panelSeq","panelMix","panelRecent","panelMidi"]
       .forEach(id=>move(el(id),stage));
   }else{
     while(onePageMoves.length){ const [node,parent,next]=onePageMoves.pop(); parent.insertBefore(node,next); }
@@ -5349,7 +5395,7 @@ let isGuest=false, isMember=false;   // isMember: utente registrato (user o admi
 function loadSynth(){
   if(window.PMSynth || el("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-28.2";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-28.3";
   document.body.appendChild(s);
 }
 if(LIVE_VIEW || (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth"))) loadSynth();
@@ -8399,6 +8445,14 @@ window.addEventListener("resize",()=>{
     paint(); applyOnePage();
   };
   ONE_PAGE_MQ.addEventListener("change",applyOnePage);
+  // Synth su una pagina: Notes (piano roll e tastiera) o Sound (i parametri del suono), uno alla volta
+  const synthMode=el("opSynthMode");
+  const paintSynthMode=mode=>{
+    root.dataset.opSynth=mode;
+    synthMode.querySelectorAll("button").forEach(b=>{ b.classList.toggle("on",b.dataset.mode===mode); b.setAttribute("aria-pressed",String(b.dataset.mode===mode)); });
+  };
+  synthMode.querySelectorAll("button").forEach(b=>b.onclick=()=>paintSynthMode(b.dataset.mode));
+  paintSynthMode("notes");
   // il menu Guide (i collegamenti della barra) si chiude dopo una scelta, al click fuori e con Esc, come Export
   guide.addEventListener("click",e=>{ if(e.target.closest(".export-list a")) guide.open=false; });
   document.addEventListener("click",e=>{ if(guide.open && !guide.contains(e.target)) guide.open=false; });
@@ -8408,7 +8462,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-10-28.2";
+const SW_VERSION="2026-10-28.3";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -8432,10 +8486,10 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sample-editor.js?v=2026-10-28.2"></script>
-<script src="engine/sampler.js?v=2026-10-28.2"></script>
-<script src="engine/vocal.js?v=2026-10-28.2"></script>
+<script src="engine/sample-editor.js?v=2026-10-28.3"></script>
+<script src="engine/sampler.js?v=2026-10-28.3"></script>
+<script src="engine/vocal.js?v=2026-10-28.3"></script>
 <script>PMSampler.init(); PMVocal.init();</script>
-<script src="engine/midi.js?v=2026-10-28.2"></script>
+<script src="engine/midi.js?v=2026-10-28.3"></script>
 </body>
 </html>

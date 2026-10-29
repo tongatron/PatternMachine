@@ -88,6 +88,47 @@ shell = re.search(r"const SHELL = \[(.*?)\];", sw, re.S).group(1)
 for path in re.findall(r'"(/learn/[^"]+)"', shell):
     check(os.path.isfile(site(path.lstrip("/"))), f"sw.js: {path} e' nella cache offline ma non esiste")
 
+# 5) SEO: sitemap, robots, link canonici, parole chiave (i nomi delle drum machine) e dati strutturati
+import json
+sitemap, robots = read(site("sitemap.xml")), read(site("robots.txt"))
+machine_names = re.findall(r'\{id:"[a-z0-9]+", name:"([^"]+)"', read(site("macchine.html")))
+check(len(machine_names) == 14, f"macchine.html: {len(machine_names)} macchine lette invece di 14")
+disallowed = re.findall(r"^Disallow: (\S+)", robots, re.M)
+check("Sitemap: https://patternmachine.tongatron.org/sitemap.xml" in robots, "robots.txt: manca la riga Sitemap")
+sitemap_paths = re.findall(r"<loc>https://patternmachine\.tongatron\.org(/[^<]*)</loc>", sitemap)
+check("/home.html" in sitemap_paths and "/landing.html" not in sitemap_paths, "sitemap.xml: la home deve essere /home.html")
+for url in sitemap_paths:
+    check(url in open_paths, f"sitemap.xml: {url} non e' pubblico in server.py (il crawler finirebbe sul login)")
+    check(os.path.isfile(site(url.lstrip("/"))), f"sitemap.xml: {url} non esiste in site/")
+    check(not any(url.startswith(d) for d in disallowed), f"sitemap.xml: {url} e' vietato da robots.txt")
+    text = read(site(url.lstrip("/")))
+    check(f'<link rel="canonical" href="https://patternmachine.tongatron.org{url}">' in text, f"{url}: canonical diverso dall'indirizzo in sitemap")
+    check("noindex" not in text, f"{url}: e' in sitemap ma ha noindex")
+shell = login.group(1) if login else ""
+for name, text in [("home.html", None), ("funzioni.html", None), ("macchine.html", None), ("plugin.html", None), ("index.html", None), ("pagina di accesso", shell)]:
+    text = read(site(name)) if text is None else text
+    kw = re.search(r'<meta name="keywords" content="([^"]*)"', text)
+    check(kw is not None and sorted(k.strip() for k in kw.group(1).split(",")) == sorted(machine_names),
+          f"{name}: le parole chiave devono essere i nomi delle {len(machine_names)} drum machine di macchine.html")
+    for block in re.findall(r'<script type="application/ld\+json">(.*?)</script>', text, re.S):
+        try:
+            check("@context" in json.loads(block), f"{name}: JSON-LD senza @context")
+        except ValueError as e:
+            check(False, f"{name}: JSON-LD non valido ({e})")
+for name in ("home.html", "funzioni.html", "macchine.html", "plugin.html"):
+    text = read(site(name))
+    descr = re.search(r'<meta name="description" content="([^"]*)"', text)
+    check(descr is not None and 50 <= len(descr.group(1)) <= 165, f"{name}: description assente o lunga/corta ({len(descr.group(1)) if descr else 0} caratteri, max ~160)")
+    check(len(re.findall(r"<h1[ >]", text)) == 1, f"{name}: deve avere un solo h1")
+check('type="application/ld+json"' in read(site("home.html")), "home.html: mancano i dati strutturati")
+for name in ("live.html", "embed.html", "app.html", "synth.html"):
+    check('<meta name="robots" content="noindex">' in read(site(name)), f"{name}: pagina non pubblica senza noindex")
+home = read(site("home.html"))
+for target in ("/funzioni.html", "/macchine.html", "/plugin.html"):
+    check(f'href="{target}"' in home, f"home.html: manca un collegamento diretto a {target} (robots.txt vieta /login: il crawler non la raggiungerebbe)")
+for name in sorted(f for f in os.listdir(site()) if f.endswith(".html")) + ["../server.py"]:
+    check("/landing.html" not in read(site(name)) or name == "../server.py", f"{name}: punta ancora a /landing.html")
+
 print(f"{len(failures)} problemi" if failures else f"ok: {len(used)} suoni RX-5, cartelle servite {sorted(served)}")
 for f in failures:
     print("  -", f)

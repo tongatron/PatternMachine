@@ -153,6 +153,17 @@ def main():
         check("anonimo DELETE api", anon.call("/api/patterns/abc", "DELETE", None, same)[0], 401)
         for path in ["/login", "/register", "/forgot", "/manifest.json", "/icons/icon-192.png", "/assets/og-sp1200.png"]:
             check("aperto " + path, anon.call(path)[0], 200)
+        # SEO: la home e le pagine pubbliche si leggono senza password; il vecchio indirizzo della home rimanda alla nuova
+        for path in ["/home.html", "/funzioni.html", "/macchine.html", "/plugin.html", "/privacy.html", "/robots.txt", "/sitemap.xml"]:
+            check("aperto " + path, anon.call(path)[0], 200)
+        st, _, body = anon.call("/home.html")
+        check("home con canonical e parole chiave", (b'rel="canonical" href="https://patternmachine.tongatron.org/home.html"' in body, b'name="keywords"' in body), (True, True))
+        st, hd, _ = anon.call("/landing.html")
+        check("vecchia landing: 301 verso la home", (st, hd.get("location")), (301, "/home.html"))
+        st, hd, _ = anon.call("/landing.html?lang=it")
+        check("vecchia landing: la query resta", (st, hd.get("location")), (301, "/home.html?lang=it"))
+        check("la landing non e' piu' un file servito", anon.call("/landing.html", headers={"Accept": "text/html"})[0], 301)
+        check("pagina di accesso con parole chiave", b'name="keywords"' in anon.call("/login")[2], True)
 
         # --- vecchio indirizzo (drummachine.tongatron.org): solo trasloco verso il nuovo, senza password ---
         old = {"Host": "drummachine.tongatron.org"}

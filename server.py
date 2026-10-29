@@ -38,7 +38,7 @@ PATTERN_ID_RE = re.compile(r"^/api/patterns/([A-Za-z0-9\-]+)$")
 
 # Si serve solo cio' che fa parte del sito: server.py, mail.json, data/ e qualunque altro
 # file lasciato nella cartella (backup, appunti) restano fuori.
-STATIC_FILES = {"index.html", "landing.html", "funzioni.html", "macchine.html", "synth.html", "app.html", "plugin.html", "embed.html", "live.html", "privacy.html", "manifest.json", "sw.js", "robots.txt", "sitemap.xml"}
+STATIC_FILES = {"index.html", "home.html", "funzioni.html", "macchine.html", "synth.html", "app.html", "plugin.html", "embed.html", "live.html", "privacy.html", "manifest.json", "sw.js", "robots.txt", "sitemap.xml"}
 # download/: le app (zip da ~100 MB) e app.json con versione e dimensione, scritti da desktop/scripts/release.sh;
 # il plug-in per Logic e plugin.json, scritti da plugin/scripts/release.sh.
 # learn/: il corso (lezioni e mini drum machine), come il resto del sito solo per chi ha l'accesso.
@@ -51,8 +51,8 @@ DOWNLOAD_PLATFORMS = {
 }
 
 # Visibili senza password: servono al browser per installare la PWA e alle anteprime dei link;
-# landing.html presenta il progetto a chi non ha ancora un account (con le sue schermate).
-OPEN_PATHS = {"/landing.html", "/funzioni.html", "/macchine.html", "/plugin.html", "/embed.html", "/live.html", "/privacy.html", "/robots.txt", "/sitemap.xml", "/login", "/logout", "/register", "/forgot", "/reset", "/manifest.json", "/api/app-message", "/assets/og-sp1200.png", "/assets/og-drum-machine-lab.jpg", "/assets/patternmachine-preview.jpg", "/assets/og-pattern-machine.png"}
+# home.html presenta il progetto a chi non ha ancora un account (con le sue schermate).
+OPEN_PATHS = {"/home.html", "/funzioni.html", "/macchine.html", "/plugin.html", "/embed.html", "/live.html", "/privacy.html", "/robots.txt", "/sitemap.xml", "/login", "/logout", "/register", "/forgot", "/reset", "/manifest.json", "/api/app-message", "/assets/og-sp1200.png", "/assets/og-drum-machine-lab.jpg", "/assets/patternmachine-preview.jpg", "/assets/og-pattern-machine.png"}
 OPEN_DIRS = ("/icons/", "/assets/landing/")
 
 # Dietro la password niente cache condivise (Cloudflare): "private" tiene la copia solo nel
@@ -641,7 +641,7 @@ TONGATRON_BADGE = ('<a href="https://tongatron.org/" style="display:inline-flex;
                    '<span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:#fff;'
                    'flex-shrink:0;"></span>tongatron.org</a>')
 
-# Piede delle schede di accesso: stesso formato del piede della landing (Privacy policy, tongatron.org, GitHub).
+# Piede delle schede di accesso: stesso formato del piede della home (Privacy policy, tongatron.org, GitHub).
 GITHUB_ICON = ('<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>')
 SITE_FOOTER = ('<footer class="site-footer"><a href="/privacy.html">Privacy policy</a>'
                '<a class="site-badge" href="https://tongatron.org/"><span class="mark"></span><span>tongatron.org</span></a>'
@@ -697,6 +697,7 @@ PAGE_SHELL = """<!doctype html>
 <meta name="theme-color" content="#a3a097">
 <title>PATTERN-MACHINE — {title}</title>
 <meta name="description" content="Step drum machine in the browser with 14 classic machines, from the SP-1200 and TR-808 to the TR-909 and RX-5. Patterns, songs and MIDI, WAV and MP3 export.">
+<meta name="keywords" content="E-mu SP-1200, Yamaha RX5, Roland TR-808, Roland TR-909, Roland TR-707, Roland TR-727, Roland TR-606 Drumatix, Roland CR-78, Roland CR-8000, Linn LinnDrum, Oberheim DMX, E-mu Drumulator, Sequential DrumTraks, Simmons SDS-V">
 <!-- Anteprima dei link: chi condivide un link arriva qui (il sito e' dietro accesso), quindi i tag stanno in questa pagina. -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="PATTERN-MACHINE">
@@ -871,8 +872,8 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
-    def _redirect(self, location, extra_headers=()):
-        self.send_response(303)
+    def _redirect(self, location, extra_headers=(), status=303):
+        self.send_response(status)
         self.send_header("Location", location)
         self.send_header("Content-Length", "0")
         self.send_header("Cache-Control", "no-store")
@@ -1031,7 +1032,7 @@ class Handler(BaseHTTPRequestHandler):
         nxt = e(safe_next(next_path), quote=True)
         q = "" if safe_next(next_path) == "/" else "?next=" + quote(safe_next(next_path), safe="")
         self._page(status, "Sign in", f"""<header class="brand">
-  <a class="logo" href="/landing.html">Pattern-Machine</a>
+  <a class="logo" href="/home.html">Pattern-Machine</a>
   <p class="tagline">Step drum machine · patterns · songs · MIDI, WAV, MP3 export</p>
   <div class="pads" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i class="on"></i><i></i><i></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i class="on"></i><i></i><i></i><i></i></div>
 </header>
@@ -1055,7 +1056,7 @@ class Handler(BaseHTTPRequestHandler):
   <button type="submit">Try it without an account</button>
   <p>As a guest you can't save your patterns or download the apps.</p>
 </form>
-<a class="about" href="/landing.html">What is PATTERN-MACHINE? →</a>""")
+<a class="about" href="/home.html">What is PATTERN-MACHINE? →</a>""")
 
     def _do_login(self):
         form = self._form()
@@ -1109,7 +1110,7 @@ class Handler(BaseHTTPRequestHandler):
   <input type="hidden" name="next" value="{e(safe_next(next_path), quote=True)}">
   <button type="submit">Create account</button>
   <div class="err" role="alert">{e(error)}</div>
-  <div class="links"><a href="/login{'' if safe_next(next_path) == '/' else '?next=' + quote(safe_next(next_path), safe='')}">Already have an account? Sign in</a><a href="/landing.html">What is PATTERN-MACHINE?</a></div>
+  <div class="links"><a href="/login{'' if safe_next(next_path) == '/' else '?next=' + quote(safe_next(next_path), safe='')}">Already have an account? Sign in</a><a href="/home.html">What is PATTERN-MACHINE?</a></div>
 </form>""")
 
     def _do_register(self):
@@ -1460,6 +1461,10 @@ class Handler(BaseHTTPRequestHandler):
             return
         if path == "/logout":
             self._redirect("/login", [self._session_cookie("", 0)])
+            return
+        if path == "/landing.html":
+            # Vecchio nome della home: 301 verso il nuovo, cosi' link e indicizzazione non si perdono.
+            self._redirect("/home.html" + ("?" + parsed.query if parsed.query else ""), status=301)
             return
         if not self._gate(path):
             return

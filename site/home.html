@@ -2,13 +2,18 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<script>
+// Dal 2026-10-30 la drum machine sta su /studio: i vecchi link del progetto (#project=..., #trasloco=...)
+// arrivavano su "/" e il frammento non raggiunge il server, quindi li si inoltra da qui.
+if (/^#(project|trasloco)=/.test(location.hash)) location.replace("/studio" + location.search + location.hash);
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#a3a097">
 <title>PATTERN-MACHINE — step drum machine, patterns and songs</title>
 <meta name="description" content="Browser drum machine with 14 classic machines — SP-1200, TR-808, TR-909, LinnDrum, RX5 and more. 67 pattern styles, song mode, MIDI and DAW-ready export.">
 <meta name="keywords" content="E-mu SP-1200, Yamaha RX5, Roland TR-808, Roland TR-909, Roland TR-707, Roland TR-727, Roland TR-606 Drumatix, Roland CR-78, Roland CR-8000, Linn LinnDrum, Oberheim DMX, E-mu Drumulator, Sequential DrumTraks, Simmons SDS-V">
 <meta name="robots" content="index,follow,max-image-preview:large">
-<link rel="canonical" href="https://patternmachine.tongatron.org/home.html">
+<link rel="canonical" href="https://patternmachine.tongatron.org/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="PATTERN-MACHINE">
 <meta property="og:title" content="PATTERN-MACHINE — step drum machine, patterns and songs">
@@ -18,7 +23,7 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="PATTERN-MACHINE, drum machines and patterns in the browser: SP-1200, TR-808, TR-909, RX-5, LinnDrum, TR-707, DMX, CR-78, TR-606, Drumulator, TR-727, SDS-V, DrumTraks, CR-8000">
-<meta property="og:url" content="https://patternmachine.tongatron.org/home.html">
+<meta property="og:url" content="https://patternmachine.tongatron.org/">
 <meta property="og:locale" content="en_US">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="PATTERN-MACHINE — step drum machine, patterns and songs">
@@ -52,12 +57,17 @@
     },
     {
       "@type": "SoftwareApplication",
-      "@id": "https://patternmachine.tongatron.org/home.html#app",
+      "@id": "https://patternmachine.tongatron.org/#app",
       "name": "PATTERN-MACHINE",
-      "url": "https://patternmachine.tongatron.org/home.html",
+      "url": "https://patternmachine.tongatron.org/",
       "description": "Browser drum machine with 14 classic machines — SP-1200, TR-808, TR-909, LinnDrum, RX5 and more. 67 pattern styles, song mode, MIDI and DAW-ready export.",
       "keywords": "E-mu SP-1200, Yamaha RX5, Roland TR-808, Roland TR-909, Roland TR-707, Roland TR-727, Roland TR-606 Drumatix, Roland CR-78, Roland CR-8000, Linn LinnDrum, Oberheim DMX, E-mu Drumulator, Sequential DrumTraks, Simmons SDS-V",
       "applicationCategory": "MultimediaApplication",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "EUR"
+      },
       "applicationSubCategory": "Drum machine",
       "operatingSystem": "Web browser, macOS, Windows, Linux",
       "inLanguage": [
@@ -262,7 +272,7 @@ footer{display:flex; flex-direction:column; align-items:center; gap:10px; margin
     <span class="lang-switch" role="group" aria-label="Language">
       <button type="button" id="langIt" aria-pressed="false" aria-label="Italiano"><span aria-hidden="true">🇮🇹</span> ITA</button><button type="button" id="langEn" class="on" aria-pressed="true" aria-label="English"><span aria-hidden="true">🇬🇧</span> ENG</button>
     </span>
-    <a class="btn small primary" href="/login?next=/">Sign in</a>
+    <a class="btn small primary" href="/login">Sign in</a>
   </nav>
 </header>
 
@@ -273,7 +283,7 @@ footer{display:flex; flex-direction:column; align-items:center; gap:10px; margin
     <h1>A step drum machine that <em>writes the beat with you</em>.</h1>
     <p class="lead">Pick one of 14 classic machines, generate a groove from 67 styles, then shape every hit with probability, ratchets, flam, tuning, decay and filter. Arrange patterns into a song and take the result to your DAW.</p>
     <div class="cta">
-      <a class="btn play big" href="/login?next=/">▶ Open the drum machine</a>
+      <a class="btn play big" href="/studio">▶ Open the drum machine</a>
       <a class="btn big" href="#features">See the features</a>
     </div>
     <p class="note">In the browser · desktop app for macOS, Windows, Linux · AU / VST3 plug-in for Logic Pro</p>
@@ -308,7 +318,7 @@ footer{display:flex; flex-direction:column; align-items:center; gap:10px; margin
         <li>Projects saved to your account, the same in every browser</li>
         <li>Shareable links to your patterns</li>
       </ul>
-      <a class="btn play" href="/login?next=/">Open it</a>
+      <a class="btn play" href="/studio">Open it</a>
     </div>
     <div class="form">
       <div class="tag">macOS · Windows · Linux</div>
@@ -442,10 +452,10 @@ footer{display:flex; flex-direction:column; align-items:center; gap:10px; margin
   <h2>Start making beats.</h2>
   <p class="muted">Sign in to open the drum machine and download the desktop app and the Logic plug-in. New here? Registration takes a minute, or try it as a guest.</p>
   <div class="cta">
-    <a class="btn primary big" href="/login?next=/">Sign in or create an account</a>
+    <a class="btn primary big" href="/login">Sign in or create an account</a>
   </div>
   <div class="links">
-    <a href="/login?next=/"><b>Drum machine →</b><span>The web app, in the browser</span></a>
+    <a href="/studio"><b>Drum machine →</b><span>The web app, in the browser</span></a>
     <a href="/login?next=/app.html"><b>Desktop app →</b><span>macOS, Windows, Linux</span></a>
     <a href="/plugin.html"><b>Logic plug-in →</b><span>AU and VST3</span></a>
     <a href="/funzioni.html"><b>Guide →</b><span>Every feature, step by step</span></a>

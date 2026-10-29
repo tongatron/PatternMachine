@@ -125,15 +125,26 @@ def main():
         check("admin creato dallo script", [(u["name"], u["role"]) for u in json.loads(users_file.read_text())["users"]], [(ADMIN, "admin")])
 
         # --- senza password ---
-        s, h, _ = anon.call("/")
-        check("anonimo / -> login", (s, h.get("location")), (303, "/login?next=/"))
+        s, h, body = anon.call("/")
+        check("anonimo /: la home pubblica", (s, b'rel="canonical" href="https://patternmachine.tongatron.org/"' in body), (200, True))
+        s, h, _ = anon.call("/studio")
+        check("anonimo /studio -> login", (s, h.get("location")), (303, "/login?next=/studio"))
         check("anonimo toolkit -> login", anon.call("/toolkit.html")[1].get("location"), "/login?next=/toolkit.html")
         check("anonimo pagina app -> login", anon.call("/app.html")[1].get("location"), "/login?next=/app.html")
         check("anonimo zip app: negato", anon.call("/download/PatternMachine-macOS.zip")[0], 401)
-        loc = anon.call("/?p=dbeat-16S-111111~R000005BEEF&x=1")[1].get("location")
-        check("link condiviso conserva la query", loc, "/login?next=/?p=dbeat-16S-111111~R000005BEEF%26x=1")
+        st, hd, _ = anon.call("/?p=dbeat-16S-111111~R000005BEEF&x=1")
+        check("vecchio link condiviso: verso /studio", (st, hd.get("location")), (302, "/studio?p=dbeat-16S-111111~R000005BEEF&x=1"))
+        loc = anon.call("/studio?p=dbeat-16S-111111~R000005BEEF&x=1")[1].get("location")
+        check("link condiviso conserva la query", loc, "/login?next=/studio?p=dbeat-16S-111111~R000005BEEF%26x=1")
         page = anon.call(loc)[2].decode()
-        check("la query arriva nel form di login", 'value="/?p=dbeat-16S-111111~R000005BEEF&amp;x=1"' in page, True)
+        check("la query arriva nel form di login", 'value="/studio?p=dbeat-16S-111111~R000005BEEF&amp;x=1"' in page, True)
+        check("vecchia app PWA: verso /studio", anon.call("/?source=pwa")[1].get("location"), "/studio?source=pwa")
+        check("/index.html: 301 verso /studio", [(lambda r: (r[0], r[1].get("location")))(anon.call(p)) for p in ("/index.html", "/index.html?live=1", "/studio/")],
+              [(301, "/studio"), (301, "/studio?live=1"), (301, "/studio")])
+        check("la home tiene lingua e utm", [anon.call(p)[0] for p in ("/?lang=it", "/?utm_source=x&lang=en")], [200, 200])
+        st, hd, body = anon.call("/?embed=1")
+        check("vecchio player incorporato: resta su /", (st, hd.get("x-frame-options"), b'rel="canonical" href="https://patternmachine.tongatron.org/studio"' in body), (200, None, True))
+        check("live senza password su /studio", anon.call("/studio?live=1")[0], 200)
         for path in ["/engine/core.js", "/samples/Kick%201%20SP-1200.wav", "/machines/rx5/BDrum1-RX5.wav", "/sw.js", "/api/patterns", "/server.py"]:
             check("anonimo bloccato " + path, anon.call(path)[0], 401)
         # Anteprima dei link: senza password si vede l'immagine e la pagina di accesso porta i tag og:
@@ -154,14 +165,15 @@ def main():
         for path in ["/login", "/register", "/forgot", "/manifest.json", "/icons/icon-192.png", "/assets/og-sp1200.png"]:
             check("aperto " + path, anon.call(path)[0], 200)
         # SEO: la home e le pagine pubbliche si leggono senza password; il vecchio indirizzo della home rimanda alla nuova
-        for path in ["/home.html", "/funzioni.html", "/macchine.html", "/plugin.html", "/privacy.html", "/robots.txt", "/sitemap.xml"]:
+        for path in ["/", "/funzioni.html", "/macchine.html", "/plugin.html", "/privacy.html", "/robots.txt", "/sitemap.xml"]:
             check("aperto " + path, anon.call(path)[0], 200)
-        st, _, body = anon.call("/home.html")
-        check("home con canonical e parole chiave", (b'rel="canonical" href="https://patternmachine.tongatron.org/home.html"' in body, b'name="keywords"' in body), (True, True))
-        st, hd, _ = anon.call("/landing.html")
-        check("vecchia landing: 301 verso la home", (st, hd.get("location")), (301, "/home.html"))
-        st, hd, _ = anon.call("/landing.html?lang=it")
-        check("vecchia landing: la query resta", (st, hd.get("location")), (301, "/home.html?lang=it"))
+        st, _, body = anon.call("/")
+        check("home con canonical e parole chiave", (b'rel="canonical" href="https://patternmachine.tongatron.org/"' in body, b'name="keywords"' in body), (True, True))
+        for old_home in ("/landing.html", "/home.html"):
+            st, hd, _ = anon.call(old_home)
+            check(old_home + ": 301 verso la home", (st, hd.get("location")), (301, "/"))
+            st, hd, _ = anon.call(old_home + "?lang=it")
+            check(old_home + ": la query resta", (st, hd.get("location")), (301, "/?lang=it"))
         check("la landing non e' piu' un file servito", anon.call("/landing.html", headers={"Accept": "text/html"})[0], 301)
         check("pagina di accesso con parole chiave", b'name="keywords"' in anon.call("/login")[2], True)
 
@@ -187,7 +199,7 @@ def main():
         user.cookie = cookie.split(";")[0]
         s, h, _ = Client(port).call("/login", "POST", form={"name": ADMIN, "password": TEST_PASSWORD, "next": "//evil.example"},
                                     headers={**same, "X-Forwarded-Proto": "https"})
-        check("next esterno ignorato", h.get("location"), "/")
+        check("next esterno ignorato", h.get("location"), "/studio")
         check("cookie Secure dietro https", "Secure" in h.get("set-cookie", ""), True)
         check("login da altro sito", anon.call("/login", "POST", form={"name": ADMIN, "password": TEST_PASSWORD},
                                                headers={"Sec-Fetch-Site": "cross-site"})[0], 403)
@@ -199,7 +211,7 @@ def main():
         # --- registrazione e mail di benvenuto (senza mail.json le mail non partono, qui vanno in outbox/) ---
         mario = Client(port)
         s, h, _ = mario.call("/register", "POST", form={"name": "  Mario   Rossi ", "password": "x", "email": "mario@example.com"}, headers=same)
-        check("registrazione -> dentro subito", (s, h.get("location"), "set-cookie" in h), (303, "/", True))
+        check("registrazione -> dentro subito", (s, h.get("location"), "set-cookie" in h), (303, "/studio", True))
         mario.cookie = h["set-cookie"].split(";")[0]
         check("/api/me utente", {k: v for k, v in json.loads(mario.call("/api/me")[2]).items() if k != "id"},
               {"name": "Mario Rossi", "role": "user", "email": "mario@example.com"})
@@ -240,7 +252,7 @@ def main():
         s, h, _ = guest.call("/guest", "POST", form={"next": "/toolkit.html"}, headers=same)
         check("ospite -> dentro", (s, h.get("location"), "set-cookie" in h), (303, "/toolkit.html", True))
         guest.cookie = h["set-cookie"].split(";")[0]
-        check("ospite vede il sito", guest.call("/")[0], 200)
+        check("ospite vede il sito", guest.call("/studio")[0], 200)
         check("ospite non scarica app", guest.call("/download/PatternMachine-macOS.zip")[0], 403)
         check("/api/me ospite", json.loads(guest.call("/api/me")[2])["role"], "guest")
         check("ospite non salva pattern", guest.call("/api/patterns", "POST", {"name": "n", "text": "t"}, same)[0], 403)
@@ -251,7 +263,7 @@ def main():
               b"sessionStorage.setItem('guestWelcome','1')" in login_html), (True, True))
         fake = Client(port)
         fake.cookie = guest.cookie[:-1] + ("0" if guest.cookie[-1] != "0" else "1")
-        check("cookie ospite manomesso", fake.call("/")[0], 303)
+        check("cookie ospite manomesso", fake.call("/studio")[0], 303)
 
         # --- password dimenticata e reset ---
         check("forgot: stessa risposta per chi non esiste", anon.call("/forgot", "POST", form={"who": "fantasma"}, headers={**same, "CF-Connecting-IP": "198.51.100.1"})[0], 200)
@@ -265,7 +277,7 @@ def main():
         check("pagina reset con link valido", (anon.call(path)[0], b"Mario Rossi" in anon.call(path)[2]), (200, True))
         check("pagina reset con link falso", anon.call("/reset?token=falso")[0], 400)
         s, h, _ = anon.call("/reset", "POST", form={"token": token, "password": "nuova"}, headers=same)
-        check("reset -> dentro con la nuova password", (s, h.get("location"), "set-cookie" in h), (303, "/", True))
+        check("reset -> dentro con la nuova password", (s, h.get("location"), "set-cookie" in h), (303, "/studio", True))
         check("il vecchio cookie di Mario non vale piu'", mario.call("/api/me")[0], 401)
         check("link di reset usabile una volta", anon.call("/reset", "POST", form={"token": token, "password": "altra"}, headers=same)[0], 400)
         check("vecchia password rifiutata", anon.call("/login", "POST", form={"name": "Mario Rossi", "password": "x"}, headers=same)[0], 401)
@@ -306,7 +318,7 @@ def main():
                                                  headers={"Sec-Fetch-Site": "cross-site"})[0], 403)
 
         # --- con sessione ---
-        for path in ["/", "/engine/core.js?v=1", "/samples/Kick%201%20SP-1200.wav",
+        for path in ["/", "/studio", "/engine/core.js?v=1", "/samples/Kick%201%20SP-1200.wav",
                      "/icons/icon-192.png", "/sw.js", "/manifest.json", "/api/patterns", "/machines/rx5/BDrum1-RX5.wav"]:
             check("loggato " + path, user.call(path)[0], 200)
         check("pagina toolkit rimossa", user.call("/toolkit.html")[0], 404)
@@ -328,13 +340,13 @@ def main():
         check("pagina app", user.call("/app.html")[0], 200)
         check("pagina plug-in", user.call("/plugin.html")[0], 200)
         check("scheda app non in cache", user.call("/download/app.json")[1].get("cache-control"), "private, no-cache")
-        check("cache html privata", user.call("/")[1].get("cache-control"), "private, no-cache")
+        check("cache html privata", user.call("/studio")[1].get("cache-control"), "private, no-cache")
         check("cache campioni privata", user.call("/samples/Kick%201%20SP-1200.wav")[1].get("cache-control"),
               "private, max-age=604800")
 
         tampered = Client(port)
         tampered.cookie = user.cookie[:-1] + ("0" if user.cookie[-1] != "0" else "1")
-        check("cookie manomesso", tampered.call("/")[0], 303)
+        check("cookie manomesso", tampered.call("/studio")[0], 303)
         db = mod.load_users()
         admin = mod.find_user(db, name=ADMIN)
         check("sessione scaduta", mod.session_user(db, mod.make_session(bytes.fromhex(db["secret"]), admin, now=time.time() - 31 * 86400)), None)
@@ -435,7 +447,7 @@ def main():
         check("altri IP non bloccati", Client(port).call("/login", "POST", form={"name": ADMIN, "password": TEST_PASSWORD}, headers=same)[0], 303)
 
         users_file.rename(stage / "data" / "users.off")
-        check("senza users.json il sito resta chiuso", anon.call("/")[0], 303)
+        check("senza users.json il sito resta chiuso", anon.call("/studio")[0], 303)
         check("senza users.json anche il vecchio cookie non vale", mario.call("/api/patterns")[0], 401)
     finally:
         httpd.shutdown()

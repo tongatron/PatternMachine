@@ -8,12 +8,12 @@
 // Cloudflare tiene in cache i .js, l'URL nuovo lo scavalca.
 // Il worker nuovo si attiva subito (skipWaiting): la pagina aperta e' gia' quella
 // presa dalla rete, quindi non serve ricaricarla e non si perde lavoro non salvato.
-const VERSION = "2026-10-30.1";
+const VERSION = "2026-10-30.2";
 const SHELL_CACHE = `sp1200-shell-${VERSION}`;
 const SAMPLE_CACHE = "sp1200-samples-v1"; // non versionata: i campioni non si riscaricano ad ogni rilascio
 
 const SHELL = [
-  "/",
+  "/studio",
   "/embed.html",
   "/live.html",
   "/manifest.json",
@@ -149,7 +149,7 @@ async function networkFirst(req) {
     return res;
   } catch (err) {
     return (await cache.match(stripSearch(req.url)))
-      || (await cache.match("/"))
+      || (await cache.match("/studio"))
       || new Response("Offline", { status: 503, headers: { "Content-Type": "text/plain; charset=utf-8" } });
   }
 }

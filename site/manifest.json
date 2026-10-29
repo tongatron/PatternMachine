@@ -5,7 +5,7 @@
   "description": "Step drum machine with 14 classic machines, from the SP-1200 and TR-808 to the TR-909 and RX-5: patterns, songs and MIDI, WAV and MP3 export. Also works offline.",
   "lang": "en",
   "dir": "ltr",
-  "start_url": "/?source=pwa",
+  "start_url": "/studio?source=pwa",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",

@@ -31,7 +31,7 @@ for name in sorted(os.listdir(site())):
 # 1b) le immagini di anteprima dei link: esistono, sono leggere e sono visibili senza password.
 # I social aprono il link, vengono rimandati alla pagina di accesso e leggono i tag og: da li':
 # quella pagina deve averli, con un'immagine pubblica (altrimenti l'anteprima resta vuota).
-open_paths = set(re.findall(r'"(/[^"]+)"', re.search(r"OPEN_PATHS = \{(.*?)\}", server, re.S).group(1)))
+open_paths = set(re.findall(r'"(/[^"]*)"', re.search(r"OPEN_PATHS = \{(.*?)\}", server, re.S).group(1)))
 login = re.search(r'PAGE_SHELL = (?:r?"""|r?\'\'\')(.*?)(?:"""|\'\'\')', server, re.S)
 check(login is not None, "pagina di accesso non trovata in server.py")
 for name, text in (("pagina di accesso", login.group(1) if login else ""), ("index.html", read(site("index.html")))):
@@ -96,12 +96,13 @@ check(len(machine_names) == 14, f"macchine.html: {len(machine_names)} macchine l
 disallowed = re.findall(r"^Disallow: (\S+)", robots, re.M)
 check("Sitemap: https://patternmachine.tongatron.org/sitemap.xml" in robots, "robots.txt: manca la riga Sitemap")
 sitemap_paths = re.findall(r"<loc>https://patternmachine\.tongatron\.org(/[^<]*)</loc>", sitemap)
-check("/home.html" in sitemap_paths and "/landing.html" not in sitemap_paths, "sitemap.xml: la home deve essere /home.html")
+check("/" in sitemap_paths and "/home.html" not in sitemap_paths and "/landing.html" not in sitemap_paths, "sitemap.xml: la home deve essere /")
+page_file = lambda url: "home.html" if url == "/" else url.lstrip("/")
 for url in sitemap_paths:
     check(url in open_paths, f"sitemap.xml: {url} non e' pubblico in server.py (il crawler finirebbe sul login)")
-    check(os.path.isfile(site(url.lstrip("/"))), f"sitemap.xml: {url} non esiste in site/")
+    check(os.path.isfile(site(page_file(url))), f"sitemap.xml: {url} non esiste in site/")
     check(not any(url.startswith(d) for d in disallowed), f"sitemap.xml: {url} e' vietato da robots.txt")
-    text = read(site(url.lstrip("/")))
+    text = read(site(page_file(url)))
     check(f'<link rel="canonical" href="https://patternmachine.tongatron.org{url}">' in text, f"{url}: canonical diverso dall'indirizzo in sitemap")
     check("noindex" not in text, f"{url}: e' in sitemap ma ha noindex")
 shell = login.group(1) if login else ""
@@ -128,6 +129,11 @@ for target in ("/funzioni.html", "/macchine.html", "/plugin.html"):
     check(f'href="{target}"' in home, f"home.html: manca un collegamento diretto a {target} (robots.txt vieta /login: il crawler non la raggiungerebbe)")
 for name in sorted(f for f in os.listdir(site()) if f.endswith(".html")) + ["../server.py"]:
     check("/landing.html" not in read(site(name)) or name == "../server.py", f"{name}: punta ancora a /landing.html")
+    check('href="/home.html"' not in read(site(name)), f"{name}: punta ancora a /home.html (la home e' /)")
+# 6) l'app sta su /studio: dalle pagine del sito "Torna alla drum machine" non deve finire sulla home
+for name in sorted(f for f in os.listdir(site()) if f.endswith(".html") and f != "app.html") + sorted("learn/" + f for f in os.listdir(site("learn")) if f.endswith((".html", ".js"))):
+    text = read(site(name))
+    check(not re.search(r'href="\.\.?/(#[^"]*|\?[^"]*)?"', text), f"{name}: link relativo alla radice: ora e' la home, l'app e' /studio")
 
 print(f"{len(failures)} problemi" if failures else f"ok: {len(used)} suoni RX-5, cartelle servite {sorted(served)}")
 for f in failures:

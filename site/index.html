@@ -7,7 +7,7 @@
 <title>PATTERN-MACHINE — drum machines and patterns in the browser</title>
 <meta name="description" content="Step drum machine in the browser with 14 classic machines, from the SP-1200 and TR-808 to the TR-909 and RX-5. Patterns, songs and MIDI, WAV and MP3 export.">
 <meta name="keywords" content="E-mu SP-1200, Yamaha RX5, Roland TR-808, Roland TR-909, Roland TR-707, Roland TR-727, Roland TR-606 Drumatix, Roland CR-78, Roland CR-8000, Linn LinnDrum, Oberheim DMX, E-mu Drumulator, Sequential DrumTraks, Simmons SDS-V">
-<link rel="canonical" href="https://patternmachine.tongatron.org/">
+<link rel="canonical" href="https://patternmachine.tongatron.org/studio">
 <meta name="theme-color" content="#0a0a0b" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#a3a097" media="(prefers-color-scheme: light)">
 
@@ -65,7 +65,7 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="PATTERN-MACHINE, drum machines and patterns in the browser: SP-1200, TR-808, TR-909, RX-5, LinnDrum, TR-707, DMX, CR-78, TR-606, Drumulator, TR-727, SDS-V, DrumTraks, CR-8000">
-<meta property="og:url" content="https://patternmachine.tongatron.org/">
+<meta property="og:url" content="https://patternmachine.tongatron.org/studio">
 <meta property="og:locale" content="en_US">
 
 <meta name="twitter:card" content="summary_large_image">
@@ -1481,7 +1481,7 @@ html.op .site-footer .report-btn{order:5; min-height:0; padding:5px 10px; font-s
       </div>
       <div class="live-head-actions">
         <span class="live-state" id="livePlayingState">Click a control to start live playing</span>
-        <a class="linkbtn live-return" id="liveReturn" href="./?view=grid" title="Return to the Drum Grid">Return to Drums ↗</a>
+        <a class="linkbtn live-return" id="liveReturn" href="?view=grid" title="Return to the Drum Grid">Return to Drums ↗</a>
       </div>
     </header>
     <div class="panel live-shell">
@@ -2134,23 +2134,23 @@ html.op .site-footer .report-btn{order:5; min-height:0; padding:5px 10px; font-s
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-10-30.1"></script>
-<script src="engine/core.js?v=2026-10-30.1"></script>
-<script src="engine/styles-punk.js?v=2026-10-30.1"></script>
-<script src="engine/styles-post.js?v=2026-10-30.1"></script>
-<script src="engine/styles-machines.js?v=2026-10-30.1"></script>
-<script src="engine/styles-alt.js?v=2026-10-30.1"></script>
-<script src="engine/styles-groove.js?v=2026-10-30.1"></script>
-<script src="engine/styles-dub.js?v=2026-10-30.1"></script>
-<script src="engine/styles-break.js?v=2026-10-30.1"></script>
-<script src="engine/styles-soul.js?v=2026-10-30.1"></script>
-<script src="engine/styles-metal.js?v=2026-10-30.1"></script>
-<script src="engine/styles-electro.js?v=2026-10-30.1"></script>
-<script src="engine/variations.js?v=2026-10-30.1"></script>
-<script src="engine/import.js?v=2026-10-30.1"></script>
-<script src="engine/rhythm.js?v=2026-10-30.1"></script>
-<script src="engine/share.js?v=2026-10-30.1"></script>
-<script src="engine/runtime.js?v=2026-10-30.1"></script>
+<script src="engine/machine-art.js?v=2026-10-30.2"></script>
+<script src="engine/core.js?v=2026-10-30.2"></script>
+<script src="engine/styles-punk.js?v=2026-10-30.2"></script>
+<script src="engine/styles-post.js?v=2026-10-30.2"></script>
+<script src="engine/styles-machines.js?v=2026-10-30.2"></script>
+<script src="engine/styles-alt.js?v=2026-10-30.2"></script>
+<script src="engine/styles-groove.js?v=2026-10-30.2"></script>
+<script src="engine/styles-dub.js?v=2026-10-30.2"></script>
+<script src="engine/styles-break.js?v=2026-10-30.2"></script>
+<script src="engine/styles-soul.js?v=2026-10-30.2"></script>
+<script src="engine/styles-metal.js?v=2026-10-30.2"></script>
+<script src="engine/styles-electro.js?v=2026-10-30.2"></script>
+<script src="engine/variations.js?v=2026-10-30.2"></script>
+<script src="engine/import.js?v=2026-10-30.2"></script>
+<script src="engine/rhythm.js?v=2026-10-30.2"></script>
+<script src="engine/share.js?v=2026-10-30.2"></script>
+<script src="engine/runtime.js?v=2026-10-30.2"></script>
 <script>
 // Script principale di PATTERN-MACHINE: stato del progetto, audio, trasporto e interfaccia della pagina.
 // Il motore ritmico (SPEngine), i tempi (PMRhythm), import, link e gli altri moduli stanno in engine/*.js.
@@ -5462,7 +5462,7 @@ function paintProTools(){
 function loadSynth(){
   if(window.PMSynth || el("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-30.1";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-30.2";
   document.body.appendChild(s);
 }
 if(LIVE_VIEW || (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth"))) loadSynth();
@@ -6329,7 +6329,7 @@ function deserialize(d,keepSel){
 // ---------- link del progetto e player da incorporare ----------
 async function projectShareUrl(embed=false){
   const payload=await PMShare.encode(serialize());
-  const target=embed ? new URL("embed.html",location.href) : new URL("./",location.href);
+  const target=embed ? new URL("embed.html",location.href) : new URL(location.pathname,location.href);
   if(embed) target.searchParams.set("v",SW_VERSION);
   const path=target.pathname+target.search;
   return PMShare.link(path,payload);
@@ -8423,7 +8423,7 @@ loadSharedProject();
   }
   function updateReturnLink(){
     const link=el("liveReturn"), drums=instrument==="drums";
-    link.href=drums?"./?view=grid":"./?view=synth";
+    link.href=drums?"?view=grid":"?view=synth";
     link.title=drums?"Return to the Drum Grid":"Return to the Synthesizer";
     link.textContent=`Return to ${drums?"Drums":"Synth"} ↗`;
   }
@@ -8534,7 +8534,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-10-30.1";
+const SW_VERSION="2026-10-30.2";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -8558,10 +8558,10 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sample-editor.js?v=2026-10-30.1"></script>
-<script src="engine/sampler.js?v=2026-10-30.1"></script>
-<script src="engine/vocal.js?v=2026-10-30.1"></script>
+<script src="engine/sample-editor.js?v=2026-10-30.2"></script>
+<script src="engine/sampler.js?v=2026-10-30.2"></script>
+<script src="engine/vocal.js?v=2026-10-30.2"></script>
 <script>PMSampler.init(); PMVocal.init();</script>
-<script src="engine/midi.js?v=2026-10-30.1"></script>
+<script src="engine/midi.js?v=2026-10-30.2"></script>
 </body>
 </html>

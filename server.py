@@ -32,6 +32,11 @@ TELEGRAM_FILE = os.environ.get("PATTERNMACHINE_TELEGRAM") or os.path.join(ROOT, 
 # indirizzo, il vecchio service worker si disinstalla, tutto il resto viene rediretto.
 SITE_URL = os.environ.get("SITE_URL", "https://patternmachine.tongatron.org")
 OLD_HOSTS = {"drummachine.tongatron.org"}
+# Dal 2026-10-30 la radice "/" e' la home pubblica (home.html) e la drum machine sta in APP_PATH.
+# I vecchi indirizzi dell'app (/index.html, /?p=..., /?source=pwa) vengono rediretti qui.
+APP_PATH = "/studio"
+# Parametri che restano sulla home: tutti gli altri, su "/", sono di un link all'app.
+HOME_PARAMS = {"lang", "fbclid", "gclid", "ref"}
 LOCK = threading.Lock()
 
 PATTERN_ID_RE = re.compile(r"^/api/patterns/([A-Za-z0-9\-]+)$")
@@ -52,7 +57,7 @@ DOWNLOAD_PLATFORMS = {
 
 # Visibili senza password: servono al browser per installare la PWA e alle anteprime dei link;
 # home.html presenta il progetto a chi non ha ancora un account (con le sue schermate).
-OPEN_PATHS = {"/home.html", "/funzioni.html", "/macchine.html", "/plugin.html", "/embed.html", "/live.html", "/privacy.html", "/robots.txt", "/sitemap.xml", "/login", "/logout", "/register", "/forgot", "/reset", "/manifest.json", "/api/app-message", "/assets/og-sp1200.png", "/assets/og-drum-machine-lab.jpg", "/assets/patternmachine-preview.jpg", "/assets/og-pattern-machine.png"}
+OPEN_PATHS = {"/", "/funzioni.html", "/macchine.html", "/plugin.html", "/embed.html", "/live.html", "/privacy.html", "/robots.txt", "/sitemap.xml", "/login", "/logout", "/register", "/forgot", "/reset", "/manifest.json", "/api/app-message", "/assets/og-sp1200.png", "/assets/og-drum-machine-lab.jpg", "/assets/patternmachine-preview.jpg", "/assets/og-pattern-machine.png"}
 OPEN_DIRS = ("/icons/", "/assets/landing/")
 
 # Dietro la password niente cache condivise (Cloudflare): "private" tiene la copia solo nel
@@ -489,7 +494,7 @@ def note(ip, kind="login"):
 def safe_next(target):
     # Solo percorsi interni: niente "//altro-sito" o URL assoluti (open redirect).
     if not target or not target.startswith("/") or target.startswith("//") or "\\" in target:
-        return "/"
+        return APP_PATH
     return target
 
 
@@ -958,8 +963,8 @@ class Handler(BaseHTTPRequestHandler):
 
     def _gate(self, path):
         """True se la richiesta puo' proseguire; altrimenti ha gia' risposto."""
-        embed_home = path == "/" and parse_qs(urlparse(self.path).query).get("embed") == ["1"]
-        live_home = path == "/index.html" and parse_qs(urlparse(self.path).query).get("live") == ["1"]
+        embed_home = path in ("/", APP_PATH) and parse_qs(urlparse(self.path).query).get("embed") == ["1"]
+        live_home = path == APP_PATH and parse_qs(urlparse(self.path).query).get("live") == ["1"]
         if path in OPEN_PATHS or embed_home or live_home or path.startswith(OPEN_DIRS) or self._authorized():
             return True
         if self.command == "GET" and path.startswith("/download/"):
@@ -970,7 +975,7 @@ class Handler(BaseHTTPRequestHandler):
   <div class="links"><a class="btn" href="/login?next=/app.html">Sign in</a><a class="btn ghost" href="/register?next=/app.html">Create an account</a></div>
 </div>""")
             return False
-        wants_page = self.command == "GET" and (path == "/" or path.endswith(".html")
+        wants_page = self.command == "GET" and (path == APP_PATH or path.endswith(".html")
                                                  or "text/html" in (self.headers.get("Accept") or ""))
         if wants_page:
             # Si conserva anche la query (es. ?p=<codice> dei link condivisi); "&" va codificato.
@@ -1027,12 +1032,12 @@ class Handler(BaseHTTPRequestHandler):
             return None
         return {k: v[0] for k, v in parse_qs(raw.decode("utf-8", "replace"), keep_blank_values=True).items()}
 
-    def _login_page(self, status=200, error="", next_path="/", name="", note=""):
+    def _login_page(self, status=200, error="", next_path=APP_PATH, name="", note=""):
         e = html.escape
         nxt = e(safe_next(next_path), quote=True)
-        q = "" if safe_next(next_path) == "/" else "?next=" + quote(safe_next(next_path), safe="")
+        q = "" if safe_next(next_path) == APP_PATH else "?next=" + quote(safe_next(next_path), safe="")
         self._page(status, "Sign in", f"""<header class="brand">
-  <a class="logo" href="/home.html">Pattern-Machine</a>
+  <a class="logo" href="/">Pattern-Machine</a>
   <p class="tagline">Step drum machine · patterns · songs · MIDI, WAV, MP3 export</p>
   <div class="pads" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i class="on"></i><i></i><i></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i class="on"></i><i></i><i></i><i></i></div>
 </header>
@@ -1056,13 +1061,13 @@ class Handler(BaseHTTPRequestHandler):
   <button type="submit">Try it without an account</button>
   <p>As a guest you can't save your patterns or download the apps.</p>
 </form>
-<a class="about" href="/home.html">What is PATTERN-MACHINE? →</a>""")
+<a class="about" href="/">What is PATTERN-MACHINE? →</a>""")
 
     def _do_login(self):
         form = self._form()
         if form is None:
             return
-        next_path = safe_next(form.get("next", "/"))
+        next_path = safe_next(form.get("next", APP_PATH))
         name = form.get("name", "").strip()
         ip = self._client_ip()
         if too_many(ip, "login"):
@@ -1093,9 +1098,9 @@ class Handler(BaseHTTPRequestHandler):
             cookie = make_guest_session(users_secret(db))
             if fresh:
                 save_users(db)
-        self._redirect(safe_next(form.get("next", "/")), [self._session_cookie(cookie, SESSION_DAYS * 86400)])
+        self._redirect(safe_next(form.get("next", APP_PATH)), [self._session_cookie(cookie, SESSION_DAYS * 86400)])
 
-    def _register_page(self, status=200, error="", next_path="/", name="", email=""):
+    def _register_page(self, status=200, error="", next_path=APP_PATH, name="", email=""):
         e = html.escape
         self._page(status, "Create an account", f"""<form class="card" method="post" action="/register">
   <h1>PATTERN-MACHINE</h1>
@@ -1110,14 +1115,14 @@ class Handler(BaseHTTPRequestHandler):
   <input type="hidden" name="next" value="{e(safe_next(next_path), quote=True)}">
   <button type="submit">Create account</button>
   <div class="err" role="alert">{e(error)}</div>
-  <div class="links"><a href="/login{'' if safe_next(next_path) == '/' else '?next=' + quote(safe_next(next_path), safe='')}">Already have an account? Sign in</a><a href="/home.html">What is PATTERN-MACHINE?</a></div>
+  <div class="links"><a href="/login{'' if safe_next(next_path) == APP_PATH else '?next=' + quote(safe_next(next_path), safe='')}">Already have an account? Sign in</a><a href="/">What is PATTERN-MACHINE?</a></div>
 </form>""")
 
     def _do_register(self):
         form = self._form()
         if form is None:
             return
-        next_path = safe_next(form.get("next", "/"))
+        next_path = safe_next(form.get("next", APP_PATH))
         raw_name, email, password = form.get("name", ""), form.get("email", "").strip(), form.get("password", "")
         ip = self._client_ip()
         name = clean_name(raw_name)
@@ -1226,7 +1231,7 @@ class Handler(BaseHTTPRequestHandler):
         elif not password:
             self._reset_page(400, token, "Choose a password.", user["name"])
         else:
-            self._redirect("/", [self._session_cookie(cookie, SESSION_DAYS * 86400)])
+            self._redirect(APP_PATH, [self._session_cookie(cookie, SESSION_DAYS * 86400)])
 
     # ---------- amministrazione ----------
     def _admin_page(self, status=200, message="", confirm=None, link=""):
@@ -1305,7 +1310,7 @@ class Handler(BaseHTTPRequestHandler):
         link_html = ("<p>New password link (valid for one hour, send it to the user yourself):</p>"
                      f"<code>{e(link)}</code>") if link else ""
         self._page(status, "Users", f"""<nav class="admin-bar">
-  <a class="btn ghost small" href="/">&larr; Back to PatternMachine</a>
+  <a class="btn ghost small" href="{APP_PATH}">&larr; Back to PatternMachine</a>
   <a class="btn ghost small" href="/logout">Sign out</a>
 </nav>
 <div class="card wide">
@@ -1394,8 +1399,11 @@ class Handler(BaseHTTPRequestHandler):
     # ---------- file statici ----------
     def _serve_static(self):
         path = unquote(urlparse(self.path).path)
-        if path == "/":
+        embed_root = path == "/" and parse_qs(urlparse(self.path).query).get("embed") == ["1"]
+        if path == APP_PATH or embed_root:
             path = "/index.html"
+        elif path == "/":
+            path = "/home.html"
         rel = os.path.normpath(path).lstrip("/")
         rel = rel.replace(os.sep, "/")
         full_path = public_file_path(rel)
@@ -1442,7 +1450,7 @@ class Handler(BaseHTTPRequestHandler):
         path = parsed.path
         query = parse_qs(parsed.query)
         if path in ("/login", "/register"):
-            next_path = (query.get("next") or ["/"])[0]
+            next_path = (query.get("next") or [APP_PATH])[0]
             if self._authorized() and self._user().get("role") != "guest":
                 self._redirect(safe_next(next_path))
             elif path == "/login":
@@ -1462,9 +1470,18 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/logout":
             self._redirect("/login", [self._session_cookie("", 0)])
             return
-        if path == "/landing.html":
-            # Vecchio nome della home: 301 verso il nuovo, cosi' link e indicizzazione non si perdono.
-            self._redirect("/home.html" + ("?" + parsed.query if parsed.query else ""), status=301)
+        qs = "?" + parsed.query if parsed.query else ""
+        if path in ("/landing.html", "/home.html"):
+            # Vecchi nomi della home: 301 verso la radice, cosi' link e indicizzazione non si perdono.
+            self._redirect("/" + qs, status=301)
+            return
+        if path in ("/index.html", APP_PATH + "/"):
+            # Vecchio indirizzo dell'app: si conserva la query (?p=, ?live=1, ?embed=1...).
+            self._redirect(APP_PATH + qs, status=301)
+            return
+        if path == "/" and "embed" not in query and any(k not in HOME_PARAMS and not k.startswith("utm_") for k in query):
+            # Link all'app fatti prima del 2026-10-30 (?p=<codice>, ?source=pwa, ?lesson=...).
+            self._redirect(APP_PATH + qs, status=302)
             return
         if not self._gate(path):
             return

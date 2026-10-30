@@ -131,7 +131,10 @@
 
   // ---------- collegamento ----------
   let access = null;
-  const inputs = () => access ? [...access.inputs.values()] : [];
+  // Nell'app per Mac la porta virtuale "PatternMachine" e' l'uscita MIDI dell'app stessa: ascoltarla qui
+  // rimanderebbe ogni colpo suonato in uscita come colpo di pad, che torna in uscita, all'infinito (ronzio continuo).
+  const ownPort = i => !!window.pmDesktop && i.name === "PatternMachine";
+  const inputs = () => access ? [...access.inputs.values()].filter(i => !ownPort(i)) : [];
   function hook() { for (const i of inputs()) i.onmidimessage = onMessage; }
   async function connect(quiet) {
     if (access) return true;

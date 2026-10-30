@@ -781,6 +781,35 @@ td form{display:inline;}
 .tag{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);}
 .table-wrap{overflow-x:auto;}
 .admin-bar{width:min(760px,100%);display:flex;justify-content:space-between;gap:10px;}
+.card.wide.users-card{width:min(900px,100%);}
+.users-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:12px;}
+.users-heading h1{margin:0;}
+.users-count{font-size:10px;color:var(--dim);white-space:nowrap;}
+.users-table{table-layout:fixed;}
+.users-table th:nth-child(1){width:20%;}
+.users-table th:nth-child(2){width:31%;}
+.users-table th:nth-child(3){width:14%;}
+.users-table th:nth-child(4){width:15%;}
+.users-table th:nth-child(5){width:20%;}
+.users-table td{padding:13px 10px 13px 0;}
+.users-table td:nth-child(2){overflow-wrap:anywhere;}
+.user-name{font-weight:800;}
+.user-email{color:var(--dim);}
+.user-date{white-space:nowrap;font-variant-numeric:tabular-nums;}
+.users-table .row-acts{align-items:center;flex-wrap:nowrap;gap:8px;}
+.users-table .row-acts form{display:block;}
+.row-note{font-size:10px;color:var(--dim);white-space:nowrap;}
+@media (max-width:720px){
+  .users-heading{align-items:flex-start;flex-direction:column;gap:4px;}
+  .users-table,.users-table tbody,.users-table tr,.users-table td{display:block;}
+  .users-table thead{display:none;}
+  .users-table tr{padding:12px 0;border-bottom:1px solid var(--edge-soft);}
+  .users-table td{display:grid;grid-template-columns:84px minmax(0,1fr);gap:12px;padding:5px 0;border:0;}
+  .users-table td::before{content:attr(data-label);font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);}
+  .users-table td[data-label="Actions"]{display:block;padding-top:10px;}
+  .users-table td[data-label="Actions"]::before{display:block;margin-bottom:6px;}
+  .users-table .row-acts{justify-content:flex-start;flex-wrap:wrap;}
+}
 .site-footer{display:flex;flex-direction:column;align-items:center;gap:10px;margin:14px 0 6px;font:11px "SF Mono","JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;color:var(--dim);text-align:center;}
 .site-badge{display:inline-flex;align-items:center;gap:10px;text-decoration:none;font:700 14px/1.2 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
   background:linear-gradient(180deg,#e0743f,#b8471f);color:#fff;padding:5px 12px;border-radius:999px;transition:.2s;}
@@ -1279,9 +1308,16 @@ class Handler(BaseHTTPRequestHandler):
                 acts.append(f'<form method="post" action="/admin/reset"><input type="hidden" name="id" value="{e(u["id"], quote=True)}">'
                             f'<button class="ghost small" type="submit">{"Send reset" if u.get("email") else "Reset link"}</button></form>')
                 acts.append(f'<a class="btn ghost small" href="/admin?elimina={e(u["id"], quote=True)}">Delete</a>')
-            rows.append(f"""<tr><td><b>{e(u['name'])}</b> {'<span class="tag">admin</span>' if u.get('role') == 'admin' else ''}</td>
-<td>{e(u.get('email') or '—')}</td><td>{e(u['created_at'][:10])}</td><td>{e((u.get('last_login') or '—')[:10])}</td>
-<td><div class="row-acts">{''.join(acts)}</div></td></tr>""")
+            if not acts:
+                acts.append('<span class="row-note">Current account</span>')
+            created = str(u.get("created_at") or "")[:10]
+            last_login = str(u.get("last_login") or "")[:10]
+            rows.append(f"""<tr>
+<td data-label="Name"><span class="user-name">{e(u['name'])}</span> {'<span class="tag">admin</span>' if u.get('role') == 'admin' else ''}</td>
+<td data-label="Email"><span class="user-email">{e(u.get('email') or '—')}</span></td>
+<td data-label="Signed up"><time class="user-date" datetime="{e(created, quote=True)}">{e(created or '—')}</time></td>
+<td data-label="Last sign-in"><time class="user-date" datetime="{e(last_login, quote=True)}">{e(last_login or '—')}</time></td>
+<td data-label="Actions"><div class="row-acts">{''.join(acts)}</div></td></tr>""")
         downloads = all_downloads(users)
         if downloads:
             per_app = {}
@@ -1313,13 +1349,15 @@ class Handler(BaseHTTPRequestHandler):
   <a class="btn ghost small" href="{APP_PATH}">&larr; Back to PatternMachine</a>
   <a class="btn ghost small" href="/logout">Sign out</a>
 </nav>
-<div class="card wide">
-  <h1>Users</h1>
+<div class="card wide users-card">
+  <div class="users-heading"><h1>Users</h1><span class="users-count">{len(users)} {'account' if len(users) == 1 else 'accounts'}</span></div>
   <div class="line"></div>
   {msg_html}{link_html}{top}
-  <div class="table-wrap"><table>
-    <tr><th>Name</th><th>Email</th><th>Signed up</th><th>Last sign-in</th><th></th></tr>
+  <div class="table-wrap"><table class="users-table">
+    <thead><tr><th scope="col">Name</th><th scope="col">Email</th><th scope="col">Signed up</th><th scope="col">Last sign-in</th><th scope="col">Actions</th></tr></thead>
+    <tbody>
     {''.join(rows)}
+    </tbody>
   </table></div>
 </div>
 {downloads_section}

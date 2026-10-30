@@ -112,6 +112,7 @@ MIDI clock to set up.
 - Sample-accurate sync with Logic's transport, tempo changes, cycles and jumps.
 - Audio goes through the Logic channel strip, so effects, mixer and automation work, as do real-time and offline bounces.
 - The project is saved **inside the Logic project** and plays even with the plug-in window closed.
+- **→ Logic**: renders the open pattern (×1 to ×16 repeats) as a WAV in `~/Music/PatternMachine/Export` and shows it in the Finder, ready to drag onto a Logic track. Logic's Record is just Play for the plug-in, so there is nothing to sync; the plug-in outputs audio only, no MIDI.
 - Incoming MIDI notes on the track trigger the rows (C1 = row 1, as on MPK pads).
 - **Several instances, one row each**: duplicate the track and pick a single row (BD, SD, HH…) per instance to get each drum on its own mixer channel.
 

@@ -327,6 +327,9 @@ h1{font-size:26px; letter-spacing:0.18em; text-transform:uppercase; margin:0; li
 .export-head{font-size:9px; letter-spacing:0.14em; text-transform:uppercase; color:var(--text-faint); margin:6px 2px 0;}
 .export-head:first-child{margin-top:0;}
 .export-head span{display:block; margin-top:2px; letter-spacing:0.04em; text-transform:none;}
+/* Ripetizioni del pattern nei WAV/MP3: etichetta a sinistra, 1 2 4 8 16 affiancati a destra */
+.export-reps{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:2px 2px 4px; font-size:10px; letter-spacing:.035em; color:var(--text-faint);}
+.export-list .export-reps .resample-seg button{min-height:28px; padding:4px 9px; font-size:10px; text-align:center;}
 #accountLinks{display:block;}
 .topbar #accountLinks{grid-area:account;}
 
@@ -1578,7 +1581,8 @@ html.op .site-footer .report-btn{order:5; min-height:0; padding:5px 10px; font-s
             <button id="multiMidiBtn" title="General MIDI map, one MIDI track per instrument: imported into a DAW it creates separate channels">Multitrack MIDI</button>
             <button id="spMidiBtn" title="Notes for the SP-1200 kit built in Logic (36 + slot): not General MIDI. Follows Pattern/Song">MIDI for Logic SP-1200 kit</button>
             <div class="export-head">Audio</div>
-            <button id="wavPatternBtn" title="Audio of the pattern looped 4 times, with row levels and effects">WAV pattern</button>
+            <div class="export-reps"><span>Repeats</span><div class="resample-seg" id="repsSeg" role="group" aria-label="How many times the pattern repeats in the WAV and MP3 pattern exports"><button type="button" data-reps="1">1×</button><button type="button" data-reps="2">2×</button><button type="button" data-reps="4">4×</button><button type="button" data-reps="8">8×</button><button type="button" data-reps="16">16×</button></div></div>
+            <button id="wavPatternBtn"title="Audio of the pattern looped 4 times, with row levels and effects">WAV pattern</button>
             <button id="wavSongBtn" title="Audio of the whole song, with row levels and effects">WAV song</button>
             <button id="mp3PatternBtn" title="MP3 audio of the pattern looped 4 times, with row levels and effects">MP3 pattern</button>
             <button id="mp3SongBtn" title="MP3 audio of the whole song, with row levels and effects">MP3 song</button>
@@ -2134,23 +2138,23 @@ html.op .site-footer .report-btn{order:5; min-height:0; padding:5px 10px; font-s
 </div>
 
 <!-- Motore ritmico: il ?v= deve seguire SW_VERSION (Cloudflare tiene in cache i .js). -->
-<script src="engine/machine-art.js?v=2026-10-30.3"></script>
-<script src="engine/core.js?v=2026-10-30.3"></script>
-<script src="engine/styles-punk.js?v=2026-10-30.3"></script>
-<script src="engine/styles-post.js?v=2026-10-30.3"></script>
-<script src="engine/styles-machines.js?v=2026-10-30.3"></script>
-<script src="engine/styles-alt.js?v=2026-10-30.3"></script>
-<script src="engine/styles-groove.js?v=2026-10-30.3"></script>
-<script src="engine/styles-dub.js?v=2026-10-30.3"></script>
-<script src="engine/styles-break.js?v=2026-10-30.3"></script>
-<script src="engine/styles-soul.js?v=2026-10-30.3"></script>
-<script src="engine/styles-metal.js?v=2026-10-30.3"></script>
-<script src="engine/styles-electro.js?v=2026-10-30.3"></script>
-<script src="engine/variations.js?v=2026-10-30.3"></script>
-<script src="engine/import.js?v=2026-10-30.3"></script>
-<script src="engine/rhythm.js?v=2026-10-30.3"></script>
-<script src="engine/share.js?v=2026-10-30.3"></script>
-<script src="engine/runtime.js?v=2026-10-30.3"></script>
+<script src="engine/machine-art.js?v=2026-10-30.4"></script>
+<script src="engine/core.js?v=2026-10-30.4"></script>
+<script src="engine/styles-punk.js?v=2026-10-30.4"></script>
+<script src="engine/styles-post.js?v=2026-10-30.4"></script>
+<script src="engine/styles-machines.js?v=2026-10-30.4"></script>
+<script src="engine/styles-alt.js?v=2026-10-30.4"></script>
+<script src="engine/styles-groove.js?v=2026-10-30.4"></script>
+<script src="engine/styles-dub.js?v=2026-10-30.4"></script>
+<script src="engine/styles-break.js?v=2026-10-30.4"></script>
+<script src="engine/styles-soul.js?v=2026-10-30.4"></script>
+<script src="engine/styles-metal.js?v=2026-10-30.4"></script>
+<script src="engine/styles-electro.js?v=2026-10-30.4"></script>
+<script src="engine/variations.js?v=2026-10-30.4"></script>
+<script src="engine/import.js?v=2026-10-30.4"></script>
+<script src="engine/rhythm.js?v=2026-10-30.4"></script>
+<script src="engine/share.js?v=2026-10-30.4"></script>
+<script src="engine/runtime.js?v=2026-10-30.4"></script>
 <script>
 // Script principale di PATTERN-MACHINE: stato del progetto, audio, trasporto e interfaccia della pagina.
 // Il motore ritmico (SPEngine), i tempi (PMRhythm), import, link e gli altri moduli stanno in engine/*.js.
@@ -5462,7 +5466,7 @@ function paintProTools(){
 function loadSynth(){
   if(window.PMSynth || el("synthScript")) return;
   const s=document.createElement("script");
-  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-30.3";
+  s.id="synthScript"; s.src="engine/synth.js?v=2026-10-30.4";
   document.body.appendChild(s);
 }
 if(LIVE_VIEW || (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("synth"))) loadSynth();
@@ -6739,6 +6743,24 @@ async function exportJob(kind,buttons,job){
 // il render e' esatto e piu' veloce del tempo reale. Il pattern esce ripetuto 4 volte, la canzone intera;
 // in coda restano 2 secondi per le code dei piatti.
 const WAV_RATE=44100, WAV_TAIL=2, WAV_PATTERN_LOOPS=4;
+// Quante volte si ripete il pattern nei WAV e negli MP3 "pattern" (la canzone esce intera). Si sceglie nel menu Export
+// (e accanto a "→ Logic" nel plug-in), resta nel browser; 4 e' il valore di sempre.
+const REPS_CHOICES=[1,2,4,8,16], REPS_KEY="pm.exportReps";
+let exportReps=(()=>{ const n=+storeGet(REPS_KEY); return REPS_CHOICES.includes(n)?n:WAV_PATTERN_LOOPS; })();
+function setExportReps(n){
+  if(!REPS_CHOICES.includes(n)) return;
+  exportReps=n; storeSet(REPS_KEY,String(n)); paintReps();
+}
+function paintReps(){
+  document.querySelectorAll("[data-reps]").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.reps===exportReps)));
+  document.querySelectorAll("[data-reps-label]").forEach(s=>{ s.textContent="×"+exportReps; });
+  const times=exportReps===1?"once":`looped ${exportReps} times`;
+  el("wavPatternBtn").title=`Audio of the pattern ${times}, with row levels and effects`;
+  el("mp3PatternBtn").title=`MP3 audio of the pattern ${times}, with row levels and effects`;
+}
+// Nome e etichetta dei file "pattern": con le ripetizioni nel nome si vede subito quante battute sono.
+const repsTag = which => which==="song" ? "" : ` x${exportReps}`;
+const repsLabel = (kind,which) => which==="song" ? kind : `${kind} ×${exportReps}`;
 // renderWav e renderStems lanciano un errore con questo messaggio quando non suona niente
 // (lo riconoscono anche engine/sampler.js e engine/vocal.js).
 const EMPTY_RENDER="vuoto", NOTHING_TO_EXPORT="nothing to export: the pattern is empty or fully muted";
@@ -6828,9 +6850,9 @@ function exportWav(which){
     if(songIsEmpty(which)) return;
     setStatus("rendering WAV…");
     try{
-      const {buf, seconds}=await renderWav(which);
+      const {buf, seconds}=await renderWav(which, exportReps);
       const {blob, gain}=encodeWav(buf);
-      await saveBlob(blob, exportBase(which)+".wav", "WAV");
+      await saveBlob(blob, exportBase(which)+repsTag(which)+".wav", repsLabel("WAV",which));
       if(gain<1) setStatus(`WAV exported (${fmtClock(seconds)}, level lowered by ${loweredDb(gain)} dB to avoid clipping)`);
     }catch(e){
       setStatus(e?.message===EMPTY_RENDER ? NOTHING_TO_EXPORT : "WAV render failed","err");
@@ -6914,9 +6936,9 @@ function exportMp3(which){
     if(songIsEmpty(which)) return;
     setStatus("rendering MP3…");
     try{
-      const {buf, seconds}=await renderWav(which);
+      const {buf, seconds}=await renderWav(which, exportReps);
       const blob=await encodeMp3(buf, safeGain(peakOf(stereoChannels(buf))));
-      await saveBlob(blob,exportBase(which)+".mp3","MP3");
+      await saveBlob(blob,exportBase(which)+repsTag(which)+".mp3",repsLabel("MP3",which));
       setStatus(`MP3 exported (${fmtClock(seconds)}, 192 kbps)`);
     }catch(e){
       setStatus(e?.message===EMPTY_RENDER ? NOTHING_TO_EXPORT
@@ -7221,7 +7243,10 @@ el("spMidiBtn").onclick=()=>{
 // Il menu Export si chiude dopo una scelta, al click fuori e con Esc.
 (()=>{
   const menu=el("exportMenu");
-  menu.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{ menu.open=false; }));
+  // i pulsanti delle ripetizioni scelgono e basta: il menu resta aperto per premere WAV o MP3
+  menu.querySelectorAll("button:not([data-reps])").forEach(b=>b.addEventListener("click",()=>{ menu.open=false; }));
+  menu.querySelectorAll("[data-reps]").forEach(b=>{ b.onclick=()=>setExportReps(+b.dataset.reps); });
+  paintReps();
   document.addEventListener("click",e=>{ if(menu.open && !menu.contains(e.target)) menu.open=false; });
   menu.addEventListener("keydown",e=>{ if(e.key==="Escape"){ menu.open=false; menu.querySelector("summary").focus(); } });
   // su schermi stretti l'elenco rientra a sinistra invece di uscire dalla pagina
@@ -8534,7 +8559,7 @@ window.addEventListener("resize",()=>{
 
 // ---------- PWA: installazione, offline ----------
 // La versione deve coincidere con VERSION in sw.js: l'URL nuovo scavalca la cache di Cloudflare.
-const SW_VERSION="2026-10-30.3";
+const SW_VERSION="2026-10-30.4";
 (function pwa(){
   const netBadge=el("netBadge");
 
@@ -8558,10 +8583,10 @@ if(LESSON_ID) ["learn/lessons.js","learn/coach.js"].forEach(src=>{
   const s=document.createElement("script"); s.src=`${src}?v=${SW_VERSION}`; s.async=false; document.body.appendChild(s);
 });
 </script>
-<script src="engine/sample-editor.js?v=2026-10-30.3"></script>
-<script src="engine/sampler.js?v=2026-10-30.3"></script>
-<script src="engine/vocal.js?v=2026-10-30.3"></script>
+<script src="engine/sample-editor.js?v=2026-10-30.4"></script>
+<script src="engine/sampler.js?v=2026-10-30.4"></script>
+<script src="engine/vocal.js?v=2026-10-30.4"></script>
 <script>PMSampler.init(); PMVocal.init();</script>
-<script src="engine/midi.js?v=2026-10-30.3"></script>
+<script src="engine/midi.js?v=2026-10-30.4"></script>
 </body>
 </html>

@@ -12,6 +12,10 @@
 .pm-plugin-badge .pm-dot{width:8px; height:8px; border-radius:50%; background:var(--text-dim); opacity:.5;}
 .pm-plugin-badge.live{color:var(--text);}
 .pm-plugin-badge.live .pm-dot{background:#2fbf71; opacity:1; box-shadow:0 0 0 3px rgba(47,191,113,.2);}
+.pm-tologic{display:inline-flex; align-items:center; gap:6px; margin-left:8px; font-size:12px; color:var(--text-dim); white-space:nowrap;}
+.pm-tologic .pm-reps{display:inline-flex; align-items:center; gap:2px;}
+.pm-tologic .pm-reps [data-reps-label]{min-width:2.6em; text-align:center; color:var(--text);}
+.pm-tologic.song .pm-reps{opacity:.4;}
 .pm-instance-track{display:inline-flex; align-items:center; gap:4px; margin-left:8px; font-size:12px; color:var(--text-dim); white-space:nowrap;}
 .pm-instance-track select{font:inherit; color:var(--text); background:var(--panel-2); border:1px solid var(--line); border-radius:4px; padding:2px 5px; max-width:180px;}
 .pm-plugin #bpmNum:disabled,.pm-plugin #bpmRange:disabled{opacity:.7; cursor:not-allowed;}

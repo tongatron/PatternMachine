@@ -27,6 +27,13 @@ Le **note MIDI in ingresso** sulla traccia suonano le righe: nota 36 (C1) = riga
 
 Il BPM scritto in una proposta della libreria è un riferimento musicale per scegliere lo stile. Quando il pattern viene suonato nel plug-in, la sua durata è calcolata in step e battute: Logic fornisce il BPM e il PPQ, quindi il pattern viene automaticamente adattato al tempo del progetto senza cambiare la griglia. Anche con lunghezze diverse (8, 12, 16, 24, 32 step) la partenza resta sulla battuta corretta; il nuovo filtro **Only at…** nella libreria permette di mostrare soltanto proposte generate esattamente al BPM indicato.
 
+### Registrare e portare la batteria sulla timeline di Logic
+
+- Il plug-in produce **solo audio**: non manda MIDI a Logic (`NEEDS_MIDI_OUTPUT FALSE`, e `processBlock` svuota il MIDI). Premere Rec sulla sua traccia non scrive i colpi della drum machine, registra soltanto le note che suoni da una tastiera o dai pad.
+- Non c'è niente da sincronizzare: per il plug-in **Rec è un Play** (guarda solo se il trasporto di Logic gira, la posizione PPQ e il BPM). Il Play della finestra è l'anteprima con Logic fermo e si spegne da solo quando Logic parte.
+- **→ Logic** (accanto al badge, con **−** / **+** per le ripetizioni ×1, ×2, ×4, ×8, ×16): renderizza il WAV del pattern aperto, ripetuto N volte, al tempo di Logic (o tutta la canzone in modalità Canzone), lo salva in `~/Music/PatternMachine/Export` e lo mostra nel Finder; da lì si trascina sulla timeline, su una battuta. Un plug-in non può inserire regioni nel progetto di Logic, per questo l'ultimo passo è un trascinamento. Le ripetizioni sono le stesse del selettore *Repeats* del menu Export (WAV e MP3 «pattern»), `exportReps` in `site/index.html`.
+- Il MIDI esportato (`Export › MIDI`) usa le note General MIDI o `36 + slot` del kit SP-1200: non coincidono con la mappa del plug-in (`36 + numero di riga`), quindi serve per altri strumenti, non per il plug-in stesso.
+
 Progetti ed export usano le stesse cartelle dell'app per Mac:
 `~/Music/PatternMachine/Progetti` (Salva / Progetti salvati) e `~/Music/PatternMachine/Export`
 (MIDI, WAV, MP3, pacchetto Logic; il pulsante **Export ↗** accanto al Play apre la cartella nel Finder).

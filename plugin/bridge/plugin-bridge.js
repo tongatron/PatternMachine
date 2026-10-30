@@ -5,6 +5,7 @@
 // Messaggi sull'evento "pm" (window.__JUCE__.backend):
 //   pagina -> plug-in: hello, sync {engine, state}, hit {voice, vel, delay}, transport {play, start},
 //                      projects {req, op, id, data}, export {req, filename, base64}, reveal {name}
+//                      ("→ Logic" = export WAV + reveal; il WAV si trascina dal Finder sulla timeline)
 //   plug-in -> pagina: init {state}, load {state}, pos {...}, reply {req, result, error}
 // Funzioni del sito sostituite: trigger, play, stop, setStatus, db, downloadsCap.
 // Se cambia scheduler() o trigger() nel sito, va allineato plugin/Source/Engine.cpp.
@@ -223,6 +224,48 @@
   }
   paintBadge();
 
+  // ---------- "→ Logic": il WAV del pattern aperto, ripetuto N volte, pronto da trascinare sulla timeline ----------
+  // Un plug-in non puo' creare regioni nel progetto di Logic: il file va in Musica > PatternMachine > Export e il Finder
+  // lo mostra selezionato, da li' si trascina su una battuta della timeline (a 4/4 ogni 16 step sono una battuta).
+  // Le ripetizioni sono quelle del menu Export (exportReps, le legge e le scrive il sito); in modalita' Canzone esce la canzone intera.
+  const toLogic=document.createElement("span");
+  toLogic.className="pm-tologic";
+  toLogic.innerHTML='<button type="button" class="mini pm-send">→ Logic</button>'
+    +'<span class="pm-reps" role="group" aria-label="Ripetizioni del pattern">'
+    +'<button type="button" class="mini" data-step="-1" aria-label="Meno ripetizioni" title="Meno ripetizioni">−</button>'
+    +'<span data-reps-label></span>'
+    +'<button type="button" class="mini" data-step="1" aria-label="Più ripetizioni" title="Più ripetizioni">+</button></span>';
+  badge.insertAdjacentElement("afterend",toLogic);
+  const sendBtn=toLogic.querySelector(".pm-send");
+  toLogic.querySelectorAll("[data-step]").forEach(b=>{
+    b.onclick=()=>{
+      const at=REPS_CHOICES.indexOf(exportReps)+(+b.dataset.step);
+      setExportReps(REPS_CHOICES[Math.max(0,Math.min(REPS_CHOICES.length-1,at))]);
+    };
+  });
+  const paintToLogic=()=>{
+    const song=ui.mode==="song";
+    toLogic.classList.toggle("song",song);
+    sendBtn.title=song
+      ? "Crea il WAV di tutta la canzone, lo salva in Musica › PatternMachine › Export e lo mostra nel Finder: trascinalo sulla timeline di Logic"
+      : `Crea il WAV del pattern aperto ripetuto ${exportReps} volte, lo salva in Musica › PatternMachine › Export e lo mostra nel Finder: trascinalo sulla timeline di Logic`;
+  };
+  sendBtn.addEventListener("pointerenter",paintToLogic);
+  setInterval(()=>toLogic.classList.toggle("song",ui.mode==="song"),250);
+  paintReps();
+  // exportSeq cresce a ogni file scritto: se non cambia, l'export e' fallito o non c'era niente da esportare
+  // (exportWav ha gia' scritto il perche' nella barra di stato) e non c'e' nulla da mostrare.
+  let exportSeq=0;
+  sendBtn.onclick=async()=>{
+    const which=ui.mode==="song"?"song":"pattern", seq=exportSeq;
+    sendBtn.disabled=true;
+    try{ await exportWav(which); }
+    finally{ sendBtn.disabled=false; }
+    if(exportSeq===seq) return;
+    send({type:"reveal", name:lastExport});
+    setStatus(`${lastExport} pronto nel Finder: trascinalo sulla timeline di Logic`);
+  };
+
   // Modalità Logic: ogni istanza può suonare una sola riga del progetto.
   const instanceBox=document.createElement("label");
   instanceBox.className="pm-instance-track";
@@ -230,7 +273,7 @@
   instanceBox.append("Istanza ");
   instanceSelect=document.createElement("select");
   instanceBox.appendChild(instanceSelect);
-  badge.insertAdjacentElement("afterend",instanceBox);
+  toLogic.insertAdjacentElement("afterend",instanceBox);
   instanceSelect.onchange=()=>{
     instanceTrack=+instanceSelect.value;
     send({type:"instance-track", track:instanceTrack});
@@ -286,6 +329,7 @@
     async save({filename, data}){
       const bytes=new Uint8Array(await data.arrayBuffer());
       lastExport=await call("export",{filename, base64:toB64(bytes)});
+      exportSeq++;
     },
   };
   const siteSetStatus=setStatus;

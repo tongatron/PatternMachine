@@ -38,6 +38,12 @@
   (document.head||document.documentElement).appendChild(pluginStyle);
   const send=msg=>B.emitEvent("pm",msg);
 
+  // In modalita' una pagina il trasporto principale e' gia' molto affollato:
+  // porta il BPM nella riga secondaria, dove resta visibile insieme al contatore.
+  const bpmControl=el("bpmNum")?.closest(".transport-bpm");
+  const transportExtra=el("panelTransport")?.querySelector(".transport-secondary .transport-extra");
+  if(bpmControl && transportExtra) transportExtra.insertBefore(bpmControl,transportExtra.firstChild);
+
   let reqSeq=0;
   const waiting=new Map();
   let instanceTrack=-1;

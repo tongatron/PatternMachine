@@ -1,5 +1,9 @@
 /* Aggiunte del plug-in Audio Unit al sito (le carica PluginEditor.cpp insieme a plugin-bridge.js). */
 
+/* Il WebView di Logic può riportare il viewport in punti CSS dimezzati su Retina:
+   l'avviso della pagina non deve mai impedire di mostrare l'editor del plug-in. */
+.pm-plugin .small-notice{display:none !important;}
+
 /* Nel plug-in non servono account, PWA, link all'app e segnalazioni via server */
 .pm-plugin #desktopAppLink,
 .pm-plugin #pluginLink,
@@ -19,3 +23,12 @@
 .pm-instance-track{display:inline-flex; align-items:center; gap:4px; margin-left:8px; font-size:12px; color:var(--text-dim); white-space:nowrap;}
 .pm-instance-track select{font:inherit; color:var(--text); background:var(--panel-2); border:1px solid var(--line); border-radius:4px; padding:2px 5px; max-width:180px;}
 .pm-plugin #bpmNum:disabled,.pm-plugin #bpmRange:disabled{opacity:.7; cursor:not-allowed;}
+
+/* Nel WebView del plug-in i controlli Logic possono occupare piu' della prima riga.
+   Il BPM del progetto viene spostato dal bridge nella seconda riga, accanto al contatore. */
+html.pm-plugin.op #panelTransport{display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px;}
+html.pm-plugin.op #panelTransport .transport-primary{flex:1 1 100%; flex-wrap:wrap; min-width:0; overflow:visible;}
+html.pm-plugin.op #panelTransport .transport-secondary{flex:1 1 100%; margin:0; padding:0; border:0; min-width:0;}
+html.pm-plugin.op #panelTransport .transport-secondary .transport-extra{display:flex; flex-wrap:wrap; align-items:center; gap:7px; min-width:0; width:100%;}
+html.pm-plugin.op #panelTransport .transport-secondary .transport-bpm{flex:0 0 164px; margin:0;}
+html.pm-plugin.op #panelTransport .transport-secondary .counter{margin-left:auto;}

@@ -23,6 +23,22 @@ static juce::String safeId (const juce::String& s)
     return s.retainCharacters ("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-").substring (0, 80);
 }
 
+// Il plug-in viene aperto grande quanto l'area utile dello schermo. Logic aggiunge
+// la propria barra del plug-in sopra l'editor, quindi lasciamo un margine verticale
+// per non far uscire la finestra dal display. La dimensione resta poi ridimensionabile
+// e viene salvata nel progetto come prima.
+static juce::Point<int> defaultEditorSize()
+{
+    if (const auto* display = juce::Desktop::getInstance().getDisplays().getPrimaryDisplay())
+    {
+        const auto area = display->userBounds.toNearestInt();
+        return { juce::jmax (720, area.getWidth() - 32),
+                 juce::jmax (480, area.getHeight() - 72) };
+    }
+
+    return { 1440, 900 };
+}
+
 PatternMachineEditor::PatternMachineEditor (PatternMachineProcessor& p)
     : AudioProcessorEditor (p), proc (p),
       web (juce::WebBrowserComponent::Options {}
@@ -34,7 +50,13 @@ PatternMachineEditor::PatternMachineEditor (PatternMachineProcessor& p)
     addAndMakeVisible (web);
     setResizable (true, true);
     setResizeLimits (720, 480, 4000, 3000);
-    setSize (proc.editorW, proc.editorH);
+    // 1280×860 era il default precedente; anche i progetti già salvati con una
+    // finestra piccola vengono promossi una volta alla dimensione a tutto schermo.
+    const bool legacySize = proc.editorW < 1100 || proc.editorH < 680
+                         || (proc.editorW == 1280 && proc.editorH == 860);
+    const auto full = defaultEditorSize();
+    setSize (legacySize ? full.x : proc.editorW,
+             legacySize ? full.y : proc.editorH);
     web.goToURL (juce::WebBrowserComponent::getResourceProviderRoot());
     startTimerHz (30);
 }

@@ -9,6 +9,7 @@ Disallow: /download/
 Disallow: /app.html
 Disallow: /synth.html
 Disallow: /index.html
+Disallow: /studio
 Disallow: /learn/
 Disallow: /embed.html
 Disallow: /live.html

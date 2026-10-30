@@ -48,7 +48,8 @@ trap 'rm -rf "$STAGE"' EXIT
 MACHINE_KITS=(tr808 tr909 tr707 cr78 linn tr606 tr727 cr8000 dmx drumulator drumtraks sdsv sp12b tr808u tr909u)
 EXCLUDE_KITS=(); for k in "${MACHINE_KITS[@]}"; do EXCLUDE_KITS+=(--exclude "machines/$k"); done
 for arg in "$@"; do [ "$arg" = "--con-kit-macchine" ] && EXCLUDE_KITS=(); done
-rsync -a --exclude .DS_Store ${EXCLUDE_KITS[@]+"${EXCLUDE_KITS[@]}"} site/ "$STAGE/"
+# Le copie "nome 2.zip" che il Finder lascia in download/ non vanno online.
+rsync -a --exclude .DS_Store --exclude 'download/* [0-9].*' ${EXCLUDE_KITS[@]+"${EXCLUDE_KITS[@]}"} site/ "$STAGE/"
 # Data della versione nel footer: l'ultima modifica dei file del sito (non l'ora del deploy, cosi' se
 # non cambia niente il confronto con il server resta vuoto).
 build=$(python3 - <<'PY'

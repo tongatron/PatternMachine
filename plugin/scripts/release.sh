@@ -16,6 +16,9 @@ STAGE=$(mktemp -d); trap 'rm -rf "$STAGE"' EXIT
 mkdir -p "$STAGE/PatternMachine Plug-in"
 ditto "$ART/AU/PatternMachine.component" "$STAGE/PatternMachine Plug-in/PatternMachine.component"
 ditto "$ART/VST3/PatternMachine.vst3" "$STAGE/PatternMachine Plug-in/PatternMachine.vst3"
+TEMPLATE=../site/download/PatternMachine-Logic-Starter.zip
+[ -f "$TEMPLATE" ] || { echo "template Logic non trovato: $TEMPLATE" >&2; exit 1; }
+ditto "$TEMPLATE" "$STAGE/PatternMachine Plug-in/PatternMachine-Logic-Starter.zip"
 cat > "$STAGE/PatternMachine Plug-in/LEGGIMI.txt" <<TXT
 PatternMachine $VERSION - plug-in per Logic Pro (Audio Unit) e altre DAW (VST3), Mac con Apple Silicon.
 
@@ -25,6 +28,10 @@ Installare
 2. Il plug-in non e' notarizzato da Apple: in Terminale esegui
    xattr -dr com.apple.quarantine ~/Library/Audio/Plug-Ins/Components/PatternMachine.component
 3. Riapri Logic. Se non lo vede: Logic Pro > Impostazioni > Plug-in Manager > Reimposta e ripeti la scansione.
+
+Template Logic
+PatternMachine-Logic-Starter.zip contiene il progetto standard senza registrazioni: traccia PATTERN MACHINE,
+instradamento su Bus 1, Aux 1 e traccia Audio Print pronta per catturare l'uscita.
 
 Usare
 Nuova traccia Strumento software > slot Strumento > AU Instruments > Tongatron > PatternMachine > Stereo.

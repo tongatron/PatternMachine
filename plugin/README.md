@@ -38,6 +38,20 @@ Progetti ed export usano le stesse cartelle dell'app per Mac:
 `~/Music/PatternMachine/Progetti` (Salva / Progetti salvati) e `~/Music/PatternMachine/Export`
 (MIDI, WAV, MP3, pacchetto Logic; il pulsante **Export ↗** accanto al Play apre la cartella nel Finder).
 
+### Login e sincronizzazione dei progetti
+
+Nel pannello **Projects** della finestra del plug-in è possibile fare login con l'account
+PatternMachine e premere **Sync**. La sincronizzazione è esplicita e locale-first: i JSON in
+`~/Music/PatternMachine/Progetti` restano la copia di lavoro; i progetti nuovi vengono caricati,
+quelli presenti solo online vengono scaricati e, se esistono entrambe le copie, vince quella con
+`updatedAt` più recente. Le credenziali non vengono salvate nel progetto di Logic: il plug-in
+conserva solo la sessione in un file locale protetto, separato dai file audio e dallo stato AU.
+Il lavoro offline continua a funzionare senza login. Il logout rimuove la sessione locale.
+
+Questa prima sincronizzazione riguarda i dati dei pattern e dei progetti. I campioni importati
+personalmente non vengono ancora caricati né inclusi automaticamente: restano il prossimo blocco
+del piano, insieme alla verifica di hash, quota e ripristino offline dei sample.
+
 ## Compilarlo
 
 Servono i Command Line Tools di Xcode (Xcode completo non serve) e `brew install cmake ninja`.

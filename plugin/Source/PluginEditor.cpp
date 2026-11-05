@@ -1,10 +1,117 @@
 #include "PluginEditor.h"
 #include <regex>
+#include <set>
+#include <sys/stat.h>
 
 // Stesse cartelle dell'app per Mac: i progetti salvati si aprono sia nell'app sia nel plug-in.
 static juce::File homeDir() { return juce::File::getSpecialLocation (juce::File::userMusicDirectory).getChildFile ("PatternMachine"); }
 static juce::File projectsDir() { return homeDir().getChildFile ("Progetti"); }
 static juce::File exportDir() { return homeDir().getChildFile ("Export"); }
+static constexpr const char* patternMachineServer = "https://patternmachine.tongatron.org";
+
+struct PatternMachineEditor::Account
+{
+    juce::String name, uid, cookie;
+};
+
+struct HttpResult
+{
+    int status = 0;
+    juce::String body, cookie;
+};
+
+static juce::File accountFile()
+{
+    return juce::File::getSpecialLocation (juce::File::userApplicationDataDirectory)
+        .getChildFile ("PatternMachine").getChildFile ("plugin-account.json");
+}
+
+static juce::String formPart (const juce::String& value)
+{
+    return juce::URL::addEscapeChars (value, true).replace ("%20", "+");
+}
+
+static juce::String headerValue (const juce::StringPairArray& headers, const juce::String& wanted)
+{
+    for (const auto& key : headers.getAllKeys())
+        if (key.equalsIgnoreCase (wanted)) return headers[key];
+    return {};
+}
+
+static juce::String sessionCookie (const juce::StringPairArray& headers)
+{
+    auto all = headerValue (headers, "Set-Cookie");
+    for (auto line : juce::StringArray::fromLines (all))
+    {
+        line = line.trim();
+        const auto end = line.indexOfChar (';');
+        const auto first = end >= 0 ? line.substring (0, end) : line;
+        if (first.startsWith ("sp1200_session=") && first.length() > 16) return first;
+    }
+    return {};
+}
+
+static HttpResult httpRequest (const juce::String& path, const juce::String& method,
+                               const juce::String& body = {}, const juce::String& cookie = {},
+                               const juce::String& contentType = {})
+{
+    auto url = juce::URL (juce::String (patternMachineServer) + path);
+    if (body.isNotEmpty()) url = url.withPOSTData (body);
+
+    juce::String headers = "Accept: application/json\r\n";
+    if (cookie.isNotEmpty()) headers << "Cookie: " << cookie << "\r\n";
+    if (contentType.isNotEmpty()) headers << "Content-Type: " << contentType << "\r\n";
+
+    int status = 0;
+    juce::StringPairArray responseHeaders;
+    auto options = juce::URL::InputStreamOptions (juce::URL::ParameterHandling::inPostData)
+        .withHttpRequestCmd (method)
+        .withExtraHeaders (headers)
+        .withConnectionTimeoutMs (20000)
+        .withNumRedirectsToFollow (0)
+        .withStatusCode (&status)
+        .withResponseHeaders (&responseHeaders);
+    auto stream = url.createInputStream (options);
+    HttpResult result;
+    result.status = status;
+    result.cookie = sessionCookie (responseHeaders);
+    if (stream != nullptr) result.body = stream->readEntireStreamAsString();
+    return result;
+}
+
+static juce::var jsonObject (const juce::String& text)
+{
+    auto value = juce::JSON::parse (text);
+    return value.isObject() ? value : juce::var();
+}
+
+static juce::String jsonError (const juce::String& fallback, const HttpResult& response)
+{
+    if (auto value = jsonObject (response.body); value.isObject())
+        if (value["error"].toString().isNotEmpty()) return value["error"].toString();
+    return fallback + " (HTTP " + juce::String (response.status) + ")";
+}
+
+static juce::File localProjectFile (const juce::String& id)
+{
+    auto safe = id.retainCharacters ("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-").substring (0, 80);
+    return safe.isEmpty() ? juce::File() : projectsDir().getChildFile (safe + ".json");
+}
+
+static bool writeLocalProject (const juce::String& id, const juce::var& data)
+{
+    auto file = localProjectFile (id);
+    return file != juce::File() && file.replaceWithText (juce::JSON::toString (data));
+}
+
+class NetworkJob final : public juce::ThreadPoolJob
+{
+public:
+    explicit NetworkJob (std::function<void()> f) : ThreadPoolJob ("PatternMachine network"), work (std::move (f)) {}
+    JobStatus runJob() override { work(); return jobHasFinished; }
+private:
+    std::function<void()> work;
+};
 
 static juce::String mimeFor (const juce::File& f)
 {
@@ -45,8 +152,16 @@ PatternMachineEditor::PatternMachineEditor (PatternMachineProcessor& p)
                .withNativeIntegrationEnabled()
                .withKeepPageLoadedWhenBrowserIsHidden()
                .withResourceProvider ([this] (const auto& url) { return serve (url); })
-               .withEventListener ("pm", [this] (const juce::var& msg) { onMessage (msg); }))
+               .withEventListener ("pm", [this] (const juce::var& msg) { onMessage (msg); })),
+      account (std::make_unique<Account>())
 {
+    if (auto saved = jsonObject (accountFile().loadFileAsString()); saved.isObject())
+    {
+        account->name = saved["name"].toString();
+        account->uid = saved["uid"].toString();
+        account->cookie = saved["cookie"].toString();
+        if (! account->cookie.startsWith ("sp1200_session=")) *account = Account {};
+    }
     addAndMakeVisible (web);
     setResizable (true, true);
     setResizeLimits (720, 480, 4000, 3000);
@@ -64,6 +179,7 @@ PatternMachineEditor::PatternMachineEditor (PatternMachineProcessor& p)
 PatternMachineEditor::~PatternMachineEditor()
 {
     stopTimer();
+    networkJobs.removeAllJobs (true, 20000);
     proc.setInternalPlay (false, 0);   // chiudere la finestra ferma l'anteprima (Logic non la sente)
 }
 
@@ -134,6 +250,189 @@ void PatternMachineEditor::stateRestored()
     send (juce::var (o.release()));
 }
 
+juce::var PatternMachineEditor::accountStatus() const
+{
+    const juce::ScopedLock sl (accountLock);
+    auto o = std::make_unique<juce::DynamicObject>();
+    o->setProperty ("signedIn", account != nullptr && account->cookie.isNotEmpty());
+    o->setProperty ("name", account != nullptr ? account->name : juce::String());
+    o->setProperty ("state", account != nullptr && account->cookie.isNotEmpty() ? "signed-in" : "signed-out");
+    return juce::var (o.release());
+}
+
+void PatternMachineEditor::accountLoginAsync (const juce::var& req, juce::String name, juce::String password)
+{
+    juce::Component::SafePointer<PatternMachineEditor> safe (this);
+    networkJobs.addJob (new NetworkJob ([safe, req, name, password]
+    {
+        auto loginResult = std::make_unique<juce::DynamicObject>();
+        loginResult->setProperty ("ok", false);
+        if (name.trim().isEmpty() || password.isEmpty())
+        {
+            loginResult->setProperty ("error", "Enter your name or email and password.");
+        }
+        else
+        {
+            const auto form = "name=" + formPart (name.trim()) + "&password=" + formPart (password) + "&next=%2F";
+            const auto login = httpRequest ("/login", "POST", form, {}, "application/x-www-form-urlencoded");
+            const auto cookie = login.cookie;
+            if (login.status != 303 || cookie.isEmpty())
+                loginResult->setProperty ("error", login.status == 429 ? "Too many attempts: try again later."
+                                                                         : "Wrong name, email or password.");
+            else
+            {
+                const auto meResponse = httpRequest ("/api/me", "GET", {}, cookie);
+                const auto me = jsonObject (meResponse.body);
+                if (meResponse.status != 200 || ! me.isObject() || me["id"].toString().isEmpty()
+                    || me["role"].toString() == "guest")
+                    loginResult->setProperty ("error", "This account cannot save projects.");
+                else
+                {
+                    loginResult->setProperty ("ok", true);
+                    loginResult->setProperty ("name", me["name"].toString());
+                    loginResult->setProperty ("uid", me["id"].toString());
+                    loginResult->setProperty ("cookie", cookie);
+                }
+            }
+        }
+
+        juce::MessageManager::callAsync ([safe, req, result = juce::var (loginResult.release())]() mutable
+        {
+            if (safe == nullptr) return;
+            if ((bool) result["ok"])
+            {
+                const juce::ScopedLock sl (safe->accountLock);
+                safe->account->name = result["name"].toString();
+                safe->account->uid = result["uid"].toString();
+                safe->account->cookie = result["cookie"].toString();
+                auto file = accountFile();
+                file.getParentDirectory().createDirectory();
+                auto saved = std::make_unique<juce::DynamicObject>();
+                saved->setProperty ("name", safe->account->name);
+                saved->setProperty ("uid", safe->account->uid);
+                saved->setProperty ("cookie", safe->account->cookie);
+                file.replaceWithText (juce::JSON::toString (juce::var (saved.release())));
+                ::chmod (file.getFullPathName().toRawUTF8(), 0600);
+            }
+            safe->reply (req, result);
+        });
+    }), true);
+}
+
+void PatternMachineEditor::accountSyncAsync (const juce::var& req)
+{
+    juce::String cookie;
+    {
+        const juce::ScopedLock sl (accountLock);
+        if (account != nullptr) cookie = account->cookie;
+    }
+    juce::Component::SafePointer<PatternMachineEditor> safe (this);
+    networkJobs.addJob (new NetworkJob ([safe, req, cookie]
+    {
+        auto syncResult = std::make_unique<juce::DynamicObject>();
+        syncResult->setProperty ("ok", false);
+        if (cookie.isEmpty())
+            syncResult->setProperty ("error", "Sign in to sync projects.");
+        else
+        {
+            const auto listResponse = httpRequest ("/api/projects", "GET", {}, cookie);
+            const auto list = jsonObject (listResponse.body);
+            if (listResponse.status == 401 || listResponse.status == 303)
+                syncResult->setProperty ("expired", true);
+            else if (listResponse.status != 200 || ! list.isObject())
+                syncResult->setProperty ("error", jsonError ("Could not reach the PatternMachine server", listResponse));
+            else
+            {
+                std::map<juce::String, juce::String> remote;
+                if (auto* rows = list["projects"].getArray())
+                    for (const auto& row : *rows)
+                        if (! (bool) row["deleted"])
+                            remote[row["id"].toString()] = row["rev"].toString();
+
+                projectsDir().createDirectory();
+                std::set<juce::String> seen;
+                int uploaded = 0, downloaded = 0;
+                for (const auto& file : projectsDir().findChildFiles (juce::File::findFiles, false, "*.json"))
+                {
+                    const auto id = file.getFileNameWithoutExtension();
+                    const auto data = jsonObject (file.loadFileAsString());
+                    if (! data.isObject()) continue;
+                    seen.insert (id);
+                    auto remoteIt = remote.find (id);
+                    if (remoteIt == remote.end())
+                    {
+                        auto body = std::make_unique<juce::DynamicObject>();
+                        body->setProperty ("data", data);
+                        body->setProperty ("base", juce::var());
+                        const auto saved = httpRequest ("/api/projects/" + id, "PUT",
+                                                        juce::JSON::toString (juce::var (body.release())), cookie,
+                                                        "application/json");
+                        if (saved.status == 401 || saved.status == 303) { syncResult->setProperty ("expired", true); break; }
+                        if (saved.status >= 200 && saved.status < 300) ++uploaded;
+                        continue;
+                    }
+
+                    const auto detail = httpRequest ("/api/projects/" + id, "GET", {}, cookie);
+                    const auto remoteData = jsonObject (detail.body);
+                    if (detail.status == 401 || detail.status == 303) { syncResult->setProperty ("expired", true); break; }
+                    if (detail.status != 200 || ! remoteData.isObject()) continue;
+                    const auto localAt = (double) data["updatedAt"];
+                    const auto serverData = remoteData["data"];
+                    const auto remoteAt = (double) serverData["updatedAt"];
+                    if (localAt >= remoteAt)
+                    {
+                        auto body = std::make_unique<juce::DynamicObject>();
+                        body->setProperty ("data", data);
+                        body->setProperty ("base", remoteData["rev"].toString());
+                        const auto saved = httpRequest ("/api/projects/" + id, "PUT",
+                                                        juce::JSON::toString (juce::var (body.release())), cookie,
+                                                        "application/json");
+                        if (saved.status == 401 || saved.status == 303) { syncResult->setProperty ("expired", true); break; }
+                        if (saved.status >= 200 && saved.status < 300) ++uploaded;
+                    }
+                    else if (writeLocalProject (id, serverData)) ++downloaded;
+                }
+
+                if (! (bool) syncResult->getProperty ("expired"))
+                    for (const auto& [id, rev] : remote)
+                        if (! seen.count (id))
+                        {
+                            const auto detail = httpRequest ("/api/projects/" + id, "GET", {}, cookie);
+                            const auto remoteData = jsonObject (detail.body);
+                            if (detail.status == 401 || detail.status == 303) { syncResult->setProperty ("expired", true); break; }
+                            if (detail.status == 200 && remoteData.isObject() && writeLocalProject (id, remoteData["data"])) ++downloaded;
+                        }
+
+                if (! (bool) syncResult->getProperty ("expired"))
+                {
+                    syncResult->setProperty ("ok", true);
+                    syncResult->setProperty ("uploaded", uploaded);
+                    syncResult->setProperty ("downloaded", downloaded);
+                }
+            }
+        }
+
+        juce::MessageManager::callAsync ([safe, req, result = juce::var (syncResult.release())]() mutable
+        {
+            if (safe == nullptr) return;
+            if ((bool) result["expired"])
+            {
+                const juce::ScopedLock sl (safe->accountLock);
+                safe->account = std::make_unique<Account>();
+                accountFile().deleteFile();
+            }
+            safe->reply (req, result);
+        });
+    }), true);
+}
+
+void PatternMachineEditor::accountLogout()
+{
+    const juce::ScopedLock sl (accountLock);
+    account = std::make_unique<Account>();
+    accountFile().deleteFile();
+}
+
 void PatternMachineEditor::onMessage (const juce::var& msg)
 {
     const auto type = msg["type"].toString();
@@ -147,6 +446,7 @@ void PatternMachineEditor::onMessage (const juce::var& msg)
         o->setProperty ("version", JucePlugin_VersionString);
         o->setProperty ("host", juce::PluginHostType().getHostDescription());
         o->setProperty ("instanceTrack", proc.getInstanceTrack());
+        o->setProperty ("account", accountStatus());
         send (juce::var (o.release()));
         lastPos = {};
     }
@@ -154,6 +454,9 @@ void PatternMachineEditor::onMessage (const juce::var& msg)
     else if (type == "hit")       proc.hit (msg["voice"], (double) msg["vel"], (double) msg["delay"]);
     else if (type == "transport") proc.setInternalPlay ((bool) msg["play"], (double) msg["start"]);
     else if (type == "instance-track") proc.setInstanceTrack ((int) msg["track"]);
+    else if (type == "account-login") accountLoginAsync (msg["req"], msg["name"].toString(), msg["password"].toString());
+    else if (type == "account-sync") accountSyncAsync (msg["req"]);
+    else if (type == "account-logout") { accountLogout(); reply (msg["req"], accountStatus()); }
     else if (type == "projects")
     {
         try { reply (msg["req"], projects (msg)); }

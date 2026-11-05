@@ -6,7 +6,8 @@
 //   pagina -> plug-in: hello, sync {engine, state}, hit {voice, vel, delay}, transport {play, start},
 //                      projects {req, op, id, data}, export {req, filename, base64}, reveal {name}
 //                      ("→ Logic" = export WAV + reveal; il WAV si trascina dal Finder sulla timeline)
-//   plug-in -> pagina: init {state}, load {state}, pos {...}, reply {req, result, error}
+//                      account-login {req, name, password}, account-sync {req}, account-logout {req}
+//   plug-in -> pagina: init {state, account}, load {state}, pos {...}, reply {req, result, error}
 // Funzioni del sito sostituite: trigger, play, stop, setStatus, db, downloadsCap.
 // Se cambia scheduler() o trigger() nel sito, va allineato plugin/Source/Engine.cpp.
 (function pmPluginBridge(){
@@ -297,6 +298,59 @@
   }
   renderInstanceTrack();
 
+  // ---------- account PatternMachine e sincronizzazione cloud ----------
+  // Il plug-in carica la pagina da un'origine locale: il login passa quindi dal C++,
+  // che usa HTTPS e conserva solo la sessione, mai la password o le credenziali nello stato Logic.
+  const accountHost=document.createElement("div"); accountHost.className="pm-plugin-account";
+  accountHost.innerHTML='<span class="pm-account-state" role="status" aria-live="polite">Projects: local</span>'
+    +'<button type="button" class="mini pm-account-signin">Sign in</button>'
+    +'<button type="button" class="mini pm-account-sync" hidden>Sync</button>'
+    +'<button type="button" class="mini pm-account-signout" hidden>Sign out</button>';
+  el("panelPatterns")?.prepend(accountHost);
+  const accountState=accountHost.querySelector(".pm-account-state"), accountIn=accountHost.querySelector(".pm-account-signin"),
+    accountSync=accountHost.querySelector(".pm-account-sync"), accountOut=accountHost.querySelector(".pm-account-signout");
+  function paintAccount(st){
+    const on=!!st?.signedIn;
+    accountState.textContent=on?`Signed in as ${st.name||"PatternMachine"}`:"Projects: local";
+    accountIn.hidden=on; accountSync.hidden=!on; accountOut.hidden=!on;
+    accountState.classList.toggle("on",on);
+  }
+  function accountDialog(){
+    const d=document.createElement("dialog"); d.className="pm-account-dialog";
+    d.innerHTML='<form><h3>Sign in to PatternMachine</h3>'
+      +'<p>Sync projects saved by this plug-in with your PatternMachine account. The password is sent only over HTTPS and is not stored in the Logic project.</p>'
+      +'<label>Name or email<input name="name" autocomplete="username" required></label>'
+      +'<label>Password<input name="password" type="password" autocomplete="current-password" required></label>'
+      +'<p class="pm-account-message" role="status"></p>'
+      +'<p class="pm-account-links"><a href="https://patternmachine.tongatron.org/register" target="_blank" rel="noopener">Create an account</a> · <a href="https://patternmachine.tongatron.org/forgot" target="_blank" rel="noopener">Forgot password?</a></p>'
+      +'<div class="pm-account-actions"><button type="button" data-cancel>Cancel</button><button type="submit" class="primary">Sign in</button></div></form>';
+    const form=d.querySelector("form"), message=d.querySelector(".pm-account-message"), submit=form.querySelector("[type=submit]");
+    d.querySelector("[data-cancel]").onclick=()=>d.close();
+    form.onsubmit=async e=>{
+      e.preventDefault(); submit.disabled=true; message.textContent="Signing in…";
+      try{
+        const r=await call("account-login",{name:form.elements.name.value.trim(),password:form.elements.password.value});
+        if(!r.ok){ message.textContent=r.error||"Sign-in failed"; submit.disabled=false; return; }
+        paintAccount({signedIn:true,name:r.name}); d.close(); setStatus(`signed in as ${r.name}`);
+      }catch(err){ message.textContent=err.message||"Sign-in failed"; submit.disabled=false; }
+    };
+    d.addEventListener("click",e=>{ if(e.target===d) d.close(); });
+    d.addEventListener("close",()=>d.remove()); document.body.appendChild(d); d.showModal(); form.elements.name.focus();
+  }
+  accountIn.onclick=accountDialog;
+  accountSync.onclick=async()=>{
+    accountSync.disabled=true; accountState.textContent="Syncing projects…";
+    try{
+      const r=await call("account-sync",{});
+      if(r.expired){ paintAccount({signedIn:false}); setStatus("account session expired","err"); return; }
+      if(!r.ok){ paintAccount({signedIn:true,name:accountState.textContent.replace(/^Signed in as /,"")}); setStatus(r.error||"project sync failed","err"); return; }
+      if(typeof notify==="function") notify();
+      setStatus(`projects synced · ${r.uploaded||0} uploaded, ${r.downloaded||0} downloaded`);
+    }catch(e){ setStatus(e.message||"project sync failed","err"); }
+    finally{ accountSync.disabled=false; }
+  };
+  accountOut.onclick=async()=>{ await call("account-logout",{}).catch(()=>{}); paintAccount({signedIn:false}); setStatus("signed out"); };
+
   // ---------- progetti come file in ~/Music/PatternMachine/Progetti (come l'app per Mac) ----------
   const listeners=new Set();
   const snapshot=async()=>{
@@ -358,6 +412,7 @@
       restore(m.state);
       instanceTrack=Number.isInteger(+m.instanceTrack)?+m.instanceTrack:-1;
       renderInstanceTrack();
+      paintAccount(m.account);
       ready=true; lastSync="";
       pushSync(true);             // anche un progetto nuovo suona subito, senza toccare niente
     }

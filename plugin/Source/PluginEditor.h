@@ -19,6 +19,10 @@ private:
     void onMessage (const juce::var& msg);
     void send (const juce::var& msg);
     void reply (const juce::var& req, const juce::var& result, const juce::String& error = {});
+    void accountLoginAsync (const juce::var& req, juce::String name, juce::String password);
+    void accountSyncAsync (const juce::var& req);
+    void accountLogout();
+    juce::var accountStatus() const;
     std::optional<juce::WebBrowserComponent::Resource> serve (const juce::String& url);
     juce::var projects (const juce::var& msg);
     juce::var exportFile (const juce::var& msg);
@@ -27,6 +31,10 @@ private:
     juce::WebBrowserComponent web;
     juce::String lastPos;
     bool pageReady = false;
+    struct Account;
+    std::unique_ptr<Account> account;
+    mutable juce::CriticalSection accountLock;
+    juce::ThreadPool networkJobs { 1 };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PatternMachineEditor)
 };

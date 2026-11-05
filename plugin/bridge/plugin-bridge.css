@@ -24,6 +24,21 @@
 .pm-instance-track select{font:inherit; color:var(--text); background:var(--panel-2); border:1px solid var(--line); border-radius:4px; padding:2px 5px; max-width:180px;}
 .pm-plugin #bpmNum:disabled,.pm-plugin #bpmRange:disabled{opacity:.7; cursor:not-allowed;}
 
+.pm-plugin-account{display:flex; flex-wrap:wrap; align-items:center; gap:6px 8px; margin:0 0 9px; padding:7px 9px;
+  border:1px solid var(--line); border-radius:var(--r-panel,8px); background:var(--panel-2); color:var(--text-dim); font-size:10px;}
+.pm-plugin-account .pm-account-state{margin-right:auto;}
+.pm-plugin-account .pm-account-state.on{color:var(--text);}
+.pm-account-dialog{max-width:470px; color:var(--text); background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:0;}
+.pm-account-dialog::backdrop{background:rgba(0,0,0,.45);}
+.pm-account-dialog form{padding:18px;}
+.pm-account-dialog h3{margin:0 0 8px;}
+.pm-account-dialog p{font-size:11px; line-height:1.45; color:var(--text-dim);}
+.pm-account-dialog label{display:flex; flex-direction:column; gap:4px; margin:9px 0; font-size:10px; color:var(--text-dim);}
+.pm-account-dialog input{font:inherit; color:var(--text); background:var(--panel-2); border:1px solid var(--line); border-radius:4px; padding:7px;}
+.pm-account-dialog .pm-account-message{min-height:1.4em; color:var(--danger);}
+.pm-account-dialog .pm-account-links{font-size:10px;}
+.pm-account-dialog .pm-account-actions{display:flex; justify-content:flex-end; gap:7px; margin-top:13px;}
+
 /* Nel WebView del plug-in i controlli Logic possono occupare piu' della prima riga.
    Il BPM del progetto viene spostato dal bridge nella seconda riga, accanto al contatore. */
 html.pm-plugin.op #panelTransport{display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px;}

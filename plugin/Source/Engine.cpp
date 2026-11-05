@@ -325,7 +325,10 @@ void Engine::emitStep (const Snapshot& s, const StepPos& p, double ppqStart, dou
 {
     const double tempo = ppqPerSample * 60.0 * sr;
     const double at = s.stepPpq (p, tempo);
-    const double secToPpq = s.bpm / 60.0;
+    // Gli offset in secondi (nudge, humanize e ratchet) devono seguire il BPM
+    // dell'host, non quello memorizzato nel progetto. Il BPM del progetto e'
+    // solo un fallback per l'anteprima: in Logic puo' esserci un'automazione.
+    const double secToPpq = tempo / 60.0;
     auto toClock = [&] (double ppq) { return clock + (juce::int64) std::llround ((ppq - ppqStart) / ppqPerSample); };
 
     if (s.metronome && p.step % 4 == 0)

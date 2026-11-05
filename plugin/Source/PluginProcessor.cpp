@@ -100,6 +100,11 @@ void PatternMachineProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     }
     engine.process (buffer, midi, snap, t, aux, instanceTrack.load());
     buffer.applyGain (outputGain);
+    // Le uscite ausiliarie sono viste separate del buffer principale: applica
+    // lo stesso margine anche ai canali multi-output, altrimenti il routing
+    // per istanza avrebbe un livello diverso dal mix principale.
+    for (auto* a : aux)
+        if (a != nullptr) a->applyGain (outputGain);
     midi.clear();
 
     posPlaying = t.playing;

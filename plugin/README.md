@@ -13,7 +13,7 @@ si preme Play in Logic e i pattern suonano a tempo, dalla battuta giusta, senza 
 | Stato | `Source/PluginProcessor.cpp` | Il progetto si salva **dentro il progetto di Logic** (e suona anche senza aprire la finestra) |
 
 Il sync è automatico perché è Logic a chiamare il plug-in a ogni blocco audio con la posizione esatta:
-- **Play/Stop/tempo/cambi di tempo** arrivano da Logic, nessuna impostazione da fare: l'AU legge il PPQ e il BPM dell'host a ogni blocco audio. Non serve inviare un MIDI Clock alla traccia del plug-in; il trasporto di Logic è il riferimento più preciso. Il MIDI Clock esterno resta disponibile per l'app desktop e per i collegamenti MIDI senza AU.
+- **Play/Stop/tempo/cambi di tempo** arrivano da Logic, nessuna impostazione da fare: l'AU legge il PPQ e il BPM dell'host a ogni blocco audio. Anche nudge, humanize, flam e ratchet seguono il BPM istantaneo dell'host. Non serve inviare un MIDI Clock alla traccia del plug-in; il trasporto di Logic è il riferimento più preciso. Il MIDI Clock esterno resta disponibile per l'app desktop e per i collegamenti MIDI senza AU.
 - **Posizione**: lo step 1 cade sulla battuta 1 di Logic. In modalità *Canzone* la canzone parte dalla battuta 1 (nel pre-roll tace) e ricomincia alla fine; in modalità *Pattern* il pattern selezionato gira sempre allineato alle battute.
 - **Cicli e salti** del righello: il motore si riposiziona sullo step che cade lì.
 - **Bounce** e bounce offline funzionano, perché l'audio esce dal plug-in e non dal WebView.

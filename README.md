@@ -21,6 +21,7 @@ Runs in the browser, as a desktop app for macOS, Windows and Linux, and as a plu
 ## Contents
 
 - [Overview](#overview)
+- [Current releases](#current-releases)
 - [Features](#features)
 - [Desktop app](#desktop-app-macos-windows-linux)
 - [Logic Pro plug-in](#logic-pro-plug-in-au--vst3)
@@ -42,6 +43,20 @@ It comes in three forms that share the same interface:
 | 🌐 **Website** | any modern browser | nothing to install |
 | 🖥️ **Desktop app** | macOS, Windows, Linux | virtual MIDI port, sync to the DAW's MIDI Clock, drag-and-drop into the DAW timeline, projects as files, offline use, custom sample kits |
 | 🎛️ **Logic plug-in** | Logic Pro (AU) and other hosts (VST3) | plays inside an instrument track, sample-accurate with the host transport, state saved with the Logic project |
+
+## Current releases
+
+The current published versions are **desktop app 0.2.10** and **Logic plug-in 0.1.4**.
+
+| Package | Version | Platforms / formats | Download |
+|---|---:|---|---|
+| Desktop app | 0.2.10 | macOS Apple Silicon, Windows x64, Linux x64 AppImage | [Download page](https://patternmachine.tongatron.org/app.html) |
+| Logic plug-in | 0.1.4 | macOS Apple Silicon, AU + VST3 | [Plug-in page](https://patternmachine.tongatron.org/plugin.html) |
+| Logic starter project | — | Logic Pro template, no recordings | [Download the template](https://patternmachine.tongatron.org/download/PatternMachine-Logic-Starter.zip) |
+
+The starter project is based on a working Logic session and contains a **PATTERN MACHINE** software-instrument track,
+the plug-in output routed to **Bus 1**, **Aux 1** receiving that bus, and an empty **Audio Print** track ready to record.
+The template is also included in the macOS plug-in release package.
 
 ## Features
 
@@ -118,6 +133,9 @@ MIDI clock to set up.
 
 Download it from the [plug-in page](https://patternmachine.tongatron.org/plugin.html). To add it in Logic: new **Software
 Instrument** track › Instrument slot › **AU Instruments › Tongatron › PatternMachine**.
+
+The plug-in download also includes the [Logic starter project](https://patternmachine.tongatron.org/download/PatternMachine-Logic-Starter.zip),
+which opens with the standard PATTERN MACHINE routing already prepared and no recorded audio.
 
 ## MIDI and DAW integration
 

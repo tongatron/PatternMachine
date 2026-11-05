@@ -48,9 +48,11 @@ quelli presenti solo online vengono scaricati e, se esistono entrambe le copie, 
 conserva solo la sessione in un file locale protetto, separato dai file audio e dallo stato AU.
 Il lavoro offline continua a funzionare senza login. Il logout rimuove la sessione locale.
 
-Questa prima sincronizzazione riguarda i dati dei pattern e dei progetti. I campioni importati
-personalmente non vengono ancora caricati né inclusi automaticamente: restano il prossimo blocco
-del piano, insieme alla verifica di hash, quota e ripristino offline dei sample.
+Questa prima sincronizzazione cloud riguarda i dati dei pattern e dei progetti. Se l'app macOS è
+installata sullo stesso Mac, il plug-in legge già dalla sua cache locale i sample del Sampler e i
+kit importati, anche offline; i file restano fuori dallo stato di Logic e vengono caricati al volo.
+Il caricamento/scaricamento cloud dei sample dal pulsante **Sync** resta il prossimo blocco, con
+hash, quota e ripristino offline.
 
 ## Compilarlo
 
@@ -84,7 +86,7 @@ quella riga e resta su un canale separato del mixer; l'assegnazione viene salvat
 ## Limiti del prototipo
 
 - Il plug-in non è firmato con un certificato Apple Developer: va bene sul proprio Mac, non per distribuirlo.
-- I kit personali importati nell'app per Mac (`__kits/`) non ci sono: il plug-in suona i kit del sito.
+- I kit personali e i sample importati sono disponibili nel plug-in quando la cache locale dell'app per Mac è presente (`__kits/` e `__samples/`); il trasferimento cloud dei file audio non è ancora incluso in **Sync**.
 - La testina e il contatore nella finestra si aggiornano 30 volte al secondo (l'audio invece è al campione).
 - In Logic il menu AU può esporre soltanto Mono/Stereo: per i canali separati usare la modalità a istanze,
   duplicando la traccia e assegnando una riga diversa dal selettore Istanza. Il routing AU multi-output diretto

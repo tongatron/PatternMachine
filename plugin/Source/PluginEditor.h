@@ -23,6 +23,8 @@ private:
     void accountSyncAsync (const juce::var& req);
     void accountLogout();
     juce::var accountStatus() const;
+    juce::var localSamples() const;
+    juce::var localKits() const;
     std::optional<juce::WebBrowserComponent::Resource> serve (const juce::String& url);
     juce::var projects (const juce::var& msg);
     juce::var exportFile (const juce::var& msg);

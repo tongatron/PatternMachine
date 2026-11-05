@@ -13,6 +13,12 @@ static juce::File findResources (const char* name)
     return inBundle;
 }
 
+static juce::File patternMachineUserData()
+{
+    return juce::File::getSpecialLocation (juce::File::userApplicationDataDirectory)
+        .getChildFile ("PatternMachine");
+}
+
 PatternMachineProcessor::BusesProperties PatternMachineProcessor::makeBuses()
 {
     auto buses = BusesProperties()
@@ -28,7 +34,7 @@ PatternMachineProcessor::BusesProperties PatternMachineProcessor::makeBuses()
 
 PatternMachineProcessor::PatternMachineProcessor()
     : AudioProcessor (makeBuses()),
-      samples (findResources ("site"))
+      samples (findResources ("site"), patternMachineUserData())
 {
 }
 

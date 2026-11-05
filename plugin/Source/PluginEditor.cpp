@@ -9,6 +9,12 @@ static juce::File projectsDir() { return homeDir().getChildFile ("Progetti"); }
 static juce::File exportDir() { return homeDir().getChildFile ("Export"); }
 static constexpr const char* patternMachineServer = "https://patternmachine.tongatron.org";
 
+static juce::File patternMachineUserData()
+{
+    return juce::File::getSpecialLocation (juce::File::userApplicationDataDirectory)
+        .getChildFile ("PatternMachine");
+}
+
 struct PatternMachineEditor::Account
 {
     juce::String name, uid, cookie;
@@ -22,8 +28,14 @@ struct HttpResult
 
 static juce::File accountFile()
 {
-    return juce::File::getSpecialLocation (juce::File::userApplicationDataDirectory)
-        .getChildFile ("PatternMachine").getChildFile ("plugin-account.json");
+    return patternMachineUserData().getChildFile ("plugin-account.json");
+}
+
+static juce::File localSampleFile (const juce::String& id)
+{
+    const auto safe = id.retainCharacters ("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-");
+    if (! safe.startsWith ("s-") || safe.length() > 66 || safe != id) return {};
+    return patternMachineUserData().getChildFile ("samples").getChildFile (safe + ".blob");
 }
 
 static juce::String formPart (const juce::String& value)
@@ -51,12 +63,12 @@ static juce::String sessionCookie (const juce::StringPairArray& headers)
     return {};
 }
 
-static HttpResult httpRequest (const juce::String& path, const juce::String& method,
-                               const juce::String& body = {}, const juce::String& cookie = {},
-                               const juce::String& contentType = {})
+static HttpResult httpRequestData (const juce::String& path, const juce::String& method,
+                                   const juce::MemoryBlock* upload, const juce::String& cookie,
+                                   const juce::String& contentType, juce::MemoryBlock* download)
 {
     auto url = juce::URL (juce::String (patternMachineServer) + path);
-    if (body.isNotEmpty()) url = url.withPOSTData (body);
+    if (upload != nullptr && upload->getSize() > 0) url = url.withPOSTData (*upload);
 
     juce::String headers = "Accept: application/json\r\n";
     if (cookie.isNotEmpty()) headers << "Cookie: " << cookie << "\r\n";
@@ -75,8 +87,26 @@ static HttpResult httpRequest (const juce::String& path, const juce::String& met
     HttpResult result;
     result.status = status;
     result.cookie = sessionCookie (responseHeaders);
-    if (stream != nullptr) result.body = stream->readEntireStreamAsString();
+    if (stream != nullptr)
+    {
+        if (download != nullptr) stream->readIntoMemoryBlock (*download);
+        else result.body = stream->readEntireStreamAsString();
+    }
     return result;
+}
+
+static HttpResult httpRequest (const juce::String& path, const juce::String& method,
+                               const juce::String& body = {}, const juce::String& cookie = {},
+                               const juce::String& contentType = {})
+{
+    juce::MemoryBlock data;
+    const juce::MemoryBlock* upload = nullptr;
+    if (body.isNotEmpty())
+    {
+        data.append (body.toRawUTF8(), body.getNumBytesAsUTF8());
+        upload = &data;
+    }
+    return httpRequestData (path, method, upload, cookie, contentType, nullptr);
 }
 
 static juce::var jsonObject (const juce::String& text)
@@ -200,8 +230,15 @@ std::optional<juce::WebBrowserComponent::Resource> PatternMachineEditor::serve (
     if (path.contains ("..")) return std::nullopt;
 
     const bool bridge = path.startsWith ("__plugin/");
-    const auto root = bridge ? proc.bridgeDir() : proc.siteDir();
-    const auto file = root.getChildFile (bridge ? path.fromFirstOccurrenceOf ("__plugin/", false, false) : path);
+    const bool userSample = path.startsWith ("__samples/");
+    const bool userKit = path.startsWith ("__kits/");
+    juce::File root;
+    juce::String relative;
+    if (bridge) { root = proc.bridgeDir(); relative = path.fromFirstOccurrenceOf ("__plugin/", false, false); }
+    else if (userSample) { root = patternMachineUserData().getChildFile ("samples"); relative = path.fromFirstOccurrenceOf ("__samples/", false, false); }
+    else if (userKit) { root = patternMachineUserData().getChildFile ("drum-machines"); relative = path.fromFirstOccurrenceOf ("__kits/", false, false); }
+    else { root = proc.siteDir(); relative = path; }
+    const auto file = root.getChildFile (relative);
     if (! file.existsAsFile() || ! file.isAChildOf (root)) return std::nullopt;
 
     juce::MemoryBlock mb;
@@ -248,6 +285,49 @@ void PatternMachineEditor::stateRestored()
     o->setProperty ("type", "load");
     o->setProperty ("state", proc.getSavedState());
     send (juce::var (o.release()));
+}
+
+juce::var PatternMachineEditor::localSamples() const
+{
+    juce::Array<juce::var> out;
+    const auto manifest = jsonObject (patternMachineUserData().getChildFile ("samples").getChildFile ("samples.json").loadFileAsString());
+    if (auto* entries = manifest.getDynamicObject())
+        for (const auto& [id, value] : entries->getProperties())
+        {
+            const auto file = localSampleFile (id.toString());
+            if (! file.existsAsFile() || ! value.isObject() || (bool) value["deleted"]) continue;
+            auto item = std::make_unique<juce::DynamicObject>();
+            item->setProperty ("id", id.toString());
+            item->setProperty ("name", value["name"].toString());
+            item->setProperty ("file", "__samples/" + id.toString() + ".blob");
+            item->setProperty ("size", (double) file.getSize());
+            item->setProperty ("sha256", value["sha256"]);
+            item->setProperty ("updatedAt", value["updatedAt"]);
+            item->setProperty ("mime", value["mime"]);
+            item->setProperty ("duration", value["duration"]);
+            item->setProperty ("settings", value["settings"]);
+            out.add (juce::var (item.release()));
+        }
+    return out;
+}
+
+juce::var PatternMachineEditor::localKits() const
+{
+    juce::Array<juce::var> out;
+    const auto root = patternMachineUserData().getChildFile ("drum-machines");
+    for (const auto& dir : root.findChildFiles (juce::File::findDirectories, false, "*") )
+    {
+        const auto meta = jsonObject (dir.getChildFile ("kit.json").loadFileAsString());
+        if (! meta.isObject()) continue;
+        auto item = std::make_unique<juce::DynamicObject>();
+        const auto id = meta["id"].toString();
+        if (safeId (id) != id || id.isEmpty()) continue;
+        item->setProperty ("id", id);
+        item->setProperty ("label", meta["label"].toString());
+        item->setProperty ("slots", meta["slots"]);
+        out.add (juce::var (item.release()));
+    }
+    return out;
 }
 
 juce::var PatternMachineEditor::accountStatus() const
@@ -457,6 +537,8 @@ void PatternMachineEditor::onMessage (const juce::var& msg)
     else if (type == "account-login") accountLoginAsync (msg["req"], msg["name"].toString(), msg["password"].toString());
     else if (type == "account-sync") accountSyncAsync (msg["req"]);
     else if (type == "account-logout") { accountLogout(); reply (msg["req"], accountStatus()); }
+    else if (type == "samples") reply (msg["req"], localSamples());
+    else if (type == "kits") reply (msg["req"], localKits());
     else if (type == "projects")
     {
         try { reply (msg["req"], projects (msg)); }

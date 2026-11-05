@@ -125,6 +125,17 @@ int main()
         check (site.get ("../server.py") == nullptr, "niente file fuori da site/");
     }
 
+    std::cout << "Campioni locali dell'app\n";
+    {
+        auto user = dir.getChildFile ("user-data");
+        auto sample = user.getChildFile ("samples").getChildFile ("s-test.blob");
+        sample.getParentDirectory().createDirectory();
+        dir.getChildFile ("click.wav").copyFileTo (sample);
+        SampleCache local (dir, user);
+        check (local.get ("__samples/s-test.blob") != nullptr, "un sample locale si carica");
+        check (local.get ("__samples/../click.wav") == nullptr, "niente traversal nei sample locali");
+    }
+
     std::cout << (failures ? juce::String (failures) + " prove fallite\n" : juce::String ("tutte le prove passate\n"));
     return failures ? 1 : 0;
 }

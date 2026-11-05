@@ -7,6 +7,7 @@
 //                      projects {req, op, id, data}, export {req, filename, base64}, reveal {name}
 //                      ("→ Logic" = export WAV + reveal; il WAV si trascina dal Finder sulla timeline)
 //                      account-login {req, name, password}, account-sync {req}, account-logout {req}
+//                      samples {req}, kits {req}
 //   plug-in -> pagina: init {state, account}, load {state}, pos {...}, reply {req, result, error}
 // Funzioni del sito sostituite: trigger, play, stop, setStatus, db, downloadsCap.
 // Se cambia scheduler() o trigger() nel sito, va allineato plugin/Source/Engine.cpp.
@@ -54,6 +55,31 @@
     waiting.set(req,{ok,ko});
     send({type, req, ...payload});
   });
+
+  // L'app macOS conserva i sample del Sampler e i kit importati fuori dal progetto.
+  // Il plug-in li vede tramite riferimenti locali stabili, senza trasformare i file audio
+  // in base64 nello stato di Logic.
+  async function loadLocalAudioAssets(){
+    try{
+      const [sampleList,kitList]=await Promise.all([call("samples",{}),call("kits",{})]);
+      for(const s of Array.isArray(sampleList)?sampleList:[]){
+        if(!s?.id || SAMPLES.some(x=>x.local&&x.localId===s.id)) continue;
+        SAMPLES.push({name:s.name||s.id,bank:"D",local:true,localId:s.id,localUrl:s.file||`__samples/${s.id}.blob`,size:+s.size||0,duration:+s.duration||0,settings:s.settings||{}});
+      }
+      for(const meta of Array.isArray(kitList)?kitList:[]){
+        if(!meta?.id || !Array.isArray(meta.slots)) continue;
+        const bySlot=Object.fromEntries(meta.slots.map(s=>[s.slot,s]));
+        KITS[meta.id]={label:meta.label||meta.id,source:"your own samples",custom:true,
+          url:x=>`__kits/${meta.id}/${bySlot[x.name]?.file||""}`,
+          name:x=>bySlot[x.name]?.label||x.name,
+          has:x=>!!bySlot[x.name]};
+      }
+      if(typeof fillKitOptions==="function"){
+        fillKitOptions(el("kitSelect")); fillKitOptions(el("libKitSelect"));
+        if(typeof paintKitButtons==="function") paintKitButtons();
+      }
+    }catch(e){ /* user assets are optional; bundled kits remain available */ }
+  }
 
   // ---------- stato mandato al motore ----------
   // engine: solo cio' che serve per suonare (vedi Snapshot::fromVar). state: per riaprire la pagina.
@@ -409,12 +435,15 @@
       m.error ? w.ko(new Error(m.error)) : w.ok(m.result);
     }
     else if(m.type==="init"){
-      restore(m.state);
-      instanceTrack=Number.isInteger(+m.instanceTrack)?+m.instanceTrack:-1;
-      renderInstanceTrack();
-      paintAccount(m.account);
-      ready=true; lastSync="";
-      pushSync(true);             // anche un progetto nuovo suona subito, senza toccare niente
+      (async()=>{
+        await loadLocalAudioAssets();
+        restore(m.state);
+        instanceTrack=Number.isInteger(+m.instanceTrack)?+m.instanceTrack:-1;
+        renderInstanceTrack();
+        paintAccount(m.account);
+        ready=true; lastSync="";
+        pushSync(true);             // anche un progetto nuovo suona subito, senza toccare niente
+      })();
     }
     else if(m.type==="load"){ restore(m.state); renderInstanceTrack(); lastSync=""; pushSync(true); }
   });

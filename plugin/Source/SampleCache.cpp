@@ -1,6 +1,6 @@
 #include "SampleCache.h"
 
-SampleCache::SampleCache (juce::File root) : siteRoot (std::move (root))
+SampleCache::SampleCache (juce::File root, juce::File user) : siteRoot (std::move (root)), userRoot (std::move (user))
 {
     formats.registerBasicFormats();
 }
@@ -9,8 +9,21 @@ juce::File SampleCache::resolve (const juce::String& relativePath) const
 {
     auto rel = juce::URL::removeEscapeChars (relativePath).trimCharactersAtStart ("/");
     if (rel.isEmpty() || rel.contains ("..")) return {};
-    auto f = siteRoot.getChildFile (rel);
-    return f.isAChildOf (siteRoot) ? f : juce::File();
+    juce::File root = siteRoot;
+    if (rel.startsWith ("__samples/"))
+    {
+        if (userRoot == juce::File()) return {};
+        root = userRoot.getChildFile ("samples");
+        rel = rel.fromFirstOccurrenceOf ("__samples/", false, false);
+    }
+    else if (rel.startsWith ("__kits/"))
+    {
+        if (userRoot == juce::File()) return {};
+        root = userRoot.getChildFile ("drum-machines");
+        rel = rel.fromFirstOccurrenceOf ("__kits/", false, false);
+    }
+    auto f = root.getChildFile (rel);
+    return f.isAChildOf (root) ? f : juce::File();
 }
 
 const SampleData* SampleCache::get (const juce::String& relativePath)
@@ -22,7 +35,14 @@ const SampleData* SampleCache::get (const juce::String& relativePath)
     auto file = resolve (relativePath);
     if (file.existsAsFile())
     {
-        if (std::unique_ptr<juce::AudioFormatReader> reader { formats.createReaderFor (file) })
+        std::unique_ptr<juce::AudioFormatReader> reader { formats.createReaderFor (file) };
+        // The app stores synced sampler audio as <id>.blob, so the extension cannot
+        // identify WAV/AIFF/MP3. The stream-based overload detects the container header.
+        if (reader == nullptr && file.getFileExtension().isEmpty() == false
+            && file.getFileExtension().equalsIgnoreCase (".blob"))
+            reader.reset (formats.createReaderFor (file.createInputStream()));
+
+        if (reader != nullptr)
         {
             auto len = (int) juce::jmin<juce::int64> (reader->lengthInSamples, 30 * (juce::int64) reader->sampleRate);
             auto chans = (int) juce::jlimit (1u, 2u, reader->numChannels);

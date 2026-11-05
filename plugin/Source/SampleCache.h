@@ -13,12 +13,14 @@ struct SampleData
 };
 
 // Campioni del sito letti dalla cartella site/ (dentro il bundle o nel repository).
+// __samples/ e __kits/ puntano invece alla cartella dati dell'app macOS, così un progetto
+// con campioni o drum machine personali resta riproducibile anche dentro Logic.
 // Si usa solo dal thread dei messaggi. I campioni non vengono mai liberati finche' il plug-in e'
 // aperto: le voci in riproduzione tengono puntatori semplici e non devono mai restare appese.
 class SampleCache
 {
 public:
-    explicit SampleCache (juce::File siteRoot);
+    explicit SampleCache (juce::File siteRoot, juce::File userRoot = {});
 
     // Percorso relativo come lo usa il sito (es. "machines/tr808/BD.wav"). nullptr se manca.
     const SampleData* get (const juce::String& relativePath);
@@ -27,6 +29,7 @@ public:
 
 private:
     juce::File siteRoot;
+    juce::File userRoot;
     juce::AudioFormatManager formats;
     std::map<juce::String, std::unique_ptr<SampleData>> cache;
 };

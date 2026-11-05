@@ -134,6 +134,176 @@ static bool writeLocalProject (const juce::String& id, const juce::var& data)
     return file != juce::File() && file.replaceWithText (juce::JSON::toString (data));
 }
 
+static juce::File localSamplesManifest()
+{
+    return patternMachineUserData().getChildFile ("samples").getChildFile ("samples.json");
+}
+
+static juce::var readLocalSamplesManifest()
+{
+    auto value = jsonObject (localSamplesManifest().loadFileAsString());
+    if (value.isObject()) return value;
+    return juce::var (new juce::DynamicObject());
+}
+
+static bool saveLocalSamplesManifest (const juce::var& value)
+{
+    auto file = localSamplesManifest();
+    file.getParentDirectory().createDirectory();
+    const auto ok = file.replaceWithText (juce::JSON::toString (value));
+    if (ok) ::chmod (file.getFullPathName().toRawUTF8(), 0600);
+    return ok;
+}
+
+static double sampleTime (const juce::var& value, const char* localKey, const char* remoteKey)
+{
+    const auto local = (double) value[localKey];
+    if (local > 0) return local;
+    const auto iso = value[remoteKey].toString();
+    return iso.isNotEmpty() ? (double) juce::Time::fromISO8601 (iso).toMilliseconds() : 0.0;
+}
+
+static juce::String sampleQuery (const juce::var& value)
+{
+    const auto name = value["name"].toString().trim().substring (0, 60);
+    const auto mime = value["mime"].toString().isNotEmpty() ? value["mime"].toString() : "application/octet-stream";
+    const auto settings = value["settings"].isObject() ? juce::JSON::toString (value["settings"]) : "{}";
+    return "?name=" + formPart (name.isEmpty() ? "Sample" : name)
+        + "&duration=" + formPart (juce::String ((double) value["duration"], 6))
+        + "&mime=" + formPart (mime)
+        + "&settings=" + formPart (settings);
+}
+
+static bool writeLocalSampleBytes (const juce::String& id, const juce::MemoryBlock& bytes)
+{
+    auto file = localSampleFile (id);
+    if (file == juce::File() || bytes.getSize() == 0 || bytes.getSize() > 20 * 1024 * 1024) return false;
+    file.getParentDirectory().createDirectory();
+    const auto temp = file.getSiblingFile (file.getFileName() + ".tmp");
+    if (! temp.replaceWithData (bytes.getData(), bytes.getSize())) return false;
+    if (file.existsAsFile()) file.deleteFile();
+    const auto moved = temp.moveFileTo (file);
+    if (moved) ::chmod (file.getFullPathName().toRawUTF8(), 0600);
+    return moved;
+}
+
+struct SampleSyncResult
+{
+    bool ok = false, expired = false;
+    juce::String error;
+    int uploaded = 0, downloaded = 0;
+};
+
+static SampleSyncResult syncLocalSamples (const juce::String& cookie)
+{
+    SampleSyncResult out;
+    const auto listed = httpRequest ("/api/samples", "GET", {}, cookie);
+    if (listed.status == 401 || listed.status == 303) { out.expired = true; return out; }
+    const auto list = jsonObject (listed.body);
+    if (listed.status != 200 || ! list.isObject())
+    {
+        out.error = jsonError ("Could not reach sample storage", listed);
+        return out;
+    }
+
+    auto manifest = readLocalSamplesManifest();
+    auto* local = manifest.getDynamicObject();
+    std::map<juce::String, juce::var> remote;
+    if (auto* rows = list["samples"].getArray())
+        for (const auto& row : *rows)
+        {
+            const auto id = row["id"].toString();
+            if (localSampleFile (id) != juce::File() && row.isObject()) remote[id] = row;
+        }
+
+    std::set<juce::String> ids;
+    for (const auto& [id, value] : local->getProperties()) ids.insert (id.toString());
+    for (const auto& [id, value] : remote) ids.insert (id);
+
+    for (const auto& id : ids)
+    {
+        auto localValue = local->getProperty (id);
+        const auto remoteIt = remote.find (id);
+        const auto hasLocal = localValue.isObject() && ! (bool) localValue["deleted"] && localSampleFile (id).existsAsFile();
+        const auto hasRemote = remoteIt != remote.end() && ! (bool) remoteIt->second["deleted"];
+        const auto localAt = sampleTime (localValue, "updatedAt", "serverUpdatedAt");
+        const auto remoteAt = remoteIt != remote.end() ? sampleTime (remoteIt->second, "updated_at", "updated_at") : 0.0;
+
+        if (localValue.isObject() && (bool) localValue["deleted"])
+        {
+            if (hasRemote && localAt >= remoteAt)
+            {
+                const auto deleted = httpRequest ("/api/samples/" + id, "DELETE", {}, cookie);
+                if (deleted.status == 401 || deleted.status == 303) { out.expired = true; return out; }
+                if (deleted.status >= 200 && deleted.status < 300) ++out.uploaded;
+                else if (deleted.status != 404) { out.error = jsonError ("Could not delete a remote sample", deleted); return out; }
+            }
+            else if (! hasRemote || (remoteIt != remote.end() && (bool) remoteIt->second["deleted"]))
+            {
+                local->removeProperty (id);
+            }
+            continue;
+        }
+
+        if (hasLocal && (! hasRemote || localAt >= remoteAt))
+        {
+            juce::MemoryBlock bytes;
+            if (! localSampleFile (id).loadFileAsData (bytes)) continue;
+            const auto upload = httpRequestData ("/api/samples/" + id + sampleQuery (localValue), "PUT",
+                                                 &bytes, cookie,
+                                                 localValue["mime"].toString().isNotEmpty() ? localValue["mime"].toString() : "application/octet-stream",
+                                                 nullptr);
+            if (upload.status == 401 || upload.status == 303) { out.expired = true; return out; }
+            if (upload.status < 200 || upload.status >= 300)
+            {
+                out.error = jsonError ("Could not upload a sample", upload);
+                return out;
+            }
+            const auto saved = jsonObject (upload.body);
+            if (saved.isObject())
+            {
+                localValue.getDynamicObject()->setProperty ("sha256", saved["sha256"]);
+                localValue.getDynamicObject()->setProperty ("serverRev", saved["rev"]);
+                localValue.getDynamicObject()->setProperty ("serverUpdatedAt", saved["updated_at"]);
+                local->setProperty (id, localValue);
+            }
+            ++out.uploaded;
+            continue;
+        }
+
+        if (hasRemote && (! hasLocal || remoteAt > localAt))
+        {
+            juce::MemoryBlock bytes;
+            const auto download = httpRequestData ("/api/samples/" + id, "GET", nullptr, cookie, {}, &bytes);
+            if (download.status == 401 || download.status == 303) { out.expired = true; return out; }
+            if (download.status != 200 || ! writeLocalSampleBytes (id, bytes))
+            {
+                out.error = jsonError ("Could not download a sample", download);
+                return out;
+            }
+            auto saved = std::make_unique<juce::DynamicObject>();
+            const auto source = remoteIt->second;
+            saved->setProperty ("id", id);
+            saved->setProperty ("name", source["name"]);
+            saved->setProperty ("size", (double) bytes.getSize());
+            saved->setProperty ("duration", source["duration"]);
+            saved->setProperty ("mime", source["mime"]);
+            saved->setProperty ("settings", source["settings"]);
+            saved->setProperty ("sha256", source["sha256"]);
+            saved->setProperty ("serverRev", source["rev"]);
+            saved->setProperty ("serverUpdatedAt", source["updated_at"]);
+            saved->setProperty ("updatedAt", juce::Time::getCurrentTime().toMilliseconds());
+            saved->setProperty ("deleted", false);
+            local->setProperty (id, juce::var (saved.release()));
+            ++out.downloaded;
+        }
+    }
+
+    saveLocalSamplesManifest (manifest);
+    out.ok = true;
+    return out;
+}
+
 class NetworkJob final : public juce::ThreadPoolJob
 {
 public:
@@ -485,7 +655,17 @@ void PatternMachineEditor::accountSyncAsync (const juce::var& req)
 
                 if (! (bool) syncResult->getProperty ("expired"))
                 {
-                    syncResult->setProperty ("ok", true);
+                    const auto samples = syncLocalSamples (cookie);
+                    if (samples.expired)
+                        syncResult->setProperty ("expired", true);
+                    else if (! samples.ok)
+                        syncResult->setProperty ("error", samples.error);
+                    else
+                    {
+                        syncResult->setProperty ("ok", true);
+                        syncResult->setProperty ("samplesUploaded", samples.uploaded);
+                        syncResult->setProperty ("samplesDownloaded", samples.downloaded);
+                    }
                     syncResult->setProperty ("uploaded", uploaded);
                     syncResult->setProperty ("downloaded", downloaded);
                 }

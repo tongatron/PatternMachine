@@ -370,8 +370,11 @@
       const r=await call("account-sync",{});
       if(r.expired){ paintAccount({signedIn:false}); setStatus("account session expired","err"); return; }
       if(!r.ok){ paintAccount({signedIn:true,name:accountState.textContent.replace(/^Signed in as /,"")}); setStatus(r.error||"project sync failed","err"); return; }
+      await loadLocalAudioAssets();
+      if(typeof rebindProjectSamples==="function") rebindProjectSamples();
+      pushSync(true);
       if(typeof notify==="function") notify();
-      setStatus(`projects synced · ${r.uploaded||0} uploaded, ${r.downloaded||0} downloaded`);
+      setStatus(`sync complete · ${r.uploaded||0} projects up, ${r.downloaded||0} down · ${r.samplesUploaded||0} samples up, ${r.samplesDownloaded||0} down`);
     }catch(e){ setStatus(e.message||"project sync failed","err"); }
     finally{ accountSync.disabled=false; }
   };

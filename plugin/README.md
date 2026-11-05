@@ -48,11 +48,12 @@ quelli presenti solo online vengono scaricati e, se esistono entrambe le copie, 
 conserva solo la sessione in un file locale protetto, separato dai file audio e dallo stato AU.
 Il lavoro offline continua a funzionare senza login. Il logout rimuove la sessione locale.
 
-Questa prima sincronizzazione cloud riguarda i dati dei pattern e dei progetti. Se l'app macOS è
-installata sullo stesso Mac, il plug-in legge già dalla sua cache locale i sample del Sampler e i
-kit importati, anche offline; i file restano fuori dallo stato di Logic e vengono caricati al volo.
-Il caricamento/scaricamento cloud dei sample dal pulsante **Sync** resta il prossimo blocco, con
-hash, quota e ripristino offline.
+La sincronizzazione cloud comprende i dati dei pattern/progetti e i sample del Sampler: il plug-in
+confronta hash e data, carica le copie locali più nuove e scarica quelle più recenti dall'account,
+rispettando la quota server di 20 MB. Se l'app macOS è installata sullo stesso Mac, legge anche i
+kit importati dalla cache locale, anche offline; i file audio restano fuori dallo stato di Logic.
+I kit personali non vengono ancora trasferiti al cloud, perché appartengono alla libreria locale
+dell'app e richiederanno un pacchetto separato.
 
 ## Compilarlo
 
